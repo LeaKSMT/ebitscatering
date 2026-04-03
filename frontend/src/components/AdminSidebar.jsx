@@ -17,7 +17,6 @@ import {
     UserRound,
     BarChart3,
     LogOut,
-    House,
     X,
 } from "lucide-react";
 
@@ -62,8 +61,10 @@ function AdminSidebar() {
     const confirmLogout = () => {
         localStorage.removeItem("adminAuth");
         localStorage.removeItem("adminUser");
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
         setShowLogoutModal(false);
-        navigate("/admin-login");
+        navigate("/login");
     };
 
     return (
@@ -98,15 +99,7 @@ function AdminSidebar() {
                     })}
                 </nav>
 
-                <div className="px-4 pb-5 pt-3 border-t border-white/10 space-y-3">
-                    <button
-                        onClick={() => navigate("/")}
-                        className="w-full flex items-center justify-center gap-2 rounded-2xl bg-[#d4af37] text-[#0b4a3a] font-bold py-3 hover:bg-[#c79f23] transition"
-                    >
-                        <House size={18} />
-                        Back to Website
-                    </button>
-
+                <div className="px-4 pb-5 pt-3 border-t border-white/10">
                     <button
                         onClick={() => setShowLogoutModal(true)}
                         className="w-full flex items-center justify-center gap-2 rounded-2xl bg-white text-[#0b4a3a] font-bold py-3 hover:bg-gray-100 transition"

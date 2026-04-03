@@ -7,13 +7,17 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ROUTES
-app.use("/api/auth", require("./routes/authRoutes"));
-
 app.get("/", (req, res) => {
     res.send("Backend is running");
 });
 
-app.listen(process.env.PORT, () => {
-    console.log(`Server running on port ${process.env.PORT}`);
+app.use("/api/auth", require("./routes/authRoutes"));
+app.use("/api/bookings", require("./routes/bookingRoutes"));
+app.use("/api/payments", require("./routes/paymentRoutes"));
+app.use("/api/quotations", require("./routes/quotationRoutes"));
+
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });

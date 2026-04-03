@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 function safeParse(key, fallback = []) {
     try {
@@ -22,11 +22,11 @@ function getClientUser() {
 }
 
 function getCurrentClientEmail() {
-    const clientUser = getClientUser();
+    const user = getClientUser();
     return (
         localStorage.getItem("currentClientEmail") ||
         localStorage.getItem("clientEmail") ||
-        clientUser?.email ||
+        user?.email ||
         ""
     );
 }
@@ -36,180 +36,362 @@ function getScopedKey(baseKey, email) {
 }
 
 function formatCurrency(value) {
-    const num = Number(value || 0);
-    return `₱${num.toLocaleString()}`;
+    return `₱${Number(value || 0).toLocaleString()}`;
 }
 
-function getStatusClasses(status) {
-    const normalized = (status || "").toLowerCase();
+function formatDate(dateStr) {
+    if (!dateStr) return "Not specified";
 
-    if (normalized === "approved" || normalized === "confirmed") {
-        return "bg-green-50 text-green-700 border border-green-200";
-    }
+    const date = new Date(dateStr);
+    if (Number.isNaN(date.getTime())) return dateStr;
 
-    if (normalized === "cancelled" || normalized === "canceled") {
-        return "bg-red-50 text-red-700 border border-red-200";
-    }
-
-    if (normalized === "pending") {
-        return "bg-[#fff8e6] text-[#b99117] border border-[#f1d98a]";
-    }
-
-    return "bg-gray-100 text-gray-700 border border-gray-200";
+    return date.toLocaleDateString("en-PH", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+    });
 }
 
-function ClientBookings() {
-    const clientEmail = getCurrentClientEmail();
-    const storageKey = getScopedKey("clientBookings", clientEmail);
+function toDateKey(date) {
+    if (!date) return "";
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+}
 
-    const [bookings, setBookings] = useState(() => safeParse(storageKey));
-    const [cancelTarget, setCancelTarget] = useState(null);
+function normalizeDateKey(value) {
+    if (!value) return "";
 
-    const saveBookings = (updated) => {
-        setBookings(updated);
-        localStorage.setItem(storageKey, JSON.stringify(updated));
-    };
+    if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        return value;
+    }
 
-    const handleCancelBooking = () => {
-        if (!cancelTarget) return;
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return "";
 
-        const updated = bookings.map((booking) => {
-            if (booking.id !== cancelTarget.id) return booking;
+    return toDateKey(parsed);
+}
 
-            return {
-                ...booking,
-                status: "Cancelled",
-                cancelledAt: new Date().toLocaleString(),
-            };
-        });
-
-        saveBookings(updated);
-        setCancelTarget(null);
-    };
-
+function getBookingDate(booking) {
     return (
-        <div className="space-y-6">
-            <div>
-                <h1 className="text-4xl font-bold text-[#0f4d3c]">My Bookings</h1>
-                <p className="text-gray-500 mt-1">Track your confirmed catering bookings.</p>
-            </div>
-
-            {bookings.length === 0 ? (
-                <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 p-10 text-center">
-                    <h2 className="text-2xl font-bold text-[#0f4d3c]">No bookings yet</h2>
-                    <p className="text-gray-500 mt-2">Your confirmed bookings will appear here.</p>
-                </div>
-            ) : (
-                <div className="grid gap-4">
-                    {bookings.map((booking, index) => {
-                        const displayId =
-                            booking.bookingId || `B${String(index + 1).padStart(2, "0")}`;
-                        const status = booking.status || "Confirmed";
-                        const isPending = status === "Pending";
-
-                        return (
-                            <div
-                                key={booking.id || index}
-                                className="bg-white rounded-[24px] shadow-sm border border-gray-100 p-6"
-                            >
-                                <div className="flex flex-wrap items-start justify-between gap-4">
-                                    <div>
-                                        <h2 className="text-2xl font-bold text-[#0f4d3c]">
-                                            {displayId}
-                                        </h2>
-                                        <p className="text-gray-700 mt-1">
-                                            {booking.eventType || "N/A"}
-                                        </p>
-                                        <p className="text-gray-500 text-sm mt-1">
-                                            Event Date: {booking.eventDate || booking.preferredDate || "N/A"}
-                                        </p>
-                                        <p className="text-gray-500 text-sm">
-                                            Guests: {booking.guests || booking.numberOfGuests || "N/A"}
-                                        </p>
-                                        {booking.venue && (
-                                            <p className="text-gray-500 text-sm">
-                                                Venue: {booking.venue}
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    <div className="text-right">
-                                        <span
-                                            className={`inline-block px-3 py-1 rounded-full text-sm font-semibold mb-3 ${getStatusClasses(
-                                                status
-                                            )}`}
-                                        >
-                                            {status}
-                                        </span>
-                                        <p className="text-2xl font-bold text-[#0f4d3c]">
-                                            {formatCurrency(booking.amount || booking.totalAmount || 0)}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="mt-5">
-                                    {isPending ? (
-                                        <button
-                                            type="button"
-                                            onClick={() => setCancelTarget(booking)}
-                                            className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-red-500 text-white font-semibold hover:bg-red-600 transition"
-                                        >
-                                            Request Cancellation
-                                        </button>
-                                    ) : (
-                                        <button
-                                            type="button"
-                                            disabled
-                                            className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-gray-100 text-gray-500 font-semibold cursor-not-allowed"
-                                        >
-                                            Booking can no longer be cancelled
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-            )}
-
-            {cancelTarget && (
-                <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px] flex items-center justify-center px-4">
-                    <div className="w-full max-w-md bg-white rounded-[28px] shadow-2xl border border-red-100 p-6">
-                        <div className="w-14 h-14 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-3xl font-bold mx-auto mb-4">
-                            !
-                        </div>
-
-                        <h3 className="text-2xl font-extrabold text-center text-[#0f4d3c]">
-                            Cancel this booking?
-                        </h3>
-
-                        <p className="text-gray-600 text-center mt-3 leading-7">
-                            This action is only available while the booking is still pending.
-                            Once cancelled, this booking will be marked as cancelled.
-                        </p>
-
-                        <div className="flex flex-col sm:flex-row gap-3 mt-6">
-                            <button
-                                type="button"
-                                onClick={handleCancelBooking}
-                                className="flex-1 px-4 py-3 rounded-2xl bg-red-500 text-white font-semibold hover:bg-red-600 transition"
-                            >
-                                Yes, Cancel Booking
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={() => setCancelTarget(null)}
-                                className="flex-1 px-4 py-3 rounded-2xl bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200 transition"
-                            >
-                                Keep Booking
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-        </div>
+        booking.eventDate ||
+        booking.preferredDate ||
+        booking.date ||
+        ""
     );
 }
 
-export default ClientBookings;
+export default function ClientCalendar() {
+    const clientEmail = getCurrentClientEmail();
+    const storageKey = getScopedKey("clientBookings", clientEmail);
+
+    const bookings = safeParse(storageKey, []);
+
+    const today = new Date();
+    const [currentDate, setCurrentDate] = useState(
+        new Date(today.getFullYear(), today.getMonth(), 1)
+    );
+    const [selectedDate, setSelectedDate] = useState(null);
+
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+
+    const firstDay = new Date(year, month, 1);
+    const startingDay = firstDay.getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    const calendarDays = [];
+    for (let i = 0; i < startingDay; i++) {
+        calendarDays.push(null);
+    }
+    for (let day = 1; day <= daysInMonth; day++) {
+        calendarDays.push(new Date(year, month, day));
+    }
+
+    const validBookings = useMemo(() => {
+        return bookings.filter((booking) => {
+            const status = String(booking.status || "").toLowerCase();
+            return status !== "cancelled" && status !== "canceled";
+        });
+    }, [bookings]);
+
+    const bookingMap = useMemo(() => {
+        const map = {};
+
+        validBookings.forEach((booking) => {
+            const rawDate = getBookingDate(booking);
+            const key = normalizeDateKey(rawDate);
+
+            if (!key) return;
+
+            if (!map[key]) map[key] = [];
+            map[key].push(booking);
+        });
+
+        return map;
+    }, [validBookings]);
+
+    const selectedBookings = selectedDate
+        ? bookingMap[toDateKey(selectedDate)] || []
+        : [];
+
+    const upcomingBookings = useMemo(() => {
+        const todayKey = toDateKey(new Date());
+
+        return validBookings
+            .filter((booking) => {
+                const bookingDate = normalizeDateKey(getBookingDate(booking));
+                return bookingDate && bookingDate >= todayKey;
+            })
+            .sort((a, b) => {
+                const dateA = new Date(getBookingDate(a));
+                const dateB = new Date(getBookingDate(b));
+                return dateA - dateB;
+            })
+            .slice(0, 6);
+    }, [validBookings]);
+
+    const monthLabel = currentDate.toLocaleDateString("en-PH", {
+        month: "long",
+        year: "numeric",
+    });
+
+    const isToday = (date) => {
+        if (!date) return false;
+        return toDateKey(date) === toDateKey(new Date());
+    };
+
+    const isBooked = (date) => {
+        if (!date) return false;
+        const key = toDateKey(date);
+        return Boolean(bookingMap[key]?.length);
+    };
+
+    const handleSelectUpcoming = (booking) => {
+        const rawDate = getBookingDate(booking);
+        const parsed = new Date(rawDate);
+
+        if (Number.isNaN(parsed.getTime())) return;
+
+        setCurrentDate(new Date(parsed.getFullYear(), parsed.getMonth(), 1));
+        setSelectedDate(parsed);
+    };
+
+    return (
+        <div className="grid grid-cols-1 xl:grid-cols-[1.7fr_1fr] gap-6">
+            <div className="bg-white rounded-[28px] border border-gray-200 shadow-sm overflow-hidden">
+                <div className="bg-[#0d5c46] text-white px-6 py-5 flex items-center justify-between">
+                    <button
+                        onClick={() => setCurrentDate(new Date(year, month - 1, 1))}
+                        className="font-semibold hover:opacity-90"
+                    >
+                        ‹ Previous
+                    </button>
+
+                    <h2 className="text-3xl font-extrabold">{monthLabel}</h2>
+
+                    <button
+                        onClick={() => setCurrentDate(new Date(year, month + 1, 1))}
+                        className="font-semibold hover:opacity-90"
+                    >
+                        Next ›
+                    </button>
+                </div>
+
+                <div className="p-6">
+                    <div className="grid grid-cols-7 gap-3 mb-4 text-center font-bold text-[#0d5c46]">
+                        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+                            <div key={day}>{day}</div>
+                        ))}
+                    </div>
+
+                    <div className="grid grid-cols-7 gap-3">
+                        {calendarDays.map((date, index) => {
+                            if (!date) {
+                                return (
+                                    <div
+                                        key={index}
+                                        className="h-24 rounded-2xl bg-transparent"
+                                    />
+                                );
+                            }
+
+                            const booked = isBooked(date);
+                            const todayMatch = isToday(date);
+                            const selected =
+                                selectedDate &&
+                                toDateKey(date) === toDateKey(selectedDate);
+
+                            return (
+                                <button
+                                    key={index}
+                                    onClick={() => setSelectedDate(date)}
+                                    className={`relative h-24 rounded-2xl border text-lg font-bold transition ${selected
+                                            ? "border-[#0d5c46] ring-2 ring-[#0d5c46] bg-[#eef9f5] text-[#0d5c46]"
+                                            : booked
+                                                ? "border-[#d4af37] bg-[#fff4cc] text-[#8a6b00] shadow-sm"
+                                                : todayMatch
+                                                    ? "border-[#0d5c46] bg-[#eef9f5] text-[#0d5c46]"
+                                                    : "border-gray-100 bg-[#f6f7f9] text-[#143c2f]"
+                                        }`}
+                                >
+                                    <span>{date.getDate()}</span>
+
+                                    {booked && !selected && (
+                                        <span className="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-[#d4af37]" />
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    <div className="mt-6 flex flex-wrap items-center justify-center gap-6 text-sm text-gray-600">
+                        <div className="flex items-center gap-2">
+                            <span className="w-4 h-4 rounded bg-[#fff4cc] border border-[#d4af37]" />
+                            Booked
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="w-4 h-4 rounded bg-[#eef9f5] border border-[#0d5c46]" />
+                            Today
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="space-y-5">
+                <div className="bg-white rounded-[28px] border border-gray-200 shadow-sm overflow-hidden">
+                    <div className="bg-[#22b47d] text-white px-6 py-5">
+                        <h3 className="text-2xl font-extrabold">Upcoming Events</h3>
+                        <p className="text-sm text-white/90 mt-1">
+                            Quickly view your upcoming confirmed bookings.
+                        </p>
+                    </div>
+
+                    <div className="p-5">
+                        {upcomingBookings.length === 0 ? (
+                            <div className="rounded-2xl border border-dashed border-gray-300 px-4 py-6 text-gray-500 text-center">
+                                No upcoming bookings found.
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                {upcomingBookings.map((booking, index) => (
+                                    <button
+                                        key={booking.id || `${getBookingDate(booking)}-${index}`}
+                                        onClick={() => handleSelectUpcoming(booking)}
+                                        className="w-full text-left rounded-2xl border border-gray-200 bg-[#fafafa] p-4 hover:border-[#22b47d] hover:shadow-sm transition"
+                                    >
+                                        <div className="flex items-start justify-between gap-3">
+                                            <div>
+                                                <h4 className="text-base font-bold text-[#0d5c46]">
+                                                    {booking.eventType || "Event Booking"}
+                                                </h4>
+                                                <p className="text-sm text-gray-600 mt-1">
+                                                    {formatDate(getBookingDate(booking))}
+                                                </p>
+                                            </div>
+
+                                            <span className="inline-flex items-center rounded-full bg-[#fff4cc] px-3 py-1 text-xs font-bold text-[#8a6b00] border border-[#e2c15c]">
+                                                {booking.status || "Booked"}
+                                            </span>
+                                        </div>
+
+                                        <div className="mt-3 space-y-1 text-sm text-gray-700">
+                                            <p>
+                                                <span className="font-semibold">Venue:</span>{" "}
+                                                {booking.venue || "Not specified"}
+                                            </p>
+                                            <p>
+                                                <span className="font-semibold">Guests:</span>{" "}
+                                                {booking.guests || booking.numberOfGuests || 0}
+                                            </p>
+                                            <p>
+                                                <span className="font-semibold">Package:</span>{" "}
+                                                {booking.packageName || "Not specified"}
+                                            </p>
+                                            <p className="text-[#0d5c46] font-bold pt-1">
+                                                {formatCurrency(booking.amount || booking.totalAmount || 0)}
+                                            </p>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-[28px] border border-gray-200 shadow-sm overflow-hidden">
+                    <div className="bg-[#0d5c46] text-white px-6 py-5">
+                        <h3 className="text-2xl font-extrabold">Booking Details</h3>
+                    </div>
+
+                    <div className="p-5">
+                        {!selectedDate ? (
+                            <div className="rounded-2xl border border-dashed border-gray-300 px-4 py-6 text-gray-500 text-center">
+                                Select a date or choose an upcoming event to view booking details.
+                            </div>
+                        ) : selectedBookings.length === 0 ? (
+                            <div className="rounded-2xl border border-dashed border-gray-300 px-4 py-6 text-gray-500 text-center">
+                                No booking found on {formatDate(toDateKey(selectedDate))}.
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                {selectedBookings.map((booking, index) => (
+                                    <div
+                                        key={booking.id || `${getBookingDate(booking)}-${index}`}
+                                        className="rounded-2xl border border-gray-200 p-4 bg-[#fafafa]"
+                                    >
+                                        <div className="flex items-start justify-between gap-3">
+                                            <h4 className="text-lg font-bold text-[#0d5c46]">
+                                                {booking.eventType || "Event Booking"}
+                                            </h4>
+
+                                            <span className="inline-flex items-center rounded-full bg-[#fff4cc] px-3 py-1 text-xs font-bold text-[#8a6b00] border border-[#e2c15c]">
+                                                {booking.status || "Booked"}
+                                            </span>
+                                        </div>
+
+                                        <div className="mt-3 space-y-2 text-sm text-gray-700">
+                                            <p>
+                                                <span className="font-semibold">Booking ID:</span>{" "}
+                                                {booking.bookingId || booking.id || "N/A"}
+                                            </p>
+                                            <p>
+                                                <span className="font-semibold">Date:</span>{" "}
+                                                {formatDate(getBookingDate(booking))}
+                                            </p>
+                                            <p>
+                                                <span className="font-semibold">Time:</span>{" "}
+                                                {booking.time || "Not specified"}
+                                            </p>
+                                            <p>
+                                                <span className="font-semibold">Venue:</span>{" "}
+                                                {booking.venue || "Not specified"}
+                                            </p>
+                                            <p>
+                                                <span className="font-semibold">Guests:</span>{" "}
+                                                {booking.guests || booking.numberOfGuests || 0}
+                                            </p>
+                                            <p>
+                                                <span className="font-semibold">Package:</span>{" "}
+                                                {booking.packageName || "Not specified"}
+                                            </p>
+                                            <p>
+                                                <span className="font-semibold">Classic Menu:</span>{" "}
+                                                {booking.classicMenu || "Not specified"}
+                                            </p>
+                                            <p>
+                                                <span className="font-semibold">Total:</span>{" "}
+                                                {formatCurrency(booking.amount || booking.totalAmount || 0)}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}

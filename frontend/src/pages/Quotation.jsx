@@ -744,7 +744,6 @@ function Quotation({ mode = "public" }) {
                                     placeholder="Enter your full name"
                                     className="w-full rounded-2xl border border-gray-300 px-4 py-3.5 outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition"
                                     required
-                                    readOnly={isClientMode}
                                 />
                             </div>
 
@@ -775,7 +774,6 @@ function Quotation({ mode = "public" }) {
                                     placeholder="Enter your email address"
                                     className="w-full rounded-2xl border border-gray-300 px-4 py-3.5 outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition"
                                     required
-                                    readOnly={isClientMode}
                                 />
                             </div>
 
@@ -918,8 +916,8 @@ function Quotation({ mode = "public" }) {
                                             <label
                                                 key={item.name}
                                                 className={`flex items-center justify-between gap-3 rounded-2xl border px-4 py-3.5 cursor-pointer transition ${checked
-                                                        ? "border-[#d4af37] bg-[#fff8e6] shadow-sm"
-                                                        : "border-gray-200 bg-white hover:border-[#d4af37]"
+                                                    ? "border-[#d4af37] bg-[#fff8e6] shadow-sm"
+                                                    : "border-gray-200 bg-white hover:border-[#d4af37]"
                                                     }`}
                                             >
                                                 <div className="flex items-center gap-3">

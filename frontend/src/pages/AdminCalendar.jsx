@@ -20,12 +20,6 @@ import {
 
 const PAX_RATE = 400;
 
-/*
-  NOTE:
-  These package lists are copied from your current Quotation.jsx
-  so the Admin Calendar Add Booking uses the same package flow.
-*/
-
 const dynamicPerPaxPackages = [
     {
         name: "Birthday Catering Package",
@@ -210,6 +204,7 @@ function AdminCalendar() {
     const [selectedDate, setSelectedDate] = useState("");
     const [showAddModal, setShowAddModal] = useState(false);
     const [showManageModal, setShowManageModal] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [form, setForm] = useState(getInitialForm());
 
     const refreshBookings = () => {
@@ -477,7 +472,7 @@ function AdminCalendar() {
         localStorage.setItem(scopedKey, JSON.stringify([booking, ...existing]));
         refreshBookings();
         closeAddModal();
-        alert("Booking added successfully.");
+        setShowSuccessModal(true);
     };
 
     const updateSelectedStatus = (status) => {
@@ -601,8 +596,8 @@ function AdminCalendar() {
             <div
                 key={day}
                 className={`group relative min-h-[132px] rounded-[22px] border p-3 transition-all duration-200 ${hasBooking
-                        ? "border-[#d5b33f] bg-[#d8b63a] text-[#174c3c] shadow-sm"
-                        : "border-[#e8eceb] bg-[#f4f5f5] text-[#174c3c] hover:border-[#22b67f]/40 hover:shadow-sm"
+                    ? "border-[#d5b33f] bg-[#d8b63a] text-[#174c3c] shadow-sm"
+                    : "border-[#e8eceb] bg-[#f4f5f5] text-[#174c3c] hover:border-[#22b67f]/40 hover:shadow-sm"
                     } ${isToday ? "ring-2 ring-[#0f5b46]/60" : ""}`}
             >
                 <div className="flex items-start justify-between">
@@ -1060,8 +1055,8 @@ function AdminCalendar() {
                                                             <label
                                                                 key={item.name}
                                                                 className={`flex items-center justify-between gap-3 rounded-2xl border px-4 py-3.5 cursor-pointer transition ${checked
-                                                                        ? "border-[#d4af37] bg-[#fff8e6] shadow-sm"
-                                                                        : "border-gray-200 bg-white hover:border-[#d4af37]"
+                                                                    ? "border-[#d4af37] bg-[#fff8e6] shadow-sm"
+                                                                    : "border-gray-200 bg-white hover:border-[#d4af37]"
                                                                     }`}
                                                             >
                                                                 <div className="flex items-center gap-3">
@@ -1344,6 +1339,40 @@ function AdminCalendar() {
                                     Close
                                 </button>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showSuccessModal && (
+                <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center px-4">
+                    <div className="w-full max-w-md rounded-[28px] bg-white shadow-2xl border border-gray-200 overflow-hidden">
+                        <div className="bg-gradient-to-r from-[#0f5b46] to-[#22b67f] px-6 py-7 text-white text-center">
+                            <div className="flex justify-center mb-4">
+                                <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-3xl font-bold">
+                                    ✓
+                                </div>
+                            </div>
+
+                            <h3 className="text-2xl font-extrabold">
+                                Booking Added Successfully
+                            </h3>
+                            <p className="text-sm text-white/80 mt-1">
+                                The event has been saved to your calendar.
+                            </p>
+                        </div>
+
+                        <div className="px-6 py-6 text-center">
+                            <p className="text-gray-600">
+                                You can now manage this booking anytime in your admin panel.
+                            </p>
+
+                            <button
+                                onClick={() => setShowSuccessModal(false)}
+                                className="mt-6 w-full rounded-2xl bg-[#d4af37] py-3 font-bold text-[#0b4a3a] hover:bg-[#c79f23] transition"
+                            >
+                                Continue
+                            </button>
                         </div>
                     </div>
                 </div>

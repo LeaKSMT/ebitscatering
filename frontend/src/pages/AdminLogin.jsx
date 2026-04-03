@@ -13,13 +13,6 @@ function AdminLogin() {
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState("");
 
-    // Fixed single admin account
-    const ADMIN_CREDENTIALS = {
-        email: "admin@ebitscatering.com",
-        password: "admin123",
-        name: "Ebit's Admin",
-    };
-
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({
