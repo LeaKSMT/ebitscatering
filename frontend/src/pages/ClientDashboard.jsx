@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { FileText, BookOpenCheck, Wallet, ArrowRight } from "lucide-react";
 
 function safeParse(key, fallback = []) {
     try {
@@ -52,67 +53,123 @@ function ClientDashboard() {
         return sum + Number(item.amount || item.paymentAmount || 0);
     }, 0);
 
+    const statCards = [
+        {
+            title: "My Quotations",
+            value: quotations.length,
+            icon: FileText,
+            valueClass: "text-[#0d5c46]",
+            iconWrap: "bg-[#eef8f4] text-[#0d5c46]",
+        },
+        {
+            title: "My Bookings",
+            value: bookings.length,
+            icon: BookOpenCheck,
+            valueClass: "text-[#0d5c46]",
+            iconWrap: "bg-[#eef8f4] text-[#0d5c46]",
+        },
+        {
+            title: "Payments Made",
+            value: formatCurrency(totalPayments),
+            icon: Wallet,
+            valueClass: "text-[#b99117]",
+            iconWrap: "bg-[#fff7df] text-[#b99117]",
+        },
+    ];
+
     return (
-        <div className="space-y-8">
-            <section className="bg-white rounded-[24px] shadow-sm border border-gray-100 p-8">
-                <h1 className="text-4xl font-bold text-[#0f4d3c]">
-                    Welcome, {clientUser?.name || "Client"}
-                </h1>
-                <p className="text-gray-500 mt-2">
-                    Manage your quotations, bookings, payments, and upcoming events here.
-                </p>
+        <div className="space-y-7">
+            <section className="overflow-hidden rounded-[30px] border border-[#dfe8e4] bg-white shadow-sm">
+                <div className="bg-gradient-to-r from-[#0b5a43] to-[#0f6d51] px-6 py-8 md:px-8">
+                    <p className="text-sm font-semibold uppercase tracking-[0.22em] text-white/70">
+                        Welcome Back
+                    </p>
+                    <h1 className="mt-2 text-3xl md:text-4xl font-extrabold text-white">
+                        Hello, {clientUser?.name || "Client"}
+                    </h1>
+                    <p className="mt-3 max-w-2xl text-sm md:text-base leading-7 text-white/85">
+                        Manage your quotations, bookings, and payments in one place.
+                    </p>
+                </div>
+
+                <div className="grid gap-4 px-6 py-6 md:grid-cols-3 md:px-8">
+                    {statCards.map((item) => {
+                        const Icon = item.icon;
+
+                        return (
+                            <div
+                                key={item.title}
+                                className="rounded-[24px] border border-slate-200 bg-[#fcfcfc] p-5 transition hover:shadow-sm"
+                            >
+                                <div className="flex items-start justify-between gap-4">
+                                    <div>
+                                        <p className="text-sm font-medium text-slate-500">
+                                            {item.title}
+                                        </p>
+                                        <h2 className={`mt-3 text-3xl font-extrabold ${item.valueClass}`}>
+                                            {item.value}
+                                        </h2>
+                                    </div>
+
+                                    <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${item.iconWrap}`}>
+                                        <Icon size={22} />
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
             </section>
 
-            <section className="grid md:grid-cols-3 lg:grid-cols-3 gap-5">
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                    <p className="text-sm text-gray-500">My Quotations</p>
-                    <h2 className="text-4xl font-bold text-[#0f4d3c] mt-2">{quotations.length}</h2>
-                </div>
+            <section className="rounded-[30px] border border-[#dfe8e4] bg-white p-6 shadow-sm md:p-8">
+                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div>
+                        <h2 className="text-2xl md:text-3xl font-extrabold text-[#0d5c46]">
+                            Quick Actions
+                        </h2>
+                        <p className="mt-2 text-slate-500">
+                            Access your most important client actions quickly.
+                        </p>
+                    </div>
 
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                    <p className="text-sm text-gray-500">My Bookings</p>
-                    <h2 className="text-4xl font-bold text-[#0f4d3c] mt-2">{bookings.length}</h2>
-                </div>
-
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                    <p className="text-sm text-gray-500">Payments Made</p>
-                    <h2 className="text-3xl font-bold text-[#10b981] mt-2">
-                        {formatCurrency(totalPayments)}
-                    </h2>
-                </div>
-            </section>
-
-            <section className="bg-white rounded-[24px] shadow-sm border border-gray-100 p-8">
-                <div className="flex items-center justify-between flex-wrap gap-4 mb-6">
-                    <h2 className="text-3xl font-bold text-[#0f4d3c]">Quick Actions</h2>
                     <Link
                         to="/client/quotation"
-                        className="px-5 py-3 rounded-xl bg-[#d4af37] text-[#0b4a3a] font-semibold hover:bg-[#c79f23] transition"
+                        className="inline-flex items-center gap-2 rounded-2xl bg-[#d4af37] px-5 py-3 text-sm font-bold text-[#143c2f] transition hover:bg-[#caa22c]"
                     >
-                        + New Quotation
+                        New Quotation
+                        <ArrowRight size={16} />
                     </Link>
                 </div>
 
-                <div className="grid md:grid-cols-3 gap-4">
+                <div className="mt-6 grid gap-4 md:grid-cols-3">
                     <Link
                         to="/client/quotations"
-                        className="rounded-2xl bg-[#0f4d3c] text-white p-5 font-semibold hover:bg-[#0c3f31] transition"
+                        className="rounded-[24px] border border-[#dfe8e4] bg-[#f9fbfa] p-5 transition hover:-translate-y-0.5 hover:shadow-sm"
                     >
-                        View Quotations
+                        <h3 className="text-lg font-bold text-[#0d5c46]">View Quotations</h3>
+                        <p className="mt-2 text-sm leading-6 text-slate-500">
+                            Check your submitted requests and monitor their status.
+                        </p>
                     </Link>
 
                     <Link
                         to="/client/bookings"
-                        className="rounded-2xl bg-[#d4af37] text-[#0b4a3a] p-5 font-semibold hover:bg-[#c79f23] transition"
+                        className="rounded-[24px] border border-[#dfe8e4] bg-[#f9fbfa] p-5 transition hover:-translate-y-0.5 hover:shadow-sm"
                     >
-                        View Bookings
+                        <h3 className="text-lg font-bold text-[#0d5c46]">View Bookings</h3>
+                        <p className="mt-2 text-sm leading-6 text-slate-500">
+                            Review your event bookings, details, and updates.
+                        </p>
                     </Link>
 
                     <Link
                         to="/client/calendar"
-                        className="rounded-2xl bg-gray-100 text-gray-700 p-5 font-semibold hover:bg-gray-200 transition"
+                        className="rounded-[24px] border border-[#dfe8e4] bg-[#f9fbfa] p-5 transition hover:-translate-y-0.5 hover:shadow-sm"
                     >
-                        Open Calendar
+                        <h3 className="text-lg font-bold text-[#0d5c46]">Open Calendar</h3>
+                        <p className="mt-2 text-sm leading-6 text-slate-500">
+                            View scheduled events and upcoming booking dates.
+                        </p>
                     </Link>
                 </div>
             </section>
