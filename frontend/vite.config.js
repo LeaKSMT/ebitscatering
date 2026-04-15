@@ -2,20 +2,11 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
-export default defineConfig(({ mode }) => ({
+export default defineConfig({
   plugins: [react(), tailwindcss()],
   build: {
     outDir: 'dist',
-    sourcemap: mode === 'development',
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-          router: ['react-router-dom'],
-          ui: ['lucide-react', 'react-icons']
-        }
-      }
-    },
+    sourcemap: false,
     chunkSizeWarningLimit: 1000
   },
   server: {
@@ -26,4 +17,4 @@ export default defineConfig(({ mode }) => ({
     host: true,
     port: 4173
   }
-}))
+})
