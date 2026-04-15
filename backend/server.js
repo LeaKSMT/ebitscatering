@@ -19,9 +19,26 @@ app.use(compression());
 app.use(httpLogger);
 app.use(generalLimiter);
 
+const allowedOrigins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://ebitscatering.vercel.app",
+];
+
 app.use(
     cors({
-        origin: process.env.FRONTEND_URL || "*",
+        origin: function (origin, callback) {
+            if (!origin) return callback(null, true);
+
+            const isAllowedExact = allowedOrigins.includes(origin);
+            const isVercelPreview = /^https:\/\/.*\.vercel\.app$/.test(origin);
+
+            if (isAllowedExact || isVercelPreview) {
+                return callback(null, true);
+            }
+
+            return callback(new Error(`CORS blocked for origin: ${origin}`));
+        },
         credentials: true,
     })
 );
