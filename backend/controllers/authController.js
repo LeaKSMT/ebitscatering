@@ -3,7 +3,8 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 exports.login = (req, res) => {
-    const { email, password } = req.body;
+    const email = (req.body.email || "").trim().toLowerCase();
+    const password = (req.body.password || "").trim();
 
     if (!email || !password) {
         return res.status(400).json({
@@ -12,7 +13,7 @@ exports.login = (req, res) => {
     }
 
     db.query(
-        "SELECT * FROM users WHERE email = ? LIMIT 1",
+        "SELECT * FROM users WHERE LOWER(email) = ? LIMIT 1",
         [email],
         async (err, results) => {
             if (err) {
@@ -20,7 +21,7 @@ exports.login = (req, res) => {
                 return res.status(500).json({ message: "Server error" });
             }
 
-            if (results.length === 0) {
+            if (!results || results.length === 0) {
                 return res.status(401).json({ message: "User not found" });
             }
 
@@ -71,7 +72,7 @@ exports.me = (req, res) => {
                 return res.status(500).json({ message: "Server error" });
             }
 
-            if (results.length === 0) {
+            if (!results || results.length === 0) {
                 return res.status(404).json({ message: "User not found" });
             }
 

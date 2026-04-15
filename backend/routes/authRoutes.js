@@ -3,11 +3,12 @@ const router = express.Router();
 const db = require("../config/db");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { login } = require("../controllers/authController");
 
 router.post("/login", (req, res) => {
     const email = (req.body.email || "").trim().toLowerCase();
     const password = (req.body.password || "").trim();
-
+    module.exports = router;
     console.log("LOGIN ATTEMPT:", { email, password });
 
     if (!email || !password) {

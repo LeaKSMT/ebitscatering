@@ -1,17 +1,20 @@
 const express = require("express");
 const cors = require("cors");
-const compression = require('compression');
+const compression = require("compression");
 require("dotenv").config();
 
 const app = express();
 
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
-const { specs, swaggerUi } = require('./swagger');
-const { generalLimiter, authLimiter, bookingLimiter, quotationLimiter } = require('./middleware/rateLimitMiddleware');
-const { httpLogger, securityLogger } = require('./utils/logger');
-const { cacheMiddleware } = require('./middleware/cacheMiddleware');
+const { specs, swaggerUi } = require("./swagger");
+const {
+    generalLimiter,
+    authLimiter,
+    bookingLimiter,
+    quotationLimiter,
+} = require("./middleware/rateLimitMiddleware");
+const { httpLogger } = require("./utils/logger");
 
-// Apply middleware
 app.use(compression());
 app.use(httpLogger);
 app.use(generalLimiter);
@@ -37,9 +40,8 @@ app.get("/api/health", (req, res) => {
     });
 });
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 
-// Apply specific rate limiters
 app.use("/api/auth", authLimiter, require("./routes/authRoutes"));
 app.use("/api/bookings", bookingLimiter, require("./routes/bookingRoutes"));
 app.use("/api/payments", bookingLimiter, require("./routes/paymentRoutes"));
