@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { signInWithPopup } from "firebase/auth";
 import { Eye, EyeOff } from "lucide-react";
 import { auth, googleProvider } from "../firebase";
+import { authService } from "../services/authService";
 
 function Login() {
     const navigate = useNavigate();
@@ -90,21 +91,10 @@ function Login() {
         try {
             setIsLoading(true);
 
-            const res = await fetch("http://localhost:5000/api/auth/login", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    email: normalizedEmail,
-                    password: trimmedPassword,
-                }),
-            });
-
-            const data = await res.json();
+            const data = await authService.login(normalizedEmail, trimmedPassword);
             console.log("LOGIN RESPONSE:", data);
 
-            if (res.ok && data?.user) {
+            if (data?.user) {
                 if (data.user.role === "admin") {
                     saveAdminSession(data.user, data.token);
                     navigate(getRedirectAfterLogin("admin"));
@@ -122,54 +112,13 @@ function Login() {
                 return;
             }
 
-            // Kapag owner/admin email ang tina-try, actual backend message ang ipakita
-            // at huwag nang mag-fallback sa local client login
-            if (normalizedEmail === "owner@ebitscatering.com" || normalizedEmail === "admin@ebitscatering.com") {
-                alert(data.message || "Admin login failed.");
-                return;
-            }
+            alert("Login failed. Please check your credentials.");
         } catch (error) {
-            console.error("Login API error:", error);
-            alert("Unable to connect to backend.");
-            return;
+            console.error("Login error:", error);
+            alert(error.message || "Login failed. Please try again.");
         } finally {
             setIsLoading(false);
         }
-
-        // CLIENT LOCALSTORAGE FALLBACK
-        const users = JSON.parse(localStorage.getItem("registeredClients")) || [];
-
-        const foundUser = users.find(
-            (user) =>
-                (user.email || "").trim().toLowerCase() === normalizedEmail &&
-                (user.password || "").trim() === trimmedPassword
-        );
-
-        if (foundUser) {
-            saveClientSession({
-                id: foundUser.id || null,
-                name: foundUser.fullName || "",
-                email: foundUser.email,
-                photo: "",
-            });
-
-            navigate(getRedirectAfterLogin("client"));
-            return;
-        }
-
-        if (normalizedEmail === "client@example.com" && trimmedPassword === "client") {
-            saveClientSession({
-                id: null,
-                name: "Demo Client",
-                email: "client@example.com",
-                photo: "",
-            });
-
-            navigate(getRedirectAfterLogin("client"));
-            return;
-        }
-
-        alert("Invalid email or password.");
     };
 
     const handleGoogleLogin = async () => {

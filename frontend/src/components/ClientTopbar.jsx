@@ -1,6 +1,13 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useMemo, useState } from "react";
-import { LayoutDashboard, FileText, BookOpen, MessageSquare, CalendarDays, LogOut } from "lucide-react";
+import {
+    LayoutDashboard,
+    FileText,
+    BookOpen,
+    MessageSquare,
+    CalendarDays,
+    LogOut,
+} from "lucide-react";
 
 function ClientTopbar() {
     const navigate = useNavigate();
@@ -37,7 +44,7 @@ function ClientTopbar() {
     };
 
     const navClass = ({ isActive }) =>
-        `inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 ${isActive
+        `inline-flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold whitespace-nowrap transition-all duration-200 ${isActive
             ? "bg-[#fff5d6] text-[#9a7614] shadow-sm"
             : "text-white/90 hover:bg-white/10 hover:text-white"
         }`;
@@ -54,24 +61,26 @@ function ClientTopbar() {
         <>
             <header className="sticky top-0 z-40 border-b border-white/10 bg-[#0b5a43] text-white shadow-[0_8px_30px_rgba(11,90,67,0.12)]">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex flex-col gap-4 py-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="flex flex-col gap-4 py-4 xl:flex-row xl:items-center xl:justify-between">
                         <div className="min-w-fit">
                             <h1 className="text-[2rem] leading-none font-extrabold tracking-tight text-[#f5c94a]">
                                 Ebit&apos;s Catering
                             </h1>
-                            <p className="mt-1 text-sm text-white/75 font-medium">
+                            <p className="mt-1 text-sm font-medium text-white/75">
                                 Client Portal
                             </p>
                         </div>
 
-                        <nav className="flex flex-wrap items-center gap-2">
-                            {navItems.map(({ to, label, icon: Icon }) => (
-                                <NavLink key={to} to={to} className={navClass}>
-                                    <Icon size={16} />
-                                    <span>{label}</span>
-                                </NavLink>
-                            ))}
-                        </nav>
+                        <div className="flex-1 min-w-0 overflow-hidden">
+                            <nav className="flex items-center gap-2 whitespace-nowrap xl:justify-center">
+                                {navItems.map(({ to, label, icon: Icon }) => (
+                                    <NavLink key={to} to={to} className={navClass}>
+                                        <Icon size={16} className="shrink-0" />
+                                        <span>{label}</span>
+                                    </NavLink>
+                                ))}
+                            </nav>
+                        </div>
 
                         <div className="flex items-center gap-3">
                             <div className="max-w-[180px] truncate rounded-xl border border-white/10 bg-white px-4 py-2.5 text-sm font-bold text-[#0b5a43] shadow-sm">
@@ -80,7 +89,7 @@ function ClientTopbar() {
 
                             <button
                                 onClick={() => setShowLogoutModal(true)}
-                                className="inline-flex items-center gap-2 rounded-xl bg-[#f5c94a] px-4 py-2.5 text-sm font-bold text-[#0b5a43] shadow-sm transition hover:bg-[#ebbf41]"
+                                className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-[#f5c94a] px-4 py-2.5 text-sm font-bold text-[#0b5a43] shadow-sm transition hover:bg-[#ebbf41]"
                             >
                                 <LogOut size={16} />
                                 Logout

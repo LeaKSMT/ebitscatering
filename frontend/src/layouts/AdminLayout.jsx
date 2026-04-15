@@ -11,13 +11,13 @@ function AdminLayout() {
     }
 
     return (
-        <div className="flex min-h-screen bg-[#f4f6f8]">
+        <div className="min-h-screen bg-[#f4f6f8]">
             <AdminSidebar />
 
-            <div className="flex-1 min-w-0 flex flex-col">
+            <div className="ml-[240px] min-h-screen flex min-w-0 flex-col">
                 <AdminTopbar currentPath={location.pathname} />
 
-                <main className="flex-1 p-4 md:p-6 lg:p-7 overflow-x-hidden">
+                <main className="flex-1 overflow-x-hidden p-4 md:p-6 lg:p-7">
                     <Outlet />
                 </main>
             </div>

@@ -69,15 +69,15 @@ function AdminSidebar() {
 
     return (
         <>
-            <aside className="w-[240px] shrink-0 min-h-screen bg-[#0b4a3a] text-white flex flex-col border-r border-white/10">
-                <div className="px-5 py-7 border-b border-white/10">
+            <aside className="fixed left-0 top-0 z-40 flex h-screen w-[240px] flex-col border-r border-white/10 bg-[#0b4a3a] text-white">
+                <div className="shrink-0 border-b border-white/10 px-5 py-7">
                     <h1 className="text-[24px] leading-tight font-extrabold text-[#d4af37]">
                         Ebit&apos;s Catering
                     </h1>
-                    <p className="text-sm text-white/80 mt-1">Admin Panel</p>
+                    <p className="mt-1 text-sm text-white/80">Admin Panel</p>
                 </div>
 
-                <nav className="flex-1 px-4 py-5 space-y-1.5 overflow-y-auto">
+                <nav className="flex-1 overflow-y-auto px-4 py-5 space-y-1.5">
                     {navItems.map((item) => {
                         const Icon = item.icon;
 
@@ -93,16 +93,16 @@ function AdminSidebar() {
                                 }
                             >
                                 <Icon size={19} className="shrink-0" />
-                                <span>{item.label}</span>
+                                <span className="leading-5">{item.label}</span>
                             </NavLink>
                         );
                     })}
                 </nav>
 
-                <div className="px-4 pb-5 pt-3 border-t border-white/10">
+                <div className="shrink-0 border-t border-white/10 px-4 pb-5 pt-3">
                     <button
                         onClick={() => setShowLogoutModal(true)}
-                        className="w-full flex items-center justify-center gap-2 rounded-2xl bg-white text-[#0b4a3a] font-bold py-3 hover:bg-gray-100 transition"
+                        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-white py-3 font-bold text-[#0b4a3a] transition hover:bg-gray-100"
                     >
                         <LogOut size={18} />
                         Logout
@@ -111,40 +111,42 @@ function AdminSidebar() {
             </aside>
 
             {showLogoutModal && (
-                <div className="fixed inset-0 z-[80] bg-black/45 backdrop-blur-[2px] flex items-center justify-center px-4">
-                    <div className="w-full max-w-md rounded-[28px] bg-white shadow-2xl border border-gray-200 overflow-hidden">
-                        <div className="bg-[#0b4a3a] px-6 py-5 text-white flex items-center justify-between">
+                <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/45 px-4 backdrop-blur-[2px]">
+                    <div className="w-full max-w-md overflow-hidden rounded-[28px] border border-gray-200 bg-white shadow-2xl">
+                        <div className="flex items-center justify-between bg-[#0b4a3a] px-6 py-5 text-white">
                             <div>
-                                <p className="text-xs uppercase tracking-[0.2em] text-white/70 font-semibold">
+                                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/70">
                                     Confirmation
                                 </p>
-                                <h3 className="text-2xl font-extrabold mt-1">Logout Admin</h3>
+                                <h3 className="mt-1 text-2xl font-extrabold">
+                                    Logout Admin
+                                </h3>
                             </div>
 
                             <button
                                 onClick={() => setShowLogoutModal(false)}
-                                className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition"
+                                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20"
                             >
                                 <X size={18} />
                             </button>
                         </div>
 
                         <div className="px-6 py-6">
-                            <p className="text-gray-600 leading-7">
+                            <p className="leading-7 text-gray-600">
                                 Are you sure you want to log out of the admin panel?
                             </p>
 
-                            <div className="grid grid-cols-2 gap-3 mt-6">
+                            <div className="mt-6 grid grid-cols-2 gap-3">
                                 <button
                                     onClick={() => setShowLogoutModal(false)}
-                                    className="w-full rounded-2xl border border-gray-200 py-3 font-bold text-[#0b4a3a] hover:bg-gray-50 transition"
+                                    className="w-full rounded-2xl border border-gray-200 py-3 font-bold text-[#0b4a3a] transition hover:bg-gray-50"
                                 >
                                     Cancel
                                 </button>
 
                                 <button
                                     onClick={confirmLogout}
-                                    className="w-full rounded-2xl bg-[#d4af37] py-3 font-bold text-[#0b4a3a] hover:bg-[#c79f23] transition"
+                                    className="w-full rounded-2xl bg-[#d4af37] py-3 font-bold text-[#0b4a3a] transition hover:bg-[#c79f23]"
                                 >
                                     Yes, Logout
                                 </button>
