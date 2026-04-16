@@ -1,5 +1,5 @@
 const bcrypt = require("bcrypt");
-const db = require("./config/db");
+const { pool } = require("./config/database");
 
 async function createAdmin() {
     try {
@@ -7,7 +7,7 @@ async function createAdmin() {
         const plainPassword = "ebitscatering000";
         const hashedPassword = await bcrypt.hash(plainPassword, 10);
 
-        db.query(
+        pool.query(
             "SELECT * FROM users WHERE LOWER(email) = ? LIMIT 1",
             [email],
             (err, results) => {
@@ -17,7 +17,7 @@ async function createAdmin() {
                 }
 
                 if (results.length > 0) {
-                    db.query(
+                    pool.query(
                         "UPDATE users SET password = ?, role = 'admin', name = 'Business Owner', updated_at = NOW() WHERE LOWER(email) = ?",
                         [hashedPassword, email],
                         (err2) => {
@@ -32,7 +32,7 @@ async function createAdmin() {
                         }
                     );
                 } else {
-                    db.query(
+                    pool.query(
                         "INSERT INTO users (name, email, password, role, created_at, updated_at) VALUES (?, ?, ?, ?, NOW(), NOW())",
                         ["Business Owner", email, hashedPassword, "admin"],
                         (err3) => {
