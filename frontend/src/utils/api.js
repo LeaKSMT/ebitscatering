@@ -1,26 +1,30 @@
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const BASE_URL =
+  import.meta.env.VITE_API_URL || "https://ebitscatering.onrender.com";
 
 class ApiClient {
   constructor(baseURL = BASE_URL) {
     this.baseURL = baseURL;
-    this.token = localStorage.getItem('token');
+    this.token = localStorage.getItem("token");
   }
 
   setToken(token) {
     this.token = token;
+
     if (token) {
-      localStorage.setItem('token', token);
+      localStorage.setItem("token", token);
     } else {
-      localStorage.removeItem('token');
+      localStorage.removeItem("token");
     }
   }
 
   async request(endpoint, options = {}) {
     const url = `${this.baseURL}${endpoint}`;
+
     const config = {
+      method: options.method || "GET",
       headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
+        "Content-Type": "application/json",
+        ...(options.headers || {}),
       },
       ...options,
     };
@@ -31,15 +35,21 @@ class ApiClient {
 
     try {
       const response = await fetch(url, config);
-      const data = await response.json();
+
+      const contentType = response.headers.get("content-type") || "";
+      const isJson = contentType.includes("application/json");
+      const data = isJson ? await response.json() : await response.text();
 
       if (!response.ok) {
-        throw new Error(data.message || `HTTP error! status: ${response.status}`);
+        const message =
+          (isJson && data?.message) ||
+          `HTTP error! status: ${response.status}`;
+        throw new Error(message);
       }
 
       return data;
     } catch (error) {
-      console.error('API request failed:', error);
+      console.error("API request failed:", error);
       throw error;
     }
   }
@@ -50,21 +60,21 @@ class ApiClient {
 
   post(endpoint, data) {
     return this.request(endpoint, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify(data),
     });
   }
 
   put(endpoint, data) {
     return this.request(endpoint, {
-      method: 'PUT',
+      method: "PUT",
       body: JSON.stringify(data),
     });
   }
 
   delete(endpoint) {
     return this.request(endpoint, {
-      method: 'DELETE',
+      method: "DELETE",
     });
   }
 }
