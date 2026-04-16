@@ -1,4 +1,4 @@
-const db = require("../config/db");
+const { pool } = require("../config/database");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
@@ -12,7 +12,7 @@ exports.login = (req, res) => {
         });
     }
 
-    db.query(
+    pool.query(
         "SELECT * FROM users WHERE LOWER(email) = ? LIMIT 1",
         [email],
         async (err, results) => {
@@ -63,7 +63,7 @@ exports.login = (req, res) => {
 };
 
 exports.me = (req, res) => {
-    db.query(
+    pool.query(
         "SELECT id, name, email, role, created_at FROM users WHERE id = ? LIMIT 1",
         [req.user.id],
         (err, results) => {
