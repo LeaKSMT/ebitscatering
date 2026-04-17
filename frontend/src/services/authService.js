@@ -1,59 +1,43 @@
-import { apiClient } from "../utils/api.js";
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+
+async function handleResponse(response) {
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(data.message || "Request failed");
+  }
+
+  return data;
+}
 
 export const authService = {
   async login(email, password) {
-    const response = await apiClient.post("/api/auth/login", {
-      email,
-      password,
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
     });
 
-    if (response.token) {
-      apiClient.setToken(response.token);
-      localStorage.setItem("user", JSON.stringify(response.user));
-    }
-
-    return response;
+    return handleResponse(response);
   },
 
-  async register(userData) {
-    const response = await apiClient.post("/api/auth/register", userData);
+  async register({ name, email, password, contactNumber }) {
+    const response = await fetch(`${API_BASE_URL}/auth/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name,
+        email,
+        password,
+        contactNumber,
+      }),
+    });
 
-    if (response.token) {
-      apiClient.setToken(response.token);
-      localStorage.setItem("user", JSON.stringify(response.user));
-    }
-
-    return response;
-  },
-
-  async logout() {
-    apiClient.setToken(null);
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    localStorage.removeItem("clientUser");
-    localStorage.removeItem("clientName");
-    localStorage.removeItem("clientEmail");
-    localStorage.removeItem("currentClientName");
-    localStorage.removeItem("currentClientEmail");
-    localStorage.removeItem("isClientLoggedIn");
-    localStorage.removeItem("adminAuth");
-  },
-
-  getCurrentUser() {
-    const userStr = localStorage.getItem("user");
-    return userStr ? JSON.parse(userStr) : null;
-  },
-
-  isAuthenticated() {
-    return !!apiClient.token && !!localStorage.getItem("user");
-  },
-
-  async checkAuth() {
-    try {
-      return await apiClient.get("/api/auth/me");
-    } catch (error) {
-      this.logout();
-      return null;
-    }
+    return handleResponse(response);
   },
 };

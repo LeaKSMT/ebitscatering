@@ -1,80 +1,100 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import { authService } from "../services/authService";
 
 function ClientRegister() {
     const navigate = useNavigate();
 
+    const [fullName, setFullName] = useState("");
+    const [email, setEmail] = useState("");
+    const [contactNumber, setContactNumber] = useState("");
+    const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
-    const handleRegister = (e) => {
+    const handleRegister = async (e) => {
         e.preventDefault();
 
-        const form = e.target;
+        const trimmedFullName = fullName.trim();
+        const trimmedEmail = email.trim().toLowerCase();
+        const trimmedContactNumber = contactNumber.trim();
+        const trimmedPassword = password.trim();
+        const trimmedConfirmPassword = confirmPassword.trim();
 
-        const fullName = form.fullName.value.trim();
-        const email = form.email.value.trim();
-        const contactNumber = form.contactNumber.value.trim();
-        const password = form.password.value.trim();
-        const confirmPassword = form.confirmPassword.value.trim();
-
-        if (!fullName || !email || !password) {
-            alert("Please fill all required fields");
+        if (!trimmedFullName || !trimmedEmail || !trimmedPassword || !trimmedConfirmPassword) {
+            alert("Please fill all required fields.");
             return;
         }
 
-        if (password !== confirmPassword) {
-            alert("Passwords do not match");
+        if (trimmedPassword !== trimmedConfirmPassword) {
+            alert("Passwords do not match.");
             return;
         }
 
-        // ✅ GET ALL USERS
-        const users = JSON.parse(localStorage.getItem("registeredClients")) || [];
+        try {
+            setIsLoading(true);
 
-        // ✅ CHECK DUPLICATE
-        const existing = users.find((u) => u.email === email);
-        if (existing) {
-            alert("Email already registered!");
-            return;
+            const data = await authService.register({
+                name: trimmedFullName,
+                email: trimmedEmail,
+                password: trimmedPassword,
+                contactNumber: trimmedContactNumber,
+            });
+
+            alert(data.message || "Registered successfully!");
+            navigate("/login");
+        } catch (error) {
+            console.error("Register error:", error);
+            alert(error.message || "Registration failed. Please try again.");
+        } finally {
+            setIsLoading(false);
         }
-
-        const newUser = {
-            fullName,
-            email,
-            password,
-            contactNumber,
-            role: "client",
-        };
-
-        users.push(newUser);
-
-        localStorage.setItem("registeredClients", JSON.stringify(users));
-
-        alert("Registered successfully!");
-
-        navigate("/login");
     };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-[#0b4a3a] via-[#0f5b44] to-[#1aa36f] flex items-center justify-center px-4">
             <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl">
-
                 <h2 className="text-3xl font-bold text-center mb-6 text-[#0f4d3c]">
                     Create Account
                 </h2>
 
                 <form onSubmit={handleRegister} className="space-y-4">
-                    <input name="fullName" placeholder="Full Name" className="w-full border p-3 rounded-xl" />
-                    <input name="email" type="email" placeholder="Email" className="w-full border p-3 rounded-xl" />
-                    <input name="contactNumber" placeholder="Contact Number" className="w-full border p-3 rounded-xl" />
+                    <input
+                        name="fullName"
+                        placeholder="Full Name"
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        className="w-full border p-3 rounded-xl"
+                    />
 
-                    {/* PASSWORD */}
+                    <input
+                        name="email"
+                        type="email"
+                        placeholder="Email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="w-full border p-3 rounded-xl"
+                    />
+
+                    <input
+                        name="contactNumber"
+                        placeholder="Contact Number"
+                        value={contactNumber}
+                        onChange={(e) => setContactNumber(e.target.value)}
+                        className="w-full border p-3 rounded-xl"
+                    />
+
                     <div className="relative">
                         <input
                             name="password"
                             type={showPassword ? "text" : "password"}
                             placeholder="Password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
                             className="w-full border p-3 rounded-xl pr-10"
                         />
                         <button
@@ -86,12 +106,13 @@ function ClientRegister() {
                         </button>
                     </div>
 
-                    {/* CONFIRM */}
                     <div className="relative">
                         <input
                             name="confirmPassword"
                             type={showConfirmPassword ? "text" : "password"}
                             placeholder="Confirm Password"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
                             className="w-full border p-3 rounded-xl pr-10"
                         />
                         <button
@@ -103,8 +124,12 @@ function ClientRegister() {
                         </button>
                     </div>
 
-                    <button className="w-full bg-[#d4af37] py-3 rounded-xl font-bold">
-                        Register
+                    <button
+                        type="submit"
+                        disabled={isLoading}
+                        className="w-full bg-[#d4af37] py-3 rounded-xl font-bold disabled:opacity-70"
+                    >
+                        {isLoading ? "Registering..." : "Register"}
                     </button>
                 </form>
 
