@@ -1,5 +1,5 @@
 const BASE_URL =
-  import.meta.env.VITE_API_URL || "https://ebitscatering.onrender.com";
+  import.meta.env.VITE_API_URL || "https://ebitscatering-production.up.railway.app";
 
 class ApiClient {
   constructor(baseURL = BASE_URL) {
@@ -18,7 +18,8 @@ class ApiClient {
   }
 
   async request(endpoint, options = {}) {
-    const url = `${this.baseURL}${endpoint}`;
+    const normalizedEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+    const url = `${this.baseURL}${normalizedEndpoint}`;
 
     const config = {
       method: options.method || "GET",

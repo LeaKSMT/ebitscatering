@@ -1,5 +1,5 @@
 const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+  import.meta.env.VITE_API_URL || "https://ebitscatering-production.up.railway.app";
 
 async function handleResponse(response) {
   const data = await response.json().catch(() => ({}));
@@ -13,7 +13,7 @@ async function handleResponse(response) {
 
 export const authService = {
   async login(email, password) {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+    const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -25,7 +25,7 @@ export const authService = {
   },
 
   async register({ name, email, password, contactNumber }) {
-    const response = await fetch(`${API_BASE_URL}/auth/register`, {
+    const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
