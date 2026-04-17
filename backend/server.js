@@ -5,21 +5,18 @@ require("dotenv").config();
 
 const app = express();
 
-app.set("trust proxy", 1);
+app.set("trust proxy", true);
 
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 const { specs, swaggerUi } = require("./swagger");
-const {
-    generalLimiter,
-    authLimiter,
-    bookingLimiter,
-    quotationLimiter,
-} = require("./middleware/rateLimitMiddleware");
 const { httpLogger } = require("./utils/logger");
 
-app.use(compression());
-app.use(httpLogger);
-app.use(generalLimiter);
+// const {
+//   generalLimiter,
+//   authLimiter,
+//   bookingLimiter,
+//   quotationLimiter,
+// } = require("./middleware/rateLimitMiddleware");
 
 const allowedOrigins = [
     "http://localhost:5173",
@@ -52,11 +49,14 @@ const corsOptions = {
     allowedHeaders: ["Content-Type", "Authorization"],
 };
 
+app.use(compression());
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions));
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(httpLogger);
+
+// app.use(generalLimiter);
 
 app.get("/", (req, res) => {
     res.send("Backend is running");
@@ -71,10 +71,15 @@ app.get("/api/health", (req, res) => {
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 
-app.use("/api/auth", authLimiter, require("./routes/authRoutes"));
-app.use("/api/bookings", bookingLimiter, require("./routes/bookingRoutes"));
-app.use("/api/payments", bookingLimiter, require("./routes/paymentRoutes"));
-app.use("/api/quotations", quotationLimiter, require("./routes/quotationRoutes"));
+app.use("/api/auth", require("./routes/authRoutes"));
+app.use("/api/bookings", require("./routes/bookingRoutes"));
+app.use("/api/payments", require("./routes/paymentRoutes"));
+app.use("/api/quotations", require("./routes/quotationRoutes"));
+
+// app.use("/api/auth", authLimiter, require("./routes/authRoutes"));
+// app.use("/api/bookings", bookingLimiter, require("./routes/bookingRoutes"));
+// app.use("/api/payments", bookingLimiter, require("./routes/paymentRoutes"));
+// app.use("/api/quotations", quotationLimiter, require("./routes/quotationRoutes"));
 
 app.use(notFound);
 app.use(errorHandler);
