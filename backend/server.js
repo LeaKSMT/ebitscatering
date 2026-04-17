@@ -5,6 +5,8 @@ require("dotenv").config();
 
 const app = express();
 
+app.set("trust proxy", 1);
+
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 const { specs, swaggerUi } = require("./swagger");
 const {
@@ -43,7 +45,7 @@ const corsOptions = {
         }
 
         console.log(`CORS blocked for origin: ${origin}`);
-        return callback(null, false);
+        return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
