@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, ShieldCheck, Sparkles, UserPlus } from "lucide-react";
+import { Eye, EyeOff, ShieldCheck, Sparkles, UserPlus, CheckCircle2 } from "lucide-react";
 import Swal from "sweetalert2";
 
 function ClientRegister() {
@@ -28,8 +28,8 @@ function ClientRegister() {
     const showSuccessPopup = () => {
         Swal.fire({
             icon: "success",
-            title: "Account Created!",
-            text: "Your account has been registered successfully.",
+            title: "Account Created Successfully",
+            text: "Your client account is ready. You can now sign in.",
             confirmButtonText: "Go to Login",
             background: "#ffffff",
             color: "#1f2937",
@@ -49,8 +49,8 @@ function ClientRegister() {
     const showExistingPopup = () => {
         Swal.fire({
             icon: "warning",
-            title: "Account Already Exists",
-            text: "This email is already registered. Please use another email or log in instead.",
+            title: "Email Already Registered",
+            text: "This email already has an account. Please log in instead.",
             confirmButtonText: "Go to Login",
             showCancelButton: true,
             cancelButtonText: "Close",
@@ -153,6 +153,7 @@ function ClientRegister() {
                 <div className="absolute -top-20 -left-20 h-72 w-72 rounded-full bg-[#d4af37]/20 blur-3xl" />
                 <div className="absolute top-1/3 -right-20 h-80 w-80 rounded-full bg-white/10 blur-3xl" />
                 <div className="absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-[#f5d77b]/10 blur-3xl" />
+                <div className="absolute bottom-10 right-1/4 h-44 w-44 rounded-full bg-emerald-300/10 blur-3xl" />
             </div>
 
             <div className="relative z-10 px-4 sm:px-8 pt-6">
@@ -205,6 +206,16 @@ function ClientRegister() {
                                     </p>
                                 </div>
                             </div>
+
+                            <div className="rounded-2xl bg-white/10 border border-white/10 p-4 flex items-start gap-3">
+                                <CheckCircle2 className="mt-1 text-[#f5c94a]" size={20} />
+                                <div>
+                                    <h3 className="font-semibold">Modern client experience</h3>
+                                    <p className="text-sm text-white/75">
+                                        Smooth registration flow with instant feedback popups.
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -212,11 +223,13 @@ function ClientRegister() {
                         <div className="mx-auto w-full max-w-md">
                             <div className="text-center lg:text-left mb-8">
                                 <p className="text-sm font-semibold tracking-[0.18em] text-[#d4af37] uppercase">
-                                    Register
+                                    Register New
                                 </p>
+
                                 <h2 className="mt-2 text-4xl font-extrabold text-[#0f172a]">
                                     Create Account
                                 </h2>
+
                                 <p className="mt-3 text-gray-500">
                                     Register to access the catering management system.
                                 </p>
