@@ -1,5 +1,5 @@
 const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "https://ebitscatering-production.up.railway.app";
+  import.meta.env.VITE_API_URL || "https://ebitscatering.onrender.com";
 
 async function handleResponse(response) {
   const data = await response.json().catch(() => ({}));
