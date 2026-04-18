@@ -81,7 +81,7 @@ function Login() {
     const showErrorPopup = (message) => {
         Swal.fire({
             icon: "error",
-            title: "Login Failed",
+            title: "Invalid Credentials",
             text: message || "Please check your email and password.",
             confirmButtonText: "Okay",
             background: "#ffffff",
@@ -103,20 +103,20 @@ function Login() {
             return;
         }
 
-        const normalizedEmail = email.trim().toLowerCase();
-        const trimmedPassword = password.trim();
-
         try {
             setIsLoading(true);
 
-            const data = await authService.login(normalizedEmail, trimmedPassword);
+            const data = await authService.login(
+                email.trim().toLowerCase(),
+                password.trim()
+            );
 
             if (data?.user) {
                 Swal.fire({
                     icon: "success",
-                    title: "Login Successful",
-                    text: `Welcome back, ${data.user.name || "User"}!`,
-                    timer: 1400,
+                    title: "Welcome Back!",
+                    text: `Hello ${data.user.name || "User"} 👋`,
+                    timer: 1500,
                     showConfirmButton: false,
                     background: "#ffffff",
                     color: "#1f2937",
@@ -132,21 +132,14 @@ function Login() {
                     return;
                 }
 
-                saveClientSession({
-                    id: data.user.id || null,
-                    name: data.user.name || "",
-                    email: data.user.email,
-                    photo: "",
-                });
-
+                saveClientSession(data.user);
                 setTimeout(() => navigate(getRedirectAfterLogin("client")), 1000);
                 return;
             }
 
-            showErrorPopup("Login failed. Please check your credentials.");
-        } catch (error) {
-            console.error("Login error:", error);
-            showErrorPopup(error.message || "Login failed. Please try again.");
+            showErrorPopup("Login failed.");
+        } catch (err) {
+            showErrorPopup(err.message);
         } finally {
             setIsLoading(false);
         }
@@ -159,192 +152,119 @@ function Login() {
 
             saveClientSession({
                 id: null,
-                name: user.displayName || "Client",
-                email: user.email || "",
-                photo: user.photoURL || "",
+                name: user.displayName,
+                email: user.email,
+                photo: user.photoURL,
             });
 
             Swal.fire({
                 icon: "success",
                 title: "Google Login Successful",
-                text: "You are now signed in.",
                 timer: 1400,
                 showConfirmButton: false,
-                background: "#ffffff",
-                color: "#1f2937",
-                customClass: {
-                    popup: "rounded-[24px] shadow-2xl",
-                    title: "text-2xl font-bold",
-                },
             });
 
-            setTimeout(() => navigate(getRedirectAfterLogin("client")), 1000);
-        } catch (error) {
-            console.error("Google login error:", error);
-            showErrorPopup("Google login failed. Please check your Firebase configuration.");
+            setTimeout(() => navigate("/client/dashboard"), 1000);
+        } catch {
+            showErrorPopup("Google login failed.");
         }
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-[#08392d] via-[#0f4d3c] to-[#169b62] relative overflow-hidden">
-            <div className="absolute inset-0 pointer-events-none">
-                <div className="absolute -top-20 -left-20 h-72 w-72 rounded-full bg-[#d4af37]/20 blur-3xl" />
-                <div className="absolute top-1/3 -right-20 h-80 w-80 rounded-full bg-white/10 blur-3xl" />
-                <div className="absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-[#f5d77b]/10 blur-3xl" />
-            </div>
+        <div className="min-h-screen bg-gradient-to-br from-[#08392d] via-[#0f4d3c] to-[#169b62] flex items-center justify-center px-4">
+            <div className="w-full max-w-6xl grid lg:grid-cols-2 rounded-[32px] overflow-hidden shadow-2xl bg-white/10 backdrop-blur-md">
 
-            <div className="relative z-10 px-4 sm:px-8 pt-6">
-                <Link
-                    to="/"
-                    className="inline-flex items-center gap-2 text-white/90 font-semibold hover:text-[#f5c94a] transition"
-                >
-                    <span>←</span>
-                    <span>Back to Home</span>
-                </Link>
-            </div>
-
-            <div className="relative z-10 min-h-[calc(100vh-72px)] flex items-center justify-center px-4 py-8">
-                <div className="w-full max-w-6xl grid lg:grid-cols-2 rounded-[32px] overflow-hidden shadow-[0_25px_80px_rgba(0,0,0,0.30)] border border-white/10 bg-white/10 backdrop-blur-md">
-                    <div className="hidden lg:flex flex-col justify-between p-10 xl:p-14 bg-gradient-to-br from-[#0b3d31]/95 via-[#0f4d3c]/90 to-[#136f50]/85 text-white relative">
-                        <div>
-                            <div className="inline-flex items-center gap-2 rounded-full border border-[#d4af37]/40 bg-white/10 px-4 py-2 text-sm font-medium text-[#f7d97b]">
-                                <Sparkles size={16} />
-                                Premium Catering Experience
-                            </div>
-
-                            <h1 className="mt-8 text-5xl font-extrabold leading-tight">
-                                Welcome Back to
-                                <span className="block text-[#f5c94a]">Ebit&apos;s Catering</span>
-                            </h1>
-
-                            <p className="mt-5 max-w-lg text-white/80 text-lg leading-8">
-                                Sign in to manage bookings, quotations, client services,
-                                and admin operations in one elegant catering platform.
-                            </p>
+                {/* LEFT */}
+                <div className="hidden lg:flex flex-col justify-between p-12 text-white">
+                    <div>
+                        <div className="inline-flex items-center gap-2 text-[#f7d97b]">
+                            <Sparkles size={16} />
+                            Premium Catering Experience
                         </div>
 
-                        <div className="grid gap-4">
-                            <div className="rounded-2xl bg-white/10 border border-white/10 p-4 flex items-start gap-3">
-                                <UtensilsCrossed className="mt-1 text-[#f5c94a]" size={20} />
-                                <div>
-                                    <h3 className="font-semibold">Professional workflow</h3>
-                                    <p className="text-sm text-white/75">
-                                        Smooth access for clients and administrators.
-                                    </p>
-                                </div>
-                            </div>
+                        <h1 className="mt-6 text-5xl font-bold">
+                            Welcome Back to
+                            <span className="block text-[#f5c94a]">Ebit's Catering</span>
+                        </h1>
 
-                            <div className="rounded-2xl bg-white/10 border border-white/10 p-4 flex items-start gap-3">
-                                <ShieldCheck className="mt-1 text-[#f5c94a]" size={20} />
-                                <div>
-                                    <h3 className="font-semibold">Secure access</h3>
-                                    <p className="text-sm text-white/75">
-                                        Login securely with your account credentials or Google.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
+                        <p className="mt-4 text-white/80">
+                            Manage bookings, quotations, and services in one system.
+                        </p>
                     </div>
 
-                    <div className="bg-white px-6 py-8 sm:px-10 sm:py-10 lg:px-12 lg:py-12">
-                        <div className="mx-auto w-full max-w-md">
-                            <div className="text-center lg:text-left mb-8">
-                                <p className="text-sm font-semibold tracking-[0.18em] text-[#d4af37] uppercase">
-                                    Sign In
-                                </p>
-                                <h2 className="mt-2 text-4xl font-extrabold text-[#0f172a]">
-                                    Access your account
-                                </h2>
-                                <p className="mt-3 text-gray-500">
-                                    Login to continue to the catering management system.
-                                </p>
-                            </div>
+                    <div className="space-y-4">
+                        <div className="flex gap-3">
+                            <UtensilsCrossed />
+                            <span>Professional workflow</span>
+                        </div>
+                        <div className="flex gap-3">
+                            <ShieldCheck />
+                            <span>Secure access</span>
+                        </div>
+                    </div>
+                </div>
 
-                            <form onSubmit={handleLogin} className="space-y-5">
-                                <div>
-                                    <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
-                                        Email
-                                    </label>
-                                    <input
-                                        type="email"
-                                        placeholder="Enter your email"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        className="w-full rounded-2xl border border-gray-300 bg-[#fafafa] px-4 py-3.5 outline-none focus:border-[#d4af37] focus:ring-4 focus:ring-[#d4af37]/15 transition"
-                                        required
-                                    />
-                                </div>
+                {/* RIGHT */}
+                <div className="bg-white p-10">
+                    <h2 className="text-3xl font-bold">Access Your Account</h2>
 
-                                <div>
-                                    <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
-                                        Password
-                                    </label>
+                    <form onSubmit={handleLogin} className="mt-6 space-y-4">
+                        <input
+                            type="email"
+                            placeholder="Email"
+                            className="w-full p-3 border rounded-xl"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                        />
 
-                                    <div className="relative">
-                                        <input
-                                            type={showPassword ? "text" : "password"}
-                                            placeholder="Enter your password"
-                                            value={password}
-                                            onChange={(e) => setPassword(e.target.value)}
-                                            className="w-full rounded-2xl border border-gray-300 bg-[#fafafa] px-4 py-3.5 pr-12 outline-none focus:border-[#d4af37] focus:ring-4 focus:ring-[#d4af37]/15 transition"
-                                            required
-                                        />
-
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowPassword(!showPassword)}
-                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#0b4d3b]"
-                                        >
-                                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <button
-                                    type="submit"
-                                    disabled={isLoading}
-                                    className="w-full rounded-2xl bg-gradient-to-r from-[#0f4d3c] via-[#11634b] to-[#18a06c] text-white py-3.5 font-semibold shadow-lg hover:scale-[1.01] hover:shadow-xl transition disabled:opacity-70"
-                                >
-                                    {isLoading ? "Signing In..." : "Sign In"}
-                                </button>
-                            </form>
-
-                            <div className="relative my-6">
-                                <div className="absolute inset-0 flex items-center">
-                                    <div className="w-full border-t border-gray-200" />
-                                </div>
-                                <div className="relative flex justify-center">
-                                    <span className="bg-white px-3 text-sm text-gray-400">or continue with</span>
-                                </div>
-                            </div>
-
+                        <div className="relative">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                placeholder="Password"
+                                className="w-full p-3 border rounded-xl"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                            />
                             <button
                                 type="button"
-                                onClick={handleGoogleLogin}
-                                className="w-full rounded-2xl border border-gray-300 bg-white py-3.5 px-4 font-medium text-gray-700 flex items-center justify-center gap-3 hover:border-[#d4af37] hover:shadow-sm transition"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-3"
                             >
-                                <svg className="w-5 h-5" viewBox="0 0 48 48" aria-hidden="true">
-                                    <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303C33.659 32.657 29.219 36 24 36c-6.627 0-12-5.373-12-12S17.373 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.278 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917Z" />
-                                    <path fill="#FF3D00" d="M6.306 14.691 12.88 19.51C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.278 4 24 4c-7.682 0-14.347 4.337-17.694 10.691Z" />
-                                    <path fill="#4CAF50" d="M24 44c5.176 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.143 35.091 26.715 36 24 36c-5.198 0-9.625-3.317-11.288-7.946l-6.525 5.025C9.5 39.556 16.227 44 24 44Z" />
-                                    <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.05 12.05 0 0 1-4.084 5.57h.003l6.19 5.238C36.972 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917Z" />
-                                </svg>
-                                Continue with Gmail
+                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                             </button>
-
-                            <div className="mt-6 text-center">
-                                <p className="text-sm text-gray-500">
-                                    Don&apos;t have an account?{" "}
-                                    <Link
-                                        to="/register"
-                                        className="font-semibold text-[#b99117] hover:text-[#8f6f0c] transition"
-                                    >
-                                        Register here
-                                    </Link>
-                                </p>
-                            </div>
                         </div>
-                    </div>
+
+                        <button
+                            type="submit"
+                            disabled={isLoading}
+                            className="w-full bg-green-700 text-white py-3 rounded-xl flex justify-center items-center gap-2"
+                        >
+                            {isLoading ? (
+                                <>
+                                    <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                                    Signing In...
+                                </>
+                            ) : (
+                                "Sign In"
+                            )}
+                        </button>
+                    </form>
+
+                    <div className="my-4 text-center">or</div>
+
+                    <button
+                        onClick={handleGoogleLogin}
+                        className="w-full border py-3 rounded-xl"
+                    >
+                        Continue with Gmail
+                    </button>
+
+                    <p className="text-center mt-4">
+                        Don’t have an account?{" "}
+                        <Link to="/register" className="text-green-700 font-semibold">
+                            Register here
+                        </Link>
+                    </p>
                 </div>
             </div>
         </div>
