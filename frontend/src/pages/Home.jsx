@@ -521,15 +521,6 @@ function Home() {
                                     </p>
                                 </div>
                             </div>
-
-                            <div className="absolute -bottom-5 -left-5 rounded-[22px] border border-white/10 bg-white/85 px-4 py-3 shadow-xl backdrop-blur-md">
-                                <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#b99117]">
-                                    Elegant Catering
-                                </p>
-                                <p className="mt-1 text-sm font-bold text-[#0b4d3b]">
-                                    Defense-Ready Presentation
-                                </p>
-                            </div>
                         </div>
                     </motion.div>
                 </div>
@@ -614,8 +605,8 @@ function Home() {
                                 custom={index}
                                 variants={fadeUp}
                                 className={`rounded-[30px] border bg-[#fffdf8] p-6 text-[#0b4d3b] shadow-sm transition hover:-translate-y-1.5 hover:shadow-xl ${index === 1
-                                        ? "border-[#e4bc41] ring-1 ring-[#e4bc41]/30"
-                                        : "border-transparent"
+                                    ? "border-[#e4bc41] ring-1 ring-[#e4bc41]/30"
+                                    : "border-transparent"
                                     }`}
                             >
                                 {index === 1 && (
@@ -941,8 +932,8 @@ function Home() {
                         {contactStatus && (
                             <p
                                 className={`mb-4 text-sm font-medium ${contactStatus.includes("successfully")
-                                        ? "text-green-600"
-                                        : "text-red-500"
+                                    ? "text-green-600"
+                                    : "text-red-500"
                                     }`}
                             >
                                 {contactStatus}
