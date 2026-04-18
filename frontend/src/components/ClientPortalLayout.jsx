@@ -11,7 +11,7 @@ function ClientPortalLayout() {
                 initial={{ opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.55, ease: "easeOut" }}
-                className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10"
+                className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-8 md:pt-8 md:pb-10"
             >
                 <Outlet />
             </motion.main>

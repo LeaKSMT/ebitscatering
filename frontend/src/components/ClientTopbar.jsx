@@ -67,7 +67,7 @@ function ClientTopbar() {
         <>
             <header className="sticky top-0 z-50 border-b border-white/10 bg-[linear-gradient(135deg,#0b5a43_0%,#0f6d51_55%,#11785a_100%)] text-white shadow-[0_12px_35px_rgba(11,90,67,0.18)] backdrop-blur">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center justify-between gap-4 py-4 lg:py-5">
+                    <div className="flex items-center justify-between gap-4 py-4 xl:py-5">
                         <motion.div
                             initial={{ opacity: 0, x: -18 }}
                             animate={{ opacity: 1, x: 0 }}
@@ -76,7 +76,7 @@ function ClientTopbar() {
                         >
                             <div className="flex items-center gap-2">
                                 <Sparkles size={18} className="text-[#f5c94a]" />
-                                <h1 className="truncate text-[1.7rem] sm:text-[2rem] leading-none font-extrabold tracking-tight text-[#f5c94a]">
+                                <h1 className="truncate text-[1.55rem] sm:text-[2rem] leading-none font-extrabold tracking-tight text-[#f5c94a]">
                                     Ebit&apos;s Catering
                                 </h1>
                             </div>
@@ -85,8 +85,8 @@ function ClientTopbar() {
                             </p>
                         </motion.div>
 
-                        <div className="hidden lg:flex flex-1 justify-center px-4">
-                            <nav className="flex flex-wrap items-center gap-2 rounded-full border border-white/10 bg-white/5 px-2 py-2 backdrop-blur-sm">
+                        <div className="hidden xl:flex flex-1 justify-center px-4 min-w-0">
+                            <nav className="flex flex-nowrap items-center gap-2 overflow-x-auto rounded-full border border-white/10 bg-white/5 px-2 py-2 backdrop-blur-sm scrollbar-none">
                                 {navItems.map(({ to, label, icon: Icon }) => (
                                     <NavLink key={to} to={to} className={navClass}>
                                         <Icon size={16} className="shrink-0" />
@@ -100,7 +100,7 @@ function ClientTopbar() {
                             initial={{ opacity: 0, x: 18 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.45 }}
-                            className="hidden lg:flex items-center gap-3"
+                            className="hidden xl:flex items-center gap-3"
                         >
                             <div className="max-w-[190px] truncate rounded-2xl border border-white/10 bg-white px-4 py-2.5 text-sm font-bold text-[#0b5a43] shadow-sm">
                                 {clientUser?.name || "Client"}
@@ -117,7 +117,7 @@ function ClientTopbar() {
 
                         <button
                             onClick={() => setMobileMenuOpen(true)}
-                            className="lg:hidden inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-white transition hover:bg-white/15"
+                            className="xl:hidden inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-white transition hover:bg-white/15"
                         >
                             <Menu size={20} />
                         </button>
@@ -133,7 +133,7 @@ function ClientTopbar() {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={() => setMobileMenuOpen(false)}
-                            className="fixed inset-0 z-50 bg-[#061d16]/55 backdrop-blur-[2px] lg:hidden"
+                            className="fixed inset-0 z-50 bg-[#061d16]/55 backdrop-blur-[2px] xl:hidden"
                         />
 
                         <motion.div
@@ -141,7 +141,7 @@ function ClientTopbar() {
                             animate={{ x: 0 }}
                             exit={{ x: "100%" }}
                             transition={{ duration: 0.3, ease: "easeOut" }}
-                            className="fixed right-0 top-0 z-[60] h-full w-[88%] max-w-sm overflow-y-auto bg-white shadow-2xl lg:hidden"
+                            className="fixed right-0 top-0 z-[60] h-full w-[88%] max-w-sm overflow-y-auto bg-white shadow-2xl xl:hidden"
                         >
                             <div className="bg-[linear-gradient(135deg,#0b5a43_0%,#0f6d51_100%)] px-5 py-5 text-white">
                                 <div className="flex items-start justify-between gap-4">
