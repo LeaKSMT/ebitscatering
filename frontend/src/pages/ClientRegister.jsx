@@ -1,6 +1,14 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, ShieldCheck, Sparkles, UserPlus, CheckCircle2 } from "lucide-react";
+import {
+    Eye,
+    EyeOff,
+    ShieldCheck,
+    Sparkles,
+    UserPlus,
+    CheckCircle2,
+} from "lucide-react";
+import { motion } from "framer-motion";
 import Swal from "sweetalert2";
 
 function ClientRegister() {
@@ -147,8 +155,51 @@ function ClientRegister() {
         }
     };
 
+    const pageVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: {
+                duration: 0.5,
+                staggerChildren: 0.12,
+            },
+        },
+    };
+
+    const itemVariants = {
+        hidden: { opacity: 0, y: 24 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: { duration: 0.55, ease: "easeOut" },
+        },
+    };
+
+    const leftPanelVariants = {
+        hidden: { opacity: 0, x: -40 },
+        visible: {
+            opacity: 1,
+            x: 0,
+            transition: { duration: 0.7, ease: "easeOut" },
+        },
+    };
+
+    const rightPanelVariants = {
+        hidden: { opacity: 0, x: 40 },
+        visible: {
+            opacity: 1,
+            x: 0,
+            transition: { duration: 0.7, ease: "easeOut" },
+        },
+    };
+
     return (
-        <div className="min-h-screen bg-gradient-to-br from-[#08392d] via-[#0f4d3c] to-[#169b62] relative overflow-hidden">
+        <motion.div
+            variants={pageVariants}
+            initial="hidden"
+            animate="visible"
+            className="min-h-screen bg-gradient-to-br from-[#08392d] via-[#0f4d3c] to-[#169b62] relative overflow-hidden"
+        >
             <div className="absolute inset-0 pointer-events-none">
                 <div className="absolute -top-20 -left-20 h-72 w-72 rounded-full bg-[#d4af37]/20 blur-3xl" />
                 <div className="absolute top-1/3 -right-20 h-80 w-80 rounded-full bg-white/10 blur-3xl" />
@@ -156,7 +207,10 @@ function ClientRegister() {
                 <div className="absolute bottom-10 right-1/4 h-44 w-44 rounded-full bg-emerald-300/10 blur-3xl" />
             </div>
 
-            <div className="relative z-10 px-4 sm:px-8 pt-6">
+            <motion.div
+                variants={itemVariants}
+                className="relative z-10 px-4 sm:px-8 pt-6"
+            >
                 <Link
                     to="/"
                     className="inline-flex items-center gap-2 text-white/90 font-semibold hover:text-[#f5c94a] transition"
@@ -164,30 +218,46 @@ function ClientRegister() {
                     <span>←</span>
                     <span>Back to Home</span>
                 </Link>
-            </div>
+            </motion.div>
 
             <div className="relative z-10 min-h-[calc(100vh-72px)] flex items-center justify-center px-4 py-8">
                 <div className="w-full max-w-6xl grid lg:grid-cols-2 rounded-[32px] overflow-hidden shadow-[0_25px_80px_rgba(0,0,0,0.30)] border border-white/10 bg-white/10 backdrop-blur-md">
-                    <div className="hidden lg:flex flex-col justify-between p-10 xl:p-14 bg-gradient-to-br from-[#0b3d31]/95 via-[#0f4d3c]/90 to-[#136f50]/85 text-white relative">
+                    <motion.div
+                        variants={leftPanelVariants}
+                        className="hidden lg:flex flex-col justify-between p-10 xl:p-14 bg-gradient-to-br from-[#0b3d31]/95 via-[#0f4d3c]/90 to-[#136f50]/85 text-white relative"
+                    >
                         <div>
-                            <div className="inline-flex items-center gap-2 rounded-full border border-[#d4af37]/40 bg-white/10 px-4 py-2 text-sm font-medium text-[#f7d97b]">
+                            <motion.div
+                                variants={itemVariants}
+                                className="inline-flex items-center gap-2 rounded-full border border-[#d4af37]/40 bg-white/10 px-4 py-2 text-sm font-medium text-[#f7d97b]"
+                            >
                                 <Sparkles size={16} />
                                 Elegant Catering Portal
-                            </div>
+                            </motion.div>
 
-                            <h1 className="mt-8 text-5xl font-extrabold leading-tight">
+                            <motion.h1
+                                variants={itemVariants}
+                                className="mt-8 text-5xl font-extrabold leading-tight"
+                            >
                                 Create Your
                                 <span className="block text-[#f5c94a]">Client Account</span>
-                            </h1>
+                            </motion.h1>
 
-                            <p className="mt-5 max-w-lg text-white/80 text-lg leading-8">
+                            <motion.p
+                                variants={itemVariants}
+                                className="mt-5 max-w-lg text-white/80 text-lg leading-8"
+                            >
                                 Register to request quotations, manage bookings, and access
                                 your personalized catering services with ease.
-                            </p>
+                            </motion.p>
                         </div>
 
                         <div className="grid gap-4">
-                            <div className="rounded-2xl bg-white/10 border border-white/10 p-4 flex items-start gap-3">
+                            <motion.div
+                                variants={itemVariants}
+                                whileHover={{ y: -4, scale: 1.01 }}
+                                className="rounded-2xl bg-white/10 border border-white/10 p-4 flex items-start gap-3"
+                            >
                                 <UserPlus className="mt-1 text-[#f5c94a]" size={20} />
                                 <div>
                                     <h3 className="font-semibold">Fast account setup</h3>
@@ -195,9 +265,13 @@ function ClientRegister() {
                                         Create an account in just a few steps.
                                     </p>
                                 </div>
-                            </div>
+                            </motion.div>
 
-                            <div className="rounded-2xl bg-white/10 border border-white/10 p-4 flex items-start gap-3">
+                            <motion.div
+                                variants={itemVariants}
+                                whileHover={{ y: -4, scale: 1.01 }}
+                                className="rounded-2xl bg-white/10 border border-white/10 p-4 flex items-start gap-3"
+                            >
                                 <ShieldCheck className="mt-1 text-[#f5c94a]" size={20} />
                                 <div>
                                     <h3 className="font-semibold">Reliable access</h3>
@@ -205,9 +279,13 @@ function ClientRegister() {
                                         Securely access your quotations and booking details.
                                     </p>
                                 </div>
-                            </div>
+                            </motion.div>
 
-                            <div className="rounded-2xl bg-white/10 border border-white/10 p-4 flex items-start gap-3">
+                            <motion.div
+                                variants={itemVariants}
+                                whileHover={{ y: -4, scale: 1.01 }}
+                                className="rounded-2xl bg-white/10 border border-white/10 p-4 flex items-start gap-3"
+                            >
                                 <CheckCircle2 className="mt-1 text-[#f5c94a]" size={20} />
                                 <div>
                                     <h3 className="font-semibold">Modern client experience</h3>
@@ -215,13 +293,19 @@ function ClientRegister() {
                                         Smooth registration flow with instant feedback popups.
                                     </p>
                                 </div>
-                            </div>
+                            </motion.div>
                         </div>
-                    </div>
+                    </motion.div>
 
-                    <div className="bg-white px-6 py-8 sm:px-10 sm:py-10 lg:px-12 lg:py-12">
+                    <motion.div
+                        variants={rightPanelVariants}
+                        className="bg-white px-6 py-8 sm:px-10 sm:py-10 lg:px-12 lg:py-12"
+                    >
                         <div className="mx-auto w-full max-w-md">
-                            <div className="text-center lg:text-left mb-8">
+                            <motion.div
+                                variants={itemVariants}
+                                className="text-center lg:text-left mb-8"
+                            >
                                 <p className="text-sm font-semibold tracking-[0.18em] text-[#d4af37] uppercase">
                                     Register New
                                 </p>
@@ -233,10 +317,14 @@ function ClientRegister() {
                                 <p className="mt-3 text-gray-500">
                                     Register to access the catering management system.
                                 </p>
-                            </div>
+                            </motion.div>
 
-                            <form onSubmit={handleSubmit} className="space-y-5">
-                                <div>
+                            <motion.form
+                                variants={pageVariants}
+                                onSubmit={handleSubmit}
+                                className="space-y-5"
+                            >
+                                <motion.div variants={itemVariants}>
                                     <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
                                         Full Name
                                     </label>
@@ -248,9 +336,9 @@ function ClientRegister() {
                                         placeholder="Enter your full name"
                                         className="w-full rounded-2xl border border-gray-300 bg-[#fafafa] px-4 py-3.5 outline-none focus:border-[#d4af37] focus:ring-4 focus:ring-[#d4af37]/15 transition"
                                     />
-                                </div>
+                                </motion.div>
 
-                                <div>
+                                <motion.div variants={itemVariants}>
                                     <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
                                         Email
                                     </label>
@@ -262,9 +350,9 @@ function ClientRegister() {
                                         placeholder="Enter your email"
                                         className="w-full rounded-2xl border border-gray-300 bg-[#fafafa] px-4 py-3.5 outline-none focus:border-[#d4af37] focus:ring-4 focus:ring-[#d4af37]/15 transition"
                                     />
-                                </div>
+                                </motion.div>
 
-                                <div>
+                                <motion.div variants={itemVariants}>
                                     <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
                                         Password
                                     </label>
@@ -285,9 +373,9 @@ function ClientRegister() {
                                             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                                         </button>
                                     </div>
-                                </div>
+                                </motion.div>
 
-                                <div>
+                                <motion.div variants={itemVariants}>
                                     <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
                                         Confirm Password
                                     </label>
@@ -308,18 +396,31 @@ function ClientRegister() {
                                             {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                                         </button>
                                     </div>
-                                </div>
+                                </motion.div>
 
-                                <button
+                                <motion.button
+                                    variants={itemVariants}
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
                                     type="submit"
                                     disabled={loading}
-                                    className="w-full rounded-2xl bg-gradient-to-r from-[#0f4d3c] via-[#11634b] to-[#18a06c] text-white py-3.5 font-semibold shadow-lg hover:scale-[1.01] hover:shadow-xl transition disabled:opacity-70"
+                                    className="w-full rounded-2xl bg-gradient-to-r from-[#0f4d3c] via-[#11634b] to-[#18a06c] text-white py-3.5 font-semibold shadow-lg hover:shadow-xl transition disabled:opacity-70 flex items-center justify-center gap-2"
                                 >
-                                    {loading ? "Creating Account..." : "Register"}
-                                </button>
-                            </form>
+                                    {loading ? (
+                                        <>
+                                            <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                                            Creating Account...
+                                        </>
+                                    ) : (
+                                        "Register"
+                                    )}
+                                </motion.button>
+                            </motion.form>
 
-                            <div className="mt-6 text-center">
+                            <motion.div
+                                variants={itemVariants}
+                                className="mt-6 text-center"
+                            >
                                 <p className="text-sm text-gray-500">
                                     Already have an account?{" "}
                                     <Link
@@ -329,12 +430,12 @@ function ClientRegister() {
                                         Sign in here
                                     </Link>
                                 </p>
-                            </div>
+                            </motion.div>
                         </div>
-                    </div>
+                    </motion.div>
                 </div>
             </div>
-        </div>
+        </motion.div>
     );
 }
 
