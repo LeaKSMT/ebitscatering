@@ -22,12 +22,18 @@ import {
     Sparkles,
     ShieldCheck,
     Menu,
+    ChevronRight,
 } from "lucide-react";
 
 function AdminSidebar() {
     const navigate = useNavigate();
     const [showLogoutModal, setShowLogoutModal] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
+
+    const adminUser =
+        JSON.parse(localStorage.getItem("adminUser") || "null") || {
+            name: "Admin User",
+        };
 
     const navItems = [
         { label: "Dashboard", path: "/admin/dashboard", icon: LayoutDashboard },
@@ -74,76 +80,134 @@ function AdminSidebar() {
     };
 
     const navContent = (
-        <div className="flex h-full flex-col border-r border-white/10 bg-[linear-gradient(180deg,#0a4637_0%,#0d5744_55%,#10614b_100%)] text-white shadow-[12px_0_35px_rgba(8,40,31,0.15)]">
-            <div className="shrink-0 border-b border-white/10 px-5 py-6">
-                <div className="flex items-center gap-2">
-                    <Sparkles size={16} className="text-[#f5c94a]" />
-                    <h1 className="text-[26px] leading-tight font-extrabold tracking-tight text-[#f5c94a]">
-                        Ebit&apos;s Catering
-                    </h1>
-                </div>
-                <p className="mt-1 text-sm text-white/80">Executive Admin Panel</p>
+        <div className="relative flex h-full flex-col overflow-hidden border-r border-white/10 bg-[linear-gradient(180deg,#08392d_0%,#0b4a3a_32%,#0f5f49_68%,#12725a_100%)] text-white shadow-[18px_0_45px_rgba(8,45,35,0.20)]">
+            <div className="pointer-events-none absolute -top-16 right-[-50px] h-48 w-48 rounded-full bg-[#f5c94a]/16 blur-3xl" />
+            <div className="pointer-events-none absolute bottom-16 left-[-40px] h-32 w-32 rounded-full bg-white/8 blur-3xl" />
 
-                <div className="mt-5 rounded-[22px] border border-white/10 bg-white/10 p-4 backdrop-blur-sm">
-                    <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#fff3c8] text-[#8a6710]">
-                            <ShieldCheck size={18} />
-                        </div>
+            <div className="relative shrink-0 border-b border-white/10 px-5 pb-5 pt-6">
+                <motion.div
+                    initial={{ opacity: 0, y: -12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4 }}
+                >
+                    <div className="flex items-start justify-between gap-3">
                         <div>
-                            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/65">
-                                Access Level
+                            <div className="flex items-center gap-2">
+                                <Sparkles size={16} className="text-[#f5c94a]" />
+                                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/65">
+                                    Premium Panel
+                                </p>
+                            </div>
+
+                            <h1 className="mt-2 text-[27px] leading-tight font-extrabold tracking-tight text-[#f5d36a]">
+                                Ebit&apos;s Catering
+                            </h1>
+                            <p className="mt-1 text-sm text-white/78">
+                                Executive Admin Workspace
                             </p>
-                            <p className="text-sm font-bold text-white">Administrator</p>
                         </div>
                     </div>
-                </div>
+
+                    <motion.div
+                        whileHover={{ y: -2, scale: 1.01 }}
+                        className="mt-5 rounded-[24px] border border-white/10 bg-white/10 p-4 backdrop-blur-md"
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#fff3c8_0%,#f3d06a_100%)] text-[#8a6710] shadow-sm">
+                                <ShieldCheck size={19} />
+                            </div>
+
+                            <div className="min-w-0">
+                                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/60">
+                                    Logged In As
+                                </p>
+                                <p className="truncate text-sm font-bold text-white">
+                                    {adminUser.name}
+                                </p>
+                                <p className="text-xs text-white/65">Administrator</p>
+                            </div>
+                        </div>
+                    </motion.div>
+                </motion.div>
             </div>
 
-            <nav className="flex-1 space-y-1.5 overflow-y-auto px-4 py-5">
-                {navItems.map((item) => {
+            <nav className="relative flex-1 space-y-1.5 overflow-y-auto px-4 py-5">
+                {navItems.map((item, index) => {
                     const Icon = item.icon;
 
                     return (
-                        <NavLink
+                        <motion.div
                             key={item.path}
-                            to={item.path}
-                            onClick={() => setMobileOpen(false)}
-                            className={({ isActive }) =>
-                                `group flex items-center gap-3 rounded-[20px] px-4 py-3 text-[15px] font-medium transition-all duration-200 ${isActive
-                                    ? "bg-[linear-gradient(135deg,#fff3c8_0%,#f4db86_100%)] text-[#0b4a3a] shadow-[0_14px_30px_rgba(212,175,55,0.18)]"
-                                    : "text-white/90 hover:bg-white/10 hover:text-white"
-                                }`
-                            }
+                            initial={{ opacity: 0, x: -16 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.04 * index, duration: 0.3 }}
                         >
-                            <Icon size={18} className="shrink-0" />
-                            <span className="leading-5">{item.label}</span>
-                        </NavLink>
+                            <NavLink
+                                to={item.path}
+                                onClick={() => setMobileOpen(false)}
+                                className={({ isActive }) =>
+                                    `group flex items-center gap-3 rounded-[20px] px-4 py-3.5 text-[15px] font-medium transition-all duration-200 ${isActive
+                                        ? "bg-[linear-gradient(135deg,#fff3c8_0%,#f4db86_100%)] text-[#0b4a3a] shadow-[0_14px_30px_rgba(212,175,55,0.20)]"
+                                        : "text-white/88 hover:bg-white/10 hover:text-white"
+                                    }`
+                                }
+                            >
+                                {({ isActive }) => (
+                                    <>
+                                        <motion.div
+                                            whileHover={{ scale: 1.06 }}
+                                            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl transition ${isActive
+                                                    ? "bg-white/55 text-[#0b4a3a]"
+                                                    : "bg-white/8 text-white/90 group-hover:bg-white/12"
+                                                }`}
+                                        >
+                                            <Icon size={18} />
+                                        </motion.div>
+
+                                        <div className="min-w-0 flex-1">
+                                            <span className="block truncate leading-5">{item.label}</span>
+                                        </div>
+
+                                        <ChevronRight
+                                            size={16}
+                                            className={`transition ${isActive
+                                                    ? "translate-x-0 text-[#0b4a3a]"
+                                                    : "-translate-x-1 text-white/45 opacity-0 group-hover:translate-x-0 group-hover:opacity-100"
+                                                }`}
+                                        />
+                                    </>
+                                )}
+                            </NavLink>
+                        </motion.div>
                     );
                 })}
             </nav>
 
-            <div className="shrink-0 border-t border-white/10 px-4 pb-5 pt-4">
-                <button
+            <div className="relative shrink-0 border-t border-white/10 px-4 pb-5 pt-4">
+                <motion.button
+                    whileHover={{ y: -2, scale: 1.01 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={() => setShowLogoutModal(true)}
-                    className="flex w-full items-center justify-center gap-2 rounded-[20px] bg-white px-4 py-3 font-bold text-[#0b4a3a] shadow-sm transition hover:bg-gray-100"
+                    className="flex w-full items-center justify-center gap-2 rounded-[20px] border border-white/15 bg-white px-4 py-3.5 font-bold text-[#0b4a3a] shadow-[0_10px_25px_rgba(0,0,0,0.10)] transition hover:bg-[#f8faf9]"
                 >
                     <LogOut size={18} />
                     Logout
-                </button>
+                </motion.button>
             </div>
         </div>
     );
 
     return (
         <>
-            <button
+            <motion.button
+                whileTap={{ scale: 0.92 }}
                 onClick={() => setMobileOpen(true)}
-                className="fixed left-4 top-4 z-40 inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[#dce7e2] bg-white text-[#0b4a3a] shadow-sm lg:hidden"
+                className="fixed left-4 top-4 z-40 inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/70 bg-white/90 text-[#0b4a3a] shadow-[0_10px_24px_rgba(15,77,60,0.12)] backdrop-blur-md lg:hidden"
             >
                 <Menu size={20} />
-            </button>
+            </motion.button>
 
-            <aside className="fixed left-0 top-0 z-40 hidden h-screen w-[280px] lg:block">
+            <aside className="fixed left-0 top-0 z-40 hidden h-screen w-[290px] lg:block">
                 {navContent}
             </aside>
 
@@ -155,7 +219,7 @@ function AdminSidebar() {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={() => setMobileOpen(false)}
-                            className="fixed inset-0 z-50 bg-black/45 backdrop-blur-[2px] lg:hidden"
+                            className="fixed inset-0 z-50 bg-black/45 backdrop-blur-[3px] lg:hidden"
                         />
 
                         <motion.aside
@@ -163,7 +227,7 @@ function AdminSidebar() {
                             animate={{ x: 0 }}
                             exit={{ x: "-100%" }}
                             transition={{ duration: 0.28, ease: "easeOut" }}
-                            className="fixed left-0 top-0 z-[60] h-screen w-[88%] max-w-[320px] lg:hidden"
+                            className="fixed left-0 top-0 z-[60] h-screen w-[88%] max-w-[340px] lg:hidden"
                         >
                             <div className="relative h-full">
                                 <button
@@ -181,29 +245,31 @@ function AdminSidebar() {
 
             <AnimatePresence>
                 {showLogoutModal && (
-                    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/45 px-4 backdrop-blur-[2px]">
+                    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/45 px-4 backdrop-blur-[3px]">
                         <motion.div
                             initial={{ opacity: 0, y: 18, scale: 0.97 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 18, scale: 0.97 }}
-                            className="w-full max-w-md overflow-hidden rounded-[30px] border border-gray-200 bg-white shadow-2xl"
+                            className="w-full max-w-md overflow-hidden rounded-[30px] border border-white/60 bg-white shadow-[0_25px_60px_rgba(0,0,0,0.18)]"
                         >
-                            <div className="flex items-center justify-between bg-[linear-gradient(135deg,#0b4a3a_0%,#0f5d49_100%)] px-6 py-5 text-white">
-                                <div>
-                                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/70">
-                                        Confirmation
-                                    </p>
-                                    <h3 className="mt-1 text-2xl font-extrabold">
-                                        Logout Admin
-                                    </h3>
-                                </div>
+                            <div className="bg-[linear-gradient(135deg,#0b4a3a_0%,#0f5d49_60%,#12785b_100%)] px-6 py-5 text-white">
+                                <div className="flex items-start justify-between gap-4">
+                                    <div>
+                                        <p className="text-[11px] font-semibold uppercase tracking-[0.20em] text-white/65">
+                                            Confirmation
+                                        </p>
+                                        <h3 className="mt-1 text-2xl font-extrabold">
+                                            Logout Admin
+                                        </h3>
+                                    </div>
 
-                                <button
-                                    onClick={() => setShowLogoutModal(false)}
-                                    className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20"
-                                >
-                                    <X size={18} />
-                                </button>
+                                    <button
+                                        onClick={() => setShowLogoutModal(false)}
+                                        className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20"
+                                    >
+                                        <X size={18} />
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="px-6 py-6">
@@ -212,19 +278,21 @@ function AdminSidebar() {
                                 </p>
 
                                 <div className="mt-6 grid grid-cols-2 gap-3">
-                                    <button
+                                    <motion.button
+                                        whileTap={{ scale: 0.98 }}
                                         onClick={() => setShowLogoutModal(false)}
                                         className="w-full rounded-2xl border border-gray-200 py-3 font-bold text-[#0b4a3a] transition hover:bg-gray-50"
                                     >
                                         Cancel
-                                    </button>
+                                    </motion.button>
 
-                                    <button
+                                    <motion.button
+                                        whileTap={{ scale: 0.98 }}
                                         onClick={confirmLogout}
-                                        className="w-full rounded-2xl bg-[#d4af37] py-3 font-bold text-[#0b4a3a] transition hover:bg-[#c79f23]"
+                                        className="w-full rounded-2xl bg-[linear-gradient(135deg,#e4bc41_0%,#d4af37_100%)] py-3 font-bold text-[#0b4a3a] transition hover:brightness-95"
                                     >
                                         Yes, Logout
-                                    </button>
+                                    </motion.button>
                                 </div>
                             </div>
                         </motion.div>
