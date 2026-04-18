@@ -159,77 +159,63 @@ function AdminDashboard() {
         ].filter((item) => item.value > 0);
     }, [bookings]);
 
-    const recentBookings = useMemo(() => {
-        return [...bookings]
-            .sort(
-                (a, b) =>
-                    new Date(b.createdAt || b.eventDate || 0) -
-                    new Date(a.createdAt || a.eventDate || 0)
-            )
-            .slice(0, 5);
-    }, [bookings]);
-
     return (
         <motion.div
             initial="hidden"
             animate="show"
             transition={{ staggerChildren: 0.08 }}
-            className="space-y-6"
+            className="space-y-5"
         >
-            <div className="rounded-[22px] border-4 border-red-600 bg-yellow-300 px-5 py-4 text-base font-extrabold text-black shadow-[0_12px_30px_rgba(0,0,0,0.18)]">
-                PROD TEST WOW ADMIN DASHBOARD 2026
-            </div>
-
             <motion.section
                 variants={fadeUp}
-                className="relative overflow-hidden rounded-[34px] border border-[#dbe7e2] bg-white shadow-[0_18px_50px_rgba(14,61,47,0.08)]"
+                className="relative overflow-hidden rounded-[30px] border border-[#dbe7e2] bg-white shadow-[0_18px_50px_rgba(14,61,47,0.08)]"
             >
                 <div className="absolute inset-0 pointer-events-none">
-                    <div className="absolute -top-14 right-[-40px] h-48 w-48 rounded-full bg-[#d4af37]/18 blur-3xl" />
-                    <div className="absolute bottom-[-30px] left-[-20px] h-36 w-36 rounded-full bg-white/12 blur-3xl" />
+                    <div className="absolute -top-14 right-[-40px] h-44 w-44 rounded-full bg-[#d4af37]/18 blur-3xl" />
+                    <div className="absolute bottom-[-30px] left-[-20px] h-32 w-32 rounded-full bg-white/12 blur-3xl" />
                 </div>
 
-                <div className="relative bg-[linear-gradient(135deg,#0a4637_0%,#0d5e49_52%,#118164_100%)] px-6 py-8 text-white md:px-8 md:py-10">
+                <div className="relative bg-[linear-gradient(135deg,#0a4637_0%,#0d5e49_52%,#118164_100%)] px-6 py-7 text-white md:px-8 md:py-8">
                     <motion.div
                         animate={{ y: [0, -4, 0] }}
                         transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
-                        className="absolute right-6 top-6 hidden h-20 w-20 rounded-full border border-white/10 bg-white/5 blur-[1px] md:block"
+                        className="absolute right-6 top-6 hidden h-16 w-16 rounded-full border border-white/10 bg-white/5 blur-[1px] md:block"
                     />
 
-                    <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
+                    <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
                         <div>
-                            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.22em] text-white/80">
-                                <Sparkles size={14} />
+                            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.22em] text-white/80">
+                                <Sparkles size={13} />
                                 Executive Overview
                             </div>
 
-                            <h2 className="mt-4 text-3xl font-extrabold md:text-5xl">
+                            <h2 className="mt-4 text-3xl font-extrabold md:text-[44px]">
                                 Premium Admin Dashboard
                             </h2>
-                            <p className="mt-3 max-w-3xl text-sm leading-7 text-white/85 md:text-base">
-                                Monitor bookings, payments, quotations, revenue, and client event activity through a polished and defense-ready executive interface.
+                            <p className="mt-2 max-w-3xl text-sm leading-7 text-white/85 md:text-[15px]">
+                                Monitor bookings, quotations, payments, revenue, and client event activity through a premium and defense-ready executive interface.
                             </p>
                         </div>
 
                         <motion.div
                             whileHover={{ y: -3, scale: 1.02 }}
-                            className="rounded-[28px] border border-white/10 bg-white/10 p-5 backdrop-blur-md shadow-[0_15px_35px_rgba(0,0,0,0.12)]"
+                            className="rounded-[24px] border border-white/10 bg-white/10 p-5 backdrop-blur-md shadow-[0_15px_35px_rgba(0,0,0,0.12)]"
                         >
-                            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/70">
+                            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">
                                 Business Health
                             </p>
                             <p className="mt-2 text-3xl font-extrabold text-white">
                                 Stable
                             </p>
-                            <div className="mt-3 flex items-center gap-2 text-sm text-white/80">
-                                <ArrowUpRight size={16} />
-                                Strong visibility across operations and financial activity
+                            <div className="mt-2 flex items-center gap-2 text-sm text-white/80">
+                                <ArrowUpRight size={15} />
+                                Strong visibility across active operations
                             </div>
                         </motion.div>
                     </div>
                 </div>
 
-                <div className="grid gap-4 px-6 py-6 sm:grid-cols-2 xl:grid-cols-4 md:px-8">
+                <div className="grid gap-4 px-5 py-5 sm:grid-cols-2 xl:grid-cols-4 md:px-6">
                     <StatCard
                         title="Total Revenue"
                         value={formatCurrency(stats.totalRevenue)}
@@ -292,13 +278,13 @@ function AdminDashboard() {
                 </motion.div>
             </div>
 
-            <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+            <div className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
                 <DashboardCard
                     title="Monthly Revenue Trend"
                     subtitle="Revenue and expenses based on real booking totals."
                     variants={fadeUp}
                 >
-                    <div className="h-[320px]">
+                    <div className="h-[300px]">
                         {monthlyRows.length === 0 ? (
                             <EmptyChartState message="No monthly revenue data yet." />
                         ) : (
@@ -342,7 +328,7 @@ function AdminDashboard() {
                     subtitle="Booking share by event category."
                     variants={fadeUp}
                 >
-                    <div className="h-[320px]">
+                    <div className="h-[300px]">
                         {eventTypeChartData.length === 0 ? (
                             <EmptyChartState message="No event type data yet." />
                         ) : (
@@ -354,8 +340,8 @@ function AdminDashboard() {
                                         nameKey="name"
                                         cx="50%"
                                         cy="50%"
-                                        outerRadius={95}
-                                        innerRadius={50}
+                                        outerRadius={92}
+                                        innerRadius={52}
                                         paddingAngle={3}
                                     >
                                         {eventTypeChartData.map((entry, index) => (
@@ -380,13 +366,13 @@ function AdminDashboard() {
                 </DashboardCard>
             </div>
 
-            <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+            <div className="grid gap-5 xl:grid-cols-[1fr_1fr]">
                 <DashboardCard
                     title="Booking Trend"
                     subtitle="Number of bookings recorded per month."
                     variants={fadeUp}
                 >
-                    <div className="h-[320px]">
+                    <div className="h-[300px]">
                         {monthlyBookingTrend.length === 0 ? (
                             <EmptyChartState message="No booking trend data yet." />
                         ) : (
@@ -420,7 +406,7 @@ function AdminDashboard() {
                     subtitle="Booking payment completion distribution."
                     variants={fadeUp}
                 >
-                    <div className="h-[320px]">
+                    <div className="h-[300px]">
                         {paymentStatusChartData.length === 0 ? (
                             <EmptyChartState message="No payment status data yet." />
                         ) : (
@@ -432,7 +418,7 @@ function AdminDashboard() {
                                         nameKey="name"
                                         cx="50%"
                                         cy="50%"
-                                        outerRadius={100}
+                                        outerRadius={95}
                                         innerRadius={55}
                                         paddingAngle={4}
                                     >
@@ -457,120 +443,6 @@ function AdminDashboard() {
                     </div>
                 </DashboardCard>
             </div>
-
-            <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-                <DashboardCard
-                    title="Recent Bookings"
-                    subtitle="Latest booking activity from the system."
-                    variants={fadeUp}
-                >
-                    {recentBookings.length === 0 ? (
-                        <p className="text-gray-500">No bookings yet.</p>
-                    ) : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full min-w-[720px] text-sm">
-                                <thead>
-                                    <tr className="border-b border-gray-100 text-left text-gray-500">
-                                        <th className="py-3 font-semibold">Booking ID</th>
-                                        <th className="py-3 font-semibold">Client</th>
-                                        <th className="py-3 font-semibold">Event</th>
-                                        <th className="py-3 font-semibold">Date</th>
-                                        <th className="py-3 font-semibold">Guests</th>
-                                        <th className="py-3 font-semibold">Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {recentBookings.map((booking) => (
-                                        <tr
-                                            key={booking.id}
-                                            className="border-b border-gray-50 transition hover:bg-[#f8fbfa]"
-                                        >
-                                            <td className="py-4 font-semibold text-[#0f4d3c]">
-                                                {booking.bookingId}
-                                            </td>
-                                            <td className="py-4">{booking.fullName}</td>
-                                            <td className="py-4">{booking.eventType}</td>
-                                            <td className="py-4">{formatDate(booking.eventDate)}</td>
-                                            <td className="py-4">{booking.guestCount}</td>
-                                            <td className="py-4 font-semibold text-[#b99117]">
-                                                {formatCurrency(booking.totalAmount)}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
-                </DashboardCard>
-
-                <div className="space-y-6">
-                    <DashboardCard
-                        title="Quick Admin Snapshot"
-                        subtitle="Fast access to important business figures."
-                        variants={fadeUp}
-                    >
-                        <div className="mt-5 space-y-4">
-                            <SummaryLine
-                                label="Total Collected"
-                                value={formatCurrency(stats.totalCollected)}
-                            />
-                            <SummaryLine
-                                label="Pending Quotations"
-                                value={stats.pendingQuotations}
-                            />
-                            <SummaryLine
-                                label="Confirmed Bookings"
-                                value={stats.confirmedBookings}
-                            />
-                            <SummaryLine
-                                label="Completed Events"
-                                value={stats.completedEvents}
-                            />
-                        </div>
-                    </DashboardCard>
-
-                    <DashboardCard
-                        title="Demand Forecast Snapshot"
-                        subtitle="Most requested event types in the system."
-                        variants={fadeUp}
-                    >
-                        <div className="mt-5 space-y-4">
-                            {demandForecast.length === 0 ? (
-                                <p className="text-sm text-gray-500">
-                                    No demand forecast data yet.
-                                </p>
-                            ) : (
-                                demandForecast.map((item, index) => (
-                                    <motion.div
-                                        key={item.type}
-                                        initial={{ opacity: 0, x: -10 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: 0.08 * index }}
-                                    >
-                                        <div className="mb-2 flex items-center justify-between text-sm">
-                                            <span className="font-medium text-[#0f4d3c]">
-                                                {item.type}
-                                            </span>
-                                            <span className="text-gray-500">
-                                                {item.count} booking(s) • {item.percent}%
-                                            </span>
-                                        </div>
-
-                                        <div className="h-3 overflow-hidden rounded-full bg-gray-100">
-                                            <motion.div
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${item.percent}%` }}
-                                                transition={{ duration: 0.9, delay: 0.1 * index }}
-                                                className="h-full rounded-full bg-[linear-gradient(90deg,#d4af37_0%,#f0cd63_100%)]"
-                                            />
-                                        </div>
-                                    </motion.div>
-                                ))
-                            )}
-                        </div>
-                    </DashboardCard>
-                </div>
-            </div>
         </motion.div>
     );
 }
@@ -581,7 +453,7 @@ function DashboardCard({ title, subtitle, children, variants }) {
             variants={variants}
             whileHover={{ y: -4 }}
             transition={{ duration: 0.22 }}
-            className="rounded-[30px] border border-[#dce7e2] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-6 shadow-[0_12px_30px_rgba(14,61,47,0.06)]"
+            className="rounded-[26px] border border-[#dce7e2] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-5 shadow-[0_12px_30px_rgba(14,61,47,0.06)]"
         >
             <SectionHeader title={title} subtitle={subtitle} />
             {children}
@@ -599,7 +471,7 @@ function StatCard({ title, value, subtitle, icon: Icon, accent = "green" }) {
         <motion.div
             whileHover={{ y: -6, scale: 1.015 }}
             transition={{ duration: 0.22 }}
-            className="rounded-[26px] border border-[#e3ebe7] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-5 shadow-sm"
+            className="rounded-[24px] border border-[#e3ebe7] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-5 shadow-sm"
         >
             <div className="flex items-start justify-between gap-4">
                 <div>
@@ -612,9 +484,9 @@ function StatCard({ title, value, subtitle, icon: Icon, accent = "green" }) {
 
                 <motion.div
                     whileHover={{ rotate: -6, scale: 1.06 }}
-                    className={`flex h-14 w-14 items-center justify-center rounded-2xl shadow-sm ${iconStyle}`}
+                    className={`flex h-12 w-12 items-center justify-center rounded-2xl shadow-sm ${iconStyle}`}
                 >
-                    <Icon size={24} />
+                    <Icon size={22} />
                 </motion.div>
             </div>
         </motion.div>
@@ -626,14 +498,14 @@ function MiniMetricCard({ title, value, icon: Icon }) {
         <motion.div
             whileHover={{ y: -5, scale: 1.015 }}
             transition={{ duration: 0.22 }}
-            className="rounded-[26px] border border-[#dfe9e4] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-5 shadow-[0_10px_24px_rgba(14,61,47,0.05)]"
+            className="rounded-[24px] border border-[#dfe9e4] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-4 shadow-[0_10px_24px_rgba(14,61,47,0.05)]"
         >
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
                 <motion.div
                     whileHover={{ rotate: -8, scale: 1.06 }}
-                    className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#edf8f3_0%,#dff1e8_100%)] text-[#0f4d3c] shadow-sm"
+                    className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#edf8f3_0%,#dff1e8_100%)] text-[#0f4d3c] shadow-sm"
                 >
-                    <Icon size={24} />
+                    <Icon size={20} />
                 </motion.div>
 
                 <div className="min-w-0">
@@ -649,22 +521,10 @@ function MiniMetricCard({ title, value, icon: Icon }) {
 
 function SectionHeader({ title, subtitle }) {
     return (
-        <div className="mb-5">
-            <h2 className="text-2xl font-extrabold text-[#0f4d3c]">{title}</h2>
+        <div className="mb-4">
+            <h2 className="text-[28px] font-extrabold text-[#0f4d3c]">{title}</h2>
             <p className="mt-1 text-sm text-gray-500">{subtitle}</p>
         </div>
-    );
-}
-
-function SummaryLine({ label, value }) {
-    return (
-        <motion.div
-            whileHover={{ x: 3 }}
-            className="flex items-center justify-between rounded-2xl border border-[#e8efeb] bg-[#f8fbfa] px-4 py-3"
-        >
-            <span className="text-sm text-gray-600">{label}</span>
-            <span className="font-bold text-[#0f4d3c]">{value}</span>
-        </motion.div>
     );
 }
 
