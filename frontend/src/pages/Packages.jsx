@@ -1,11 +1,10 @@
 import { useMemo, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import {
     CheckCircle2,
-    Crown,
     Gift,
     Sparkles,
-    UtensilsCrossed,
     Camera,
     Mic2,
     PartyPopper,
@@ -282,24 +281,89 @@ const debutPackages = [
 ];
 
 const addOns = [
-    { name: "Lights and Sounds", price: "₱4,000", icon: <Mic2 className="w-5 h-5" /> },
-    { name: "Host", price: "₱3,500", icon: <PartyPopper className="w-5 h-5" /> },
-    { name: "Cake", price: "₱2,000", icon: <Gift className="w-5 h-5" /> },
-    { name: "Photo", price: "₱5,000", icon: <Camera className="w-5 h-5" /> },
-    { name: "Photo/Video", price: "₱15,000", icon: <Camera className="w-5 h-5" /> },
-    { name: "SDE", price: "₱27,000", icon: <Sparkles className="w-5 h-5" /> },
+    { name: "Lights and Sounds", price: "₱4,000", icon: <Mic2 className="h-5 w-5" /> },
+    { name: "Host", price: "₱3,500", icon: <PartyPopper className="h-5 w-5" /> },
+    { name: "Cake", price: "₱2,000", icon: <Gift className="h-5 w-5" /> },
+    { name: "Photo", price: "₱5,000", icon: <Camera className="h-5 w-5" /> },
+    { name: "Photo/Video", price: "₱15,000", icon: <Camera className="h-5 w-5" /> },
+    { name: "SDE", price: "₱27,000", icon: <Sparkles className="h-5 w-5" /> },
 ];
 
-function PackageCard({ item, onQuote, badge }) {
+const fadeUp = {
+    hidden: { opacity: 0, y: 28 },
+    visible: (i = 0) => ({
+        opacity: 1,
+        y: 0,
+        transition: {
+            duration: 0.65,
+            delay: i * 0.08,
+            ease: "easeOut",
+        },
+    }),
+};
+
+const softScale = {
+    hidden: { opacity: 0, scale: 0.97 },
+    visible: {
+        opacity: 1,
+        scale: 1,
+        transition: {
+            duration: 0.55,
+            ease: "easeOut",
+        },
+    },
+};
+
+function SectionTitle({ eyebrow, title, highlight, desc, light = false }) {
+    return (
+        <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }}
+            variants={fadeUp}
+            className="mb-10 text-center md:mb-12"
+        >
+            <p
+                className={`text-[11px] font-semibold uppercase tracking-[0.35em] md:text-xs ${light ? "text-white/70" : "text-[#0b4d3b]/60"
+                    }`}
+            >
+                {eyebrow}
+            </p>
+            <h2
+                className={`mt-3 text-[30px] font-bold leading-tight sm:text-[36px] md:text-[44px] ${light ? "text-white" : "text-[#0b4d3b]"
+                    }`}
+            >
+                {title} <span className="text-[#d4a514]">{highlight}</span>
+            </h2>
+            <p
+                className={`mx-auto mt-4 max-w-2xl text-[15px] leading-7 md:text-[16px] ${light ? "text-white/80" : "text-slate-500"
+                    }`}
+            >
+                {desc}
+            </p>
+        </motion.div>
+    );
+}
+
+function PackageCard({ item, onQuote, badge, dark = false }) {
     const visibleFeatures = item.features.slice(0, 8);
     const extraCount = item.features.length - visibleFeatures.length;
 
     return (
-        <div className="rounded-[28px] border border-[#e7dfd1] bg-[#fffdf8] p-6 md:p-7 shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300 flex flex-col h-full">
+        <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.15 }}
+            variants={softScale}
+            className={`flex h-full flex-col rounded-[28px] border p-6 shadow-sm transition duration-300 hover:-translate-y-1.5 hover:shadow-xl md:p-7 ${dark
+                    ? "border-white/10 bg-white text-[#0b4d3b]"
+                    : "border-[#e7dfd1] bg-[#fffdf8] text-[#0b4d3b]"
+                }`}
+        >
             <div className="flex items-start justify-between gap-4">
                 <div>
                     {badge && (
-                        <div className="inline-flex rounded-full bg-[#fff3c8] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-[#9b7510] mb-4">
+                        <div className="mb-4 inline-flex rounded-full bg-[#fff3c8] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-[#9b7510]">
                             {badge}
                         </div>
                     )}
@@ -308,32 +372,35 @@ function PackageCard({ item, onQuote, badge }) {
                         {item.category}
                     </p>
 
-                    <h3 className="mt-3 text-[24px] md:text-[28px] font-extrabold leading-tight text-[#0b4d3b]">
+                    <h3 className="mt-3 text-[22px] font-extrabold leading-tight md:text-[25px]">
                         {item.title}
                     </h3>
 
                     <p className="mt-2 text-sm text-slate-500">{item.pax}</p>
                 </div>
 
-                <div className="text-right shrink-0">
-                    <p className="text-[28px] md:text-[32px] font-extrabold text-[#d1a31d] leading-none">
+                <div className="shrink-0 text-right">
+                    <p className="text-[24px] font-extrabold leading-none text-[#d1a31d] md:text-[28px]">
                         {item.price}
                     </p>
                 </div>
             </div>
 
-            <div className="w-14 h-[3px] rounded-full bg-[#d1a31d] mt-5 mb-5" />
+            <div className="mb-5 mt-5 h-[3px] w-14 rounded-full bg-[#d1a31d]" />
 
-            <ul className="space-y-3 flex-1">
+            <ul className="flex-1 space-y-3">
                 {visibleFeatures.map((feature, index) => (
-                    <li key={index} className="flex items-start gap-3 text-[15px] md:text-[16px] text-slate-700">
-                        <CheckCircle2 className="mt-0.5 h-4 w-4 text-[#c99d1a] shrink-0" />
+                    <li
+                        key={index}
+                        className="flex items-start gap-3 text-[14px] text-slate-700 md:text-[15px]"
+                    >
+                        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#c99d1a]" />
                         <span>{feature}</span>
                     </li>
                 ))}
 
                 {extraCount > 0 && (
-                    <li className="text-[14px] font-medium text-[#0b4d3b]/70 pt-1">
+                    <li className="pt-1 text-[13px] font-medium text-[#0b4d3b]/70">
                         +{extraCount} more inclusions
                     </li>
                 )}
@@ -341,36 +408,11 @@ function PackageCard({ item, onQuote, badge }) {
 
             <button
                 onClick={() => onQuote(item)}
-                className="mt-6 inline-flex w-fit items-center justify-center rounded-xl bg-yellow-400 px-6 py-3 text-sm font-bold text-[#0b4d3b] transition hover:bg-yellow-300"
+                className="mt-6 inline-flex w-fit items-center justify-center rounded-2xl bg-yellow-400 px-5 py-3 text-sm font-bold text-[#0b4d3b] transition hover:bg-yellow-300"
             >
                 Get Quotation
             </button>
-        </div>
-    );
-}
-
-function SectionTitle({ eyebrow, title, highlight, desc, light = false }) {
-    return (
-        <div className="text-center mb-12 md:mb-14">
-            <p
-                className={`text-[11px] md:text-xs font-semibold uppercase tracking-[0.35em] ${light ? "text-white/70" : "text-[#0b4d3b]/65"
-                    }`}
-            >
-                {eyebrow}
-            </p>
-            <h2
-                className={`mt-3 text-[34px] sm:text-[40px] md:text-[52px] leading-tight font-bold ${light ? "text-white" : "text-[#0b4d3b]"
-                    }`}
-            >
-                {title} <span className="text-[#d4a514]">{highlight}</span>
-            </h2>
-            <p
-                className={`mt-4 text-[15px] md:text-[17px] max-w-2xl mx-auto ${light ? "text-white/80" : "text-slate-500"
-                    }`}
-            >
-                {desc}
-            </p>
-        </div>
+        </motion.div>
     );
 }
 
@@ -402,23 +444,23 @@ function Packages() {
     };
 
     const mobileLinkClass =
-        "block rounded-xl px-4 py-3 text-base font-semibold text-white hover:bg-white/10 transition";
+        "block rounded-2xl px-4 py-3 text-base font-semibold text-white transition hover:bg-white/10";
 
     return (
         <div className="min-h-screen bg-[#f7f4ee]">
-            <header className="sticky top-0 z-50 bg-[#0b4d3b] text-white shadow-sm">
-                <div className="mx-auto flex max-w-7xl items-center justify-between px-5 md:px-8 py-4">
+            <header className="sticky top-0 z-50 border-b border-white/10 bg-[#0b4d3b]/92 text-white shadow-sm backdrop-blur-md">
+                <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 md:px-8">
                     <div>
-                        <h1 className="text-[22px] md:text-[26px] font-extrabold text-[#f2bf2f]">
+                        <h1 className="text-[22px] font-extrabold text-[#f2bf2f] md:text-[26px]">
                             Ebit&apos;s Catering
                         </h1>
-                        <p className="text-[11px] md:text-[13px] text-white/80">
-                            For making parties better
+                        <p className="text-[11px] text-white/80 md:text-[13px]">
+                            Premium catering for unforgettable celebrations
                         </p>
                     </div>
 
-                    <nav className="hidden md:flex items-center gap-6 text-[15px]">
-                        <Link to="/" className="font-semibold hover:text-[#f2bf2f] transition">
+                    <nav className="hidden items-center gap-7 text-[15px] md:flex">
+                        <Link to="/" className="font-semibold transition hover:text-[#f2bf2f]">
                             Home
                         </Link>
                         <Link to="/packages" className="font-semibold text-[#f2bf2f]">
@@ -426,7 +468,7 @@ function Packages() {
                         </Link>
                         <Link
                             to="/login"
-                            className="rounded-xl border border-white px-5 py-2.5 text-sm font-bold text-white hover:bg-white hover:text-[#0b4d3b] transition"
+                            className="rounded-2xl border border-white/20 bg-white/10 px-4 py-2.5 font-semibold text-white transition hover:bg-white hover:text-[#0b4d3b]"
                         >
                             Login
                         </Link>
@@ -435,7 +477,7 @@ function Packages() {
                     <button
                         type="button"
                         onClick={() => setMobileMenuOpen((prev) => !prev)}
-                        className="md:hidden inline-flex items-center justify-center rounded-xl border border-white/20 p-2"
+                        className="inline-flex items-center justify-center rounded-xl border border-white/20 p-2 md:hidden"
                         aria-label="Toggle menu"
                     >
                         {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
@@ -443,7 +485,7 @@ function Packages() {
                 </div>
 
                 {mobileMenuOpen && (
-                    <div className="md:hidden border-t border-white/10 px-5 pb-4">
+                    <div className="border-t border-white/10 px-5 pb-4 md:hidden">
                         <div className="flex flex-col gap-2 pt-4">
                             <Link
                                 to="/"
@@ -461,7 +503,7 @@ function Packages() {
                             </Link>
                             <Link
                                 to="/login"
-                                className="mt-2 inline-flex items-center justify-center rounded-xl bg-white px-4 py-3 font-semibold text-[#0b4d3b]"
+                                className="mt-2 inline-flex items-center justify-center rounded-2xl bg-white px-4 py-3 font-semibold text-[#0b4d3b]"
                                 onClick={() => setMobileMenuOpen(false)}
                             >
                                 Login
@@ -471,60 +513,83 @@ function Packages() {
                 )}
             </header>
 
-            <section className="relative overflow-hidden bg-[#0c5a43] px-5 md:px-10 lg:px-20 py-16 md:py-20">
-                <div className="max-w-6xl mx-auto">
-                    <div className="grid lg:grid-cols-[1.25fr_.75fr] gap-10 items-center">
-                        <div className="text-white">
-                            <p className="text-[11px] md:text-xs font-semibold uppercase tracking-[0.35em] text-white/70">
+            <section className="relative overflow-hidden bg-[#0c5a43] px-5 py-14 md:px-10 md:py-16 lg:px-20">
+                <div className="absolute -left-16 top-0 h-52 w-52 rounded-full bg-yellow-300/10 blur-3xl" />
+                <div className="absolute bottom-0 right-0 h-64 w-64 rounded-full bg-white/5 blur-3xl" />
+
+                <div className="mx-auto max-w-6xl">
+                    <div className="grid items-center gap-8 lg:grid-cols-[1.15fr_.85fr]">
+                        <motion.div
+                            initial="hidden"
+                            animate="visible"
+                            variants={fadeUp}
+                            className="text-white"
+                        >
+                            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs text-white/90 backdrop-blur-sm md:text-sm">
+                                <Sparkles size={14} className="text-[#f2bf2f]" />
+                                Elegant package selections
+                            </div>
+
+                            <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/65 md:text-xs">
                                 Ebit&apos;s Catering
                             </p>
 
-                            <h2 className="mt-4 text-[40px] sm:text-[52px] md:text-[68px] font-extrabold leading-[1.02]">
-                                Catering <span className="text-[#f2bf2f]">Packages</span>
+                            <h2 className="mt-4 text-[34px] font-extrabold leading-[1.04] sm:text-[44px] md:text-[56px]">
+                                Curated <span className="text-[#f2bf2f]">Packages</span>
+                                <br />
+                                for Elegant Celebrations
                             </h2>
 
-                            <p className="mt-5 max-w-2xl text-[16px] md:text-[18px] leading-8 text-white/85">
-                                Explore our curated wedding and debut packages, complete
-                                event inclusions, freebie offers, and optional add-ons
-                                designed for elegant and memorable celebrations.
+                            <p className="mt-5 max-w-2xl text-[15px] leading-8 text-white/85 md:text-[17px]">
+                                Explore our wedding and debut packages with thoughtfully
+                                selected inclusions, optional add-ons, and flexible choices
+                                designed for memorable events.
                             </p>
 
-                            <div className="mt-8 flex flex-wrap gap-4">
+                            <div className="mt-7 flex flex-wrap gap-4">
                                 <Link
                                     to="/login"
-                                    className="inline-flex items-center justify-center rounded-xl bg-[#f2bf2f] px-6 py-3.5 font-semibold text-[#0b4d3b] hover:bg-[#f7c93c] transition"
+                                    className="inline-flex items-center justify-center rounded-2xl bg-[#f2bf2f] px-6 py-3.5 font-semibold text-[#0b4d3b] transition hover:bg-[#f7c93c]"
                                 >
                                     Book Your Event
                                 </Link>
 
                                 <Link
                                     to="/"
-                                    className="inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/10 px-6 py-3.5 font-semibold text-white hover:bg-white/15 transition"
+                                    className="inline-flex items-center justify-center rounded-2xl border border-white/15 bg-white/10 px-6 py-3.5 font-semibold text-white transition hover:bg-white/15"
                                 >
                                     Back to Home
                                 </Link>
                             </div>
-                        </div>
+                        </motion.div>
 
-                        <div className="grid gap-4">
-                            {stats.map((item) => (
+                        <motion.div
+                            initial="hidden"
+                            animate="visible"
+                            variants={softScale}
+                            className="grid gap-4"
+                        >
+                            {stats.map((item, index) => (
                                 <div
                                     key={item.label}
-                                    className="rounded-[24px] border border-white/10 bg-white/10 backdrop-blur-sm px-6 py-5 text-white"
+                                    className={`rounded-[24px] border px-6 py-5 backdrop-blur-sm ${index === 1
+                                            ? "border-[#f2bf2f]/30 bg-white/14 text-white"
+                                            : "border-white/10 bg-white/10 text-white"
+                                        }`}
                                 >
-                                    <p className="text-sm text-white/70">{item.label}</p>
-                                    <p className="mt-2 text-[26px] font-extrabold text-[#f2bf2f]">
+                                    <p className="text-sm text-white/65">{item.label}</p>
+                                    <p className="mt-2 text-[22px] font-extrabold text-[#f2bf2f] md:text-[26px]">
                                         {item.value}
                                     </p>
                                 </div>
                             ))}
-                        </div>
+                        </motion.div>
                     </div>
                 </div>
             </section>
 
-            <section className="px-5 md:px-10 lg:px-20 py-16 bg-[#f7f4ee]">
-                <div className="max-w-6xl mx-auto">
+            <section className="bg-[#f7f4ee] px-5 py-14 md:px-10 md:py-16 lg:px-20">
+                <div className="mx-auto max-w-6xl">
                     <SectionTitle
                         eyebrow="Quick Overview"
                         title="Quick"
@@ -538,59 +603,72 @@ function Packages() {
                             { pax: "75 Pax", price: "₱30,000" },
                             { pax: "100 Pax", price: "₱40,000" },
                         ].map((rate, index) => (
-                            <div
+                            <motion.div
                                 key={rate.pax}
-                                className={`rounded-[26px] p-8 text-center shadow-sm border ${index === 1
-                                        ? "bg-[#0c5a43] text-white border-transparent"
-                                        : "bg-white text-[#0b4d3b] border-[#e8e2d6]"
+                                initial="hidden"
+                                whileInView="visible"
+                                viewport={{ once: true, amount: 0.2 }}
+                                custom={index}
+                                variants={fadeUp}
+                                className={`rounded-[26px] border p-7 text-center shadow-sm ${index === 1
+                                        ? "border-transparent bg-[#0c5a43] text-white"
+                                        : "border-[#e8e2d6] bg-white text-[#0b4d3b]"
                                     }`}
                             >
-                                <p className="text-sm uppercase tracking-[0.28em] font-semibold opacity-70">
+                                <p className="text-sm font-semibold uppercase tracking-[0.28em] opacity-70">
                                     Guest Count
                                 </p>
-                                <h3 className="mt-3 text-4xl font-extrabold">{rate.pax}</h3>
+                                <h3 className="mt-3 text-[32px] font-extrabold md:text-[38px]">
+                                    {rate.pax}
+                                </h3>
                                 <div className="mx-auto my-5 h-[3px] w-14 rounded-full bg-[#d7ad34]" />
-                                <p className="text-4xl md:text-5xl font-extrabold text-[#d7ad34]">
+                                <p className="text-[34px] font-extrabold text-[#d7ad34] md:text-[42px]">
                                     {rate.price}
                                 </p>
-                            </div>
+                            </motion.div>
                         ))}
                     </div>
                 </div>
             </section>
 
-            <section className="px-5 md:px-10 lg:px-20 pb-16 bg-[#f7f4ee]">
-                <div className="max-w-5xl mx-auto rounded-[30px] border border-[#eadfbe] bg-[#fff9e8] p-8 md:p-10 shadow-sm">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <section className="bg-[#f7f4ee] px-5 pb-14 md:px-10 md:pb-16 lg:px-20">
+                <motion.div
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.2 }}
+                    variants={softScale}
+                    className="mx-auto max-w-5xl rounded-[30px] border border-[#eadfbe] bg-[#fff9e8] p-7 shadow-sm md:p-9"
+                >
+                    <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
                         <div className="flex items-start gap-4">
-                            <div className="w-14 h-14 rounded-2xl bg-[#f2bf2f]/20 flex items-center justify-center shrink-0">
-                                <Gift className="w-7 h-7 text-[#b78a11]" />
+                            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#f2bf2f]/20">
+                                <Gift className="h-7 w-7 text-[#b78a11]" />
                             </div>
 
                             <div>
-                                <p className="text-[11px] md:text-xs font-semibold uppercase tracking-[0.35em] text-[#0b4d3b]/55">
+                                <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-[#0b4d3b]/55 md:text-xs">
                                     Freebie
                                 </p>
-                                <h3 className="mt-3 text-[32px] md:text-[42px] font-extrabold text-[#0b4d3b]">
+                                <h3 className="mt-3 text-[28px] font-extrabold text-[#0b4d3b] md:text-[38px]">
                                     Free <span className="text-[#d4a514]">Backdrop</span>
                                 </h3>
-                                <p className="mt-3 text-slate-600 leading-7 max-w-2xl">
+                                <p className="mt-3 max-w-2xl leading-7 text-slate-600">
                                     Selected package offers include a free backdrop to enhance
                                     the styling and overall presentation of your event.
                                 </p>
                             </div>
                         </div>
 
-                        <div className="inline-flex items-center gap-2 rounded-full bg-[#0c5a43] px-5 py-3 text-sm font-bold text-white w-fit">
-                            <Gift className="w-4 h-4 text-[#f2bf2f]" />
+                        <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[#0c5a43] px-5 py-3 text-sm font-bold text-white">
+                            <Gift className="h-4 w-4 text-[#f2bf2f]" />
                             Included in selected offers
                         </div>
                     </div>
-                </div>
+                </motion.div>
             </section>
 
-            <section className="bg-white px-5 md:px-10 lg:px-20 py-16">
-                <div className="max-w-7xl mx-auto">
+            <section className="bg-white px-5 py-14 md:px-10 md:py-16 lg:px-20">
+                <div className="mx-auto max-w-7xl">
                     <SectionTitle
                         eyebrow="Wedding Collection"
                         title="Wedding"
@@ -611,8 +689,8 @@ function Packages() {
                 </div>
             </section>
 
-            <section className="bg-[#0c5a43] px-5 md:px-10 lg:px-20 py-16">
-                <div className="max-w-7xl mx-auto">
+            <section className="bg-[#0c5a43] px-5 py-14 md:px-10 md:py-16 lg:px-20">
+                <div className="mx-auto max-w-7xl">
                     <SectionTitle
                         eyebrow="Debut Collection"
                         title="Debut"
@@ -628,14 +706,15 @@ function Packages() {
                                 item={item}
                                 onQuote={handleGetQuotation}
                                 badge={index === 1 ? "Recommended" : ""}
+                                dark
                             />
                         ))}
                     </div>
                 </div>
             </section>
 
-            <section className="bg-[#f7f4ee] px-5 md:px-10 lg:px-20 py-16">
-                <div className="max-w-6xl mx-auto">
+            <section className="bg-[#f7f4ee] px-5 py-14 md:px-10 md:py-16 lg:px-20">
+                <div className="mx-auto max-w-6xl">
                     <SectionTitle
                         eyebrow="Optional Services"
                         title="Available"
@@ -644,38 +723,51 @@ function Packages() {
                     />
 
                     <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                        {addOns.map((addon) => (
-                            <div
+                        {addOns.map((addon, index) => (
+                            <motion.div
                                 key={addon.name}
-                                className="rounded-[24px] border border-[#e8e2d6] bg-white p-6 shadow-sm hover:shadow-lg transition"
+                                initial="hidden"
+                                whileInView="visible"
+                                viewport={{ once: true, amount: 0.2 }}
+                                custom={index}
+                                variants={fadeUp}
+                                className="rounded-[24px] border border-[#e8e2d6] bg-white p-6 shadow-sm transition hover:shadow-lg"
                             >
-                                <div className="w-12 h-12 rounded-2xl bg-[#fbf4df] flex items-center justify-center text-[#c99d1a] mb-5">
+                                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#fbf4df] text-[#c99d1a]">
                                     {addon.icon}
                                 </div>
 
-                                <h3 className="text-xl font-extrabold text-[#0b4d3b]">
+                                <h3 className="text-lg font-extrabold text-[#0b4d3b] md:text-xl">
                                     {addon.name}
                                 </h3>
-                                <p className="mt-3 text-3xl font-extrabold text-[#d1a31d]">
+                                <p className="mt-3 text-[28px] font-extrabold text-[#d1a31d]">
                                     {addon.price}
                                 </p>
-                            </div>
+                            </motion.div>
                         ))}
                     </div>
                 </div>
             </section>
 
-            <section className="bg-[#0b4d3b] px-5 md:px-10 lg:px-20 py-12">
-                <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <section className="bg-[#0b4d3b] px-5 py-12 md:px-10 lg:px-20">
+                <motion.div
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.2 }}
+                    variants={fadeUp}
+                    className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-6 md:flex-row md:items-center"
+                >
                     <div className="text-white">
-                        <p className="text-[11px] md:text-xs font-semibold uppercase tracking-[0.35em] text-white/70">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/70 md:text-xs">
                             Ready to Book
                         </p>
-                        <h3 className="mt-3 text-[30px] md:text-[40px] font-extrabold leading-tight">
-                            Plan your event with <span className="text-[#f2bf2f]">Ebit&apos;s Catering</span>
+                        <h3 className="mt-3 text-[28px] font-extrabold leading-tight md:text-[38px]">
+                            Plan your event with{" "}
+                            <span className="text-[#f2bf2f]">Ebit&apos;s Catering</span>
                         </h3>
-                        <p className="mt-3 text-white/80 max-w-2xl leading-7">
-                            Choose your preferred package and request a quotation for your celebration.
+                        <p className="mt-3 max-w-2xl leading-7 text-white/80">
+                            Choose your preferred package and request a quotation for your
+                            celebration.
                         </p>
                     </div>
 
@@ -686,12 +778,12 @@ function Packages() {
                                 title: "General Package Inquiry",
                             })
                         }
-                        className="inline-flex items-center gap-2 rounded-xl bg-[#f2bf2f] px-6 py-3.5 font-semibold text-[#0b4d3b] hover:bg-[#f7c93c] transition"
+                        className="inline-flex items-center gap-2 rounded-2xl bg-[#f2bf2f] px-6 py-3.5 font-semibold text-[#0b4d3b] transition hover:bg-[#f7c93c]"
                     >
                         Request Quotation
                         <ChevronRight size={18} />
                     </button>
-                </div>
+                </motion.div>
             </section>
         </div>
     );
