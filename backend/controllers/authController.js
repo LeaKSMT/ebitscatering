@@ -2,6 +2,18 @@ const { pool } = require("../config/database");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
+const signToken = (user) => {
+    return jwt.sign(
+        {
+            id: user.id,
+            email: user.email,
+            role: user.role,
+        },
+        process.env.JWT_SECRET || "secretkey",
+        { expiresIn: "1d" }
+    );
+};
+
 exports.register = async (req, res) => {
     const name = (req.body.name || "").trim();
     const email = (req.body.email || "").trim().toLowerCase();
@@ -63,6 +75,8 @@ exports.login = (req, res) => {
     const email = (req.body.email || "").trim().toLowerCase();
     const password = (req.body.password || "").trim();
 
+    console.log("LOGIN ATTEMPT:", { email });
+
     if (!email || !password) {
         return res.status(400).json({
             message: "Email and password are required.",
@@ -91,15 +105,7 @@ exports.login = (req, res) => {
                     return res.status(401).json({ message: "Invalid credentials" });
                 }
 
-                const token = jwt.sign(
-                    {
-                        id: user.id,
-                        email: user.email,
-                        role: user.role,
-                    },
-                    process.env.JWT_SECRET,
-                    { expiresIn: "1d" }
-                );
+                const token = signToken(user);
 
                 return res.status(200).json({
                     message: "Login successful",
