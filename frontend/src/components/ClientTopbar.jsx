@@ -85,7 +85,7 @@ function ClientTopbar() {
                             </p>
                         </motion.div>
 
-                        <div className="hidden 2xl:flex flex-1 justify-center px-4 min-w-0">
+                        <div className="hidden min-[1450px]:flex flex-1 justify-center px-4 min-w-0">
                             <nav className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-2 py-2 backdrop-blur-sm">
                                 {navItems.map(({ to, label, icon: Icon }) => (
                                     <NavLink key={to} to={to} className={navClass}>
@@ -100,7 +100,7 @@ function ClientTopbar() {
                             initial={{ opacity: 0, x: 18 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.45 }}
-                            className="hidden 2xl:flex items-center gap-3"
+                            className="hidden min-[1450px]:flex items-center gap-3"
                         >
                             <div className="max-w-[190px] truncate rounded-2xl border border-white/10 bg-white px-4 py-2.5 text-sm font-bold text-[#0b5a43] shadow-sm">
                                 {clientUser?.name || "Client"}
@@ -117,7 +117,7 @@ function ClientTopbar() {
 
                         <button
                             onClick={() => setMobileMenuOpen(true)}
-                            className="2xl:hidden inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-white transition hover:bg-white/15"
+                            className="min-[1450px]:hidden inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-white transition hover:bg-white/15"
                         >
                             <Menu size={20} />
                         </button>
@@ -133,7 +133,7 @@ function ClientTopbar() {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={() => setMobileMenuOpen(false)}
-                            className="fixed inset-0 z-50 bg-[#061d16]/55 backdrop-blur-[2px] 2xl:hidden"
+                            className="fixed inset-0 z-50 bg-[#061d16]/55 backdrop-blur-[2px] min-[1450px]:hidden"
                         />
 
                         <motion.div
@@ -141,7 +141,7 @@ function ClientTopbar() {
                             animate={{ x: 0 }}
                             exit={{ x: "100%" }}
                             transition={{ duration: 0.3, ease: "easeOut" }}
-                            className="fixed right-0 top-0 z-[60] h-full w-[88%] max-w-sm overflow-y-auto bg-white shadow-2xl 2xl:hidden"
+                            className="fixed right-0 top-0 z-[60] h-full w-[88%] max-w-sm overflow-y-auto bg-white shadow-2xl min-[1450px]:hidden"
                         >
                             <div className="bg-[linear-gradient(135deg,#0b5a43_0%,#0f6d51_100%)] px-5 py-5 text-white">
                                 <div className="flex items-start justify-between gap-4">
