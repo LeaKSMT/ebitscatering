@@ -176,6 +176,10 @@ function AdminDashboard() {
             transition={{ staggerChildren: 0.08 }}
             className="space-y-6"
         >
+            <div className="rounded-[22px] border-4 border-red-600 bg-yellow-300 px-5 py-4 text-base font-extrabold text-black shadow-[0_12px_30px_rgba(0,0,0,0.18)]">
+                PROD TEST WOW ADMIN DASHBOARD 2026
+            </div>
+
             <motion.section
                 variants={fadeUp}
                 className="relative overflow-hidden rounded-[34px] border border-[#dbe7e2] bg-white shadow-[0_18px_50px_rgba(14,61,47,0.08)]"
