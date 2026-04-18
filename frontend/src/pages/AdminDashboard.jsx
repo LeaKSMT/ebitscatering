@@ -8,7 +8,6 @@ import {
     getMonthlyFinancialRows,
     getDemandForecast,
     formatCurrency,
-    formatDate,
     normalizeStatus,
 } from "../utils/AdminData";
 import {
@@ -193,7 +192,7 @@ function AdminDashboard() {
                                 Premium Admin Dashboard
                             </h2>
                             <p className="mt-2 max-w-3xl text-sm leading-7 text-white/85 md:text-[15px]">
-                                Monitor bookings, quotations, payments, revenue, and client event activity through a premium and defense-ready executive interface.
+                                Monitor bookings, quotations, payments, revenue, and client event activity through a premium executive interface.
                             </p>
                         </div>
 

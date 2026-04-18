@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { motion } from "framer-motion";
-import { Bell, ShieldCheck, Sparkles, Crown } from "lucide-react";
+import { Bell, ShieldCheck, Sparkles } from "lucide-react";
 
 function AdminTopbar({ currentPath = "" }) {
     const adminUser =
@@ -108,16 +108,9 @@ function AdminTopbar({ currentPath = "" }) {
 
                         <div className="relative flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
                             <div className="min-w-0">
-                                <div className="flex flex-wrap items-center gap-2">
-                                    <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.22em] text-white/85">
-                                        <Sparkles size={12} />
-                                        Defense Ready
-                                    </div>
-
-                                    <div className="inline-flex items-center gap-2 rounded-full border border-[#f8e4a1]/25 bg-[#f5c94a]/12 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.20em] text-[#fff0bf]">
-                                        <Crown size={12} />
-                                        Premium UI
-                                    </div>
+                                <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.22em] text-white/80">
+                                    <Sparkles size={12} />
+                                    Executive View
                                 </div>
 
                                 <h1 className="mt-3 text-[24px] font-extrabold tracking-tight text-white sm:text-[28px] lg:text-[30px]">
