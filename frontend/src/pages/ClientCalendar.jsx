@@ -1,4 +1,14 @@
 import { useMemo, useState } from "react";
+import { motion } from "framer-motion";
+import {
+    CalendarDays,
+    MapPin,
+    Users,
+    Package,
+    Wallet,
+    Clock3,
+    Sparkles,
+} from "lucide-react";
 
 function safeParse(key, fallback = []) {
     try {
@@ -86,7 +96,11 @@ function normalizeBooking(item) {
 
     return {
         ...item,
-        id: item.id || item.bookingId || item.quotationId || `booking_${Math.random()}`,
+        id:
+            item.id ||
+            item.bookingId ||
+            item.quotationId ||
+            `booking_${Math.random().toString(36).slice(2, 9)}`,
         email: item.email || item.clientEmail || item.userEmail || "",
         clientName: item.clientName || item.fullName || item.name || "",
         date: item.date || item.preferredDate || item.eventDate || "",
@@ -107,6 +121,11 @@ function normalizeBooking(item) {
     };
 }
 
+const fadeUp = {
+    hidden: { opacity: 0, y: 18 },
+    show: { opacity: 1, y: 0 },
+};
+
 export default function ClientCalendar() {
     const email = getCurrentClientEmail().toLowerCase();
     const clientName = getCurrentClientName().toLowerCase();
@@ -118,8 +137,6 @@ export default function ClientCalendar() {
         ...safeParse("approvedBookings", []),
         ...safeParse(getScopedKey("clientApprovedBookings", email), []),
         ...safeParse("clientApprovedBookings", []),
-
-        // dagdag para kahit quotations muna ang source mo, mabasa pa rin
         ...safeParse(getScopedKey("clientQuotations", email), []),
         ...safeParse("clientQuotations", []),
     ];
@@ -167,7 +184,7 @@ export default function ClientCalendar() {
         });
 
         return unique.sort((a, b) => new Date(a.date) - new Date(b.date));
-    }, [email, clientName, possibleBookingSources]);
+    }, [email, clientName]);
 
     const today = new Date();
     const [currentDate, setCurrentDate] = useState(
@@ -244,219 +261,307 @@ export default function ClientCalendar() {
     };
 
     return (
-        <div className="grid grid-cols-1 xl:grid-cols-[1.7fr_1fr] gap-6">
-            <div className="bg-white rounded-[28px] border border-gray-200 shadow-sm overflow-hidden">
-                <div className="bg-[#0d5c46] text-white px-6 py-5 flex items-center justify-between">
-                    <button
-                        onClick={() => setCurrentDate(new Date(year, month - 1, 1))}
-                        className="font-semibold hover:opacity-90"
-                    >
-                        ‹ Previous
-                    </button>
-
-                    <h2 className="text-3xl font-extrabold">{monthLabel}</h2>
-
-                    <button
-                        onClick={() => setCurrentDate(new Date(year, month + 1, 1))}
-                        className="font-semibold hover:opacity-90"
-                    >
-                        Next ›
-                    </button>
+        <motion.div
+            initial="hidden"
+            animate="show"
+            transition={{ staggerChildren: 0.08 }}
+            className="space-y-6"
+        >
+            <motion.div
+                variants={fadeUp}
+                className="relative overflow-hidden rounded-[32px] border border-[#dbe6e1] bg-white shadow-[0_14px_40px_rgba(14,61,47,0.08)]"
+            >
+                <div className="absolute inset-0 pointer-events-none">
+                    <div className="absolute -top-10 right-[-30px] h-44 w-44 rounded-full bg-[#d4af37]/15 blur-3xl" />
                 </div>
 
-                <div className="p-6">
-                    <div className="grid grid-cols-7 gap-3 mb-4 text-center font-bold text-[#0d5c46]">
-                        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-                            <div key={day}>{day}</div>
-                        ))}
-                    </div>
-
-                    <div className="grid grid-cols-7 gap-3">
-                        {calendarDays.map((date, index) => {
-                            if (!date) {
-                                return (
-                                    <div
-                                        key={index}
-                                        className="h-24 rounded-2xl bg-transparent"
-                                    />
-                                );
-                            }
-
-                            const booked = isBooked(date);
-                            const todayMatch = isToday(date);
-                            const selected =
-                                selectedDate &&
-                                toDateKey(date) === toDateKey(selectedDate);
-
-                            return (
-                                <button
-                                    key={index}
-                                    onClick={() => setSelectedDate(date)}
-                                    className={`relative h-24 rounded-2xl border text-lg font-bold transition ${selected
-                                            ? "border-[#0d5c46] ring-2 ring-[#0d5c46] bg-[#eef9f5] text-[#0d5c46]"
-                                            : booked
-                                                ? "border-[#d4af37] bg-[#fff4cc] text-[#8a6b00] shadow-sm"
-                                                : todayMatch
-                                                    ? "border-[#0d5c46] bg-[#eef9f5] text-[#0d5c46]"
-                                                    : "border-gray-100 bg-[#f6f7f9] text-[#143c2f]"
-                                        }`}
-                                >
-                                    <span>{date.getDate()}</span>
-
-                                    {booked && !selected && (
-                                        <span className="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-[#d4af37]" />
-                                    )}
-                                </button>
-                            );
-                        })}
-                    </div>
-
-                    <div className="mt-6 flex flex-wrap items-center justify-center gap-6 text-sm text-gray-600">
-                        <div className="flex items-center gap-2">
-                            <span className="w-4 h-4 rounded bg-[#fff4cc] border border-[#d4af37]" />
-                            Booked
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <span className="w-4 h-4 rounded bg-[#eef9f5] border border-[#0d5c46]" />
-                            Today
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div className="space-y-5">
-                <div className="bg-white rounded-[28px] border border-gray-200 shadow-sm overflow-hidden">
-                    <div className="bg-[#22b47d] text-white px-6 py-5">
-                        <h3 className="text-2xl font-extrabold">Upcoming Events</h3>
-                        <p className="text-sm text-white/90 mt-1">
-                            Quickly view your upcoming confirmed bookings.
-                        </p>
-                    </div>
-
-                    <div className="p-5">
-                        {upcomingBookings.length === 0 ? (
-                            <div className="rounded-2xl border border-dashed border-gray-300 px-4 py-6 text-gray-500 text-center">
-                                No upcoming bookings found.
+                <div className="relative bg-[linear-gradient(135deg,#0b5a43_0%,#0f6d51_58%,#138062_100%)] px-6 py-8 text-white md:px-8 md:py-10">
+                    <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+                        <div>
+                            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.22em] text-white/80">
+                                <Sparkles size={14} />
+                                Event Calendar
                             </div>
-                        ) : (
-                            <div className="space-y-4">
-                                {upcomingBookings.map((booking, index) => (
+
+                            <h1 className="mt-4 text-3xl font-extrabold md:text-5xl">
+                                My Calendar
+                            </h1>
+                            <p className="mt-3 max-w-2xl text-sm leading-7 text-white/85 md:text-base">
+                                View your scheduled event dates, upcoming bookings,
+                                and booking details in one premium calendar experience.
+                            </p>
+                        </div>
+
+                        <div className="rounded-[26px] border border-white/10 bg-white/10 p-4 backdrop-blur-md">
+                            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/70">
+                                Upcoming Events
+                            </p>
+                            <p className="mt-2 text-3xl font-extrabold text-white">
+                                {upcomingBookings.length}
+                            </p>
+                            <p className="mt-1 text-sm text-white/75">
+                                Active records found
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </motion.div>
+
+            <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.7fr_1fr]">
+                <motion.div
+                    variants={fadeUp}
+                    className="overflow-hidden rounded-[32px] border border-[#dce7e2] bg-white shadow-[0_12px_30px_rgba(14,61,47,0.06)]"
+                >
+                    <div className="flex items-center justify-between bg-[#0d5c46] px-4 py-5 text-white md:px-6">
+                        <button
+                            onClick={() => setCurrentDate(new Date(year, month - 1, 1))}
+                            className="rounded-xl bg-white/10 px-3 py-2 text-sm font-semibold transition hover:bg-white/15"
+                        >
+                            ‹ Previous
+                        </button>
+
+                        <h2 className="text-center text-xl font-extrabold md:text-3xl">
+                            {monthLabel}
+                        </h2>
+
+                        <button
+                            onClick={() => setCurrentDate(new Date(year, month + 1, 1))}
+                            className="rounded-xl bg-white/10 px-3 py-2 text-sm font-semibold transition hover:bg-white/15"
+                        >
+                            Next ›
+                        </button>
+                    </div>
+
+                    <div className="p-4 md:p-6">
+                        <div className="mb-4 grid grid-cols-7 gap-2 text-center text-xs font-bold uppercase tracking-wide text-[#0d5c46] md:gap-3 md:text-sm">
+                            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+                                <div key={day}>{day}</div>
+                            ))}
+                        </div>
+
+                        <div className="grid grid-cols-7 gap-2 md:gap-3">
+                            {calendarDays.map((date, index) => {
+                                if (!date) {
+                                    return (
+                                        <div
+                                            key={index}
+                                            className="h-16 rounded-2xl bg-transparent sm:h-20 md:h-24"
+                                        />
+                                    );
+                                }
+
+                                const booked = isBooked(date);
+                                const todayMatch = isToday(date);
+                                const selected =
+                                    selectedDate &&
+                                    toDateKey(date) === toDateKey(selectedDate);
+
+                                return (
                                     <button
-                                        key={booking.id || `${booking.date}-${index}`}
-                                        onClick={() => handleSelectUpcoming(booking.date)}
-                                        className="w-full text-left rounded-2xl border border-gray-200 bg-[#fafafa] p-4 hover:border-[#22b47d] hover:shadow-sm transition"
+                                        key={index}
+                                        onClick={() => setSelectedDate(date)}
+                                        className={`relative h-16 rounded-2xl border text-sm font-bold transition sm:h-20 md:h-24 md:text-lg ${selected
+                                                ? "border-[#0d5c46] ring-2 ring-[#0d5c46] bg-[#eef9f5] text-[#0d5c46]"
+                                                : booked
+                                                    ? "border-[#d4af37] bg-[#fff4cc] text-[#8a6b00] shadow-sm"
+                                                    : todayMatch
+                                                        ? "border-[#0d5c46] bg-[#eef9f5] text-[#0d5c46]"
+                                                        : "border-gray-100 bg-[#f6f7f9] text-[#143c2f]"
+                                            }`}
                                     >
-                                        <div className="flex items-start justify-between gap-3">
-                                            <div>
-                                                <h4 className="text-base font-bold text-[#0d5c46]">
-                                                    {booking.eventType || "Event Booking"}
-                                                </h4>
-                                                <p className="text-sm text-gray-600 mt-1">
-                                                    {formatDate(booking.date)}
-                                                </p>
+                                        <span>{date.getDate()}</span>
+
+                                        {booked && !selected && (
+                                            <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-[#d4af37]" />
+                                        )}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm text-gray-600 md:gap-6">
+                            <div className="flex items-center gap-2">
+                                <span className="h-4 w-4 rounded bg-[#fff4cc] border border-[#d4af37]" />
+                                Booked
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="h-4 w-4 rounded bg-[#eef9f5] border border-[#0d5c46]" />
+                                Today
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="h-4 w-4 rounded bg-white border-2 border-[#0d5c46]" />
+                                Selected
+                            </div>
+                        </div>
+                    </div>
+                </motion.div>
+
+                <div className="space-y-6">
+                    <motion.div
+                        variants={fadeUp}
+                        className="overflow-hidden rounded-[32px] border border-[#dce7e2] bg-white shadow-[0_12px_30px_rgba(14,61,47,0.06)]"
+                    >
+                        <div className="bg-[linear-gradient(135deg,#1aa26f_0%,#22b47d_100%)] px-6 py-5 text-white">
+                            <h3 className="text-2xl font-extrabold">Upcoming Events</h3>
+                            <p className="mt-1 text-sm text-white/90">
+                                Quickly view your upcoming confirmed bookings.
+                            </p>
+                        </div>
+
+                        <div className="p-5">
+                            {upcomingBookings.length === 0 ? (
+                                <div className="rounded-2xl border border-dashed border-gray-300 px-4 py-6 text-center text-gray-500">
+                                    No upcoming bookings found.
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {upcomingBookings.map((booking, index) => (
+                                        <button
+                                            key={booking.id || `${booking.date}-${index}`}
+                                            onClick={() => handleSelectUpcoming(booking.date)}
+                                            className="w-full rounded-[24px] border border-gray-200 bg-[#fafafa] p-4 text-left transition hover:border-[#22b47d] hover:shadow-sm"
+                                        >
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div>
+                                                    <h4 className="text-base font-bold text-[#0d5c46]">
+                                                        {booking.eventType || "Event Booking"}
+                                                    </h4>
+                                                    <p className="mt-1 text-sm text-gray-600">
+                                                        {formatDate(booking.date)}
+                                                    </p>
+                                                </div>
+
+                                                <span className="inline-flex items-center rounded-full border border-[#e2c15c] bg-[#fff4cc] px-3 py-1 text-xs font-bold text-[#8a6b00]">
+                                                    {booking.status || "Booked"}
+                                                </span>
                                             </div>
 
-                                            <span className="inline-flex items-center rounded-full bg-[#fff4cc] px-3 py-1 text-xs font-bold text-[#8a6b00] border border-[#e2c15c]">
-                                                {booking.status || "Booked"}
-                                            </span>
+                                            <div className="mt-3 space-y-1 text-sm text-gray-700">
+                                                <p>
+                                                    <span className="font-semibold">Venue:</span>{" "}
+                                                    {booking.venue || "Not specified"}
+                                                </p>
+                                                <p>
+                                                    <span className="font-semibold">Guests:</span>{" "}
+                                                    {booking.guests || 0}
+                                                </p>
+                                                <p>
+                                                    <span className="font-semibold">Package:</span>{" "}
+                                                    {booking.packageName || "Not specified"}
+                                                </p>
+                                                <p className="pt-1 font-bold text-[#0d5c46]">
+                                                    {formatCurrency(booking.totalAmount)}
+                                                </p>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </motion.div>
+
+                    <motion.div
+                        variants={fadeUp}
+                        className="overflow-hidden rounded-[32px] border border-[#dce7e2] bg-white shadow-[0_12px_30px_rgba(14,61,47,0.06)]"
+                    >
+                        <div className="bg-[#0d5c46] px-6 py-5 text-white">
+                            <h3 className="text-2xl font-extrabold">Booking Details</h3>
+                        </div>
+
+                        <div className="p-5">
+                            {!selectedDate ? (
+                                <div className="rounded-2xl border border-dashed border-gray-300 px-4 py-6 text-center text-gray-500">
+                                    Select a date or choose an upcoming event to view booking details.
+                                </div>
+                            ) : selectedBookings.length === 0 ? (
+                                <div className="rounded-2xl border border-dashed border-gray-300 px-4 py-6 text-center text-gray-500">
+                                    No booking found on {formatDate(toDateKey(selectedDate))}.
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {selectedBookings.map((booking, index) => (
+                                        <div
+                                            key={booking.id || `${booking.date}-${index}`}
+                                            className="rounded-[24px] border border-gray-200 bg-[#fafafa] p-4"
+                                        >
+                                            <div className="flex items-start justify-between gap-3">
+                                                <h4 className="text-lg font-bold text-[#0d5c46]">
+                                                    {booking.eventType || "Event Booking"}
+                                                </h4>
+
+                                                <span className="inline-flex items-center rounded-full border border-[#e2c15c] bg-[#fff4cc] px-3 py-1 text-xs font-bold text-[#8a6b00]">
+                                                    {booking.status || "Booked"}
+                                                </span>
+                                            </div>
+
+                                            <div className="mt-4 grid gap-3 text-sm text-gray-700">
+                                                <div className="flex items-center gap-2">
+                                                    <CalendarDays size={16} className="text-[#0d5c46]" />
+                                                    <span>
+                                                        <span className="font-semibold">Date:</span>{" "}
+                                                        {formatDate(booking.date)}
+                                                    </span>
+                                                </div>
+
+                                                <div className="flex items-center gap-2">
+                                                    <Clock3 size={16} className="text-[#0d5c46]" />
+                                                    <span>
+                                                        <span className="font-semibold">Time:</span>{" "}
+                                                        {booking.time || "Not specified"}
+                                                    </span>
+                                                </div>
+
+                                                <div className="flex items-center gap-2">
+                                                    <MapPin size={16} className="text-[#0d5c46]" />
+                                                    <span>
+                                                        <span className="font-semibold">Venue:</span>{" "}
+                                                        {booking.venue || "Not specified"}
+                                                    </span>
+                                                </div>
+
+                                                <div className="flex items-center gap-2">
+                                                    <Users size={16} className="text-[#0d5c46]" />
+                                                    <span>
+                                                        <span className="font-semibold">Guests:</span>{" "}
+                                                        {booking.guests || 0}
+                                                    </span>
+                                                </div>
+
+                                                <div className="flex items-center gap-2">
+                                                    <Package size={16} className="text-[#0d5c46]" />
+                                                    <span>
+                                                        <span className="font-semibold">Package:</span>{" "}
+                                                        {booking.packageName || "Not specified"}
+                                                    </span>
+                                                </div>
+
+                                                <div className="flex items-center gap-2">
+                                                    <Wallet size={16} className="text-[#0d5c46]" />
+                                                    <span>
+                                                        <span className="font-semibold">Total:</span>{" "}
+                                                        {formatCurrency(booking.totalAmount)}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            {booking.classicMenu ? (
+                                                <div className="mt-4 rounded-2xl bg-white p-4 text-sm text-slate-700 border border-[#e3ebe7]">
+                                                    <p className="font-semibold text-[#0d5c46]">
+                                                        Classic Menu / Notes
+                                                    </p>
+                                                    <p className="mt-2 leading-6">
+                                                        {booking.classicMenu}
+                                                    </p>
+                                                </div>
+                                            ) : null}
                                         </div>
-
-                                        <div className="mt-3 space-y-1 text-sm text-gray-700">
-                                            <p>
-                                                <span className="font-semibold">Venue:</span>{" "}
-                                                {booking.venue || "Not specified"}
-                                            </p>
-                                            <p>
-                                                <span className="font-semibold">Guests:</span>{" "}
-                                                {booking.guests || 0}
-                                            </p>
-                                            <p>
-                                                <span className="font-semibold">Package:</span>{" "}
-                                                {booking.packageName || "Not specified"}
-                                            </p>
-                                            <p className="text-[#0d5c46] font-bold pt-1">
-                                                {formatCurrency(booking.totalAmount)}
-                                            </p>
-                                        </div>
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                <div className="bg-white rounded-[28px] border border-gray-200 shadow-sm overflow-hidden">
-                    <div className="bg-[#0d5c46] text-white px-6 py-5">
-                        <h3 className="text-2xl font-extrabold">Booking Details</h3>
-                    </div>
-
-                    <div className="p-5">
-                        {!selectedDate ? (
-                            <div className="rounded-2xl border border-dashed border-gray-300 px-4 py-6 text-gray-500 text-center">
-                                Select a date or choose an upcoming event to view booking details.
-                            </div>
-                        ) : selectedBookings.length === 0 ? (
-                            <div className="rounded-2xl border border-dashed border-gray-300 px-4 py-6 text-gray-500 text-center">
-                                No booking found on {formatDate(toDateKey(selectedDate))}.
-                            </div>
-                        ) : (
-                            <div className="space-y-4">
-                                {selectedBookings.map((booking, index) => (
-                                    <div
-                                        key={booking.id || `${booking.date}-${index}`}
-                                        className="rounded-2xl border border-gray-200 p-4 bg-[#fafafa]"
-                                    >
-                                        <div className="flex items-start justify-between gap-3">
-                                            <h4 className="text-lg font-bold text-[#0d5c46]">
-                                                {booking.eventType || "Event Booking"}
-                                            </h4>
-
-                                            <span className="inline-flex items-center rounded-full bg-[#fff4cc] px-3 py-1 text-xs font-bold text-[#8a6b00] border border-[#e2c15c]">
-                                                {booking.status || "Booked"}
-                                            </span>
-                                        </div>
-
-                                        <div className="mt-3 space-y-2 text-sm text-gray-700">
-                                            <p>
-                                                <span className="font-semibold">Client:</span>{" "}
-                                                {booking.clientName || "Not specified"}
-                                            </p>
-                                            <p>
-                                                <span className="font-semibold">Date:</span>{" "}
-                                                {formatDate(booking.date)}
-                                            </p>
-                                            <p>
-                                                <span className="font-semibold">Time:</span>{" "}
-                                                {booking.time || "Not specified"}
-                                            </p>
-                                            <p>
-                                                <span className="font-semibold">Venue:</span>{" "}
-                                                {booking.venue || "Not specified"}
-                                            </p>
-                                            <p>
-                                                <span className="font-semibold">Guests:</span>{" "}
-                                                {booking.guests || 0}
-                                            </p>
-                                            <p>
-                                                <span className="font-semibold">Package:</span>{" "}
-                                                {booking.packageName || "Not specified"}
-                                            </p>
-                                            <p>
-                                                <span className="font-semibold">Classic Menu:</span>{" "}
-                                                {booking.classicMenu || "Not specified"}
-                                            </p>
-                                            <p>
-                                                <span className="font-semibold">Total:</span>{" "}
-                                                {formatCurrency(booking.totalAmount)}
-                                            </p>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </motion.div>
                 </div>
             </div>
-        </div>
+        </motion.div>
     );
 }

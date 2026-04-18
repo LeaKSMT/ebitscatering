@@ -4,7 +4,7 @@ import ClientTopbar from "./ClientTopbar";
 
 function ClientPortalLayout() {
     return (
-        <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(212,175,55,0.10),_transparent_28%),linear-gradient(180deg,#f6faf8_0%,#eef4f1_100%)]">
+        <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(212,175,55,0.10),_transparent_22%),linear-gradient(180deg,#f7fbf9_0%,#edf4f1_100%)]">
             <ClientTopbar />
 
             <motion.main

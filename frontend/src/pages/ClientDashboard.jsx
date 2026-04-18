@@ -8,6 +8,7 @@ import {
     CalendarClock,
     Sparkles,
     BadgeCheck,
+    TrendingUp,
 } from "lucide-react";
 
 function safeParse(key, fallback = []) {
@@ -180,6 +181,7 @@ function ClientDashboard() {
                             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/70">
                                 Current overview
                             </p>
+
                             <div className="mt-3 flex items-center gap-3">
                                 <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#fff3c8] text-[#8f6a0f]">
                                     <BadgeCheck size={20} />
@@ -191,6 +193,16 @@ function ClientDashboard() {
                                     <p className="text-lg font-bold text-white">
                                         Active and ready
                                     </p>
+                                </div>
+                            </div>
+
+                            <div className="mt-4">
+                                <div className="flex items-center justify-between text-xs text-white/70">
+                                    <span>Portal activity</span>
+                                    <span>80%</span>
+                                </div>
+                                <div className="mt-2 h-2 rounded-full bg-white/15">
+                                    <div className="h-full w-[80%] rounded-full bg-[#f5c94a]" />
                                 </div>
                             </div>
                         </motion.div>
@@ -206,7 +218,7 @@ function ClientDashboard() {
                                 key={item.title}
                                 variants={fadeUp}
                                 transition={{ delay: index * 0.06 }}
-                                whileHover={{ y: -5, scale: 1.01 }}
+                                whileHover={{ y: -6, scale: 1.02 }}
                                 className="group rounded-[26px] border border-[#e3ebe7] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-5 shadow-sm transition"
                             >
                                 <div className="flex items-start justify-between gap-4">
@@ -234,7 +246,7 @@ function ClientDashboard() {
                 </div>
             </motion.section>
 
-            <div className="grid gap-7 xl:grid-cols-[1.5fr_1fr]">
+            <div className="grid gap-7 xl:grid-cols-[1.45fr_1fr]">
                 <motion.section
                     variants={fadeUp}
                     className="rounded-[32px] border border-[#dbe6e1] bg-white p-6 shadow-[0_14px_40px_rgba(14,61,47,0.08)] md:p-8"
@@ -251,10 +263,11 @@ function ClientDashboard() {
 
                         <Link
                             to="/client/quotation"
-                            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#d4af37_0%,#f0cb58_100%)] px-5 py-3 text-sm font-bold text-[#143c2f] shadow-[0_12px_24px_rgba(212,175,55,0.28)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_30px_rgba(212,175,55,0.35)]"
+                            className="group relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-2xl bg-[linear-gradient(135deg,#d4af37_0%,#f0cb58_100%)] px-5 py-3 text-sm font-bold text-[#143c2f] shadow-[0_12px_24px_rgba(212,175,55,0.28)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_30px_rgba(212,175,55,0.35)]"
                         >
-                            New Quotation
-                            <ArrowRight size={16} />
+                            <span className="absolute inset-0 bg-white/20 opacity-0 transition group-hover:opacity-100" />
+                            <span className="relative">New Quotation</span>
+                            <ArrowRight size={16} className="relative transition group-hover:translate-x-1" />
                         </Link>
                     </div>
 
@@ -267,7 +280,7 @@ function ClientDashboard() {
                                     key={item.title}
                                     variants={fadeUp}
                                     transition={{ delay: index * 0.06 }}
-                                    whileHover={{ y: -5 }}
+                                    whileHover={{ y: -5, scale: 1.02 }}
                                 >
                                     <Link
                                         to={item.to}
@@ -302,12 +315,19 @@ function ClientDashboard() {
                     variants={fadeUp}
                     className="rounded-[32px] border border-[#dbe6e1] bg-white p-6 shadow-[0_14px_40px_rgba(14,61,47,0.08)] md:p-8"
                 >
-                    <h2 className="text-2xl font-extrabold text-[#0d5c46]">
-                        Recent Activity
-                    </h2>
-                    <p className="mt-2 text-slate-500">
-                        A quick look at your latest quotation and booking details.
-                    </p>
+                    <div className="flex items-center gap-3">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#edf8f3] text-[#0d5c46]">
+                            <TrendingUp size={22} />
+                        </div>
+                        <div>
+                            <h2 className="text-2xl font-extrabold text-[#0d5c46]">
+                                Recent Activity
+                            </h2>
+                            <p className="mt-1 text-slate-500">
+                                A quick look at your latest records.
+                            </p>
+                        </div>
+                    </div>
 
                     <div className="mt-6 space-y-4">
                         <div className="rounded-[24px] border border-[#e3ebe7] bg-[#f8fbfa] p-5">
@@ -383,6 +403,16 @@ function ClientDashboard() {
                                     </span>
                                 </p>
                             </div>
+                        </div>
+
+                        <div className="rounded-[24px] border border-dashed border-[#d8e7e1] bg-[linear-gradient(180deg,#fbfdfc_0%,#f5faf7_100%)] p-5">
+                            <p className="text-sm font-bold text-[#0d5c46]">
+                                Smart Insight
+                            </p>
+                            <p className="mt-2 text-sm leading-6 text-slate-600">
+                                Based on your latest activity, you can proceed with your
+                                booking once your quotation is fully approved and confirmed.
+                            </p>
                         </div>
 
                         <Link
