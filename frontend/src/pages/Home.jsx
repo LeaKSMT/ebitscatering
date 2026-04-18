@@ -356,7 +356,7 @@ function Home() {
 
             <section
                 id="home"
-                className="relative flex min-h-[700px] items-center overflow-hidden md:min-h-[820px]"
+                className="scroll-mt-24 relative flex min-h-[700px] items-center overflow-hidden md:min-h-[820px] md:scroll-mt-28"
                 style={{
                     backgroundImage: `url(${hero})`,
                     backgroundSize: "cover",
@@ -605,8 +605,8 @@ function Home() {
                                 custom={index}
                                 variants={fadeUp}
                                 className={`rounded-[30px] border bg-[#fffdf8] p-6 text-[#0b4d3b] shadow-sm transition hover:-translate-y-1.5 hover:shadow-xl ${index === 1
-                                    ? "border-[#e4bc41] ring-1 ring-[#e4bc41]/30"
-                                    : "border-transparent"
+                                        ? "border-[#e4bc41] ring-1 ring-[#e4bc41]/30"
+                                        : "border-transparent"
                                     }`}
                             >
                                 {index === 1 && (
@@ -653,7 +653,7 @@ function Home() {
 
             <section
                 id="about"
-                className="bg-[#0c5a43] px-5 py-16 text-white md:px-10 md:py-20 lg:px-20"
+                className="scroll-mt-24 bg-[#0c5a43] px-5 py-16 text-white md:scroll-mt-28 md:px-10 md:py-20 lg:px-20"
             >
                 <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-2">
                     <motion.div
@@ -770,7 +770,7 @@ function Home() {
 
             <section
                 id="gallery"
-                className="bg-[#f8f7f2] px-5 py-16 md:px-10 md:py-20 lg:px-20"
+                className="scroll-mt-24 bg-[#f8f7f2] px-5 py-16 md:scroll-mt-28 md:px-10 md:py-20 lg:px-20"
             >
                 {sectionTitle(
                     "Recent Setups",
@@ -808,7 +808,7 @@ function Home() {
 
             <section
                 id="contact"
-                className="bg-[#f8f7f2] px-5 py-16 md:px-10 md:py-20 lg:px-20"
+                className="scroll-mt-24 bg-[#f8f7f2] px-5 py-16 md:scroll-mt-28 md:px-10 md:py-20 lg:px-20"
             >
                 {sectionTitle(
                     "Contact Us",
@@ -932,8 +932,8 @@ function Home() {
                         {contactStatus && (
                             <p
                                 className={`mb-4 text-sm font-medium ${contactStatus.includes("successfully")
-                                    ? "text-green-600"
-                                    : "text-red-500"
+                                        ? "text-green-600"
+                                        : "text-red-500"
                                     }`}
                             >
                                 {contactStatus}
