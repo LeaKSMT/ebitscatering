@@ -16,9 +16,7 @@ import {
     Sparkles,
     HeartHandshake,
     Clock3,
-    Crown,
     ArrowRight,
-    Star,
 } from "lucide-react";
 
 import hero from "../assets/hero.jpg";
@@ -28,25 +26,25 @@ import gal3 from "../assets/gal3.jpg";
 import ChatBot from "../components/ChatBot";
 
 const fadeUp = {
-    hidden: { opacity: 0, y: 32 },
+    hidden: { opacity: 0, y: 28 },
     visible: (i = 0) => ({
         opacity: 1,
         y: 0,
         transition: {
-            duration: 0.7,
-            delay: i * 0.12,
+            duration: 0.65,
+            delay: i * 0.1,
             ease: "easeOut",
         },
     }),
 };
 
 const softScale = {
-    hidden: { opacity: 0, scale: 0.96 },
+    hidden: { opacity: 0, scale: 0.97 },
     visible: {
         opacity: 1,
         scale: 1,
         transition: {
-            duration: 0.65,
+            duration: 0.55,
             ease: "easeOut",
         },
     },
@@ -237,15 +235,15 @@ function Home() {
             whileInView="visible"
             viewport={{ once: true, amount: 0.2 }}
             variants={fadeUp}
-            className="mb-12 text-center md:mb-14"
+            className="mb-10 text-center md:mb-12"
         >
             <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-[#0b4d3b]/65 md:text-xs">
                 {eyebrow}
             </p>
-            <h3 className="mt-3 text-[32px] font-bold leading-tight text-[#0b4d3b] sm:text-[40px] md:text-[50px]">
+            <h3 className="mt-3 text-[30px] font-bold leading-tight text-[#0b4d3b] sm:text-[36px] md:text-[44px]">
                 {title} <span className="text-[#d4a514]">{highlight}</span>
             </h3>
-            <p className="mx-auto mt-4 max-w-2xl text-[15px] leading-7 text-slate-500 md:text-[17px]">
+            <p className="mx-auto mt-4 max-w-2xl text-[15px] leading-7 text-slate-500 md:text-[16px]">
                 {desc}
             </p>
         </motion.div>
@@ -253,12 +251,12 @@ function Home() {
 
     return (
         <div className="min-h-screen bg-[#f8f7f2] text-green-950">
-            <nav className="sticky top-0 z-50 flex h-[84px] items-center justify-between border-b border-white/10 bg-[#0b4d3b]/90 px-5 text-white shadow-sm backdrop-blur-md md:h-[84px] md:px-10 lg:px-14">
+            <nav className="sticky top-0 z-50 flex h-[82px] items-center justify-between border-b border-white/10 bg-[#0b4d3b]/90 px-5 text-white shadow-sm backdrop-blur-md md:px-10 lg:px-14">
                 <div className="leading-none">
-                    <h1 className="text-[22px] font-extrabold text-yellow-400 md:text-[26px]">
+                    <h1 className="text-[21px] font-extrabold text-yellow-400 md:text-[25px]">
                         Ebit&apos;s Catering
                     </h1>
-                    <p className="mt-1 text-[11px] text-white/85 md:text-[13px]">
+                    <p className="mt-1 text-[11px] text-white/85 md:text-[12px]">
                         Premium catering for unforgettable celebrations
                     </p>
                 </div>
@@ -356,7 +354,7 @@ function Home() {
 
             <section
                 id="home"
-                className="relative flex min-h-[700px] items-center overflow-hidden text-center md:min-h-[820px]"
+                className="relative flex min-h-[680px] items-center overflow-hidden md:min-h-[760px]"
                 style={{
                     backgroundImage: `url(${hero})`,
                     backgroundSize: "cover",
@@ -364,20 +362,19 @@ function Home() {
                     backgroundRepeat: "no-repeat",
                 }}
             >
-                <div className="absolute inset-0 bg-[#0b4d3b]/72" />
-                <div className="absolute inset-0 bg-gradient-to-b from-[#05271e]/45 via-[#0b4d3b]/55 to-[#06281f]/92" />
+                <div className="absolute inset-0 bg-[#0b4d3b]/74" />
+                <div className="absolute inset-0 bg-gradient-to-b from-[#05271e]/40 via-[#0b4d3b]/55 to-[#06281f]/90" />
                 <div className="absolute -left-20 -top-16 h-72 w-72 rounded-full bg-yellow-300/10 blur-3xl" />
                 <div className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-emerald-200/10 blur-3xl" />
-                <div className="absolute left-1/2 top-24 h-56 w-56 -translate-x-1/2 rounded-full bg-yellow-200/10 blur-3xl" />
 
-                <div className="relative z-10 mx-auto grid w-full max-w-7xl items-center gap-12 px-6 py-16 lg:grid-cols-[1.15fr_0.85fr] lg:px-12">
+                <div className="relative z-10 mx-auto grid w-full max-w-7xl items-center gap-10 px-6 py-16 lg:grid-cols-[1.1fr_0.9fr] lg:px-12">
                     <div className="text-center lg:text-left">
                         <motion.div
                             initial="hidden"
                             animate="visible"
                             custom={0}
                             variants={fadeUp}
-                            className="mb-6 flex flex-wrap items-center justify-center gap-3 lg:justify-start"
+                            className="mb-5 flex flex-wrap items-center justify-center gap-3 lg:justify-start"
                         >
                             <div className="inline-flex items-center gap-2 rounded-full border border-yellow-300/20 bg-white/10 px-4 py-2 text-xs text-white backdrop-blur-sm md:text-sm">
                                 <Sparkles size={14} className="text-yellow-400" />
@@ -395,13 +392,13 @@ function Home() {
                             animate="visible"
                             custom={1}
                             variants={fadeUp}
-                            className="text-[40px] font-extrabold leading-[1.02] tracking-[-0.03em] text-white sm:text-[58px] md:text-[78px]"
+                            className="text-[36px] font-extrabold leading-[1.04] tracking-[-0.03em] text-white sm:text-[48px] md:text-[62px]"
                         >
-                            <span className="text-yellow-400">Premium Catering</span>
+                            Premium Catering
                             <br />
-                            Crafted for
+                            for Elegant
                             <br />
-                            Elegant Moments
+                            Celebrations
                         </motion.h2>
 
                         <motion.p
@@ -409,12 +406,10 @@ function Home() {
                             animate="visible"
                             custom={2}
                             variants={fadeUp}
-                            className="mx-auto mt-6 max-w-3xl text-[16px] leading-[1.9] text-white/90 md:text-[20px] lg:mx-0"
+                            className="mx-auto mt-5 max-w-2xl text-[15px] leading-8 text-white/90 md:text-[17px] lg:mx-0"
                         >
                             Elegant catering, event styling, and celebration services for
-                            weddings, debuts, birthdays, anniversaries, and other special
-                            occasions—designed to make every event feel refined, seamless,
-                            and memorable.
+                            weddings, debuts, birthdays, anniversaries, and special occasions.
                         </motion.p>
 
                         <motion.div
@@ -426,7 +421,7 @@ function Home() {
                         >
                             <Link
                                 to="/packages"
-                                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-7 py-3.5 font-semibold text-[#0b4d3b] shadow-xl transition hover:-translate-y-0.5 hover:bg-[#fff8e6]"
+                                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-6 py-3.5 font-semibold text-[#0b4d3b] shadow-xl transition hover:-translate-y-0.5 hover:bg-[#fff8e6]"
                             >
                                 View Packages
                                 <ChevronRight size={18} />
@@ -434,37 +429,11 @@ function Home() {
 
                             <button
                                 onClick={handleGetQuotation}
-                                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-yellow-400 px-7 py-3.5 font-semibold text-green-950 shadow-xl transition hover:-translate-y-0.5 hover:bg-yellow-300"
+                                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-yellow-400 px-6 py-3.5 font-semibold text-green-950 shadow-xl transition hover:-translate-y-0.5 hover:bg-yellow-300"
                             >
                                 Get Free Quotation
                                 <ArrowRight size={18} />
                             </button>
-                        </motion.div>
-
-                        <motion.div
-                            initial="hidden"
-                            animate="visible"
-                            custom={4}
-                            variants={fadeUp}
-                            className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-3"
-                        >
-                            {[
-                                { value: "Premium", label: "Styling & Presentation" },
-                                { value: "Trusted", label: "Service & Coordination" },
-                                { value: "Memorable", label: "Celebration Experience" },
-                            ].map((item, index) => (
-                                <div
-                                    key={index}
-                                    className="rounded-[24px] border border-white/15 bg-white/10 px-5 py-4 text-left backdrop-blur-md"
-                                >
-                                    <p className="text-lg font-bold text-yellow-400">
-                                        {item.value}
-                                    </p>
-                                    <p className="mt-1 text-sm leading-6 text-white/80">
-                                        {item.label}
-                                    </p>
-                                </div>
-                            ))}
                         </motion.div>
                     </div>
 
@@ -474,35 +443,29 @@ function Home() {
                         variants={softScale}
                         className="hidden lg:block"
                     >
-                        <div className="relative mx-auto max-w-[460px] rounded-[34px] border border-white/10 bg-white/10 p-4 shadow-[0_25px_80px_rgba(0,0,0,0.22)] backdrop-blur-xl">
-                            <div className="rounded-[28px] bg-gradient-to-br from-[#0c5a43] via-[#0b4d3b] to-[#083629] p-7 text-white">
-                                <div className="mb-7 flex items-center justify-between">
-                                    <div>
-                                        <p className="text-[11px] uppercase tracking-[0.35em] text-white/65">
-                                            Signature Service
-                                        </p>
-                                        <h3 className="mt-3 text-[30px] font-bold leading-tight">
-                                            Ebit&apos;s Premium Experience
-                                        </h3>
-                                    </div>
-                                    <div className="rounded-2xl bg-white/10 p-3 text-yellow-400">
-                                        <Crown size={26} />
-                                    </div>
-                                </div>
+                        <div className="mx-auto max-w-[420px] rounded-[30px] border border-white/10 bg-white/10 p-4 shadow-[0_25px_80px_rgba(0,0,0,0.18)] backdrop-blur-xl">
+                            <div className="rounded-[26px] bg-gradient-to-br from-[#0c5a43] via-[#0b4d3b] to-[#083629] p-6 text-white">
+                                <p className="text-[11px] uppercase tracking-[0.32em] text-white/65">
+                                    Signature Service
+                                </p>
 
-                                <div className="space-y-4">
+                                <h3 className="mt-3 text-[26px] font-bold leading-tight">
+                                    Ebit&apos;s Premium Experience
+                                </h3>
+
+                                <div className="mt-6 space-y-3">
                                     {[
                                         "Elegant event setup and presentation",
-                                        "Fresh, clean, and quality food service",
-                                        "Professional team for smooth coordination",
-                                        "Packages designed for special celebrations",
+                                        "Fresh and quality food service",
+                                        "Professional team coordination",
+                                        "Designed for memorable celebrations",
                                     ].map((item, index) => (
                                         <div
                                             key={index}
                                             className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/8 p-4"
                                         >
                                             <CheckCircle2
-                                                size={18}
+                                                size={17}
                                                 className="mt-0.5 shrink-0 text-yellow-400"
                                             />
                                             <p className="text-sm leading-7 text-white/88">
@@ -511,31 +474,13 @@ function Home() {
                                         </div>
                                     ))}
                                 </div>
-
-                                <div className="mt-7 rounded-2xl border border-white/10 bg-white/10 p-4">
-                                    <div className="flex items-center gap-3">
-                                        <Star className="text-yellow-400" size={18} />
-                                        <p className="text-sm font-semibold text-white/90">
-                                            Designed to look elegant, premium, and defense-ready
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="absolute -bottom-6 -left-6 rounded-[24px] border border-white/10 bg-white/80 p-4 shadow-xl backdrop-blur-md">
-                                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#b99117]">
-                                    Elegant Catering
-                                </p>
-                                <p className="mt-1 text-sm font-bold text-[#0b4d3b]">
-                                    Weddings • Debuts • Birthdays
-                                </p>
                             </div>
                         </div>
                     </motion.div>
                 </div>
             </section>
 
-            <section className="bg-[#f8f7f2] px-5 py-16 md:px-10 md:py-20 lg:px-20">
+            <section className="bg-[#f8f7f2] px-5 py-14 md:px-10 md:py-16 lg:px-20">
                 {sectionTitle(
                     "What We Offer",
                     "Our",
@@ -552,13 +497,13 @@ function Home() {
                             viewport={{ once: true, amount: 0.2 }}
                             custom={index}
                             variants={fadeUp}
-                            className="group rounded-[30px] border border-[#ece6d8] bg-white px-6 py-7 text-center shadow-[0_10px_30px_rgba(0,0,0,0.04)] transition duration-300 hover:-translate-y-2 hover:shadow-[0_18px_40px_rgba(0,0,0,0.08)]"
+                            className="group rounded-[28px] border border-[#ece6d8] bg-white px-6 py-7 text-center shadow-[0_10px_30px_rgba(0,0,0,0.04)] transition duration-300 hover:-translate-y-1.5 hover:shadow-[0_18px_40px_rgba(0,0,0,0.08)]"
                         >
                             <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#fbf4df] text-[#c99d1a] transition group-hover:bg-[#0b4d3b] group-hover:text-white">
                                 {item.icon}
                             </div>
 
-                            <h4 className="mb-3 text-[22px] font-bold leading-tight text-green-950">
+                            <h4 className="mb-3 text-[20px] font-bold leading-tight text-green-950">
                                 {item.title}
                             </h4>
 
@@ -570,26 +515,25 @@ function Home() {
                 </div>
             </section>
 
-            <section className="bg-[#f8f7f2] px-5 pb-16 md:px-10 md:pb-20 lg:px-20">
+            <section className="bg-[#f8f7f2] px-5 pb-14 md:px-10 md:pb-16 lg:px-20">
                 <motion.div
                     initial="hidden"
                     whileInView="visible"
                     viewport={{ once: true, amount: 0.2 }}
                     variants={softScale}
-                    className="relative mx-auto max-w-6xl overflow-hidden rounded-[36px] bg-gradient-to-br from-[#0c5a43] via-[#0b4d3b] to-[#083629] p-7 text-white shadow-[0_25px_50px_rgba(0,0,0,0.16)] md:p-10 lg:p-12"
+                    className="relative mx-auto max-w-6xl overflow-hidden rounded-[34px] bg-gradient-to-br from-[#0c5a43] via-[#0b4d3b] to-[#083629] p-7 text-white shadow-[0_25px_50px_rgba(0,0,0,0.14)] md:p-9 lg:p-10"
                 >
                     <div className="absolute right-0 top-0 h-48 w-48 rounded-full bg-yellow-300/10 blur-3xl" />
-                    <div className="absolute bottom-0 left-0 h-44 w-44 rounded-full bg-white/5 blur-3xl" />
 
                     <div className="relative z-10 mb-8 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                         <div className="max-w-2xl">
                             <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/70 md:text-xs">
                                 Best Picks
                             </p>
-                            <h3 className="mt-3 text-[34px] font-bold leading-tight md:text-[48px]">
+                            <h3 className="mt-3 text-[30px] font-bold leading-tight md:text-[40px]">
                                 Featured <span className="text-yellow-400">Packages</span>
                             </h3>
-                            <p className="mt-4 text-[15px] leading-7 text-white/80 md:text-[17px]">
+                            <p className="mt-4 text-[15px] leading-7 text-white/80 md:text-[16px]">
                                 Start with our popular packages and request a quotation based
                                 on your selected event.
                             </p>
@@ -613,9 +557,9 @@ function Home() {
                                 viewport={{ once: true, amount: 0.2 }}
                                 custom={index}
                                 variants={fadeUp}
-                                className={`rounded-[30px] border bg-[#fffdf8] p-6 text-[#0b4d3b] shadow-sm transition hover:-translate-y-1.5 hover:shadow-xl ${index === 1
-                                        ? "border-[#e4bc41] ring-1 ring-[#e4bc41]/30"
-                                        : "border-transparent"
+                                className={`rounded-[28px] border bg-[#fffdf8] p-6 text-[#0b4d3b] shadow-sm transition hover:-translate-y-1 hover:shadow-xl ${index === 1
+                                    ? "border-[#e4bc41] ring-1 ring-[#e4bc41]/30"
+                                    : "border-transparent"
                                     }`}
                             >
                                 {index === 1 && (
@@ -629,13 +573,13 @@ function Home() {
                                         <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#0b4d3b]/55">
                                             {item.category}
                                         </p>
-                                        <h4 className="mt-3 text-[22px] font-extrabold leading-tight md:text-[24px]">
+                                        <h4 className="mt-3 text-[21px] font-extrabold leading-tight md:text-[23px]">
                                             {item.title}
                                         </h4>
                                     </div>
 
                                     <div className="shrink-0 text-right">
-                                        <p className="text-[24px] font-extrabold text-[#d1a31d] md:text-[26px]">
+                                        <p className="text-[22px] font-extrabold text-[#d1a31d] md:text-[25px]">
                                             {item.price}
                                         </p>
                                         <p className="text-sm text-slate-500">{item.pax}</p>
@@ -644,7 +588,7 @@ function Home() {
 
                                 <div className="mb-4 mt-4 h-[3px] w-12 rounded-full bg-[#d1a31d]" />
 
-                                <p className="min-h-[98px] text-[15px] leading-7 text-slate-600">
+                                <p className="min-h-[92px] text-[15px] leading-7 text-slate-600">
                                     {item.desc}
                                 </p>
 
@@ -662,7 +606,7 @@ function Home() {
 
             <section
                 id="about"
-                className="bg-[#0c5a43] px-5 py-16 text-white md:px-10 md:py-20 lg:px-20"
+                className="bg-[#0c5a43] px-5 py-14 text-white md:px-10 md:py-16 lg:px-20"
             >
                 <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-2">
                     <motion.div
@@ -674,22 +618,22 @@ function Home() {
                         <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/70 md:text-xs">
                             About Us
                         </p>
-                        <h3 className="mt-3 mb-7 text-[36px] font-bold leading-tight md:text-[52px]">
+                        <h3 className="mt-3 mb-6 text-[30px] font-bold leading-tight md:text-[42px]">
                             About <span className="text-yellow-400">Ebit&apos;s Catering</span>
                         </h3>
 
-                        <p className="mb-5 text-[16px] leading-8 text-white/90 md:text-[18px]">
+                        <p className="mb-4 text-[15px] leading-8 text-white/90 md:text-[17px]">
                             A DTI registered catering business dedicated to making your
                             parties better with fresh, clean, and tasty food.
                         </p>
 
-                        <p className="mb-7 text-[16px] leading-8 text-white/90 md:text-[18px]">
+                        <p className="mb-7 text-[15px] leading-8 text-white/90 md:text-[17px]">
                             We specialize in weddings, debuts, birthdays, anniversaries,
                             and baptismal celebrations, bringing experience, creativity,
                             and professional service to every event we handle.
                         </p>
 
-                        <div className="grid gap-4 text-[15px] text-white/90 md:text-[17px]">
+                        <div className="grid gap-4 text-[15px] text-white/90 md:text-[16px]">
                             <div className="flex items-start gap-3">
                                 <CheckCircle2 className="mt-1 h-5 w-5 shrink-0 text-yellow-400" />
                                 <p>DTI Registered Business</p>
@@ -716,11 +660,11 @@ function Home() {
                         variants={softScale}
                         className="relative"
                     >
-                        <div className="relative overflow-hidden rounded-[32px] border border-white/10 shadow-2xl">
+                        <div className="relative overflow-hidden rounded-[30px] border border-white/10 shadow-2xl">
                             <img
                                 src={gal2}
                                 alt="Ebit's Catering event setup"
-                                className="h-[340px] w-full object-cover md:h-[430px]"
+                                className="h-[320px] w-full object-cover md:h-[410px]"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-[#0b4d3b]/80 via-transparent to-transparent" />
                             <div className="absolute bottom-0 left-0 right-0 p-5">
@@ -729,8 +673,7 @@ function Home() {
                                         Elegant setup for memorable celebrations
                                     </p>
                                     <p className="mt-2 text-sm text-white/85">
-                                        Weddings, debuts, birthdays, anniversaries, and special
-                                        events.
+                                        Weddings, debuts, birthdays, anniversaries, and special events.
                                     </p>
                                 </div>
                             </div>
@@ -739,7 +682,7 @@ function Home() {
                 </div>
             </section>
 
-            <section className="bg-[#f8f7f2] px-5 py-16 md:px-10 md:py-20 lg:px-20">
+            <section className="bg-[#f8f7f2] px-5 py-14 md:px-10 md:py-16 lg:px-20">
                 {sectionTitle(
                     "Why Choose Us",
                     "Why Choose",
@@ -756,7 +699,7 @@ function Home() {
                             viewport={{ once: true, amount: 0.2 }}
                             custom={index}
                             variants={fadeUp}
-                            className="group rounded-[28px] border border-[#ece6d8] bg-white p-6 shadow-sm transition hover:-translate-y-1.5 hover:shadow-xl"
+                            className="group rounded-[28px] border border-[#ece6d8] bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
                         >
                             <div className="flex items-start gap-4">
                                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#fbf4df] text-[#c99d1a] transition group-hover:bg-[#0b4d3b] group-hover:text-white">
@@ -764,7 +707,7 @@ function Home() {
                                 </div>
 
                                 <div>
-                                    <h4 className="mb-2 text-[22px] font-bold text-[#0b4d3b]">
+                                    <h4 className="mb-2 text-[20px] font-bold text-[#0b4d3b]">
                                         {item.title}
                                     </h4>
                                     <p className="text-[15px] leading-7 text-slate-600">
@@ -779,7 +722,7 @@ function Home() {
 
             <section
                 id="gallery"
-                className="bg-[#f8f7f2] px-5 py-16 md:px-10 md:py-20 lg:px-20"
+                className="bg-[#f8f7f2] px-5 py-14 md:px-10 md:py-16 lg:px-20"
             >
                 {sectionTitle(
                     "Recent Setups",
@@ -806,7 +749,9 @@ function Home() {
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
                             <div className="absolute bottom-0 left-0 right-0 p-4">
-                                <p className="text-lg font-semibold text-white">{item.title}</p>
+                                <p className="text-base font-semibold text-white md:text-lg">
+                                    {item.title}
+                                </p>
                             </div>
                         </motion.div>
                     ))}
@@ -815,7 +760,7 @@ function Home() {
 
             <section
                 id="contact"
-                className="bg-[#f8f7f2] px-5 py-16 md:px-10 md:py-20 lg:px-20"
+                className="bg-[#f8f7f2] px-5 py-14 md:px-10 md:py-16 lg:px-20"
             >
                 {sectionTitle(
                     "Contact Us",
@@ -838,8 +783,10 @@ function Home() {
                                     <Phone className="h-5 w-5 text-[#b99117]" />
                                 </div>
                                 <div>
-                                    <h4 className="mb-2 text-[20px] font-bold">Phone</h4>
-                                    <p className="text-[16px] text-slate-600">0917 679 0643</p>
+                                    <h4 className="mb-2 text-[18px] font-bold md:text-[20px]">Phone</h4>
+                                    <p className="text-[15px] text-slate-600 md:text-[16px]">
+                                        0917 679 0643
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -850,8 +797,8 @@ function Home() {
                                     <MapPin className="h-5 w-5 text-[#b99117]" />
                                 </div>
                                 <div>
-                                    <h4 className="mb-2 text-[20px] font-bold">Address</h4>
-                                    <p className="text-[16px] leading-8 text-slate-600">
+                                    <h4 className="mb-2 text-[18px] font-bold md:text-[20px]">Address</h4>
+                                    <p className="text-[15px] leading-8 text-slate-600 md:text-[16px]">
                                         Blk 5 Lot 14 Tierra Verde Residences
                                         <br />
                                         Burol 3, Dasmariñas City, Cavite
@@ -866,10 +813,9 @@ function Home() {
                                     <MessageCircle className="h-5 w-5 text-[#b99117]" />
                                 </div>
                                 <div>
-                                    <h4 className="mb-2 text-[20px] font-bold">Facebook</h4>
+                                    <h4 className="mb-2 text-[18px] font-bold md:text-[20px]">Facebook</h4>
                                     <p className="mb-4 text-[15px] leading-7 text-slate-600">
-                                        Visit our official Facebook page for more inquiries and
-                                        updates.
+                                        Visit our official Facebook page for more inquiries and updates.
                                     </p>
                                     <a
                                         href="https://www.facebook.com/ebitscateringandservices"
@@ -896,7 +842,7 @@ function Home() {
                             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#fbf4df]">
                                 <MessageCircle className="h-5 w-5 text-[#b99117]" />
                             </div>
-                            <h4 className="text-[22px] font-bold md:text-[24px]">
+                            <h4 className="text-[20px] font-bold md:text-[22px]">
                                 Send us a message
                             </h4>
                         </div>
@@ -931,8 +877,8 @@ function Home() {
                         {contactStatus && (
                             <p
                                 className={`mb-4 text-sm font-medium ${contactStatus.includes("successfully")
-                                        ? "text-green-600"
-                                        : "text-red-500"
+                                    ? "text-green-600"
+                                    : "text-red-500"
                                     }`}
                             >
                                 {contactStatus}
@@ -952,47 +898,38 @@ function Home() {
             <footer className="bg-[#0c5a43] px-5 py-12 text-white md:px-10 lg:px-20">
                 <div className="mx-auto grid max-w-6xl gap-10 md:grid-cols-3">
                     <div>
-                        <h4 className="mb-3 text-[32px] font-bold text-yellow-400 md:text-[38px]">
+                        <h4 className="mb-3 text-[30px] font-bold text-yellow-400 md:text-[34px]">
                             Ebit&apos;s Catering
                         </h4>
-                        <p className="max-w-md text-[16px] leading-8 text-white/85">
+                        <p className="max-w-md text-[15px] leading-8 text-white/85 md:text-[16px]">
                             For making parties better with fresh, clean, and tasty food
                             and elegant celebration services.
                         </p>
                     </div>
 
                     <div>
-                        <h5 className="mb-4 text-xl font-bold">Quick Links</h5>
+                        <h5 className="mb-4 text-lg font-bold md:text-xl">Quick Links</h5>
                         <div className="space-y-3 text-white/85">
                             <a href="#home" className="block transition hover:text-yellow-400">
                                 Home
                             </a>
-                            <Link
-                                to="/packages"
-                                className="block transition hover:text-yellow-400"
-                            >
+                            <Link to="/packages" className="block transition hover:text-yellow-400">
                                 Packages
                             </Link>
                             <a href="#about" className="block transition hover:text-yellow-400">
                                 About
                             </a>
-                            <a
-                                href="#gallery"
-                                className="block transition hover:text-yellow-400"
-                            >
+                            <a href="#gallery" className="block transition hover:text-yellow-400">
                                 Gallery
                             </a>
-                            <a
-                                href="#contact"
-                                className="block transition hover:text-yellow-400"
-                            >
+                            <a href="#contact" className="block transition hover:text-yellow-400">
                                 Contact
                             </a>
                         </div>
                     </div>
 
                     <div>
-                        <h5 className="mb-4 text-xl font-bold">Business Info</h5>
+                        <h5 className="mb-4 text-lg font-bold md:text-xl">Business Info</h5>
                         <div className="space-y-3 text-white/85">
                             <p>DTI Registered Catering Business</p>
                             <p>Dasmariñas City, Cavite</p>
