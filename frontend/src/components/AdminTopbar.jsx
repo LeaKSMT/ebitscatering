@@ -1,4 +1,5 @@
-import { UserCircle2 } from "lucide-react";
+import { useMemo } from "react";
+import { Bell, ShieldCheck, Sparkles } from "lucide-react";
 
 function AdminTopbar({ currentPath = "" }) {
     const adminUser =
@@ -9,7 +10,7 @@ function AdminTopbar({ currentPath = "" }) {
     const pageTitles = {
         "/admin/dashboard": {
             title: "Admin Dashboard",
-            subtitle: "Manage your catering business",
+            subtitle: "Executive overview of bookings, revenue, and operational performance",
         },
         "/admin/inquiries": {
             title: "Inquiry Management",
@@ -71,21 +72,55 @@ function AdminTopbar({ currentPath = "" }) {
 
     const current = pageTitles[currentPath] || {
         title: "Admin Dashboard",
-        subtitle: "Manage your catering business",
+        subtitle: "Executive overview of bookings, revenue, and operational performance",
     };
 
-    return (
-        <header className="bg-white border-b border-gray-200 px-5 md:px-7 py-5 flex items-center justify-between sticky top-0 z-30">
-            <div>
-                <h1 className="text-[20px] md:text-[22px] font-extrabold text-[#0f4d3c]">
-                    {current.title}
-                </h1>
-                <p className="text-sm text-gray-500 mt-1">{current.subtitle}</p>
-            </div>
+    const greeting = useMemo(() => {
+        const hour = new Date().getHours();
 
-            <div className="flex items-center gap-2 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-[#0f4d3c] font-semibold shadow-sm">
-                <UserCircle2 size={18} />
-                <span>{adminUser.name}</span>
+        if (hour < 12) return "Good morning";
+        if (hour < 18) return "Good afternoon";
+        return "Good evening";
+    }, []);
+
+    return (
+        <header className="sticky top-0 z-30 border-b border-[#dbe7e2] bg-white/85 backdrop-blur-md">
+            <div className="flex flex-col gap-4 px-5 py-4 md:px-7 lg:flex-row lg:items-center lg:justify-between">
+                <div className="min-w-0">
+                    <div className="inline-flex items-center gap-2 rounded-full border border-[#e7efe9] bg-[#f7fbf9] px-4 py-2 text-[11px] font-bold uppercase tracking-[0.22em] text-[#0f4d3c]/75">
+                        <Sparkles size={13} />
+                        Defense Ready Admin Panel
+                    </div>
+
+                    <h1 className="mt-3 text-[24px] font-extrabold tracking-tight text-[#0f4d3c] md:text-[28px]">
+                        {current.title}
+                    </h1>
+                    <p className="mt-1 max-w-3xl text-sm text-slate-500 md:text-[15px]">
+                        {current.subtitle}
+                    </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3">
+                    <div className="hidden sm:flex items-center gap-2 rounded-2xl border border-[#e2ebe6] bg-white px-4 py-3 text-[#0f4d3c] shadow-sm">
+                        <Bell size={17} />
+                        <span className="text-sm font-semibold">System Active</span>
+                    </div>
+
+                    <div className="flex items-center gap-3 rounded-[20px] border border-[#e2ebe6] bg-white px-4 py-3 shadow-sm">
+                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#edf8f3] text-[#0f4d3c]">
+                            <ShieldCheck size={20} />
+                        </div>
+
+                        <div className="min-w-0">
+                            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+                                {greeting}
+                            </p>
+                            <p className="max-w-[180px] truncate text-sm font-bold text-[#0f4d3c]">
+                                {adminUser.name}
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </header>
     );
