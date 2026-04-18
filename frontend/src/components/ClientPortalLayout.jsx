@@ -1,14 +1,20 @@
 import { Outlet } from "react-router-dom";
+import { motion } from "framer-motion";
 import ClientTopbar from "./ClientTopbar";
 
 function ClientPortalLayout() {
     return (
-        <div className="min-h-screen bg-[#f4f7f6]">
+        <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(212,175,55,0.10),_transparent_28%),linear-gradient(180deg,#f6faf8_0%,#eef4f1_100%)]">
             <ClientTopbar />
 
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10">
+            <motion.main
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.55, ease: "easeOut" }}
+                className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10"
+            >
                 <Outlet />
-            </main>
+            </motion.main>
         </div>
     );
 }
