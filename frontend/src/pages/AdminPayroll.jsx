@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
     getAdminEmployees,
     getAdminPayrollRecords,
@@ -7,6 +8,21 @@ import {
     formatDate,
 } from "../utils/AdminData";
 import { buildPrintableTable, openPrintWindow } from "../utils/AdminPrint";
+import {
+    Sparkles,
+    WalletCards,
+    BadgeDollarSign,
+    CircleDollarSign,
+    Users,
+    FileSpreadsheet,
+    AlertTriangle,
+    Trash2,
+} from "lucide-react";
+
+const fadeUp = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 },
+};
 
 function AdminPayroll() {
     const [refreshKey, setRefreshKey] = useState(0);
@@ -163,37 +179,78 @@ function AdminPayroll() {
 
     return (
         <>
-            <div className="space-y-6">
-                <section className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <motion.div
+                initial="hidden"
+                animate="show"
+                transition={{ staggerChildren: 0.08 }}
+                className="space-y-6"
+            >
+                <motion.section
+                    variants={fadeUp}
+                    className="overflow-hidden rounded-[30px] border border-[#dce7e2] bg-white shadow-[0_18px_50px_rgba(14,61,47,0.07)]"
+                >
+                    <div className="relative overflow-hidden bg-[linear-gradient(135deg,#07382d_0%,#0c4d3d_34%,#0f6b52_68%,#18a06c_100%)] px-6 py-7 text-white md:px-8">
+                        <div className="pointer-events-none absolute inset-0">
+                            <div className="absolute -top-12 right-[-30px] h-40 w-40 rounded-full bg-[#d4af37]/20 blur-3xl" />
+                            <div className="absolute bottom-[-30px] left-[-20px] h-28 w-28 rounded-full bg-white/10 blur-3xl" />
+                        </div>
+
+                        <div className="relative">
+                            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.22em] text-white/80">
+                                <Sparkles size={13} />
+                                Payroll Management
+                            </div>
+
+                            <h1 className="mt-4 text-3xl font-extrabold md:text-[42px]">
+                                Employee Payroll Management
+                            </h1>
+                            <p className="mt-2 max-w-3xl text-sm leading-7 text-white/85 md:text-[15px]">
+                                Manage compensation records, compute payout totals, and
+                                maintain payroll history in one premium admin workspace.
+                            </p>
+                        </div>
+                    </div>
+                </motion.section>
+
+                <motion.section
+                    variants={fadeUp}
+                    className="grid grid-cols-1 gap-5 md:grid-cols-3"
+                >
                     <SummaryCard
+                        icon={WalletCards}
                         title="Total Payroll"
                         value={formatCurrency(totals.totalPayroll)}
                     />
                     <SummaryCard
+                        icon={BadgeDollarSign}
                         title="Released"
                         value={formatCurrency(totals.released)}
                     />
                     <SummaryCard
+                        icon={CircleDollarSign}
                         title="Pending"
                         value={formatCurrency(totals.pending)}
                     />
-                </section>
+                </motion.section>
 
-                <section className="grid grid-cols-1 xl:grid-cols-[0.85fr_1.15fr] gap-6">
-                    <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6">
-                        <h2 className="text-2xl font-bold text-[#0f4d3c]">
+                <section className="grid grid-cols-1 gap-6 xl:grid-cols-[0.85fr_1.15fr]">
+                    <motion.div
+                        variants={fadeUp}
+                        className="rounded-[28px] border border-[#dce7e2] bg-white p-6 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
+                    >
+                        <h2 className="text-2xl font-extrabold text-[#0f4d3c]">
                             Add Payroll Record
                         </h2>
 
                         <form onSubmit={handleAddPayroll} className="mt-5 space-y-4">
                             <div>
-                                <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
+                                <label className="mb-2 block text-sm font-semibold text-[#0f4d3c]">
                                     Employee
                                 </label>
                                 <select
                                     value={form.employeeId}
                                     onChange={handleEmployeeSelect}
-                                    className="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-[#d4af37]"
+                                    className="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
                                     required
                                 >
                                     <option value="">Select employee</option>
@@ -205,60 +262,42 @@ function AdminPayroll() {
                                 </select>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
-                                    Role
-                                </label>
-                                <input
-                                    type="text"
-                                    name="role"
-                                    value={form.role}
-                                    onChange={handleChange}
-                                    className="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-[#d4af37]"
-                                    required
-                                />
-                            </div>
+                            <Field
+                                label="Role"
+                                name="role"
+                                value={form.role}
+                                onChange={handleChange}
+                                required
+                            />
+
+                            <Field
+                                label="Work Units"
+                                name="workUnits"
+                                type="number"
+                                value={form.workUnits}
+                                onChange={handleChange}
+                                placeholder="No. of days or events worked"
+                                required
+                            />
+
+                            <Field
+                                label="Rate Per Unit"
+                                name="ratePerUnit"
+                                type="number"
+                                value={form.ratePerUnit}
+                                onChange={handleChange}
+                                required
+                            />
 
                             <div>
-                                <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
-                                    Work Units
-                                </label>
-                                <input
-                                    type="number"
-                                    min="1"
-                                    name="workUnits"
-                                    value={form.workUnits}
-                                    onChange={handleChange}
-                                    placeholder="No. of days or events worked"
-                                    className="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-[#d4af37]"
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
-                                    Rate Per Unit
-                                </label>
-                                <input
-                                    type="number"
-                                    min="1"
-                                    name="ratePerUnit"
-                                    value={form.ratePerUnit}
-                                    onChange={handleChange}
-                                    className="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-[#d4af37]"
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
+                                <label className="mb-2 block text-sm font-semibold text-[#0f4d3c]">
                                     Payout Status
                                 </label>
                                 <select
                                     name="payoutStatus"
                                     value={form.payoutStatus}
                                     onChange={handleChange}
-                                    className="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-[#d4af37]"
+                                    className="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
                                 >
                                     <option value="Pending">Pending</option>
                                     <option value="Paid">Paid</option>
@@ -267,28 +306,32 @@ function AdminPayroll() {
 
                             <button
                                 type="submit"
-                                className="w-full rounded-2xl bg-[#d4af37] px-5 py-3 font-bold text-[#0b4a3a] hover:bg-[#c79f23] transition"
+                                className="w-full rounded-2xl bg-[#d4af37] px-5 py-3 font-bold text-[#0b4a3a] transition hover:bg-[#c79f23]"
                             >
                                 Save Payroll Record
                             </button>
                         </form>
-                    </div>
+                    </motion.div>
 
-                    <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6">
-                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    <motion.div
+                        variants={fadeUp}
+                        className="rounded-[28px] border border-[#dce7e2] bg-white p-6 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
+                    >
+                        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                             <div>
-                                <h2 className="text-2xl font-bold text-[#0f4d3c]">
+                                <h2 className="text-2xl font-extrabold text-[#0f4d3c]">
                                     Payroll Management
                                 </h2>
-                                <p className="text-sm text-gray-500 mt-1">
+                                <p className="mt-1 text-sm text-slate-500">
                                     Employee payroll records and payout summary.
                                 </p>
                             </div>
 
                             <button
                                 onClick={handlePrintPayroll}
-                                className="rounded-2xl bg-[#0b4a3a] px-5 py-3 font-bold text-white hover:bg-[#09382d] transition"
+                                className="inline-flex items-center gap-2 rounded-2xl bg-[#0b4a3a] px-5 py-3 font-bold text-white transition hover:bg-[#09382d]"
                             >
+                                <FileSpreadsheet size={18} />
                                 Generate PDF Report
                             </button>
                         </div>
@@ -309,12 +352,15 @@ function AdminPayroll() {
                                             <th className="py-3 font-semibold">Total Salary</th>
                                             <th className="py-3 font-semibold">Status</th>
                                             <th className="py-3 font-semibold">Date</th>
-                                            <th className="py-3 font-semibold text-center">Action</th>
+                                            <th className="py-3 text-center font-semibold">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {payrollRecords.map((item) => (
-                                            <tr key={item.id} className="border-b border-gray-50">
+                                            <tr
+                                                key={item.id}
+                                                className="border-b border-gray-50 transition hover:bg-[#fbfdfc]"
+                                            >
                                                 <td className="py-4 font-semibold text-[#0f4d3c]">
                                                     {item.employeeName}
                                                 </td>
@@ -338,8 +384,9 @@ function AdminPayroll() {
                                                     <button
                                                         type="button"
                                                         onClick={() => openDeleteModal(item)}
-                                                        className="inline-flex items-center justify-center rounded-xl bg-red-500 px-4 py-2 text-xs font-bold text-white hover:bg-red-600 transition"
+                                                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-red-500 px-4 py-2 text-xs font-bold text-white transition hover:bg-red-600"
                                                     >
+                                                        <Trash2 size={14} />
                                                         Delete
                                                     </button>
                                                 </td>
@@ -349,9 +396,9 @@ function AdminPayroll() {
                                 </table>
                             </div>
                         )}
-                    </div>
+                    </motion.div>
                 </section>
-            </div>
+            </motion.div>
 
             <DeleteModal
                 isOpen={!!deleteTarget}
@@ -368,63 +415,104 @@ function AdminPayroll() {
     );
 }
 
-function SummaryCard({ title, value }) {
+function SummaryCard({ icon: Icon, title, value }) {
     return (
-        <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5">
-            <p className="text-sm text-gray-500">{title}</p>
-            <h2 className="text-3xl font-extrabold text-[#0f4d3c] mt-2">{value}</h2>
+        <motion.div
+            whileHover={{ y: -3 }}
+            className="rounded-[24px] border border-[#dce7e2] bg-white p-5 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
+        >
+            <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#edf8f3] text-[#0f4d3c]">
+                    <Icon size={20} />
+                </div>
+                <div>
+                    <p className="text-sm text-gray-500">{title}</p>
+                    <h2 className="mt-2 text-3xl font-extrabold text-[#0f4d3c]">
+                        {value}
+                    </h2>
+                </div>
+            </div>
+        </motion.div>
+    );
+}
+
+function Field({
+    label,
+    name,
+    value,
+    onChange,
+    placeholder = "",
+    type = "text",
+    required = false,
+}) {
+    return (
+        <div>
+            <label className="mb-2 block text-sm font-semibold text-[#0f4d3c]">
+                {label}
+            </label>
+            <input
+                type={type}
+                min={type === "number" ? "1" : undefined}
+                name={name}
+                value={value}
+                onChange={onChange}
+                placeholder={placeholder}
+                required={required}
+                className="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
+            />
         </div>
     );
 }
 
 function DeleteModal({ isOpen, title, message, onCancel, onConfirm }) {
-    if (!isOpen) return null;
-
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 px-4">
-            <div className="w-full max-w-md rounded-[28px] bg-white shadow-2xl border border-gray-100 p-6 animate-[fadeIn_.2s_ease-out]">
-                <div className="flex items-start gap-4">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-50">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-6 w-6 text-red-500"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M12 9v4m0 4h.01M10.29 3.86l-7.09 12.3A1 1 0 004.06 18h15.88a1 1 0 00.86-1.84l-7.09-12.3a1 1 0 00-1.72 0z"
-                            />
-                        </svg>
-                    </div>
-
-                    <div className="flex-1">
-                        <h3 className="text-xl font-bold text-[#0f4d3c]">{title}</h3>
-                        <p className="mt-2 text-sm leading-6 text-gray-500">{message}</p>
-                    </div>
-                </div>
-
-                <div className="mt-6 flex justify-end gap-3">
-                    <button
-                        type="button"
-                        onClick={onCancel}
-                        className="rounded-2xl border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition"
+        <AnimatePresence>
+            {isOpen && (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 px-4"
+                >
+                    <motion.div
+                        initial={{ opacity: 0, y: 18, scale: 0.96 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 18, scale: 0.96 }}
+                        className="w-full max-w-md rounded-[28px] border border-gray-100 bg-white p-6 shadow-2xl"
                     >
-                        Cancel
-                    </button>
-                    <button
-                        type="button"
-                        onClick={onConfirm}
-                        className="rounded-2xl bg-red-500 px-5 py-2.5 text-sm font-bold text-white hover:bg-red-600 transition"
-                    >
-                        Delete
-                    </button>
-                </div>
-            </div>
-        </div>
+                        <div className="flex items-start gap-4">
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-500">
+                                <AlertTriangle size={24} />
+                            </div>
+
+                            <div className="flex-1">
+                                <h3 className="text-xl font-bold text-[#0f4d3c]">{title}</h3>
+                                <p className="mt-2 text-sm leading-6 text-gray-500">
+                                    {message}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="mt-6 flex justify-end gap-3">
+                            <button
+                                type="button"
+                                onClick={onCancel}
+                                className="rounded-2xl border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={onConfirm}
+                                className="rounded-2xl bg-red-500 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-red-600"
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </motion.div>
+                </motion.div>
+            )}
+        </AnimatePresence>
     );
 }
 

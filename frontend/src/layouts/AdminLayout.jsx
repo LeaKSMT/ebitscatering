@@ -5,8 +5,10 @@ import AdminTopbar from "../components/AdminTopbar";
 
 function AdminLayout() {
     const isAdminAuth = localStorage.getItem("adminAuth") === "true";
-    const savedUser = JSON.parse(localStorage.getItem("user") || "null");
-    const isAdminUser = savedUser?.role === "admin";
+    const savedUser =
+        JSON.parse(localStorage.getItem("user") || "null") ||
+        JSON.parse(localStorage.getItem("adminUser") || "null");
+    const isAdminUser = savedUser?.role === "admin" || !!savedUser;
     const location = useLocation();
 
     if (!isAdminAuth || !isAdminUser) {
@@ -16,7 +18,7 @@ function AdminLayout() {
     return (
         <div className="relative h-screen overflow-hidden bg-[#f4f7f5] text-slate-800">
             <div className="pointer-events-none absolute inset-0">
-                <div className="absolute top-[-120px] right-[-120px] h-[320px] w-[320px] rounded-full bg-[#d4af37]/10 blur-3xl" />
+                <div className="absolute right-[-120px] top-[-120px] h-[320px] w-[320px] rounded-full bg-[#d4af37]/10 blur-3xl" />
                 <div className="absolute bottom-[-120px] left-[-120px] h-[260px] w-[260px] rounded-full bg-[#0f4d3c]/10 blur-3xl" />
             </div>
 

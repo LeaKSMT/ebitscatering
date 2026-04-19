@@ -1,9 +1,25 @@
 import { useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import {
     getAdminInventory,
     saveAdminInventory,
 } from "../utils/AdminData";
 import { buildPrintableTable, openPrintWindow } from "../utils/AdminPrint";
+import {
+    Sparkles,
+    Boxes,
+    PackageCheck,
+    TriangleAlert,
+    PackageX,
+    ClipboardList,
+    Trash2,
+    FileSpreadsheet,
+} from "lucide-react";
+
+const fadeUp = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 },
+};
 
 function AdminInventory() {
     const [refreshKey, setRefreshKey] = useState(0);
@@ -102,89 +118,101 @@ function AdminInventory() {
     };
 
     return (
-        <div className="space-y-6">
-            <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
-                <SummaryCard title="Total Items" value={totals.totalItems} />
-                <SummaryCard title="In Stock" value={totals.inStock} />
-                <SummaryCard title="Low Stock" value={totals.lowStock} />
-                <SummaryCard title="Out of Stock" value={totals.outOfStock} />
-            </section>
+        <motion.div
+            initial="hidden"
+            animate="show"
+            transition={{ staggerChildren: 0.08 }}
+            className="space-y-6"
+        >
+            <motion.section
+                variants={fadeUp}
+                className="overflow-hidden rounded-[30px] border border-[#dce7e2] bg-white shadow-[0_18px_50px_rgba(14,61,47,0.07)]"
+            >
+                <div className="relative overflow-hidden bg-[linear-gradient(135deg,#07382d_0%,#0c4d3d_34%,#0f6b52_68%,#18a06c_100%)] px-6 py-7 text-white md:px-8">
+                    <div className="pointer-events-none absolute inset-0">
+                        <div className="absolute -top-12 right-[-30px] h-40 w-40 rounded-full bg-[#d4af37]/20 blur-3xl" />
+                        <div className="absolute bottom-[-30px] left-[-20px] h-28 w-28 rounded-full bg-white/10 blur-3xl" />
+                    </div>
 
-            <section className="grid grid-cols-1 xl:grid-cols-[0.85fr_1.15fr] gap-6">
-                <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6">
-                    <h2 className="text-2xl font-bold text-[#0f4d3c]">
+                    <div className="relative">
+                        <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.22em] text-white/80">
+                            <Sparkles size={13} />
+                            Inventory Management
+                        </div>
+
+                        <h1 className="mt-4 text-3xl font-extrabold md:text-[42px]">
+                            Inventory & Stock Monitoring
+                        </h1>
+                        <p className="mt-2 max-w-3xl text-sm leading-7 text-white/85 md:text-[15px]">
+                            Monitor ingredients, utensils, supplies, and equipment in a
+                            clean premium inventory workspace.
+                        </p>
+                    </div>
+                </div>
+            </motion.section>
+
+            <motion.section
+                variants={fadeUp}
+                className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4"
+            >
+                <SummaryCard icon={Boxes} title="Total Items" value={totals.totalItems} />
+                <SummaryCard icon={PackageCheck} title="In Stock" value={totals.inStock} />
+                <SummaryCard icon={TriangleAlert} title="Low Stock" value={totals.lowStock} />
+                <SummaryCard icon={PackageX} title="Out of Stock" value={totals.outOfStock} />
+            </motion.section>
+
+            <section className="grid grid-cols-1 gap-6 xl:grid-cols-[0.85fr_1.15fr]">
+                <motion.div
+                    variants={fadeUp}
+                    className="rounded-[28px] border border-[#dce7e2] bg-white p-6 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
+                >
+                    <h2 className="text-2xl font-extrabold text-[#0f4d3c]">
                         Add Inventory Item
                     </h2>
 
                     <form onSubmit={handleAddItem} className="mt-5 space-y-4">
-                        <div>
-                            <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
-                                Item Name
-                            </label>
-                            <input
-                                type="text"
-                                name="itemName"
-                                value={form.itemName}
-                                onChange={handleChange}
-                                className="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-[#d4af37]"
-                                required
-                            />
-                        </div>
+                        <Field
+                            label="Item Name"
+                            name="itemName"
+                            value={form.itemName}
+                            onChange={handleChange}
+                            required
+                        />
+                        <Field
+                            label="Category"
+                            name="category"
+                            value={form.category}
+                            onChange={handleChange}
+                            placeholder="Ingredient, Utensil, Equipment, etc."
+                            required
+                        />
+                        <Field
+                            label="Quantity"
+                            name="quantity"
+                            type="number"
+                            min="0"
+                            value={form.quantity}
+                            onChange={handleChange}
+                            required
+                        />
+                        <Field
+                            label="Unit"
+                            name="unit"
+                            value={form.unit}
+                            onChange={handleChange}
+                            placeholder="pcs, kg, box, set, etc."
+                            required
+                        />
 
                         <div>
-                            <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
-                                Category
-                            </label>
-                            <input
-                                type="text"
-                                name="category"
-                                value={form.category}
-                                onChange={handleChange}
-                                placeholder="Ingredient, Utensil, Equipment, etc."
-                                className="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-[#d4af37]"
-                                required
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
-                                Quantity
-                            </label>
-                            <input
-                                type="number"
-                                min="0"
-                                name="quantity"
-                                value={form.quantity}
-                                onChange={handleChange}
-                                className="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-[#d4af37]"
-                                required
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
-                                Unit
-                            </label>
-                            <input
-                                type="text"
-                                name="unit"
-                                value={form.unit}
-                                onChange={handleChange}
-                                placeholder="pcs, kg, box, set, etc."
-                                className="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-[#d4af37]"
-                                required
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
+                            <label className="mb-2 block text-sm font-semibold text-[#0f4d3c]">
                                 Status
                             </label>
                             <select
                                 name="status"
                                 value={form.status}
                                 onChange={handleChange}
-                                className="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-[#d4af37]"
+                                className="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
                             >
                                 <option value="In Stock">In Stock</option>
                                 <option value="Low Stock">Low Stock</option>
@@ -194,28 +222,32 @@ function AdminInventory() {
 
                         <button
                             type="submit"
-                            className="w-full rounded-2xl bg-[#d4af37] px-5 py-3 font-bold text-[#0b4a3a] hover:bg-[#c79f23] transition"
+                            className="w-full rounded-2xl bg-[#d4af37] px-5 py-3 font-bold text-[#0b4a3a] transition hover:bg-[#c79f23]"
                         >
                             Add Item
                         </button>
                     </form>
-                </div>
+                </motion.div>
 
-                <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6">
-                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <motion.div
+                    variants={fadeUp}
+                    className="rounded-[28px] border border-[#dce7e2] bg-white p-6 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
+                >
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                         <div>
-                            <h2 className="text-2xl font-bold text-[#0f4d3c]">
+                            <h2 className="text-2xl font-extrabold text-[#0f4d3c]">
                                 Inventory Management
                             </h2>
-                            <p className="text-sm text-gray-500 mt-1">
+                            <p className="mt-1 text-sm text-gray-500">
                                 Track equipment, utensils, ingredients, and supplies.
                             </p>
                         </div>
 
                         <button
                             onClick={handlePrintInventory}
-                            className="rounded-2xl bg-[#0b4a3a] px-5 py-3 font-bold text-white hover:bg-[#09382d] transition"
+                            className="inline-flex items-center gap-2 rounded-2xl bg-[#0b4a3a] px-5 py-3 font-bold text-white transition hover:bg-[#09382d]"
                         >
+                            <FileSpreadsheet size={18} />
                             Generate PDF Report
                         </button>
                     </div>
@@ -227,16 +259,17 @@ function AdminInventory() {
                     ) : (
                         <div className="mt-6 space-y-3">
                             {inventory.map((item) => (
-                                <div
+                                <motion.div
                                     key={item.id}
+                                    whileHover={{ y: -2 }}
                                     className="rounded-2xl border border-gray-200 bg-[#f8fafc] p-4"
                                 >
-                                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                                         <div>
                                             <h4 className="font-bold text-[#0f4d3c]">
                                                 {item.itemName}
                                             </h4>
-                                            <p className="text-sm text-gray-500 mt-1">
+                                            <p className="mt-1 text-sm text-gray-500">
                                                 {item.category} • {item.quantity} {item.unit}
                                             </p>
                                         </div>
@@ -252,27 +285,69 @@ function AdminInventory() {
 
                                             <button
                                                 onClick={() => handleDeleteItem(item.id)}
-                                                className="rounded-xl bg-red-500 px-4 py-2 text-sm font-bold text-white hover:bg-red-600 transition"
+                                                className="inline-flex items-center gap-2 rounded-xl bg-red-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-red-600"
                                             >
+                                                <Trash2 size={14} />
                                                 Delete
                                             </button>
                                         </div>
                                     </div>
-                                </div>
+                                </motion.div>
                             ))}
                         </div>
                     )}
-                </div>
+                </motion.div>
             </section>
-        </div>
+        </motion.div>
     );
 }
 
-function SummaryCard({ title, value }) {
+function SummaryCard({ icon: Icon, title, value }) {
     return (
-        <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5">
-            <p className="text-sm text-gray-500">{title}</p>
-            <h2 className="text-3xl font-extrabold text-[#0f4d3c] mt-2">{value}</h2>
+        <motion.div
+            whileHover={{ y: -3 }}
+            className="rounded-[24px] border border-[#dce7e2] bg-white p-5 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
+        >
+            <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#edf8f3] text-[#0f4d3c]">
+                    <Icon size={20} />
+                </div>
+                <div>
+                    <p className="text-sm text-gray-500">{title}</p>
+                    <h2 className="mt-2 text-3xl font-extrabold text-[#0f4d3c]">
+                        {value}
+                    </h2>
+                </div>
+            </div>
+        </motion.div>
+    );
+}
+
+function Field({
+    label,
+    name,
+    value,
+    onChange,
+    placeholder = "",
+    type = "text",
+    min,
+    required = false,
+}) {
+    return (
+        <div>
+            <label className="mb-2 block text-sm font-semibold text-[#0f4d3c]">
+                {label}
+            </label>
+            <input
+                type={type}
+                min={min}
+                name={name}
+                value={value}
+                onChange={onChange}
+                placeholder={placeholder}
+                required={required}
+                className="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
+            />
         </div>
     );
 }

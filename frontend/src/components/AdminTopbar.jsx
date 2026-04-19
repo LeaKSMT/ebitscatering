@@ -11,7 +11,8 @@ import {
 
 function AdminTopbar({ currentPath = "" }) {
     const adminUser =
-        JSON.parse(localStorage.getItem("adminUser") || "null") || {
+        JSON.parse(localStorage.getItem("adminUser") || "null") ||
+        JSON.parse(localStorage.getItem("user") || "null") || {
             name: "Admin User",
         };
 

@@ -1,3 +1,12 @@
+import { motion } from "framer-motion";
+import {
+    Sparkles,
+    Package2,
+    Gem,
+    Gift,
+    BadgeCheck,
+} from "lucide-react";
+
 const weddingPackages = [
     {
         id: "basic-wedding",
@@ -247,9 +256,22 @@ const addOns = [
     { name: "SDE", price: "₱27,000" },
 ];
 
-function AdminPackageCard({ item }) {
+const fadeUp = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 },
+};
+
+function AdminPackageCard({ item, index = 0 }) {
     return (
-        <div className="rounded-[26px] border border-[#0f4d3c]/10 bg-white p-6 shadow-sm">
+        <motion.div
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.35, delay: index * 0.03 }}
+            whileHover={{ y: -4 }}
+            className="rounded-[28px] border border-[#dce7e2] bg-white p-6 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
+        >
             <div className="flex items-start justify-between gap-4">
                 <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#b99117]">
@@ -258,10 +280,10 @@ function AdminPackageCard({ item }) {
                     <h3 className="mt-2 text-2xl font-extrabold text-[#0f4d3c]">
                         {item.title}
                     </h3>
-                    <p className="mt-2 text-sm text-gray-500">{item.pax}</p>
+                    <p className="mt-2 text-sm text-slate-500">{item.pax}</p>
                 </div>
 
-                <div className="rounded-2xl bg-[#0f4d3c] px-4 py-2 text-lg font-extrabold text-[#f5c94a]">
+                <div className="rounded-2xl bg-[#0f4d3c] px-4 py-2 text-lg font-extrabold text-[#f5c94a] shadow-sm">
                     {item.price}
                 </div>
             </div>
@@ -274,63 +296,104 @@ function AdminPackageCard({ item }) {
                 </h4>
 
                 <ul className="mt-4 grid gap-3">
-                    {item.features.map((feature, index) => (
-                        <li key={index} className="flex items-start gap-3 text-sm text-gray-700">
-                            <span className="mt-1.5 h-2.5 w-2.5 rounded-full bg-[#d4af37] shrink-0" />
+                    {item.features.map((feature, featureIndex) => (
+                        <li
+                            key={featureIndex}
+                            className="flex items-start gap-3 text-sm text-slate-700"
+                        >
+                            <span className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full bg-[#d4af37]" />
                             <span>{feature}</span>
                         </li>
                     ))}
                 </ul>
             </div>
-        </div>
+        </motion.div>
+    );
+}
+
+function SummaryCard({ icon: Icon, label, value }) {
+    return (
+        <motion.div
+            whileHover={{ y: -3 }}
+            className="rounded-[22px] border border-[#f0e2b7] bg-white p-5 shadow-sm"
+        >
+            <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#fff6dc] text-[#0f4d3c]">
+                    <Icon size={20} />
+                </div>
+                <div>
+                    <p className="text-sm text-slate-500">{label}</p>
+                    <h2 className="mt-1 text-3xl font-extrabold text-[#0f4d3c]">
+                        {value}
+                    </h2>
+                </div>
+            </div>
+        </motion.div>
     );
 }
 
 function AdminPackages() {
     return (
-        <div className="space-y-8">
-            <section className="rounded-[28px] bg-gradient-to-r from-[#0f4d3c] via-[#0e5b46] to-[#137255] p-7 text-white shadow-[0_18px_40px_rgba(15,77,60,0.15)]">
-                <p className="text-xs uppercase tracking-[0.3em] text-white/70 font-semibold">
-                    Admin Package Management
-                </p>
-                <h1 className="mt-3 text-3xl md:text-4xl font-extrabold">
-                    Package Information Overview
-                </h1>
-                <p className="mt-3 max-w-3xl text-white/85 leading-7">
-                    This page shows the complete details of every wedding and debut package
-                    offered in the system so the owner can review the full inclusions shown
-                    to clients during quotation and booking.
-                </p>
-            </section>
-
-            <section className="rounded-[28px] border border-[#e9dec2] bg-[#fffaf0] p-6 shadow-sm">
-                <div className="grid gap-4 md:grid-cols-3">
-                    <div className="rounded-[22px] bg-white p-5 border border-[#f0e2b7]">
-                        <p className="text-sm text-gray-500">Wedding Packages</p>
-                        <h2 className="mt-2 text-3xl font-extrabold text-[#0f4d3c]">
-                            {weddingPackages.length}
-                        </h2>
+        <motion.div
+            initial="hidden"
+            animate="show"
+            transition={{ staggerChildren: 0.08 }}
+            className="space-y-8"
+        >
+            <motion.section
+                variants={fadeUp}
+                className="overflow-hidden rounded-[30px] border border-[#dce7e2] bg-white shadow-[0_18px_50px_rgba(14,61,47,0.07)]"
+            >
+                <div className="relative overflow-hidden bg-[linear-gradient(135deg,#07382d_0%,#0c4d3d_34%,#0f6b52_68%,#18a06c_100%)] px-6 py-7 text-white md:px-8">
+                    <div className="pointer-events-none absolute inset-0">
+                        <div className="absolute -top-12 right-[-30px] h-40 w-40 rounded-full bg-[#d4af37]/20 blur-3xl" />
+                        <div className="absolute bottom-[-30px] left-[-20px] h-28 w-28 rounded-full bg-white/10 blur-3xl" />
                     </div>
 
-                    <div className="rounded-[22px] bg-white p-5 border border-[#f0e2b7]">
-                        <p className="text-sm text-gray-500">Debut Packages</p>
-                        <h2 className="mt-2 text-3xl font-extrabold text-[#0f4d3c]">
-                            {debutPackages.length}
-                        </h2>
-                    </div>
+                    <div className="relative">
+                        <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.22em] text-white/80">
+                            <Sparkles size={13} />
+                            Admin Package Management
+                        </div>
 
-                    <div className="rounded-[22px] bg-white p-5 border border-[#f0e2b7]">
-                        <p className="text-sm text-gray-500">Available Add-ons</p>
-                        <h2 className="mt-2 text-3xl font-extrabold text-[#0f4d3c]">
-                            {addOns.length}
-                        </h2>
+                        <h1 className="mt-4 text-3xl font-extrabold md:text-[42px]">
+                            Package Information Overview
+                        </h1>
+                        <p className="mt-2 max-w-3xl text-sm leading-7 text-white/85 md:text-[15px]">
+                            Review complete wedding and debut package offerings, compare
+                            inclusions, and present your services in a clean premium admin
+                            workspace.
+                        </p>
                     </div>
                 </div>
-            </section>
+            </motion.section>
 
-            <section className="space-y-6">
+            <motion.section
+                variants={fadeUp}
+                className="rounded-[28px] border border-[#e9dec2] bg-[#fffaf0] p-6 shadow-sm"
+            >
+                <div className="grid gap-4 md:grid-cols-3">
+                    <SummaryCard
+                        icon={Gem}
+                        label="Wedding Packages"
+                        value={weddingPackages.length}
+                    />
+                    <SummaryCard
+                        icon={Package2}
+                        label="Debut Packages"
+                        value={debutPackages.length}
+                    />
+                    <SummaryCard
+                        icon={Gift}
+                        label="Available Add-ons"
+                        value={addOns.length}
+                    />
+                </div>
+            </motion.section>
+
+            <motion.section variants={fadeUp} className="space-y-6">
                 <div>
-                    <p className="text-xs uppercase tracking-[0.3em] text-[#b99117] font-semibold">
+                    <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#b99117]">
                         Catering Packages
                     </p>
                     <h2 className="mt-2 text-3xl font-extrabold text-[#0f4d3c]">
@@ -339,15 +402,15 @@ function AdminPackages() {
                 </div>
 
                 <div className="grid gap-6 xl:grid-cols-2">
-                    {weddingPackages.map((item) => (
-                        <AdminPackageCard key={item.id} item={item} />
+                    {weddingPackages.map((item, index) => (
+                        <AdminPackageCard key={item.id} item={item} index={index} />
                     ))}
                 </div>
-            </section>
+            </motion.section>
 
-            <section className="space-y-6">
+            <motion.section variants={fadeUp} className="space-y-6">
                 <div>
-                    <p className="text-xs uppercase tracking-[0.3em] text-[#b99117] font-semibold">
+                    <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#b99117]">
                         Celebration Packages
                     </p>
                     <h2 className="mt-2 text-3xl font-extrabold text-[#0f4d3c]">
@@ -356,15 +419,18 @@ function AdminPackages() {
                 </div>
 
                 <div className="grid gap-6 xl:grid-cols-2">
-                    {debutPackages.map((item) => (
-                        <AdminPackageCard key={item.id} item={item} />
+                    {debutPackages.map((item, index) => (
+                        <AdminPackageCard key={item.id} item={item} index={index} />
                     ))}
                 </div>
-            </section>
+            </motion.section>
 
-            <section className="rounded-[28px] border border-gray-100 bg-white p-6 shadow-sm">
+            <motion.section
+                variants={fadeUp}
+                className="rounded-[28px] border border-[#dce7e2] bg-white p-6 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
+            >
                 <div className="mb-6">
-                    <p className="text-xs uppercase tracking-[0.3em] text-[#b99117] font-semibold">
+                    <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#b99117]">
                         Add-on Services
                     </p>
                     <h2 className="mt-2 text-3xl font-extrabold text-[#0f4d3c]">
@@ -373,20 +439,30 @@ function AdminPackages() {
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                    {addOns.map((item) => (
-                        <div
+                    {addOns.map((item, index) => (
+                        <motion.div
                             key={item.name}
-                            className="rounded-[22px] border border-[#0f4d3c]/10 bg-[#f8fbfa] p-5"
+                            initial={{ opacity: 0, y: 14 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.3, delay: index * 0.03 }}
+                            whileHover={{ y: -3 }}
+                            className="rounded-[22px] border border-[#dce7e2] bg-[#f8fbfa] p-5 shadow-sm"
                         >
-                            <h3 className="text-lg font-bold text-[#0f4d3c]">{item.name}</h3>
+                            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#edf8f3] text-[#0f4d3c]">
+                                <BadgeCheck size={20} />
+                            </div>
+                            <h3 className="mt-4 text-lg font-bold text-[#0f4d3c]">
+                                {item.name}
+                            </h3>
                             <p className="mt-2 text-2xl font-extrabold text-[#b99117]">
                                 {item.price}
                             </p>
-                        </div>
+                        </motion.div>
                     ))}
                 </div>
-            </section>
-        </div>
+            </motion.section>
+        </motion.div>
     );
 }
 

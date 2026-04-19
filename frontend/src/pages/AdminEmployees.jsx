@@ -1,9 +1,26 @@
 import { useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
     getAdminEmployees,
     saveAdminEmployees,
 } from "../utils/AdminData";
 import { buildPrintableTable, openPrintWindow } from "../utils/AdminPrint";
+import {
+    Sparkles,
+    Users,
+    UserPlus,
+    BadgeCheck,
+    BriefcaseBusiness,
+    Mail,
+    Phone,
+    Trash2,
+    FileSpreadsheet,
+} from "lucide-react";
+
+const fadeUp = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 },
+};
 
 function AdminEmployees() {
     const [refreshKey, setRefreshKey] = useState(0);
@@ -91,79 +108,116 @@ function AdminEmployees() {
         });
     };
 
+    const availableCount = employees.filter(
+        (item) => item.status === "Available"
+    ).length;
+    const busyCount = employees.filter((item) => item.status === "Busy").length;
+    const inactiveCount = employees.filter(
+        (item) => item.status === "Inactive"
+    ).length;
+
     return (
-        <div className="space-y-6">
-            <section className="grid grid-cols-1 xl:grid-cols-[0.85fr_1.15fr] gap-6">
-                <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6">
-                    <h2 className="text-2xl font-bold text-[#0f4d3c]">
-                        Add Employee
-                    </h2>
+        <motion.div
+            initial="hidden"
+            animate="show"
+            transition={{ staggerChildren: 0.08 }}
+            className="space-y-6"
+        >
+            <motion.section
+                variants={fadeUp}
+                className="overflow-hidden rounded-[30px] border border-[#dce7e2] bg-white shadow-[0_18px_50px_rgba(14,61,47,0.07)]"
+            >
+                <div className="relative overflow-hidden bg-[linear-gradient(135deg,#07382d_0%,#0c4d3d_34%,#0f6b52_68%,#18a06c_100%)] px-6 py-7 text-white md:px-8">
+                    <div className="pointer-events-none absolute inset-0">
+                        <div className="absolute -top-12 right-[-30px] h-40 w-40 rounded-full bg-[#d4af37]/20 blur-3xl" />
+                        <div className="absolute bottom-[-30px] left-[-20px] h-28 w-28 rounded-full bg-white/10 blur-3xl" />
+                    </div>
+
+                    <div className="relative">
+                        <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.22em] text-white/80">
+                            <Sparkles size={13} />
+                            Employee Management
+                        </div>
+
+                        <h1 className="mt-4 text-3xl font-extrabold md:text-[42px]">
+                            Staff Records & Workforce Overview
+                        </h1>
+                        <p className="mt-2 max-w-3xl text-sm leading-7 text-white/85 md:text-[15px]">
+                            Add employees, monitor availability, and manage staff records
+                            using a polished and defense-ready employee workspace.
+                        </p>
+                    </div>
+                </div>
+            </motion.section>
+
+            <motion.section
+                variants={fadeUp}
+                className="grid gap-4 md:grid-cols-4"
+            >
+                <StatCard icon={Users} label="Total Employees" value={employees.length} />
+                <StatCard icon={BadgeCheck} label="Available" value={availableCount} />
+                <StatCard icon={BriefcaseBusiness} label="Busy" value={busyCount} />
+                <StatCard icon={Mail} label="Inactive" value={inactiveCount} />
+            </motion.section>
+
+            <section className="grid grid-cols-1 gap-6 xl:grid-cols-[0.85fr_1.15fr]">
+                <motion.div
+                    variants={fadeUp}
+                    className="rounded-[28px] border border-[#dce7e2] bg-white p-6 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
+                >
+                    <div className="flex items-center gap-3">
+                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#fff7e3] text-[#b99117]">
+                            <UserPlus size={20} />
+                        </div>
+                        <div>
+                            <h2 className="text-2xl font-extrabold text-[#0f4d3c]">
+                                Add Employee
+                            </h2>
+                            <p className="text-sm text-slate-500">
+                                Register new staff members into the system
+                            </p>
+                        </div>
+                    </div>
 
                     <form onSubmit={handleAddEmployee} className="mt-5 space-y-4">
-                        <div>
-                            <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
-                                Full Name
-                            </label>
-                            <input
-                                type="text"
-                                name="fullName"
-                                value={form.fullName}
-                                onChange={handleChange}
-                                className="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-[#d4af37]"
-                                required
-                            />
-                        </div>
+                        <Field
+                            label="Full Name"
+                            name="fullName"
+                            value={form.fullName}
+                            onChange={handleChange}
+                            required
+                        />
+                        <Field
+                            label="Role"
+                            name="role"
+                            value={form.role}
+                            onChange={handleChange}
+                            placeholder="Chef, Server, Coordinator, etc."
+                            required
+                        />
+                        <Field
+                            label="Contact Number"
+                            name="contactNumber"
+                            value={form.contactNumber}
+                            onChange={handleChange}
+                        />
+                        <Field
+                            label="Email"
+                            name="email"
+                            type="email"
+                            value={form.email}
+                            onChange={handleChange}
+                        />
 
                         <div>
-                            <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
-                                Role
-                            </label>
-                            <input
-                                type="text"
-                                name="role"
-                                value={form.role}
-                                onChange={handleChange}
-                                placeholder="Chef, Server, Coordinator, etc."
-                                className="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-[#d4af37]"
-                                required
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
-                                Contact Number
-                            </label>
-                            <input
-                                type="text"
-                                name="contactNumber"
-                                value={form.contactNumber}
-                                onChange={handleChange}
-                                className="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-[#d4af37]"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
-                                Email
-                            </label>
-                            <input
-                                type="email"
-                                name="email"
-                                value={form.email}
-                                onChange={handleChange}
-                                className="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-[#d4af37]"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
+                            <label className="mb-2 block text-sm font-semibold text-[#0f4d3c]">
                                 Status
                             </label>
                             <select
                                 name="status"
                                 value={form.status}
                                 onChange={handleChange}
-                                className="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-[#d4af37]"
+                                className="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
                             >
                                 <option value="Available">Available</option>
                                 <option value="Busy">Busy</option>
@@ -173,76 +227,141 @@ function AdminEmployees() {
 
                         <button
                             type="submit"
-                            className="w-full rounded-2xl bg-[#d4af37] px-5 py-3 font-bold text-[#0b4a3a] hover:bg-[#c79f23] transition"
+                            className="w-full rounded-2xl bg-[#d4af37] px-5 py-3 font-bold text-[#0b4a3a] transition hover:bg-[#c79f23]"
                         >
                             Add Employee
                         </button>
                     </form>
-                </div>
+                </motion.div>
 
-                <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6">
-                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <motion.div
+                    variants={fadeUp}
+                    className="rounded-[28px] border border-[#dce7e2] bg-white p-6 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
+                >
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                         <div>
-                            <h2 className="text-2xl font-bold text-[#0f4d3c]">
+                            <h2 className="text-2xl font-extrabold text-[#0f4d3c]">
                                 Employee Management
                             </h2>
-                            <p className="text-sm text-gray-500 mt-1">
-                                Add, review, and delete employee records.
+                            <p className="mt-1 text-sm text-slate-500">
+                                Review, organize, and delete employee records.
                             </p>
                         </div>
 
                         <button
                             onClick={handlePrintEmployees}
-                            className="rounded-2xl bg-[#0b4a3a] px-5 py-3 font-bold text-white hover:bg-[#09382d] transition"
+                            className="inline-flex items-center gap-2 rounded-2xl bg-[#0b4a3a] px-5 py-3 font-bold text-white transition hover:bg-[#09382d]"
                         >
+                            <FileSpreadsheet size={18} />
                             Generate PDF Report
                         </button>
                     </div>
 
                     {employees.length === 0 ? (
-                        <div className="mt-6 rounded-2xl border border-dashed border-gray-200 bg-gray-50 p-8 text-center text-gray-500">
+                        <div className="mt-6 rounded-[24px] border border-dashed border-gray-200 bg-gray-50 p-10 text-center text-slate-500">
                             No employees yet.
                         </div>
                     ) : (
                         <div className="mt-6 space-y-3">
-                            {employees.map((employee) => (
-                                <div
-                                    key={employee.id}
-                                    className="rounded-2xl border border-gray-200 bg-[#f8fafc] p-4"
-                                >
-                                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                                        <div>
-                                            <h4 className="font-bold text-[#0f4d3c]">
-                                                {employee.fullName}
-                                            </h4>
-                                            <p className="text-sm text-gray-500 mt-1">
-                                                {employee.role || "No role"}
-                                            </p>
-                                            <p className="text-sm text-gray-500 mt-1">
-                                                {employee.contactNumber || "No contact number"} •{" "}
-                                                {employee.email || "No email"}
-                                            </p>
-                                        </div>
+                            <AnimatePresence>
+                                {employees.map((employee) => (
+                                    <motion.div
+                                        key={employee.id}
+                                        initial={{ opacity: 0, y: 14 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: 14 }}
+                                        whileHover={{ y: -2 }}
+                                        className="rounded-2xl border border-gray-200 bg-[#f8fafc] p-4"
+                                    >
+                                        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                                            <div>
+                                                <h4 className="font-bold text-[#0f4d3c]">
+                                                    {employee.fullName}
+                                                </h4>
+                                                <p className="mt-1 text-sm text-slate-500">
+                                                    {employee.role || "No role"}
+                                                </p>
+                                                <div className="mt-2 space-y-1 text-sm text-slate-500">
+                                                    <p className="flex items-center gap-2">
+                                                        <Phone size={14} />
+                                                        {employee.contactNumber || "No contact number"}
+                                                    </p>
+                                                    <p className="flex items-center gap-2">
+                                                        <Mail size={14} />
+                                                        {employee.email || "No email"}
+                                                    </p>
+                                                </div>
+                                            </div>
 
-                                        <div className="flex items-center gap-3">
-                                            <span className="inline-flex rounded-full bg-[#fff8e6] px-3 py-1 text-xs font-semibold text-[#b99117]">
-                                                {employee.status || "Available"}
-                                            </span>
+                                            <div className="flex items-center gap-3">
+                                                <span className="inline-flex rounded-full bg-[#fff8e6] px-3 py-1 text-xs font-semibold text-[#b99117]">
+                                                    {employee.status || "Available"}
+                                                </span>
 
-                                            <button
-                                                onClick={() => handleDeleteEmployee(employee.id)}
-                                                className="rounded-xl bg-red-500 px-4 py-2 text-sm font-bold text-white hover:bg-red-600 transition"
-                                            >
-                                                Delete
-                                            </button>
+                                                <button
+                                                    onClick={() => handleDeleteEmployee(employee.id)}
+                                                    className="inline-flex items-center gap-2 rounded-xl bg-red-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-red-600"
+                                                >
+                                                    <Trash2 size={14} />
+                                                    Delete
+                                                </button>
+                                            </div>
                                         </div>
-                                    </div>
-                                </div>
-                            ))}
+                                    </motion.div>
+                                ))}
+                            </AnimatePresence>
                         </div>
                     )}
-                </div>
+                </motion.div>
             </section>
+        </motion.div>
+    );
+}
+
+function StatCard({ icon: Icon, label, value }) {
+    return (
+        <motion.div
+            whileHover={{ y: -3 }}
+            className="rounded-[22px] border border-[#dce7e2] bg-white p-5 shadow-sm"
+        >
+            <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#edf8f3] text-[#0f4d3c]">
+                    <Icon size={20} />
+                </div>
+                <div>
+                    <p className="text-sm text-slate-500">{label}</p>
+                    <h3 className="mt-1 text-3xl font-extrabold text-[#0f4d3c]">
+                        {value}
+                    </h3>
+                </div>
+            </div>
+        </motion.div>
+    );
+}
+
+function Field({
+    label,
+    name,
+    value,
+    onChange,
+    placeholder = "",
+    type = "text",
+    required = false,
+}) {
+    return (
+        <div>
+            <label className="mb-2 block text-sm font-semibold text-[#0f4d3c]">
+                {label}
+            </label>
+            <input
+                type={type}
+                name={name}
+                value={value}
+                onChange={onChange}
+                placeholder={placeholder}
+                required={required}
+                className="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
+            />
         </div>
     );
 }

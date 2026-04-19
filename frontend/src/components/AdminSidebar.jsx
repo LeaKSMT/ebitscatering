@@ -70,7 +70,7 @@ function AdminSidebar() {
             <div className="pointer-events-none absolute inset-0">
                 <div className="absolute -top-16 right-[-50px] h-44 w-44 rounded-full bg-[#f5c94a]/18 blur-3xl" />
                 <div className="absolute bottom-[-40px] left-[-25px] h-32 w-32 rounded-full bg-white/8 blur-3xl" />
-                <div className="absolute top-[28%] left-[-20px] h-20 w-20 rounded-full bg-white/6 blur-2xl" />
+                <div className="absolute left-[-20px] top-[28%] h-20 w-20 rounded-full bg-white/6 blur-2xl" />
             </div>
 
             <div className="relative shrink-0 border-b border-white/10 px-4 pb-4 pt-5">
@@ -137,7 +137,7 @@ function AdminSidebar() {
                                 className={({ isActive }) =>
                                     `group flex items-center gap-3 rounded-[18px] px-3 py-3 text-[14px] font-medium transition-all duration-200 ${isActive
                                         ? "bg-[linear-gradient(135deg,#fff3c8_0%,#f4db86_100%)] text-[#0b4a3a] shadow-[0_14px_30px_rgba(212,175,55,0.22)]"
-                                        : "text-white/88 hover:bg-white/10 hover:text-white hover:translate-x-[3px]"
+                                        : "text-white/88 hover:translate-x-[3px] hover:bg-white/10 hover:text-white"
                                     }`
                                 }
                             >
