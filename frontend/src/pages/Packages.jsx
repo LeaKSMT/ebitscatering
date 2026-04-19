@@ -355,12 +355,15 @@ function PackageCard({ item, onQuote, badge, dark = false }) {
             whileInView="visible"
             viewport={{ once: true, amount: 0.15 }}
             variants={softScale}
-            className={`flex h-full flex-col rounded-[28px] border p-6 shadow-sm transition duration-300 hover:-translate-y-1.5 hover:shadow-xl md:p-7 ${dark
+            whileHover={{ y: -6 }}
+            className={`group relative flex h-full flex-col overflow-hidden rounded-[30px] border p-6 shadow-[0_12px_36px_rgba(0,0,0,0.06)] transition duration-300 md:p-7 ${dark
                     ? "border-white/10 bg-white text-[#0b4d3b]"
                     : "border-[#e7dfd1] bg-[#fffdf8] text-[#0b4d3b]"
                 }`}
         >
-            <div className="flex items-start justify-between gap-4">
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-[#f2bf2f]/[0.06] opacity-0 transition duration-300 group-hover:opacity-100" />
+
+            <div className="relative z-10 flex items-start justify-between gap-4">
                 <div>
                     {badge && (
                         <div className="mb-4 inline-flex rounded-full bg-[#fff3c8] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-[#9b7510]">
@@ -386,9 +389,9 @@ function PackageCard({ item, onQuote, badge, dark = false }) {
                 </div>
             </div>
 
-            <div className="mb-5 mt-5 h-[3px] w-14 rounded-full bg-[#d1a31d]" />
+            <div className="relative z-10 mb-5 mt-5 h-[3px] w-14 rounded-full bg-[#d1a31d]" />
 
-            <ul className="flex-1 space-y-3">
+            <ul className="relative z-10 flex-1 space-y-3">
                 {visibleFeatures.map((feature, index) => (
                     <li
                         key={index}
@@ -408,7 +411,7 @@ function PackageCard({ item, onQuote, badge, dark = false }) {
 
             <button
                 onClick={() => onQuote(item)}
-                className="mt-6 inline-flex w-fit items-center justify-center rounded-2xl bg-yellow-400 px-5 py-3 text-sm font-bold text-[#0b4d3b] transition hover:bg-yellow-300"
+                className="relative z-10 mt-6 inline-flex w-fit items-center justify-center rounded-2xl bg-yellow-400 px-5 py-3 text-sm font-bold text-[#0b4d3b] shadow-[0_10px_24px_rgba(242,191,47,0.22)] transition hover:bg-yellow-300"
             >
                 Get Quotation
             </button>
@@ -513,11 +516,16 @@ function Packages() {
                 )}
             </header>
 
-            <section className="relative overflow-hidden bg-[#0c5a43] px-5 py-14 md:px-10 md:py-16 lg:px-20">
-                <div className="absolute -left-16 top-0 h-52 w-52 rounded-full bg-yellow-300/10 blur-3xl" />
-                <div className="absolute bottom-0 right-0 h-64 w-64 rounded-full bg-white/5 blur-3xl" />
+            <section className="relative overflow-hidden bg-[#0c5a43] px-5 py-14 md:px-10 md:py-18 lg:px-20">
+                <div className="hero-luxury-overlay absolute inset-0" />
+                <div className="hero-vignette absolute inset-0" />
+                <div className="hero-mesh absolute inset-0" />
+                <div className="hero-glow hero-glow-1" />
+                <div className="hero-glow hero-glow-2" />
+                <div className="hero-glow hero-glow-3" />
+                <div className="hero-shine" />
 
-                <div className="mx-auto max-w-6xl">
+                <div className="relative z-10 mx-auto max-w-6xl">
                     <div className="grid items-center gap-8 lg:grid-cols-[1.15fr_.85fr]">
                         <motion.div
                             initial="hidden"
@@ -549,14 +557,14 @@ function Packages() {
                             <div className="mt-7 flex flex-wrap gap-4">
                                 <Link
                                     to="/login"
-                                    className="inline-flex items-center justify-center rounded-2xl bg-[#f2bf2f] px-6 py-3.5 font-semibold text-[#0b4d3b] transition hover:bg-[#f7c93c]"
+                                    className="inline-flex items-center justify-center rounded-2xl bg-[#f2bf2f] px-6 py-3.5 font-semibold text-[#0b4d3b] shadow-[0_14px_30px_rgba(0,0,0,0.18)] transition hover:bg-[#f7c93c]"
                                 >
                                     Book Your Event
                                 </Link>
 
                                 <Link
                                     to="/"
-                                    className="inline-flex items-center justify-center rounded-2xl border border-white/15 bg-white/10 px-6 py-3.5 font-semibold text-white transition hover:bg-white/15"
+                                    className="inline-flex items-center justify-center rounded-2xl border border-white/15 bg-white/10 px-6 py-3.5 font-semibold text-white backdrop-blur-sm transition hover:bg-white/15"
                                 >
                                     Back to Home
                                 </Link>
@@ -572,9 +580,9 @@ function Packages() {
                             {stats.map((item, index) => (
                                 <div
                                     key={item.label}
-                                    className={`rounded-[24px] border px-6 py-5 backdrop-blur-sm ${index === 1
+                                    className={`rounded-[24px] border px-6 py-5 backdrop-blur-xl shadow-[0_10px_40px_rgba(0,0,0,0.22)] ${index === 1
                                             ? "border-[#f2bf2f]/30 bg-white/14 text-white"
-                                            : "border-white/10 bg-white/10 text-white"
+                                            : "border-white/15 bg-white/10 text-white"
                                         }`}
                                 >
                                     <p className="text-sm text-white/65">{item.label}</p>
@@ -588,7 +596,7 @@ function Packages() {
                 </div>
             </section>
 
-            <section className="bg-[#f7f4ee] px-5 py-14 md:px-10 md:py-16 lg:px-20">
+            <section className="bg-gradient-to-b from-[#f7f4ee] to-[#eef3ef] px-5 py-14 md:px-10 md:py-16 lg:px-20">
                 <div className="mx-auto max-w-6xl">
                     <SectionTitle
                         eyebrow="Quick Overview"
@@ -610,8 +618,9 @@ function Packages() {
                                 viewport={{ once: true, amount: 0.2 }}
                                 custom={index}
                                 variants={fadeUp}
-                                className={`rounded-[26px] border p-7 text-center shadow-sm ${index === 1
-                                        ? "border-transparent bg-[#0c5a43] text-white"
+                                whileHover={{ y: -5 }}
+                                className={`rounded-[28px] border p-7 text-center shadow-[0_12px_28px_rgba(0,0,0,0.05)] transition ${index === 1
+                                        ? "scale-[1.02] border-transparent bg-gradient-to-br from-[#0b4d3b] to-[#083c30] text-white shadow-xl"
                                         : "border-[#e8e2d6] bg-white text-[#0b4d3b]"
                                     }`}
                             >
@@ -631,13 +640,13 @@ function Packages() {
                 </div>
             </section>
 
-            <section className="bg-[#f7f4ee] px-5 pb-14 md:px-10 md:pb-16 lg:px-20">
+            <section className="bg-gradient-to-b from-[#eef3ef] to-[#f7f4ee] px-5 pb-14 md:px-10 md:pb-16 lg:px-20">
                 <motion.div
                     initial="hidden"
                     whileInView="visible"
                     viewport={{ once: true, amount: 0.2 }}
                     variants={softScale}
-                    className="mx-auto max-w-5xl rounded-[30px] border border-[#eadfbe] bg-[#fff9e8] p-7 shadow-sm md:p-9"
+                    className="mx-auto max-w-5xl rounded-[32px] border border-[#eadfbe] bg-[#fff9e8] p-7 shadow-[0_14px_36px_rgba(0,0,0,0.06)] md:p-9"
                 >
                     <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
                         <div className="flex items-start gap-4">
@@ -659,7 +668,7 @@ function Packages() {
                             </div>
                         </div>
 
-                        <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[#0c5a43] px-5 py-3 text-sm font-bold text-white">
+                        <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[#0c5a43] px-5 py-3 text-sm font-bold text-white shadow-[0_10px_22px_rgba(12,90,67,0.2)]">
                             <Gift className="h-4 w-4 text-[#f2bf2f]" />
                             Included in selected offers
                         </div>
@@ -689,8 +698,10 @@ function Packages() {
                 </div>
             </section>
 
-            <section className="bg-[#0c5a43] px-5 py-14 md:px-10 md:py-16 lg:px-20">
-                <div className="mx-auto max-w-7xl">
+            <section className="relative overflow-hidden bg-[#0c5a43] px-5 py-14 md:px-10 md:py-16 lg:px-20">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(242,191,47,0.08),transparent_22%),radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.05),transparent_18%)]" />
+
+                <div className="relative z-10 mx-auto max-w-7xl">
                     <SectionTitle
                         eyebrow="Debut Collection"
                         title="Debut"
@@ -731,7 +742,8 @@ function Packages() {
                                 viewport={{ once: true, amount: 0.2 }}
                                 custom={index}
                                 variants={fadeUp}
-                                className="rounded-[24px] border border-[#e8e2d6] bg-white p-6 shadow-sm transition hover:shadow-lg"
+                                whileHover={{ y: -5 }}
+                                className="rounded-[24px] border border-[#e8e2d6] bg-white p-6 shadow-[0_10px_28px_rgba(0,0,0,0.05)] transition hover:shadow-lg"
                             >
                                 <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#fbf4df] text-[#c99d1a]">
                                     {addon.icon}
@@ -749,13 +761,15 @@ function Packages() {
                 </div>
             </section>
 
-            <section className="bg-[#0b4d3b] px-5 py-12 md:px-10 lg:px-20">
+            <section className="relative overflow-hidden bg-[#0b4d3b] px-5 py-12 md:px-10 lg:px-20">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(242,191,47,0.1),transparent_24%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.04),transparent_18%)]" />
+
                 <motion.div
                     initial="hidden"
                     whileInView="visible"
                     viewport={{ once: true, amount: 0.2 }}
                     variants={fadeUp}
-                    className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-6 md:flex-row md:items-center"
+                    className="relative z-10 mx-auto flex max-w-6xl flex-col items-start justify-between gap-6 md:flex-row md:items-center"
                 >
                     <div className="text-white">
                         <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/70 md:text-xs">
@@ -778,7 +792,7 @@ function Packages() {
                                 title: "General Package Inquiry",
                             })
                         }
-                        className="inline-flex items-center gap-2 rounded-2xl bg-[#f2bf2f] px-6 py-3.5 font-semibold text-[#0b4d3b] transition hover:bg-[#f7c93c]"
+                        className="inline-flex items-center gap-2 rounded-2xl bg-[#f2bf2f] px-6 py-3.5 font-semibold text-[#0b4d3b] shadow-[0_14px_30px_rgba(0,0,0,0.18)] transition hover:bg-[#f7c93c]"
                     >
                         Request Quotation
                         <ChevronRight size={18} />
