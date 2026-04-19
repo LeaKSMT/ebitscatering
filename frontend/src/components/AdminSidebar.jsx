@@ -64,8 +64,9 @@ function AdminSidebar() {
     };
 
     const navContent = (
-        <div className="relative flex h-full flex-col overflow-hidden border-r border-white/10 bg-[linear-gradient(180deg,#08392d_0%,#0b4a3a_35%,#0f604a_70%,#13765c_100%)] text-white shadow-[18px_0_45px_rgba(8,45,35,0.20)]">
+        <div className="relative flex h-full flex-col overflow-hidden border-r border-white/10 bg-[linear-gradient(180deg,#06372c_0%,#0a4939_30%,#0d5b47_65%,#13745a_100%)] text-white shadow-[18px_0_45px_rgba(8,45,35,0.20)]">
             <div className="pointer-events-none absolute -top-14 right-[-45px] h-40 w-40 rounded-full bg-[#f5c94a]/16 blur-3xl" />
+            <div className="pointer-events-none absolute bottom-[-40px] left-[-25px] h-28 w-28 rounded-full bg-white/8 blur-3xl" />
 
             <div className="relative shrink-0 border-b border-white/10 px-4 pb-4 pt-5">
                 <motion.div
@@ -80,9 +81,10 @@ function AdminSidebar() {
                         </p>
                     </div>
 
-                    <h1 className="mt-2 text-[20px] leading-tight font-extrabold tracking-tight text-[#f5d36a]">
+                    <h1 className="mt-2 text-[20px] font-extrabold leading-tight tracking-tight text-[#f5d36a]">
                         Ebit&apos;s Catering
                     </h1>
+
                     <p className="mt-1 text-xs text-white/75">
                         Executive Admin Workspace
                     </p>
@@ -103,13 +105,16 @@ function AdminSidebar() {
                                 <p className="truncate text-sm font-bold text-white">
                                     {adminUser.name}
                                 </p>
+                                <p className="text-[11px] text-white/65">
+                                    Administrator Access
+                                </p>
                             </div>
                         </div>
                     </motion.div>
                 </motion.div>
             </div>
 
-            <nav className="relative flex-1 space-y-1.5 px-3 py-4">
+            <nav className="relative flex-1 space-y-1.5 overflow-y-auto px-3 py-4">
                 {navItems.map((item, index) => {
                     const Icon = item.icon;
 
@@ -142,7 +147,9 @@ function AdminSidebar() {
                                         </div>
 
                                         <div className="min-w-0 flex-1">
-                                            <span className="block truncate leading-5">{item.label}</span>
+                                            <span className="block truncate leading-5">
+                                                {item.label}
+                                            </span>
                                         </div>
 
                                         <ChevronRight
