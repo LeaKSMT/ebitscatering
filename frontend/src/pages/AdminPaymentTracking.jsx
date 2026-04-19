@@ -14,12 +14,121 @@ import {
 } from "lucide-react";
 import {
     getAllBookings,
-    getBookingPaymentSummary,
     formatCurrency,
     formatDate,
     savePaymentRecord,
 } from "../utils/AdminData";
 import { buildPrintableTable, openPrintWindow } from "../utils/AdminPrint";
+
+function safeParse(key, fallback = []) {
+    try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+    } catch {
+        return fallback;
+    }
+}
+
+function normalizeNumber(value) {
+    const num = Number(value || 0);
+    return Number.isFinite(num) ? num : 0;
+}
+
+function normalizeStatus(status) {
+    return String(status || "").trim().toLowerCase();
+}
+
+function getBookingTotalAmount(booking) {
+    return normalizeNumber(
+        booking?.totalAmount ||
+        booking?.estimatedTotal ||
+        booking?.totalPrice ||
+        booking?.price ||
+        booking?.amount ||
+        0
+    );
+}
+
+function getPossiblePaymentKeys(booking) {
+    const keys = [
+        "paymentRecords",
+        "adminPaymentRecords",
+        "clientPaymentHistory",
+    ];
+
+    if (booking?.ownerEmail) {
+        keys.push(`clientPaymentHistory_${booking.ownerEmail}`);
+    }
+
+    if (booking?.email) {
+        keys.push(`clientPaymentHistory_${booking.email}`);
+    }
+
+    if (booking?.clientEmail) {
+        keys.push(`clientPaymentHistory_${booking.clientEmail}`);
+    }
+
+    return [...new Set(keys)];
+}
+
+function getPaymentsForBooking(booking) {
+    const bookingId = String(booking?.bookingId || "").trim();
+
+    if (!bookingId) return [];
+
+    const keys = getPossiblePaymentKeys(booking);
+
+    const merged = keys.flatMap((key) => {
+        const value = safeParse(key, []);
+        return Array.isArray(value) ? value : [];
+    });
+
+    const dedupedMap = new Map();
+
+    merged.forEach((item, index) => {
+        const uniqueKey =
+            item?.id ||
+            item?.paymentId ||
+            item?.referenceNumber ||
+            `${item?.bookingId || ""}_${item?.amount || 0}_${item?.createdAt || index}`;
+
+        if (!dedupedMap.has(uniqueKey)) {
+            dedupedMap.set(uniqueKey, item);
+        }
+    });
+
+    return Array.from(dedupedMap.values()).filter((payment) => {
+        return String(
+            payment?.bookingId ||
+            payment?.booking_id ||
+            payment?.bookingCode ||
+            ""
+        ).trim() === bookingId;
+    });
+}
+
+function getPaymentSummaryPerBooking(booking) {
+    const payments = getPaymentsForBooking(booking);
+    const totalAmount = getBookingTotalAmount(booking);
+
+    const paid = payments.reduce((sum, item) => {
+        return sum + normalizeNumber(item?.amount || item?.paymentAmount);
+    }, 0);
+
+    const sanitizedPaid = Math.min(paid, totalAmount);
+    const balance = Math.max(totalAmount - sanitizedPaid, 0);
+
+    let paymentStatus = "unpaid";
+    if (sanitizedPaid > 0 && balance > 0) paymentStatus = "partial";
+    if (totalAmount > 0 && balance === 0) paymentStatus = "paid";
+
+    return {
+        paid: sanitizedPaid,
+        balance,
+        paymentStatus,
+        payments,
+    };
+}
 
 function AdminPaymentTracking() {
     const [refreshKey, setRefreshKey] = useState(0);
@@ -31,17 +140,18 @@ function AdminPaymentTracking() {
 
     const paymentRows = useMemo(() => {
         return bookings.map((booking) => {
-            const summary = getBookingPaymentSummary(booking);
+            const summary = getPaymentSummaryPerBooking(booking);
 
             return {
                 ...booking,
+                totalAmount: getBookingTotalAmount(booking),
                 paid: summary.paid,
                 balance: summary.balance,
                 paymentStatus: summary.paymentStatus,
                 payments: summary.payments || [],
             };
         });
-    }, [bookings]);
+    }, [bookings, refreshKey]);
 
     const filteredRows = useMemo(() => {
         const keyword = searchTerm.trim().toLowerCase();
@@ -60,12 +170,12 @@ function AdminPaymentTracking() {
 
     const totals = useMemo(() => {
         const collected = paymentRows.reduce(
-            (sum, item) => sum + Number(item.paid || 0),
+            (sum, item) => sum + normalizeNumber(item.paid),
             0
         );
 
         const balance = paymentRows.reduce(
-            (sum, item) => sum + Number(item.balance || 0),
+            (sum, item) => sum + normalizeNumber(item.balance),
             0
         );
 
@@ -93,10 +203,20 @@ function AdminPaymentTracking() {
     const handleSavePayment = () => {
         if (!editTarget) return;
 
-        const amount = Number(paymentInput || 0);
+        const amount = normalizeNumber(paymentInput);
 
         if (amount <= 0) {
             alert("Enter a valid payment amount.");
+            return;
+        }
+
+        if (editTarget.balance <= 0) {
+            alert("This booking is already fully paid.");
+            return;
+        }
+
+        if (amount > editTarget.balance) {
+            alert(`Payment exceeds the remaining balance of ${formatCurrency(editTarget.balance)}.`);
             return;
         }
 
@@ -104,13 +224,14 @@ function AdminPaymentTracking() {
             id: `payment_${Date.now()}`,
             paymentId: `P${Date.now()}`,
             bookingId: editTarget.bookingId,
-            ownerEmail: editTarget.ownerEmail || editTarget.email || "",
+            ownerEmail: editTarget.ownerEmail || editTarget.email || editTarget.clientEmail || "",
             clientName: editTarget.fullName || "Client",
             paymentType: "Booking Payment",
             paymentMethod: "Manual Admin Entry",
             amount,
             referenceNumber: `REF-${Date.now()}`,
             createdAt: new Date().toISOString(),
+            status: amount === editTarget.balance ? "Paid" : "Partial",
         };
 
         savePaymentRecord(paymentRecord);
@@ -305,7 +426,7 @@ function AdminPaymentTracking() {
                                 <tbody>
                                     {filteredRows.map((row, index) => (
                                         <motion.tr
-                                            key={row.id}
+                                            key={row.id || row.bookingId}
                                             initial={{ opacity: 0, y: 14 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ duration: 0.3, delay: index * 0.03 }}
@@ -350,7 +471,10 @@ function AdminPaymentTracking() {
                                             </td>
 
                                             <td className="px-6 py-5">
-                                                <span className="font-bold text-rose-500">
+                                                <span
+                                                    className={`font-bold ${row.balance <= 0 ? "text-emerald-600" : "text-rose-500"
+                                                        }`}
+                                                >
                                                     {formatCurrency(row.balance)}
                                                 </span>
                                             </td>
@@ -369,10 +493,14 @@ function AdminPaymentTracking() {
                                                 <button
                                                     type="button"
                                                     onClick={() => handleEditClick(row)}
-                                                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#0b4a3a] px-4 py-2.5 text-xs font-bold text-white transition hover:-translate-y-0.5 hover:bg-[#09382d]"
+                                                    disabled={row.balance <= 0}
+                                                    className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold text-white transition ${row.balance <= 0
+                                                            ? "cursor-not-allowed bg-emerald-600/70"
+                                                            : "bg-[#0b4a3a] hover:-translate-y-0.5 hover:bg-[#09382d]"
+                                                        }`}
                                                 >
                                                     <CreditCard className="h-4 w-4" />
-                                                    Add Payment
+                                                    {row.balance <= 0 ? "Fully Paid" : "Add Payment"}
                                                 </button>
                                             </td>
                                         </motion.tr>
@@ -455,12 +583,16 @@ function AdminPaymentTracking() {
                                         <input
                                             type="number"
                                             min="1"
+                                            max={editTarget.balance}
                                             placeholder="Enter payment amount"
                                             value={paymentInput}
                                             onChange={(e) => setPaymentInput(e.target.value)}
                                             className="w-full rounded-2xl border border-gray-200 bg-[#f8fafc] py-3 pl-10 pr-4 outline-none transition focus:border-[#d4af37] focus:bg-white"
                                         />
                                     </div>
+                                    <p className="mt-2 text-xs text-gray-500">
+                                        Maximum allowed payment: {formatCurrency(editTarget.balance)}
+                                    </p>
                                 </div>
 
                                 <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">

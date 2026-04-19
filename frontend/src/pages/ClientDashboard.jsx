@@ -9,6 +9,9 @@ import {
     Sparkles,
     BadgeCheck,
     TrendingUp,
+    CircleDashed,
+    Clock3,
+    CheckCircle2,
 } from "lucide-react";
 
 function safeParse(key, fallback = []) {
@@ -62,10 +65,9 @@ function formatDate(dateValue) {
     });
 }
 
-const fadeUp = {
-    hidden: { opacity: 0, y: 22 },
-    show: { opacity: 1, y: 0 },
-};
+function normalizeStatus(status) {
+    return String(status || "").trim().toLowerCase();
+}
 
 function ClientDashboard() {
     const clientUser = getClientUser();
@@ -86,6 +88,80 @@ function ClientDashboard() {
     const latestBooking = bookings.length
         ? bookings[bookings.length - 1]
         : null;
+
+    const hasQuotation = quotations.length > 0;
+    const approvedQuotation = quotations.some((item) => {
+        const status = normalizeStatus(item?.status);
+        return (
+            status.includes("approved") ||
+            status.includes("accepted") ||
+            status.includes("confirmed")
+        );
+    });
+
+    const hasBooking = bookings.length > 0;
+    const confirmedBooking = bookings.some((item) => {
+        const status = normalizeStatus(item?.status);
+        return (
+            status.includes("confirmed") ||
+            status.includes("approved") ||
+            status.includes("scheduled")
+        );
+    });
+
+    const hasPayment = payments.length > 0;
+    const hasFullPayment = payments.some((item) => {
+        const status = normalizeStatus(item?.status || item?.paymentStatus);
+        return (
+            status.includes("paid") ||
+            status.includes("completed") ||
+            status.includes("full")
+        );
+    });
+
+    let portalProgress = 0;
+
+    if (hasQuotation) portalProgress += 30;
+    if (approvedQuotation) portalProgress += 20;
+    if (hasBooking) portalProgress += 20;
+    if (confirmedBooking) portalProgress += 15;
+    if (hasPayment) portalProgress += 10;
+    if (hasFullPayment) portalProgress += 5;
+
+    if (portalProgress > 100) portalProgress = 100;
+
+    let overviewTitle = "Getting started";
+    let overviewLabel = "Portal journey";
+    let overviewIcon = CircleDashed;
+    let overviewIconWrap = "bg-white/15 text-white";
+    let progressColor = "from-[#f4d35e] to-[#f0b429]";
+    let nextStepText =
+        "Start by creating your first quotation request to begin your catering process.";
+
+    if (portalProgress >= 100) {
+        overviewTitle = "Fully completed";
+        overviewLabel = "Client journey";
+        overviewIcon = CheckCircle2;
+        overviewIconWrap = "bg-[#fff3c8] text-[#8f6a0f]";
+        nextStepText =
+            "Your quotation, booking, and payment flow has been successfully completed.";
+    } else if (portalProgress >= 65) {
+        overviewTitle = "Almost complete";
+        overviewLabel = "Client journey";
+        overviewIcon = BadgeCheck;
+        overviewIconWrap = "bg-[#fff3c8] text-[#8f6a0f]";
+        nextStepText =
+            "Your account is progressing well. You are close to completing your full catering transaction.";
+    } else if (portalProgress >= 30) {
+        overviewTitle = "In progress";
+        overviewLabel = "Client journey";
+        overviewIcon = Clock3;
+        overviewIconWrap = "bg-white/15 text-white";
+        nextStepText =
+            "You already have activity in the portal. Continue with booking confirmation and payment completion.";
+    }
+
+    const OverviewIcon = overviewIcon;
 
     const statCards = [
         {
@@ -138,6 +214,11 @@ function ClientDashboard() {
         },
     ];
 
+    const fadeUp = {
+        hidden: { opacity: 0, y: 22 },
+        show: { opacity: 1, y: 0 },
+    };
+
     return (
         <motion.div
             initial="hidden"
@@ -176,34 +257,46 @@ function ClientDashboard() {
                             initial={{ opacity: 0, x: 15 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.2, duration: 0.45 }}
-                            className="rounded-[26px] border border-white/10 bg-white/10 p-4 text-white backdrop-blur-md shadow-[0_15px_35px_rgba(0,0,0,0.12)]"
+                            className="w-full max-w-[320px] rounded-[26px] border border-white/10 bg-white/10 p-4 text-white backdrop-blur-md shadow-[0_15px_35px_rgba(0,0,0,0.12)]"
                         >
                             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/70">
                                 Current overview
                             </p>
 
                             <div className="mt-3 flex items-center gap-3">
-                                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#fff3c8] text-[#8f6a0f]">
-                                    <BadgeCheck size={20} />
+                                <div
+                                    className={`flex h-11 w-11 items-center justify-center rounded-2xl ${overviewIconWrap}`}
+                                >
+                                    <OverviewIcon size={20} />
                                 </div>
                                 <div>
                                     <p className="text-sm text-white/75">
-                                        Client account status
+                                        {overviewLabel}
                                     </p>
                                     <p className="text-lg font-bold text-white">
-                                        Active and ready
+                                        {overviewTitle}
                                     </p>
                                 </div>
                             </div>
 
                             <div className="mt-4">
                                 <div className="flex items-center justify-between text-xs text-white/70">
-                                    <span>Portal activity</span>
-                                    <span>80%</span>
+                                    <span>Portal completion</span>
+                                    <span>{portalProgress}%</span>
                                 </div>
-                                <div className="mt-2 h-2 rounded-full bg-white/15">
-                                    <div className="h-full w-[80%] rounded-full bg-[#f5c94a]" />
+
+                                <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-white/15">
+                                    <motion.div
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${portalProgress}%` }}
+                                        transition={{ duration: 0.8, ease: "easeOut" }}
+                                        className={`h-full rounded-full bg-gradient-to-r ${progressColor} shadow-[0_0_18px_rgba(245,201,74,0.45)]`}
+                                    />
                                 </div>
+
+                                <p className="mt-3 text-xs leading-5 text-white/75">
+                                    {nextStepText}
+                                </p>
                             </div>
                         </motion.div>
                     </div>
@@ -226,7 +319,9 @@ function ClientDashboard() {
                                         <p className="text-sm font-semibold text-slate-500">
                                             {item.title}
                                         </p>
-                                        <h2 className={`mt-3 text-3xl font-extrabold ${item.valueClass}`}>
+                                        <h2
+                                            className={`mt-3 text-3xl font-extrabold ${item.valueClass}`}
+                                        >
                                             {item.value}
                                         </h2>
                                         <p className="mt-2 text-sm text-slate-500">
@@ -267,7 +362,10 @@ function ClientDashboard() {
                         >
                             <span className="absolute inset-0 bg-white/20 opacity-0 transition group-hover:opacity-100" />
                             <span className="relative">New Quotation</span>
-                            <ArrowRight size={16} className="relative transition group-hover:translate-x-1" />
+                            <ArrowRight
+                                size={16}
+                                className="relative transition group-hover:translate-x-1"
+                            />
                         </Link>
                     </div>
 
@@ -410,8 +508,15 @@ function ClientDashboard() {
                                 Smart Insight
                             </p>
                             <p className="mt-2 text-sm leading-6 text-slate-600">
-                                Based on your latest activity, you can proceed with your
-                                booking once your quotation is fully approved and confirmed.
+                                {portalProgress >= 100
+                                    ? "Your transaction flow is complete. You may review your records anytime in your client portal."
+                                    : approvedQuotation && !hasBooking
+                                        ? "Your quotation appears approved. You can now proceed with your booking confirmation."
+                                        : hasBooking && !hasPayment
+                                            ? "Your booking is already recorded. The next recommended step is payment settlement or payment monitoring."
+                                            : hasQuotation
+                                                ? "Your request is already in progress. Monitor your quotation status and wait for confirmation before proceeding to booking."
+                                                : "You can begin by creating a new quotation so the system can prepare your catering request."}
                             </p>
                         </div>
 

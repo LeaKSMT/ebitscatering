@@ -267,6 +267,11 @@ export function normalizeStatus(status = "") {
     return String(status).trim().toLowerCase();
 }
 
+function normalizeNumber(value) {
+    const num = Number(value || 0);
+    return Number.isFinite(num) ? num : 0;
+}
+
 function getKeysByPrefix(prefix) {
     const keys = [];
     for (let i = 0; i < localStorage.length; i += 1) {
@@ -436,16 +441,35 @@ export function getAllPayments() {
             amount: Number(item.amount || item.paymentAmount || item.total || 0),
             referenceNumber: item.referenceNumber || item.reference || "",
             createdAt: item.createdAt || item.date || new Date().toISOString(),
+            status: item.status || item.paymentStatus || "",
         }))
         .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
 }
 
 export function savePaymentRecord(payment) {
-    const existing = safeParse("clientPaymentHistory", []);
+    const normalizedPayment = {
+        ...payment,
+        amount: normalizeNumber(payment?.amount || payment?.paymentAmount),
+        bookingId: payment?.bookingId || "",
+        ownerEmail: payment?.ownerEmail || payment?.email || "",
+        createdAt: payment?.createdAt || new Date().toISOString(),
+    };
+
+    const globalExisting = safeParse("clientPaymentHistory", []);
     localStorage.setItem(
         "clientPaymentHistory",
-        JSON.stringify([payment, ...existing])
+        JSON.stringify([normalizedPayment, ...globalExisting])
     );
+
+    const ownerEmail = normalizedPayment.ownerEmail;
+    if (ownerEmail) {
+        const scopedKey = `clientPaymentHistory_${ownerEmail}`;
+        const scopedExisting = safeParse(scopedKey, []);
+        localStorage.setItem(
+            scopedKey,
+            JSON.stringify([normalizedPayment, ...scopedExisting])
+        );
+    }
 }
 
 export function getAllExpenses() {
@@ -528,34 +552,54 @@ export function createBookingFromQuotation(quotation) {
 }
 
 export function getBookingPaymentSummary(booking) {
-    const paymentHistory = getAllPayments().filter(
-        (item) => item.bookingId === booking.bookingId
-    );
+    const bookingId = String(booking?.bookingId || "").trim();
+
+    const paymentHistory = getAllPayments().filter((item) => {
+        return String(item?.bookingId || "").trim() === bookingId;
+    });
 
     const inlinePayments = Array.isArray(booking.payments)
         ? booking.payments.map((amount, index) => ({
-            id: `inline_${booking.bookingId}_${index}`,
-            bookingId: booking.bookingId,
+            id: `inline_${bookingId}_${index}`,
+            bookingId,
             amount: Number(amount || 0),
             createdAt: booking.createdAt || new Date().toISOString(),
         }))
         : [];
 
-    const payments = [...paymentHistory, ...inlinePayments];
+    const mergedPayments = [...paymentHistory, ...inlinePayments];
 
-    const paid = payments.reduce(
-        (sum, item) => sum + Number(item.amount || item || 0),
-        0
-    );
+    const seen = new Set();
+    const payments = mergedPayments.filter((item, index) => {
+        const uniqueKey =
+            item?.id ||
+            item?.paymentId ||
+            item?.referenceNumber ||
+            `${item?.bookingId || ""}_${item?.amount || 0}_${item?.createdAt || index}`;
 
-    const totalAmount = Number(booking.totalAmount || 0);
-    const balance = Math.max(totalAmount - paid, 0);
+        if (seen.has(uniqueKey)) return false;
+        seen.add(uniqueKey);
+        return true;
+    });
+
+    const paid = payments.reduce((sum, item) => {
+        return sum + Number(item?.amount || item?.paymentAmount || item || 0);
+    }, 0);
+
+    const totalAmount = Number(booking?.totalAmount || 0);
+    const safePaid = Math.min(paid, totalAmount);
+    const balance = Math.max(totalAmount - safePaid, 0);
 
     let paymentStatus = "unpaid";
-    if (paid > 0 && balance > 0) paymentStatus = "partial";
-    if (totalAmount > 0 && paid >= totalAmount) paymentStatus = "paid";
+    if (safePaid > 0 && balance > 0) paymentStatus = "partial";
+    if (totalAmount > 0 && balance === 0) paymentStatus = "paid";
 
-    return { paid, balance, paymentStatus, payments };
+    return {
+        paid: safePaid,
+        balance,
+        paymentStatus,
+        payments,
+    };
 }
 
 export function getMonthlyFinancialRows() {
