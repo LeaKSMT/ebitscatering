@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import {
     MessageCircle,
     X,
@@ -10,6 +11,8 @@ import {
     Coins,
     CalendarDays,
     Copy,
+    Sparkles,
+    Bot,
 } from "lucide-react";
 
 export default function ChatBot() {
@@ -18,6 +21,7 @@ export default function ChatBot() {
     const [showCallPopup, setShowCallPopup] = useState(false);
     const [chatMode, setChatMode] = useState(null);
     const [lastIntent, setLastIntent] = useState(null);
+    const [isTyping, setIsTyping] = useState(false);
 
     const [messages, setMessages] = useState([
         {
@@ -36,10 +40,10 @@ export default function ChatBot() {
         "https://www.google.com/maps/search/Blk+5+Lot+14+Tierra+Verde+Residences+Burol+3+Dasmarinas+City+Cavite";
 
     const quickReplies = [
-        { label: "Start Inquiry", icon: <Mail size={16} /> },
-        { label: "View Packages", icon: <Package size={16} /> },
-        { label: "Pricing", icon: <Coins size={16} /> },
-        { label: "Check Availability", icon: <CalendarDays size={16} /> },
+        { label: "Start Inquiry", icon: <Mail size={15} /> },
+        { label: "View Packages", icon: <Package size={15} /> },
+        { label: "Pricing", icon: <Coins size={15} /> },
+        { label: "Check Availability", icon: <CalendarDays size={15} /> },
     ];
 
     const getCurrentTime = () => {
@@ -53,7 +57,7 @@ export default function ChatBot() {
         if (messagesEndRef.current) {
             messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
         }
-    }, [messages]);
+    }, [messages, isTyping]);
 
     const addUserMessage = (text) => {
         setMessages((prev) => [
@@ -141,7 +145,7 @@ ${FB_PAGE}`
     };
 
     const getInquiryAcknowledgement = (message) => {
-        return `Thank you! I’ve received your inquiry details. 😊
+        return `Thank you! I’ve received your inquiry details. ✨
 
 Here’s what you sent:
 ${message}
@@ -166,7 +170,6 @@ You may also continue through the "Get Quotation" button on our website if you'd
         const dateDetected = hasDate(msg);
         const eventType = extractEventType(msg);
 
-        // Greeting
         if (
             hasAny(msg, [
                 "hello",
@@ -178,7 +181,7 @@ You may also continue through the "Get Quotation" button on our website if you'd
             ])
         ) {
             setLastIntent("greeting");
-            return `Hello! Welcome to Ebit's Catering and Services. 😊
+            return `Hello! Welcome to Ebit's Catering and Services. ✨
 
 How can I help you today?
 
@@ -191,19 +194,17 @@ You can ask me about:
 • Location`;
         }
 
-        // Thank you
         if (hasAny(msg, ["thank you", "thanks", "ty", "salamat"])) {
             setLastIntent("thanks");
-            return `You're very welcome! 😊
+            return `You're very welcome! ✨
 
 If you still need help with packages, pricing, or booking concerns, just send me a message anytime.`;
         }
 
-        // Start inquiry
         if (hasAny(msg, ["start inquiry", "i want to inquire", "inquire", "inquiry"])) {
             setChatMode("inquiry");
             setLastIntent("inquiry");
-            return `I'd be happy to help you start your inquiry. 😊
+            return `I'd be happy to help you start your inquiry. ✨
 
 Please send the following details:
 • Full Name
@@ -219,13 +220,11 @@ Example:
 Once you send those details, I’ll acknowledge them and guide you on the next step.`;
         }
 
-        // If user is in inquiry mode and sends details
         if (chatMode === "inquiry" && looksLikeInquiryReply(msg)) {
             setLastIntent("inquiry_details");
             return getInquiryAcknowledgement(message);
         }
 
-        // Quotation
         if (
             hasAny(msg, [
                 "quotation",
@@ -251,10 +250,9 @@ Example:
 You may also click the "Get Quotation" button on our website to continue.`;
         }
 
-        // If user is answering quotation details
         if (chatMode === "quotation" && (guests || dateDetected || eventType || phone)) {
             setLastIntent("quotation_details");
-            return `Thank you! Your quotation request details have been noted. 😊
+            return `Thank you! Your quotation request details have been noted. ✨
 
 Here’s what you sent:
 ${message}
@@ -262,7 +260,6 @@ ${message}
 Our team can review your request and prepare the most suitable package recommendation and quotation for your event.`;
         }
 
-        // Packages
         if (
             hasAny(msg, [
                 "view packages",
@@ -296,7 +293,6 @@ You can also ask me:
 • "Which package is good for 100 pax?"`;
         }
 
-        // Debut packages
         if (hasAny(msg, ["debut packages", "debut package", "debut"])) {
             setChatMode("debut");
             setLastIntent("debut");
@@ -315,7 +311,6 @@ You may also ask:
 • "Which debut package is best?"`;
         }
 
-        // Wedding packages
         if (hasAny(msg, ["wedding packages", "wedding package", "wedding"])) {
             setChatMode("wedding");
             setLastIntent("wedding");
@@ -333,7 +328,6 @@ You may also ask:
 • "Which wedding package is best?"`;
         }
 
-        // Specific package details
         if (hasAny(msg, ["classic debut", "48k debut", "48,000"])) {
             setLastIntent("classic_debut");
             return `The Classic Debut Package is ₱48,000 and is usually good for 100 pax.
@@ -408,7 +402,7 @@ Some of its inclusions are:
 • Free debutant assistant and program coordinator
 • Free use of mannequin
 
-For the complete inclusions, please check the Packages page.`;
+For the complete inclusions, please check our Packages page.`;
         }
 
         if (hasAny(msg, ["75k wedding", "75,000 wedding", "75000 wedding"])) {
@@ -471,7 +465,6 @@ Some inclusions are:
 For the complete inclusions, please check our Packages page.`;
         }
 
-        // Pricing
         if (hasAny(msg, ["pricing", "price", "how much", "rates", "rate", "magkano"])) {
             setChatMode("pricing");
             setLastIntent("pricing");
@@ -525,18 +518,16 @@ You can send me:
 • "How much for 75 guests?"`;
         }
 
-        // If pricing mode and user sends a number only
         if (chatMode === "pricing" && guests && guests > 0 && guests <= 1000) {
             setLastIntent("pricing_followup");
             const total = guests * 400;
-            return `If you mean ${guests} guests, the estimated base catering price is:
+            return `For ${guests} guests, the estimated base catering price is:
 
 ${guests} × ₱400 = ${formatCurrency(total)}
 
-That does not yet include add-ons. If you want, you can also ask me about available add-ons or package suggestions for that guest count.`;
+That does not yet include add-ons. You can also ask me about available add-ons or package suggestions for that guest count.`;
         }
 
-        // Add-ons
         if (hasAny(msg, ["add on", "add-on", "addons", "add ons", "extra service"])) {
             setLastIntent("addons");
             return `These are our current available add-ons:
@@ -590,7 +581,6 @@ You may also ask:
             return `Photo costs ₱5,000.`;
         }
 
-        // Guest count suggestions
         if (hasAny(msg, ["good for 50", "50 pax", "50 guests"])) {
             setLastIntent("50_guests");
             return `For 50 guests, the estimated base catering rate is:
@@ -620,7 +610,6 @@ This does not yet include add-ons.
 You may also check our debut and wedding packages if you're looking for a more complete package option.`;
         }
 
-        // Availability
         if (
             hasAny(msg, [
                 "check availability",
@@ -634,7 +623,7 @@ You may also check our debut and wedding packages if you're looking for a more c
             setLastIntent("availability");
 
             if (dateDetected) {
-                return `I received your preferred date. 😊
+                return `I received your preferred date. ✨
 
 To help with your availability inquiry, please also include:
 • Event type
@@ -669,7 +658,6 @@ ${message}
 Our team can review your requested event date and confirm availability as soon as possible.`;
         }
 
-        // Booking
         if (hasAny(msg, ["book", "booking", "reserve", "reservation", "i want to book"])) {
             setChatMode("booking");
             setLastIntent("booking");
@@ -688,7 +676,7 @@ You may also use the "Get Quotation" button on our website if you want a more co
 
         if (chatMode === "booking" && (guests || dateDetected || eventType || phone)) {
             setLastIntent("booking_details");
-            return `Thank you! Your booking details have been noted. 😊
+            return `Thank you! Your booking details have been noted. ✨
 
 Here’s what you sent:
 ${message}
@@ -696,7 +684,6 @@ ${message}
 Our team can review your request and guide you through the next step of the booking process.`;
         }
 
-        // Payment
         if (
             hasAny(msg, [
                 "payment",
@@ -714,7 +701,6 @@ You may contact us through:
 • Facebook: ${FB_PAGE}`;
         }
 
-        // Menu
         if (hasAny(msg, ["menu", "food", "meal", "dishes", "main course"])) {
             setLastIntent("menu");
             return `We offer classic menu selections and package inclusions for weddings and debuts.
@@ -728,7 +714,6 @@ Our classic menu options include:
 You can visit the Packages page to check the available menu combinations and package inclusions.`;
         }
 
-        // Freebies
         if (hasAny(msg, ["freebie", "freebies", "free item"])) {
             setLastIntent("freebies");
             return `The current freebie shown on our Packages page is:
@@ -738,7 +723,6 @@ You can visit the Packages page to check the available menu combinations and pac
 Other inclusions may also vary depending on your selected package.`;
         }
 
-        // Contact
         if (
             hasAny(msg, [
                 "call",
@@ -759,7 +743,6 @@ Facebook: ${FB_PAGE}
 If you're using a mobile phone, you can tap the Call Us button below to call directly.`;
         }
 
-        // Facebook
         if (hasAny(msg, ["facebook", "fb page", "messenger", "page link", "social media"])) {
             setLastIntent("facebook");
             return `You can message us on Facebook here:
@@ -769,7 +752,6 @@ ${FB_PAGE}
 Our page is open for inquiries and updates as well.`;
         }
 
-        // Location
         if (
             hasAny(msg, [
                 "location",
@@ -788,7 +770,6 @@ Burol 3, Dasmariñas City, Cavite
 You can also use the Location button below to open it on Google Maps.`;
         }
 
-        // Business hours
         if (hasAny(msg, ["business hours", "hours", "open", "opening hours", "what time"])) {
             setLastIntent("hours");
             return `For business hours and immediate response concerns, we recommend contacting Ebit's Catering directly through phone or Facebook so our team can assist you right away.
@@ -797,7 +778,6 @@ Phone: ${PHONE_NUMBER}
 Facebook: ${FB_PAGE}`;
         }
 
-        // If previous topic was packages and user replies with vague follow-up
         if (lastIntent === "packages" && hasAny(msg, ["which one", "best", "recommend", "suggest"])) {
             return `If you're choosing a package, it usually depends on your event type, guest count, and budget.
 
@@ -813,12 +793,10 @@ If you want, you can tell me your:
 and I’ll suggest the most suitable option.`;
         }
 
-        // Generic follow-up for numeric-only after recent inquiry
         if (chatMode === "inquiry" && guests) {
             return getInquiryAcknowledgement(message);
         }
 
-        // Date-only follow-up
         if (dateDetected && (chatMode === "inquiry" || chatMode === "availability" || chatMode === "booking")) {
             return `Thanks! I noted the date you sent.
 
@@ -830,8 +808,7 @@ Please also include:
 That way, our team can process your request more accurately.`;
         }
 
-        // Final fallback
-        return `I’d be happy to help. 😊
+        return `I’d be happy to help. ✨
 
 You can ask me about:
 • Packages
@@ -856,18 +833,20 @@ and I’ll guide you from there.`;
         if (!finalMessage.trim()) return;
 
         addUserMessage(finalMessage);
+        setInput("");
+        setIsTyping(true);
 
         const reply = getBotReply(finalMessage);
 
         setTimeout(() => {
+            setIsTyping(false);
             addBotMessage(reply);
-        }, 300);
-
-        setInput("");
+        }, 700);
     };
 
     const handleCallUs = () => {
         addUserMessage("Call Us");
+        setIsTyping(true);
 
         const callReply = `Of course! You can reach Ebit's Catering through:
 
@@ -878,180 +857,274 @@ If you're using a mobile phone, the call can open directly.
 If you're on desktop, you can copy the number from the popup.`;
 
         setTimeout(() => {
+            setIsTyping(false);
             addBotMessage(callReply);
-        }, 250);
+        }, 500);
 
         if (/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
             setTimeout(() => {
                 window.location.href = `tel:${PHONE_NUMBER_RAW}`;
-            }, 350);
+            }, 650);
         } else {
             setShowCallPopup(true);
         }
     };
 
     return (
-        <div className="fixed bottom-6 right-6 z-[9999]">
-            {!open && (
-                <button
-                    onClick={() => setOpen(true)}
-                    className="w-[72px] h-[72px] rounded-full bg-[#D4AF37] shadow-xl flex items-center justify-center hover:scale-105 transition duration-200 border border-black/10"
-                >
-                    <MessageCircle size={32} className="text-[#0B4F3A]" />
-                </button>
-            )}
+        <div className="fixed bottom-5 right-5 z-[9999]">
+            <AnimatePresence>
+                {!open && (
+                    <motion.button
+                        initial={{ opacity: 0, scale: 0.7, y: 20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.7, y: 20 }}
+                        transition={{ duration: 0.3 }}
+                        onClick={() => setOpen(true)}
+                        className="group relative flex h-[74px] w-[74px] items-center justify-center rounded-full border border-[#d4af37]/30 bg-gradient-to-br from-[#d4af37] via-[#f0cf62] to-[#b99117] shadow-[0_18px_40px_rgba(15,77,60,0.28)]"
+                    >
+                        <span className="absolute inset-0 rounded-full animate-ping bg-[#d4af37]/20"></span>
+                        <span className="absolute -inset-1 rounded-full bg-gradient-to-r from-[#d4af37]/20 to-[#0f4d3c]/20 blur-md"></span>
+                        <MessageCircle
+                            size={31}
+                            className="relative z-10 text-[#0b4f3a] transition-transform duration-300 group-hover:scale-110"
+                        />
+                    </motion.button>
+                )}
+            </AnimatePresence>
 
-            {open && (
-                <div className="w-[520px] max-w-[calc(100vw-24px)] h-[780px] bg-white rounded-[24px] shadow-2xl overflow-hidden border border-gray-200 flex flex-col">
-                    <div className="bg-[#0B4F3A] px-5 py-5 text-white">
-                        <div className="flex items-start justify-between">
-                            <div className="flex items-start gap-3">
-                                <div className="w-14 h-14 rounded-full bg-[#D4AF37] flex items-center justify-center shrink-0">
-                                    <MessageCircle size={28} className="text-[#0B4F3A]" />
+            <AnimatePresence>
+                {open && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 30, scale: 0.94 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 20, scale: 0.97 }}
+                        transition={{ duration: 0.28, ease: "easeOut" }}
+                        className="h-[780px] w-[520px] max-w-[calc(100vw-24px)] overflow-hidden rounded-[30px] border border-white/40 bg-white/95 shadow-[0_30px_90px_rgba(2,20,16,0.26)] backdrop-blur-xl"
+                    >
+                        <div className="relative overflow-hidden bg-[linear-gradient(135deg,#0b4f3a_0%,#0f6a4e_60%,#0b4f3a_100%)] px-5 py-5 text-white">
+                            <div className="absolute -right-10 -top-10 h-36 w-36 rounded-full bg-[#d4af37]/20 blur-2xl"></div>
+                            <div className="absolute -left-8 bottom-0 h-24 w-24 rounded-full bg-white/10 blur-2xl"></div>
+
+                            <div className="relative flex items-start justify-between">
+                                <div className="flex items-start gap-3">
+                                    <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#f4d56a] to-[#c89c1d] shadow-lg">
+                                        <Bot size={28} className="text-[#0b4f3a]" />
+                                        <span className="absolute -right-1 -top-1 flex h-4 w-4 rounded-full border-2 border-[#0b4f3a] bg-lime-400"></span>
+                                    </div>
+
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <h2 className="text-[22px] font-extrabold leading-none tracking-tight">
+                                                Ebit&apos;s Catering
+                                            </h2>
+                                            <Sparkles size={16} className="text-[#f4d56a]" />
+                                        </div>
+
+                                        <p className="mt-1 text-sm text-white/75">
+                                            Virtual Assistant
+                                        </p>
+
+                                        <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[13px] text-white/95 backdrop-blur">
+                                            <span className="inline-block h-2.5 w-2.5 rounded-full bg-lime-400 shadow-[0_0_10px_rgba(163,230,53,0.95)]"></span>
+                                            Online now
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <div>
-                                    <h2 className="text-[21px] font-bold leading-none mt-1">
-                                        Ebit&apos;s Catering
-                                    </h2>
-                                    <div className="flex items-center gap-2 mt-2 text-[15px] text-white/90">
-                                        <span className="w-3 h-3 rounded-full bg-lime-400 inline-block"></span>
-                                        <span>Online now</span>
-                                    </div>
+                                <motion.button
+                                    whileHover={{ rotate: 90, scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={() => setOpen(false)}
+                                    className="rounded-full border border-white/10 bg-white/10 p-2 text-white/90 transition hover:bg-white/15 hover:text-white"
+                                >
+                                    <X size={21} />
+                                </motion.button>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-1 flex-col bg-[linear-gradient(180deg,#f8faf9_0%,#f3f5f4_100%)]">
+                            <div className="flex-1 overflow-y-auto px-4 py-4">
+                                <div className="space-y-4">
+                                    {messages.map((msg, index) => (
+                                        <motion.div
+                                            key={index}
+                                            initial={{ opacity: 0, y: 14 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.22 }}
+                                            className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"
+                                                }`}
+                                        >
+                                            <div
+                                                className={`max-w-[88%] ${msg.sender === "user" ? "items-end" : "items-start"
+                                                    } flex flex-col`}
+                                            >
+                                                <div
+                                                    className={`rounded-[22px] px-4 py-3 text-[15px] leading-7 shadow-sm whitespace-pre-line ${msg.sender === "bot"
+                                                            ? "border border-[#e5e7eb] bg-white text-slate-700"
+                                                            : "bg-[linear-gradient(135deg,#d4af37_0%,#f4d56a_100%)] text-[#0b4f3a] shadow-[0_12px_30px_rgba(212,175,55,0.28)]"
+                                                        }`}
+                                                >
+                                                    {msg.text}
+                                                </div>
+
+                                                <p
+                                                    className={`mt-1.5 px-1 text-[11px] text-slate-400 ${msg.sender === "user" ? "text-right" : "text-left"
+                                                        }`}
+                                                >
+                                                    {msg.time}
+                                                </p>
+                                            </div>
+                                        </motion.div>
+                                    ))}
+
+                                    {isTyping && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 8 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            className="flex justify-start"
+                                        >
+                                            <div className="rounded-[20px] border border-[#e5e7eb] bg-white px-4 py-3 shadow-sm">
+                                                <div className="flex items-center gap-1.5">
+                                                    <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-[#0f4d3c] [animation-delay:-0.3s]"></span>
+                                                    <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-[#0f4d3c] [animation-delay:-0.15s]"></span>
+                                                    <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-[#0f4d3c]"></span>
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    )}
+
+                                    <div ref={messagesEndRef}></div>
                                 </div>
                             </div>
 
-                            <button
-                                onClick={() => setOpen(false)}
-                                className="text-white/90 hover:text-white transition mt-1"
-                            >
-                                <X size={24} />
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="flex-1 bg-[#F7F7F7] px-5 py-5 overflow-y-auto">
-                        <div className="space-y-5">
-                            {messages.map((msg, index) => (
-                                <div key={index}>
-                                    <div
-                                        className={`max-w-[90%] rounded-2xl px-5 py-4 text-[17px] leading-8 whitespace-pre-line shadow-sm ${msg.sender === "bot"
-                                                ? "bg-white text-[#1f2937] border border-gray-200"
-                                                : "bg-[#D4AF37] text-[#0B4F3A] ml-auto"
-                                            }`}
-                                    >
-                                        {msg.text}
-                                    </div>
-
-                                    <p
-                                        className={`text-sm text-gray-400 mt-2 ${msg.sender === "user" ? "text-right" : "text-left"
-                                            }`}
-                                    >
-                                        {msg.time}
+                            <div className="border-t border-slate-200/80 bg-white/90 px-4 py-4 backdrop-blur">
+                                <div className="mb-3 flex items-center gap-2">
+                                    <div className="h-7 w-1 rounded-full bg-gradient-to-b from-[#d4af37] to-[#0f4d3c]"></div>
+                                    <p className="text-[14px] font-bold tracking-wide text-slate-700">
+                                        Quick Replies
                                     </p>
                                 </div>
-                            ))}
 
-                            <div ref={messagesEndRef}></div>
+                                <div className="mb-4 grid grid-cols-2 gap-2.5">
+                                    {quickReplies.map((item, index) => (
+                                        <motion.button
+                                            key={index}
+                                            whileHover={{ y: -2, scale: 1.01 }}
+                                            whileTap={{ scale: 0.98 }}
+                                            onClick={() => handleSend(item.label)}
+                                            className="flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-3 text-[14px] font-semibold text-[#0b4f3a] shadow-sm transition hover:border-[#d4af37]/60 hover:bg-[#fffdf5]"
+                                        >
+                                            <span className="text-[#b99117]">{item.icon}</span>
+                                            <span>{item.label}</span>
+                                        </motion.button>
+                                    ))}
+                                </div>
+
+                                <div className="mb-4 flex items-center gap-3">
+                                    <div className="relative flex-1">
+                                        <input
+                                            type="text"
+                                            placeholder="Type your message..."
+                                            value={input}
+                                            onChange={(e) => setInput(e.target.value)}
+                                            onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                                            className="w-full rounded-2xl border border-slate-200 bg-[#fafaf9] px-4 py-3.5 pr-12 text-[15px] outline-none transition focus:border-[#d4af37] focus:bg-white focus:shadow-[0_0_0_4px_rgba(212,175,55,0.12)]"
+                                        />
+                                        <MessageCircle
+                                            size={17}
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300"
+                                        />
+                                    </div>
+
+                                    <motion.button
+                                        whileHover={{ scale: 1.04, rotate: -8 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        onClick={() => handleSend()}
+                                        className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#d4af37_0%,#f4d56a_100%)] shadow-[0_12px_26px_rgba(212,175,55,0.32)] transition"
+                                    >
+                                        <Send size={20} className="text-[#0b4f3a]" />
+                                    </motion.button>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3">
+                                    <motion.button
+                                        whileHover={{ y: -2 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        onClick={handleCallUs}
+                                        className="flex items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#0ca83a_0%,#079230_100%)] py-3.5 text-[15px] font-bold text-white shadow-[0_14px_26px_rgba(12,168,58,0.22)]"
+                                    >
+                                        <Phone size={17} />
+                                        Call Us
+                                    </motion.button>
+
+                                    <motion.a
+                                        whileHover={{ y: -2 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        href={MAP_LINK}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="flex items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#0b4f3a_0%,#10684d_100%)] py-3.5 text-[15px] font-bold text-white shadow-[0_14px_26px_rgba(11,79,58,0.22)]"
+                                    >
+                                        <MapPin size={17} />
+                                        Location
+                                    </motion.a>
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
-                    <div className="bg-white border-t border-gray-200 px-5 py-4">
-                        <p className="text-[17px] font-semibold text-gray-700 mb-3">
-                            Quick Replies:
-                        </p>
+            <AnimatePresence>
+                {showCallPopup && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/45 px-4 backdrop-blur-[2px]"
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, y: 20, scale: 0.94 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 12, scale: 0.97 }}
+                            className="w-full max-w-sm rounded-[28px] border border-white/30 bg-white/95 p-6 text-center shadow-[0_30px_70px_rgba(0,0,0,0.22)] backdrop-blur-xl"
+                        >
+                            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#f7e7a6] to-[#d4af37] shadow-md">
+                                <Phone className="text-[#0B4F3A]" size={28} />
+                            </div>
 
-                        <div className="grid grid-cols-2 gap-3 mb-4">
-                            {quickReplies.map((item, index) => (
+                            <h3 className="mb-2 text-2xl font-extrabold text-[#0B4F3A]">
+                                Call Ebit&apos;s Catering
+                            </h3>
+
+                            <p className="mb-5 text-[15px] leading-7 text-slate-600">
+                                You&apos;re using a desktop browser. Please call us at:
+                            </p>
+
+                            <p className="mb-6 bg-gradient-to-r from-[#b99117] to-[#d4af37] bg-clip-text text-3xl font-black text-transparent">
+                                {PHONE_NUMBER}
+                            </p>
+
+                            <div className="flex gap-3">
                                 <button
-                                    key={index}
-                                    onClick={() => handleSend(item.label)}
-                                    className="flex items-center justify-center gap-2 border border-gray-300 rounded-xl px-4 py-4 text-[16px] font-medium text-[#0B4F3A] hover:bg-gray-50 transition"
+                                    onClick={copyPhoneNumber}
+                                    className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[#f8f3df] py-3 font-bold text-[#0B4F3A] transition hover:bg-[#f3e7bc]"
                                 >
-                                    <span>{item.icon}</span>
-                                    <span>{item.label}</span>
+                                    <Copy size={17} />
+                                    Copy Number
                                 </button>
-                            ))}
-                        </div>
 
-                        <div className="flex items-center gap-3 mb-4">
-                            <input
-                                type="text"
-                                placeholder="Type your message..."
-                                value={input}
-                                onChange={(e) => setInput(e.target.value)}
-                                onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                                className="flex-1 border border-gray-300 rounded-xl px-4 py-4 outline-none text-[16px] focus:border-[#D4AF37]"
-                            />
-                            <button
-                                onClick={() => handleSend()}
-                                className="w-14 h-14 rounded-xl bg-[#D4AF37] flex items-center justify-center hover:brightness-95 transition shrink-0"
-                            >
-                                <Send size={22} className="text-[#0B4F3A]" />
-                            </button>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3">
-                            <button
-                                onClick={handleCallUs}
-                                className="bg-[#06A535] text-white rounded-2xl py-4 text-[17px] font-semibold flex items-center justify-center gap-2 hover:brightness-95 transition"
-                            >
-                                <Phone size={18} />
-                                Call Us
-                            </button>
-
-                            <a
-                                href={MAP_LINK}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="bg-[#0B4F3A] text-white rounded-2xl py-4 text-[17px] font-semibold flex items-center justify-center gap-2 hover:brightness-95 transition"
-                            >
-                                <MapPin size={18} />
-                                Location
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {showCallPopup && (
-                <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/30 px-4">
-                    <div className="w-full max-w-sm rounded-[24px] bg-white shadow-2xl border border-gray-200 p-6 text-center">
-                        <div className="w-16 h-16 mx-auto rounded-full bg-[#f8f3df] flex items-center justify-center mb-4">
-                            <Phone className="text-[#0B4F3A]" size={28} />
-                        </div>
-
-                        <h3 className="text-2xl font-bold text-[#0B4F3A] mb-2">
-                            Call Ebit&apos;s Catering
-                        </h3>
-
-                        <p className="text-slate-600 text-base leading-7 mb-5">
-                            You&apos;re using a desktop browser. Please call us at:
-                        </p>
-
-                        <p className="text-3xl font-extrabold text-[#D4AF37] mb-6">
-                            {PHONE_NUMBER}
-                        </p>
-
-                        <div className="flex gap-3">
-                            <button
-                                onClick={copyPhoneNumber}
-                                className="flex-1 bg-[#f8f3df] text-[#0B4F3A] py-3 rounded-xl font-semibold hover:bg-yellow-100 transition flex items-center justify-center gap-2"
-                            >
-                                <Copy size={18} />
-                                Copy Number
-                            </button>
-
-                            <button
-                                onClick={() => setShowCallPopup(false)}
-                                className="flex-1 bg-[#0B4F3A] text-white py-3 rounded-xl font-semibold hover:brightness-95 transition"
-                            >
-                                Close
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+                                <button
+                                    onClick={() => setShowCallPopup(false)}
+                                    className="flex-1 rounded-2xl bg-[#0B4F3A] py-3 font-bold text-white transition hover:brightness-95"
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
