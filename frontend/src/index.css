@@ -8,4 +8,18 @@ html {
 
 body {
   font-family: 'Poppins', sans-serif;
+  background: #f4f7f5;
+  color: #1f2937;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  transition: all 0.2s ease;
 }

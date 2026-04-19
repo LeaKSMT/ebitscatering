@@ -23,6 +23,7 @@ import {
     ShieldCheck,
     Menu,
     ChevronRight,
+    Crown,
 } from "lucide-react";
 
 function AdminSidebar() {
@@ -64,9 +65,12 @@ function AdminSidebar() {
     };
 
     const navContent = (
-        <div className="relative flex h-full flex-col overflow-hidden border-r border-white/10 bg-[linear-gradient(180deg,#06372c_0%,#0a4939_30%,#0d5b47_65%,#13745a_100%)] text-white shadow-[18px_0_45px_rgba(8,45,35,0.20)]">
-            <div className="pointer-events-none absolute -top-14 right-[-45px] h-40 w-40 rounded-full bg-[#f5c94a]/16 blur-3xl" />
-            <div className="pointer-events-none absolute bottom-[-40px] left-[-25px] h-28 w-28 rounded-full bg-white/8 blur-3xl" />
+        <div className="relative flex h-full flex-col overflow-hidden border-r border-white/10 bg-[linear-gradient(180deg,#042f25_0%,#0a4637_28%,#0d5b47_62%,#12785b_100%)] text-white shadow-[18px_0_45px_rgba(8,45,35,0.20)]">
+            <div className="pointer-events-none absolute inset-0">
+                <div className="absolute -top-16 right-[-50px] h-44 w-44 rounded-full bg-[#f5c94a]/18 blur-3xl" />
+                <div className="absolute bottom-[-40px] left-[-25px] h-32 w-32 rounded-full bg-white/8 blur-3xl" />
+                <div className="absolute top-[28%] left-[-20px] h-20 w-20 rounded-full bg-white/6 blur-2xl" />
+            </div>
 
             <div className="relative shrink-0 border-b border-white/10 px-4 pb-4 pt-5">
                 <motion.div
@@ -91,11 +95,11 @@ function AdminSidebar() {
 
                     <motion.div
                         whileHover={{ y: -2, scale: 1.01 }}
-                        className="mt-4 rounded-[20px] border border-white/10 bg-white/10 p-3 backdrop-blur-md"
+                        className="mt-4 overflow-hidden rounded-[22px] border border-white/10 bg-white/10 p-3 backdrop-blur-md"
                     >
                         <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#fff3c8_0%,#f3d06a_100%)] text-[#8a6710] shadow-sm">
-                                <ShieldCheck size={17} />
+                            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#fff3c8_0%,#f3d06a_100%)] text-[#8a6710] shadow-[0_10px_20px_rgba(0,0,0,0.10)]">
+                                <ShieldCheck size={18} />
                             </div>
 
                             <div className="min-w-0">
@@ -105,9 +109,10 @@ function AdminSidebar() {
                                 <p className="truncate text-sm font-bold text-white">
                                     {adminUser.name}
                                 </p>
-                                <p className="text-[11px] text-white/65">
+                                <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-white/65">
+                                    <Crown size={12} className="text-[#f5d36a]" />
                                     Administrator Access
-                                </p>
+                                </div>
                             </div>
                         </div>
                     </motion.div>
@@ -123,23 +128,23 @@ function AdminSidebar() {
                             key={item.path}
                             initial={{ opacity: 0, x: -14 }}
                             animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.035 * index, duration: 0.28 }}
+                            transition={{ delay: 0.03 * index, duration: 0.28 }}
                         >
                             <NavLink
                                 to={item.path}
                                 onClick={() => setMobileOpen(false)}
                                 className={({ isActive }) =>
                                     `group flex items-center gap-3 rounded-[18px] px-3 py-3 text-[14px] font-medium transition-all duration-200 ${isActive
-                                        ? "bg-[linear-gradient(135deg,#fff3c8_0%,#f4db86_100%)] text-[#0b4a3a] shadow-[0_14px_30px_rgba(212,175,55,0.20)]"
-                                        : "text-white/88 hover:bg-white/10 hover:text-white"
+                                        ? "bg-[linear-gradient(135deg,#fff3c8_0%,#f4db86_100%)] text-[#0b4a3a] shadow-[0_14px_30px_rgba(212,175,55,0.22)]"
+                                        : "text-white/88 hover:bg-white/10 hover:text-white hover:translate-x-[3px]"
                                     }`
                                 }
                             >
                                 {({ isActive }) => (
                                     <>
                                         <div
-                                            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl transition ${isActive
-                                                    ? "bg-white/55 text-[#0b4a3a]"
+                                            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl transition ${isActive
+                                                    ? "bg-white/55 text-[#0b4a3a] shadow-sm"
                                                     : "bg-white/8 text-white/90 group-hover:bg-white/12"
                                                 }`}
                                         >

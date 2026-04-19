@@ -36,6 +36,8 @@ import {
     CalendarClock,
     FileClock,
     CheckCircle2,
+    Crown,
+    TrendingUp,
 } from "lucide-react";
 
 const CHART_COLORS = ["#0f4d3c", "#d4af37", "#22b67f", "#ef4444", "#64748b"];
@@ -160,7 +162,7 @@ function AdminDashboard() {
 
     return (
         <motion.div
-            data-build="clean-admin-dashboard-v2"
+            data-build="premium-admin-dashboard-v3"
             initial="hidden"
             animate="show"
             transition={{ staggerChildren: 0.08 }}
@@ -168,18 +170,29 @@ function AdminDashboard() {
         >
             <motion.section
                 variants={fadeUp}
-                className="relative overflow-hidden rounded-[30px] border border-[#dbe7e2] bg-white shadow-[0_18px_50px_rgba(14,61,47,0.08)]"
+                className="relative overflow-hidden rounded-[32px] border border-[#dbe7e2] bg-white shadow-[0_18px_50px_rgba(14,61,47,0.08)]"
             >
                 <div className="pointer-events-none absolute inset-0">
                     <div className="absolute -top-14 right-[-40px] h-44 w-44 rounded-full bg-[#d4af37]/18 blur-3xl" />
                     <div className="absolute bottom-[-30px] left-[-20px] h-32 w-32 rounded-full bg-white/12 blur-3xl" />
                 </div>
 
-                <div className="relative bg-[linear-gradient(135deg,#0a4637_0%,#0d5e49_52%,#118164_100%)] px-6 py-7 text-white md:px-8 md:py-8">
+                <div className="relative overflow-hidden bg-[linear-gradient(135deg,#0a4637_0%,#0d5e49_52%,#118164_100%)] px-6 py-7 text-white md:px-8 md:py-8">
                     <motion.div
                         animate={{ y: [0, -4, 0] }}
                         transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
                         className="absolute right-6 top-6 hidden h-16 w-16 rounded-full border border-white/10 bg-white/5 blur-[1px] md:block"
+                    />
+
+                    <motion.div
+                        animate={{ x: ["-35%", "135%"] }}
+                        transition={{
+                            duration: 7,
+                            repeat: Infinity,
+                            repeatDelay: 2,
+                            ease: "linear",
+                        }}
+                        className="pointer-events-none absolute inset-y-0 left-[-35%] w-[28%] rotate-[18deg] bg-gradient-to-r from-transparent via-white/10 to-transparent"
                     />
 
                     <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
@@ -202,9 +215,10 @@ function AdminDashboard() {
                             whileHover={{ y: -3, scale: 1.02 }}
                             className="rounded-[24px] border border-white/10 bg-white/10 p-5 backdrop-blur-md shadow-[0_15px_35px_rgba(0,0,0,0.12)]"
                         >
-                            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">
+                            <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">
+                                <Crown size={13} className="text-[#f3d57a]" />
                                 Business Health
-                            </p>
+                            </div>
                             <p className="mt-2 text-3xl font-extrabold text-white">
                                 Stable
                             </p>
@@ -452,9 +466,9 @@ function DashboardCard({ title, subtitle, children, variants }) {
     return (
         <motion.section
             variants={variants}
-            whileHover={{ y: -4 }}
+            whileHover={{ y: -5 }}
             transition={{ duration: 0.22 }}
-            className="rounded-[26px] border border-[#dce7e2] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-5 shadow-[0_12px_30px_rgba(14,61,47,0.06)]"
+            className="rounded-[28px] border border-[#dce7e2] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-5 shadow-[0_12px_30px_rgba(14,61,47,0.06)]"
         >
             <SectionHeader title={title} subtitle={subtitle} />
             {children}
@@ -472,14 +486,18 @@ function StatCard({ title, value, subtitle, icon: Icon, accent = "green" }) {
         <motion.div
             whileHover={{ y: -6, scale: 1.015 }}
             transition={{ duration: 0.22 }}
-            className="rounded-[24px] border border-[#e3ebe7] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-5 shadow-sm"
+            className="rounded-[24px] border border-[#e3ebe7] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-5 shadow-sm transition hover:shadow-[0_20px_40px_rgba(15,77,60,0.12)]"
         >
             <div className="flex items-start justify-between gap-4">
                 <div>
                     <p className="text-sm font-semibold text-slate-500">{title}</p>
-                    <h3 className="mt-3 text-3xl font-extrabold text-[#0f4d3c]">
+                    <motion.h3
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mt-3 text-3xl font-extrabold text-[#0f4d3c]"
+                    >
                         {value}
-                    </h3>
+                    </motion.h3>
                     <p className="mt-2 text-xs text-slate-400">{subtitle}</p>
                 </div>
 
@@ -499,7 +517,7 @@ function MiniMetricCard({ title, value, icon: Icon }) {
         <motion.div
             whileHover={{ y: -5, scale: 1.015 }}
             transition={{ duration: 0.22 }}
-            className="rounded-[24px] border border-[#dfe9e4] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-4 shadow-[0_10px_24px_rgba(14,61,47,0.05)]"
+            className="rounded-[24px] border border-[#dfe9e4] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-4 shadow-[0_10px_24px_rgba(14,61,47,0.05)] transition hover:shadow-[0_16px_34px_rgba(15,77,60,0.10)]"
         >
             <div className="flex items-center gap-3">
                 <motion.div
@@ -523,7 +541,13 @@ function MiniMetricCard({ title, value, icon: Icon }) {
 function SectionHeader({ title, subtitle }) {
     return (
         <div className="mb-4">
-            <h2 className="text-[28px] font-extrabold text-[#0f4d3c]">{title}</h2>
+            <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-[#e7efea] bg-[#f8fbf9] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-[#7a8f88]">
+                <TrendingUp size={12} />
+                Insights
+            </div>
+            <h2 className="text-[26px] font-extrabold text-[#0f4d3c] sm:text-[28px]">
+                {title}
+            </h2>
             <p className="mt-1 text-sm text-gray-500">{subtitle}</p>
         </div>
     );

@@ -6,6 +6,7 @@ import {
     Sparkles,
     Activity,
     ArrowUpRight,
+    Crown,
 } from "lucide-react";
 
 function AdminTopbar({ currentPath = "" }) {
@@ -103,7 +104,7 @@ function AdminTopbar({ currentPath = "" }) {
                     initial={{ opacity: 0, y: -12 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.45, ease: "easeOut" }}
-                    className="relative overflow-hidden rounded-[28px] border border-white/60 bg-[linear-gradient(135deg,#0a4637_0%,#0d5c48_52%,#148266_100%)] text-white shadow-[0_20px_50px_rgba(10,70,55,0.20)]"
+                    className="relative overflow-hidden rounded-[30px] border border-white/60 bg-[linear-gradient(135deg,#0a4637_0%,#0d5c48_52%,#148266_100%)] text-white shadow-[0_20px_50px_rgba(10,70,55,0.22)]"
                 >
                     <div className="pointer-events-none absolute inset-0">
                         <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-[#f3d57a]/18 blur-3xl" />
@@ -150,8 +151,9 @@ function AdminTopbar({ currentPath = "" }) {
                                     transition={{ duration: 0.2 }}
                                     className="hidden items-center gap-3 rounded-[22px] border border-white/10 bg-white/10 px-4 py-3 backdrop-blur-md shadow-[0_14px_30px_rgba(0,0,0,0.10)] md:flex"
                                 >
-                                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-white">
+                                    <div className="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-white">
                                         <Bell size={18} />
+                                        <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-[#9ef2c9] shadow-[0_0_12px_rgba(158,242,201,0.9)]" />
                                     </div>
 
                                     <div>
@@ -182,6 +184,7 @@ function AdminTopbar({ currentPath = "" }) {
                                             {adminUser.name}
                                         </p>
                                         <div className="mt-0.5 flex items-center gap-1.5 text-xs text-white/65">
+                                            <Crown size={12} className="text-[#f3d57a]" />
                                             <span>Administrator Access</span>
                                             <ArrowUpRight size={12} />
                                         </div>
