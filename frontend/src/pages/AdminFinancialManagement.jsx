@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
     getAllBookings,
     getAllPayments,
@@ -24,14 +24,34 @@ import {
     BarChart3,
     FileSpreadsheet,
     PlusCircle,
+    CheckCircle2,
 } from "lucide-react";
 
+const containerVariants = {
+    hidden: {},
+    show: {
+        transition: {
+            staggerChildren: 0.08,
+            delayChildren: 0.04,
+        },
+    },
+};
+
 const fadeUp = {
-    hidden: { opacity: 0, y: 22 },
-    show: { opacity: 1, y: 0 },
+    hidden: { opacity: 0, y: 24, filter: "blur(8px)" },
+    show: {
+        opacity: 1,
+        y: 0,
+        filter: "blur(0px)",
+        transition: {
+            duration: 0.55,
+            ease: [0.22, 1, 0.36, 1],
+        },
+    },
 };
 
 function AdminFinancialManagement() {
+    const [refreshKey, setRefreshKey] = useState(0);
     const [expenseForm, setExpenseForm] = useState({
         bookingId: "",
         clientName: "",
@@ -39,10 +59,15 @@ function AdminFinancialManagement() {
         category: "",
         amount: "",
     });
+    const [popup, setPopup] = useState({
+        open: false,
+        title: "",
+        message: "",
+    });
 
-    const bookings = useMemo(() => getAllBookings(), []);
-    const payments = useMemo(() => getAllPayments(), []);
-    const expenses = useMemo(() => getAllExpenses(), []);
+    const bookings = useMemo(() => getAllBookings(), [refreshKey]);
+    const payments = useMemo(() => getAllPayments(), [refreshKey]);
+    const expenses = useMemo(() => getAllExpenses(), [refreshKey]);
 
     const financialRows = useMemo(() => {
         return bookings.map((booking) => {
@@ -156,7 +181,12 @@ function AdminFinancialManagement() {
             amount: "",
         });
 
-        window.location.reload();
+        setRefreshKey((prev) => prev + 1);
+        setPopup({
+            open: true,
+            title: "Expense Saved",
+            message: "The expense entry has been added successfully.",
+        });
     };
 
     const handlePrintFinancialSummary = () => {
@@ -203,9 +233,9 @@ function AdminFinancialManagement() {
 
     return (
         <motion.div
+            variants={containerVariants}
             initial="hidden"
             animate="show"
-            transition={{ staggerChildren: 0.08 }}
             className="space-y-6"
         >
             <motion.section
@@ -214,13 +244,21 @@ function AdminFinancialManagement() {
             >
                 <div className="relative overflow-hidden bg-[linear-gradient(135deg,#07382d_0%,#0c4d3d_34%,#0f6b52_68%,#18a06c_100%)] px-6 py-7 text-white md:px-8">
                     <div className="pointer-events-none absolute inset-0">
-                        <div className="absolute -top-12 right-[-30px] h-40 w-40 rounded-full bg-[#d4af37]/20 blur-3xl" />
-                        <div className="absolute bottom-[-30px] left-[-20px] h-28 w-28 rounded-full bg-white/10 blur-3xl" />
+                        <motion.div
+                            animate={{ scale: [1, 1.08, 1], opacity: [0.18, 0.26, 0.18] }}
+                            transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+                            className="absolute -top-12 right-[-30px] h-40 w-40 rounded-full bg-[#d4af37]/20 blur-3xl"
+                        />
+                        <motion.div
+                            animate={{ scale: [1, 1.1, 1], opacity: [0.1, 0.16, 0.1] }}
+                            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
+                            className="absolute bottom-[-30px] left-[-20px] h-28 w-28 rounded-full bg-white/10 blur-3xl"
+                        />
                     </div>
 
                     <div className="relative flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
                         <div>
-                            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.22em] text-white/80">
+                            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.22em] text-white/80 backdrop-blur-md">
                                 <Sparkles size={13} />
                                 Executive View
                             </div>
@@ -238,15 +276,12 @@ function AdminFinancialManagement() {
                             <HeaderMiniCard
                                 icon={TrendingUp}
                                 label="Financial Health"
-                                value={
-                                    summary.netProfit >= 0 ? "Stable" : "Needs Attention"
-                                }
+                                value={summary.netProfit >= 0 ? "Stable" : "Needs Attention"}
                             />
                             <HeaderMiniCard
                                 icon={FileSpreadsheet}
                                 label="Records"
-                                value={`${financialRows.length} Event${financialRows.length === 1 ? "" : "s"
-                                    }`}
+                                value={`${financialRows.length} Event${financialRows.length === 1 ? "" : "s"}`}
                             />
                         </div>
                     </div>
@@ -301,13 +336,14 @@ function AdminFinancialManagement() {
                         </p>
                     </div>
 
-                    <button
+                    <motion.button
+                        whileTap={{ scale: 0.985 }}
                         onClick={handlePrintFinancialSummary}
                         className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#0b4a3a] px-5 py-3 font-bold text-white transition hover:-translate-y-0.5 hover:bg-[#09382d]"
                     >
                         <FileSpreadsheet size={18} />
                         Generate PDF Report
-                    </button>
+                    </motion.button>
                 </div>
             </motion.section>
 
@@ -352,8 +388,11 @@ function AdminFinancialManagement() {
                                 </thead>
                                 <tbody>
                                     {financialRows.map((row) => (
-                                        <tr
+                                        <motion.tr
                                             key={row.id}
+                                            initial={{ opacity: 0, y: 12 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.3 }}
                                             className="border-b border-[#f1f5f3] transition hover:bg-[#fbfdfc]"
                                         >
                                             <td className="py-4 font-bold text-[#0f4d3c]">
@@ -378,7 +417,7 @@ function AdminFinancialManagement() {
                                                     {row.margin}%
                                                 </span>
                                             </td>
-                                        </tr>
+                                        </motion.tr>
                                     ))}
                                 </tbody>
                             </table>
@@ -483,12 +522,13 @@ function AdminFinancialManagement() {
                                 />
                             </div>
 
-                            <button
+                            <motion.button
+                                whileTap={{ scale: 0.985 }}
                                 type="submit"
                                 className="w-full rounded-2xl bg-[#d4af37] px-5 py-3 font-bold text-[#0b4a3a] transition hover:bg-[#c79f23]"
                             >
                                 Save Expense
-                            </button>
+                            </motion.button>
                         </form>
                     </motion.div>
 
@@ -511,8 +551,13 @@ function AdminFinancialManagement() {
                         </div>
 
                         <div className="space-y-4">
-                            {demandForecast.map((item) => (
-                                <div key={item.type}>
+                            {demandForecast.map((item, index) => (
+                                <motion.div
+                                    key={item.type}
+                                    initial={{ opacity: 0, y: 12 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                                >
                                     <div className="mb-2 flex items-center justify-between text-sm">
                                         <span className="font-semibold text-[#0f4d3c]">
                                             {item.type}
@@ -526,11 +571,15 @@ function AdminFinancialManagement() {
                                         <motion.div
                                             initial={{ width: 0 }}
                                             animate={{ width: `${item.percent}%` }}
-                                            transition={{ duration: 0.7, ease: "easeOut" }}
+                                            transition={{
+                                                duration: 0.9,
+                                                ease: [0.22, 1, 0.36, 1],
+                                                delay: index * 0.05,
+                                            }}
                                             className="h-full rounded-full bg-[linear-gradient(90deg,#0f4d3c_0%,#22b67f_100%)]"
                                         />
                                     </div>
-                                </div>
+                                </motion.div>
                             ))}
                         </div>
                     </motion.div>
@@ -574,8 +623,11 @@ function AdminFinancialManagement() {
                             </thead>
                             <tbody>
                                 {monthlyRows.map((row) => (
-                                    <tr
+                                    <motion.tr
                                         key={row.label}
+                                        initial={{ opacity: 0, y: 12 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.3 }}
                                         className="border-b border-[#f1f5f3] transition hover:bg-[#fbfdfc]"
                                     >
                                         <td className="py-4 font-bold text-[#0f4d3c]">
@@ -595,7 +647,7 @@ function AdminFinancialManagement() {
                                                 {row.margin.toFixed(1)}%
                                             </span>
                                         </td>
-                                    </tr>
+                                    </motion.tr>
                                 ))}
                             </tbody>
                         </table>
@@ -640,43 +692,105 @@ function AdminFinancialManagement() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {expenses.map((expense) => (
-                                    <tr
-                                        key={expense.id}
-                                        className="border-b border-[#f1f5f3] transition hover:bg-[#fbfdfc]"
-                                    >
-                                        <td className="py-4 font-bold text-[#0f4d3c]">
-                                            {expense.bookingId || "—"}
-                                        </td>
-                                        <td className="py-4 text-slate-700">
-                                            {expense.clientName || "—"}
-                                        </td>
-                                        <td className="py-4 text-slate-700">
-                                            {expense.eventType || "—"}
-                                        </td>
-                                        <td className="py-4 text-slate-700">
-                                            {expense.category || "—"}
-                                        </td>
-                                        <td className="py-4 font-bold text-[#b99117]">
-                                            {formatCurrency(expense.amount)}
-                                        </td>
-                                        <td className="py-4 text-slate-700">
-                                            {formatDate(expense.createdAt)}
-                                        </td>
-                                    </tr>
-                                ))}
+                                <AnimatePresence mode="popLayout">
+                                    {expenses.map((expense) => (
+                                        <motion.tr
+                                            layout
+                                            key={expense.id}
+                                            initial={{ opacity: 0, y: 12 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: 10 }}
+                                            transition={{ duration: 0.26 }}
+                                            className="border-b border-[#f1f5f3] transition hover:bg-[#fbfdfc]"
+                                        >
+                                            <td className="py-4 font-bold text-[#0f4d3c]">
+                                                {expense.bookingId || "—"}
+                                            </td>
+                                            <td className="py-4 text-slate-700">
+                                                {expense.clientName || "—"}
+                                            </td>
+                                            <td className="py-4 text-slate-700">
+                                                {expense.eventType || "—"}
+                                            </td>
+                                            <td className="py-4 text-slate-700">
+                                                {expense.category || "—"}
+                                            </td>
+                                            <td className="py-4 font-bold text-[#b99117]">
+                                                {formatCurrency(expense.amount)}
+                                            </td>
+                                            <td className="py-4 text-slate-700">
+                                                {formatDate(expense.createdAt)}
+                                            </td>
+                                        </motion.tr>
+                                    ))}
+                                </AnimatePresence>
                             </tbody>
                         </table>
                     </div>
                 )}
             </motion.section>
+
+            <AnimatePresence>
+                {popup.open && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/35 px-4 backdrop-blur-[3px]"
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, y: 24, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 18, scale: 0.96 }}
+                            transition={{ type: "spring", stiffness: 260, damping: 22 }}
+                            className="w-full max-w-md overflow-hidden rounded-[28px] border border-gray-100 bg-white shadow-[0_25px_60px_rgba(0,0,0,0.2)]"
+                        >
+                            <div className="bg-[linear-gradient(135deg,#0f4d3c_0%,#137255_100%)] px-6 py-5 text-white">
+                                <div className="flex items-center gap-4">
+                                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/15">
+                                        <CheckCircle2 size={30} />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-white/80">
+                                            System Update
+                                        </p>
+                                        <h3 className="mt-1 text-2xl font-extrabold">
+                                            {popup.title}
+                                        </h3>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="px-6 py-6">
+                                <p className="text-[15px] leading-7 text-gray-600">
+                                    {popup.message}
+                                </p>
+
+                                <motion.button
+                                    whileTap={{ scale: 0.985 }}
+                                    onClick={() =>
+                                        setPopup({ open: false, title: "", message: "" })
+                                    }
+                                    className="mt-6 w-full rounded-2xl bg-[#0f4d3c] px-5 py-3.5 font-bold text-white transition hover:bg-[#0c3f31]"
+                                >
+                                    Okay
+                                </motion.button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </motion.div>
     );
 }
 
 function HeaderMiniCard({ icon: Icon, label, value }) {
     return (
-        <div className="rounded-[22px] border border-white/10 bg-white/10 p-4 backdrop-blur-md">
+        <motion.div
+            whileHover={{ y: -3 }}
+            transition={{ type: "spring", stiffness: 220, damping: 18 }}
+            className="rounded-[22px] border border-white/10 bg-white/10 p-4 backdrop-blur-md"
+        >
             <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 text-white">
                     <Icon size={18} />
@@ -688,14 +802,15 @@ function HeaderMiniCard({ icon: Icon, label, value }) {
                     <p className="mt-1 text-lg font-extrabold text-white">{value}</p>
                 </div>
             </div>
-        </div>
+        </motion.div>
     );
 }
 
 function SummaryCard({ icon: Icon, title, value, subtitle }) {
     return (
         <motion.div
-            whileHover={{ y: -4 }}
+            whileHover={{ y: -4, scale: 1.01 }}
+            transition={{ type: "spring", stiffness: 220, damping: 18 }}
             className="rounded-[24px] border border-[#dce7e2] bg-white p-5 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
         >
             <div className="flex items-start justify-between gap-3">

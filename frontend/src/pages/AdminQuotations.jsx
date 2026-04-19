@@ -11,7 +11,6 @@ import {
     ChevronUp,
     Sparkles,
     BadgeCheck,
-    CircleDollarSign,
     ClipboardList,
     PartyPopper,
 } from "lucide-react";
@@ -85,9 +84,49 @@ function getStatusClasses(status) {
     return "bg-[#fff8e6] text-[#b99117] border border-[#f1d98a]";
 }
 
+const containerVariants = {
+    hidden: {},
+    show: {
+        transition: {
+            staggerChildren: 0.08,
+            delayChildren: 0.04,
+        },
+    },
+};
+
 const fadeUp = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 },
+    hidden: { opacity: 0, y: 26, filter: "blur(8px)" },
+    show: {
+        opacity: 1,
+        y: 0,
+        filter: "blur(0px)",
+        transition: {
+            duration: 0.55,
+            ease: [0.22, 1, 0.36, 1],
+        },
+    },
+};
+
+const cardReveal = {
+    hidden: { opacity: 0, y: 22, scale: 0.985 },
+    show: {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        transition: {
+            duration: 0.5,
+            ease: [0.22, 1, 0.36, 1],
+        },
+    },
+    exit: {
+        opacity: 0,
+        y: 16,
+        scale: 0.985,
+        transition: {
+            duration: 0.24,
+            ease: "easeInOut",
+        },
+    },
 };
 
 function AdminQuotations() {
@@ -263,9 +302,9 @@ function AdminQuotations() {
 
     return (
         <motion.div
+            variants={containerVariants}
             initial="hidden"
             animate="show"
-            transition={{ staggerChildren: 0.08 }}
             className="space-y-6"
         >
             <motion.section
@@ -274,12 +313,20 @@ function AdminQuotations() {
             >
                 <div className="relative overflow-hidden bg-[linear-gradient(135deg,#07382d_0%,#0c4d3d_34%,#0f6b52_68%,#18a06c_100%)] px-6 py-7 text-white md:px-8">
                     <div className="pointer-events-none absolute inset-0">
-                        <div className="absolute -top-12 right-[-30px] h-40 w-40 rounded-full bg-[#d4af37]/20 blur-3xl" />
-                        <div className="absolute bottom-[-30px] left-[-20px] h-28 w-28 rounded-full bg-white/10 blur-3xl" />
+                        <motion.div
+                            animate={{ scale: [1, 1.08, 1], opacity: [0.18, 0.26, 0.18] }}
+                            transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+                            className="absolute -top-12 right-[-30px] h-40 w-40 rounded-full bg-[#d4af37]/20 blur-3xl"
+                        />
+                        <motion.div
+                            animate={{ scale: [1, 1.1, 1], opacity: [0.1, 0.16, 0.1] }}
+                            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
+                            className="absolute bottom-[-30px] left-[-20px] h-28 w-28 rounded-full bg-white/10 blur-3xl"
+                        />
                     </div>
 
                     <div className="relative">
-                        <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.22em] text-white/80">
+                        <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.22em] text-white/80 backdrop-blur-md">
                             <Sparkles size={13} />
                             Quotation Management
                         </div>
@@ -332,22 +379,23 @@ function AdminQuotations() {
                 </motion.div>
             ) : (
                 <div className="grid gap-5">
-                    <AnimatePresence>
+                    <AnimatePresence mode="popLayout">
                         {quotations.map((quote, index) => {
                             const status = quote.status || "Pending";
-                            const isPending =
-                                status.toLowerCase() === "pending";
+                            const isPending = status.toLowerCase() === "pending";
                             const currentId = quote.id || index;
                             const isExpanded = expandedId === currentId;
 
                             return (
                                 <motion.div
                                     key={currentId}
-                                    variants={fadeUp}
+                                    layout
+                                    variants={cardReveal}
                                     initial="hidden"
                                     animate="show"
-                                    exit={{ opacity: 0, y: 16 }}
-                                    whileHover={{ y: -3 }}
+                                    exit="exit"
+                                    whileHover={{ y: -4, scale: 1.003 }}
+                                    transition={{ type: "spring", stiffness: 220, damping: 20 }}
                                     className="overflow-hidden rounded-[28px] border border-[#dce7e2] bg-white shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
                                 >
                                     <div className="p-6">
@@ -371,11 +419,7 @@ function AdminQuotations() {
                                                     <InfoCard
                                                         icon={FileText}
                                                         label="Client"
-                                                        value={
-                                                            quote.fullName ||
-                                                            quote.ownerName ||
-                                                            "—"
-                                                        }
+                                                        value={quote.fullName || quote.ownerName || "—"}
                                                     />
                                                     <InfoCard
                                                         icon={CalendarDays}
@@ -390,9 +434,7 @@ function AdminQuotations() {
                                                     <InfoCard
                                                         icon={CalendarDays}
                                                         label="Preferred Date"
-                                                        value={formatDate(
-                                                            quote.preferredDate
-                                                        )}
+                                                        value={formatDate(quote.preferredDate)}
                                                     />
                                                     <InfoCard
                                                         icon={MapPin}
@@ -412,9 +454,7 @@ function AdminQuotations() {
                                                     Estimated Total
                                                 </p>
                                                 <p className="mt-2 text-3xl font-extrabold text-[#d4af37]">
-                                                    {formatCurrency(
-                                                        quote.estimatedTotal || 0
-                                                    )}
+                                                    {formatCurrency(quote.estimatedTotal || 0)}
                                                 </p>
                                             </div>
                                         </div>
@@ -422,140 +462,116 @@ function AdminQuotations() {
                                         <div className="mt-6 flex flex-col gap-3 md:flex-row">
                                             {isPending ? (
                                                 <>
-                                                    <button
+                                                    <motion.button
+                                                        whileTap={{ scale: 0.985 }}
                                                         onClick={() => handleApprove(quote)}
                                                         className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-[#0f4d3c] px-5 py-3 font-bold text-white transition hover:bg-[#0c3f31]"
                                                     >
                                                         <CheckCircle2 size={18} />
                                                         Approve & Create Booking
-                                                    </button>
+                                                    </motion.button>
 
-                                                    <button
+                                                    <motion.button
+                                                        whileTap={{ scale: 0.985 }}
                                                         onClick={() => handleReject(quote)}
                                                         className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-red-500 px-5 py-3 font-bold text-white transition hover:bg-red-600"
                                                     >
                                                         <XCircle size={18} />
                                                         Reject
-                                                    </button>
+                                                    </motion.button>
                                                 </>
                                             ) : (
                                                 <button
                                                     disabled
-                                                    className="flex-1 rounded-2xl bg-gray-100 px-5 py-3 font-bold text-gray-500 cursor-not-allowed"
+                                                    className="flex-1 cursor-not-allowed rounded-2xl bg-gray-100 px-5 py-3 font-bold text-gray-500"
                                                 >
-                                                    This quotation is already{" "}
-                                                    {status.toLowerCase()}
+                                                    This quotation is already {status.toLowerCase()}
                                                 </button>
                                             )}
 
-                                            <button
+                                            <motion.button
+                                                whileTap={{ scale: 0.985 }}
                                                 onClick={() =>
-                                                    setExpandedId(
-                                                        isExpanded ? null : currentId
-                                                    )
+                                                    setExpandedId(isExpanded ? null : currentId)
                                                 }
                                                 className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#d4af37] bg-[#fff8e6] px-5 py-3 font-bold text-[#0f4d3c] transition hover:bg-[#ffefbd] md:w-[220px]"
                                             >
-                                                {isExpanded ? (
-                                                    <ChevronUp size={18} />
-                                                ) : (
-                                                    <ChevronDown size={18} />
-                                                )}
-                                                {isExpanded
-                                                    ? "Hide Details"
-                                                    : "View Full Details"}
-                                            </button>
+                                                <motion.span
+                                                    animate={{ rotate: isExpanded ? 180 : 0 }}
+                                                    transition={{ duration: 0.28, ease: "easeInOut" }}
+                                                >
+                                                    {isExpanded ? (
+                                                        <ChevronUp size={18} />
+                                                    ) : (
+                                                        <ChevronDown size={18} />
+                                                    )}
+                                                </motion.span>
+                                                {isExpanded ? "Hide Details" : "View Full Details"}
+                                            </motion.button>
                                         </div>
                                     </div>
 
-                                    <AnimatePresence>
+                                    <AnimatePresence initial={false}>
                                         {isExpanded && (
                                             <motion.div
+                                                layout
                                                 initial={{ opacity: 0, height: 0 }}
                                                 animate={{ opacity: 1, height: "auto" }}
                                                 exit={{ opacity: 0, height: 0 }}
-                                                transition={{ duration: 0.25 }}
+                                                transition={{
+                                                    height: {
+                                                        duration: 0.42,
+                                                        ease: [0.22, 1, 0.36, 1],
+                                                    },
+                                                    opacity: { duration: 0.24 },
+                                                }}
                                                 className="border-t border-[#e8efeb] bg-[#fcfcfb]"
                                             >
-                                                <div className="grid gap-6 p-6 xl:grid-cols-[1fr_1fr]">
+                                                <motion.div
+                                                    initial={{ opacity: 0, y: 14 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, y: 10 }}
+                                                    transition={{ duration: 0.28, delay: 0.06 }}
+                                                    className="grid gap-6 p-6 xl:grid-cols-[1fr_1fr]"
+                                                >
                                                     <div className="rounded-[24px] border border-[#e5ece8] bg-white p-5 shadow-sm">
                                                         <h3 className="mb-4 text-xl font-extrabold text-[#0f4d3c]">
                                                             Quotation Information
                                                         </h3>
 
-                                                        <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2 text-sm">
-                                                            <DetailItem
-                                                                label="Full Name"
-                                                                value={quote.fullName}
-                                                            />
-                                                            <DetailItem
-                                                                label="Contact Number"
-                                                                value={quote.contactNumber}
-                                                            />
+                                                        <div className="grid gap-x-6 gap-y-4 text-sm sm:grid-cols-2">
+                                                            <DetailItem label="Full Name" value={quote.fullName} />
+                                                            <DetailItem label="Contact Number" value={quote.contactNumber} />
                                                             <DetailItem
                                                                 label="Email Address"
-                                                                value={
-                                                                    quote.email ||
-                                                                    quote.ownerEmail
-                                                                }
+                                                                value={quote.email || quote.ownerEmail}
                                                             />
-                                                            <DetailItem
-                                                                label="Event Type"
-                                                                value={quote.eventType}
-                                                            />
+                                                            <DetailItem label="Event Type" value={quote.eventType} />
                                                             <DetailItem
                                                                 label="Preferred Date"
-                                                                value={formatDate(
-                                                                    quote.preferredDate
-                                                                )}
+                                                                value={formatDate(quote.preferredDate)}
                                                             />
-                                                            <DetailItem
-                                                                label="Event Time"
-                                                                value={quote.eventTime}
-                                                            />
-                                                            <DetailItem
-                                                                label="Venue / Location"
-                                                                value={quote.venue}
-                                                            />
-                                                            <DetailItem
-                                                                label="Number of Guests"
-                                                                value={quote.guests}
-                                                            />
-                                                            <DetailItem
-                                                                label="Preferred Package"
-                                                                value={quote.packageType}
-                                                            />
-                                                            <DetailItem
-                                                                label="Classic Menu"
-                                                                value={quote.classicMenu}
-                                                            />
-                                                            <DetailItem
-                                                                label="Theme / Style"
-                                                                value={quote.themePreference}
-                                                            />
+                                                            <DetailItem label="Event Time" value={quote.eventTime} />
+                                                            <DetailItem label="Venue / Location" value={quote.venue} />
+                                                            <DetailItem label="Number of Guests" value={quote.guests} />
+                                                            <DetailItem label="Preferred Package" value={quote.packageType} />
+                                                            <DetailItem label="Classic Menu" value={quote.classicMenu} />
+                                                            <DetailItem label="Theme / Style" value={quote.themePreference} />
                                                             <DetailItem
                                                                 label="Status"
-                                                                value={
-                                                                    quote.status || "Pending"
-                                                                }
+                                                                value={quote.status || "Pending"}
                                                             />
                                                             <DetailItem
                                                                 label="Package Price"
-                                                                value={formatCurrency(
-                                                                    quote.packagePrice || 0
-                                                                )}
+                                                                value={formatCurrency(quote.packagePrice || 0)}
                                                             />
                                                             <DetailItem
                                                                 label="Add-ons Total"
-                                                                value={formatCurrency(
-                                                                    quote.addOnsTotal || 0
-                                                                )}
+                                                                value={formatCurrency(quote.addOnsTotal || 0)}
                                                             />
                                                             <DetailItem
                                                                 label="Estimated Total"
-                                                                value={formatCurrency(
-                                                                    quote.estimatedTotal || 0
-                                                                )}
+                                                                value={formatCurrency(quote.estimatedTotal || 0)}
                                                             />
                                                             <DetailItem
                                                                 label="Package Coverage"
@@ -576,8 +592,7 @@ function AdminQuotations() {
                                                                 Special Requests
                                                             </p>
                                                             <div className="rounded-2xl border border-[#e1ece8] bg-[#f8fbfa] p-4 text-sm leading-6 text-slate-600">
-                                                                {quote.specialRequests ||
-                                                                    "No special requests."}
+                                                                {quote.specialRequests || "No special requests."}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -591,16 +606,17 @@ function AdminQuotations() {
                                                             {Array.isArray(quote.addOns) &&
                                                                 quote.addOns.length > 0 ? (
                                                                 <div className="flex flex-wrap gap-2">
-                                                                    {quote.addOns.map(
-                                                                        (addon, i) => (
-                                                                            <span
-                                                                                key={`${addon}-${i}`}
-                                                                                className="rounded-full border border-[#e5d390] bg-[#fff8e6] px-3 py-1 text-sm font-medium text-[#0f4d3c]"
-                                                                            >
-                                                                                {addon}
-                                                                            </span>
-                                                                        )
-                                                                    )}
+                                                                    {quote.addOns.map((addon, i) => (
+                                                                        <motion.span
+                                                                            key={`${addon}-${i}`}
+                                                                            initial={{ opacity: 0, scale: 0.9 }}
+                                                                            animate={{ opacity: 1, scale: 1 }}
+                                                                            transition={{ duration: 0.22, delay: i * 0.03 }}
+                                                                            className="rounded-full border border-[#e5d390] bg-[#fff8e6] px-3 py-1 text-sm font-medium text-[#0f4d3c]"
+                                                                        >
+                                                                            {addon}
+                                                                        </motion.span>
+                                                                    ))}
                                                                 </div>
                                                             ) : (
                                                                 <p className="text-sm text-slate-500">
@@ -614,33 +630,30 @@ function AdminQuotations() {
                                                                 Package Inclusions
                                                             </h3>
 
-                                                            {Array.isArray(
-                                                                quote.packageInclusions
-                                                            ) &&
-                                                                quote.packageInclusions.length >
-                                                                0 ? (
+                                                            {Array.isArray(quote.packageInclusions) &&
+                                                                quote.packageInclusions.length > 0 ? (
                                                                 <ul className="space-y-3">
-                                                                    {quote.packageInclusions.map(
-                                                                        (item, i) => (
-                                                                            <li
-                                                                                key={`${item}-${i}`}
-                                                                                className="flex items-start gap-3 text-sm text-slate-700"
-                                                                            >
-                                                                                <span className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full bg-[#d4af37]" />
-                                                                                <span>{item}</span>
-                                                                            </li>
-                                                                        )
-                                                                    )}
+                                                                    {quote.packageInclusions.map((item, i) => (
+                                                                        <motion.li
+                                                                            key={`${item}-${i}`}
+                                                                            initial={{ opacity: 0, x: -8 }}
+                                                                            animate={{ opacity: 1, x: 0 }}
+                                                                            transition={{ duration: 0.24, delay: i * 0.03 }}
+                                                                            className="flex items-start gap-3 text-sm text-slate-700"
+                                                                        >
+                                                                            <span className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full bg-[#d4af37]" />
+                                                                            <span>{item}</span>
+                                                                        </motion.li>
+                                                                    ))}
                                                                 </ul>
                                                             ) : (
                                                                 <p className="text-sm text-slate-500">
-                                                                    No package inclusions recorded
-                                                                    in this quotation.
+                                                                    No package inclusions recorded in this quotation.
                                                                 </p>
                                                             )}
                                                         </div>
                                                     </div>
-                                                </div>
+                                                </motion.div>
                                             </motion.div>
                                         )}
                                     </AnimatePresence>
@@ -657,12 +670,14 @@ function AdminQuotations() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 px-4 backdrop-blur-[2px]"
+                        transition={{ duration: 0.22 }}
+                        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 px-4 backdrop-blur-[3px]"
                     >
                         <motion.div
-                            initial={{ opacity: 0, y: 20, scale: 0.96 }}
+                            initial={{ opacity: 0, y: 26, scale: 0.94 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: 16, scale: 0.96 }}
+                            exit={{ opacity: 0, y: 18, scale: 0.96 }}
+                            transition={{ type: "spring", stiffness: 260, damping: 22 }}
                             className="w-full max-w-md overflow-hidden rounded-[28px] border border-gray-100 bg-white shadow-[0_25px_60px_rgba(0,0,0,0.25)]"
                         >
                             <div
@@ -672,13 +687,18 @@ function AdminQuotations() {
                                     }`}
                             >
                                 <div className="flex items-center gap-4">
-                                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/15">
+                                    <motion.div
+                                        initial={{ scale: 0.85, rotate: -8 }}
+                                        animate={{ scale: 1, rotate: 0 }}
+                                        transition={{ type: "spring", stiffness: 260, damping: 18 }}
+                                        className="flex h-14 w-14 items-center justify-center rounded-full bg-white/15"
+                                    >
                                         {popup.type === "success" ? (
                                             <CheckCircle2 size={30} />
                                         ) : (
                                             <XCircle size={30} />
                                         )}
-                                    </div>
+                                    </motion.div>
 
                                     <div>
                                         <p className="text-xs font-semibold uppercase tracking-[0.25em] text-white/80">
@@ -696,7 +716,8 @@ function AdminQuotations() {
                                     {popup.message}
                                 </p>
 
-                                <button
+                                <motion.button
+                                    whileTap={{ scale: 0.985 }}
                                     onClick={closePopup}
                                     className={`mt-6 w-full rounded-2xl px-5 py-3.5 font-bold text-white transition ${popup.type === "success"
                                             ? "bg-[#0f4d3c] hover:bg-[#0c3f31]"
@@ -704,7 +725,7 @@ function AdminQuotations() {
                                         }`}
                                 >
                                     Okay
-                                </button>
+                                </motion.button>
                             </div>
                         </motion.div>
                     </motion.div>
@@ -716,7 +737,11 @@ function AdminQuotations() {
 
 function SummaryCard({ icon: Icon, label, value }) {
     return (
-        <div className="rounded-[22px] border border-[#e2ebe7] bg-white p-4 shadow-sm">
+        <motion.div
+            whileHover={{ y: -3 }}
+            transition={{ type: "spring", stiffness: 220, damping: 18 }}
+            className="rounded-[22px] border border-[#e2ebe7] bg-white p-4 shadow-sm"
+        >
             <div className="flex items-center gap-3">
                 <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#edf8f3_0%,#dff1e8_100%)] text-[#0f4d3c]">
                     <Icon size={20} />
@@ -730,13 +755,17 @@ function SummaryCard({ icon: Icon, label, value }) {
                     </h3>
                 </div>
             </div>
-        </div>
+        </motion.div>
     );
 }
 
 function InfoCard({ icon: Icon, label, value }) {
     return (
-        <div className="rounded-[22px] border border-[#e4ece8] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-4 shadow-sm">
+        <motion.div
+            whileHover={{ y: -2 }}
+            transition={{ type: "spring", stiffness: 220, damping: 18 }}
+            className="rounded-[22px] border border-[#e4ece8] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-4 shadow-sm"
+        >
             <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-[#edf8f3] text-[#0f4d3c]">
                 <Icon size={18} />
             </div>
@@ -746,7 +775,7 @@ function InfoCard({ icon: Icon, label, value }) {
             <p className="mt-2 text-base font-bold text-[#0f4d3c]">
                 {value || "—"}
             </p>
-        </div>
+        </motion.div>
     );
 }
 
