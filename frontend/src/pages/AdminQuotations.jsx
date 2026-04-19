@@ -15,7 +15,6 @@ import {
     PartyPopper,
 } from "lucide-react";
 import { quotationService } from "../services/quotationService";
-import { bookingService } from "../services/bookingService";
 
 function formatCurrency(value) {
     return `₱${Number(value || 0).toLocaleString()}`;
@@ -52,14 +51,36 @@ function getStatusClasses(status) {
     return "bg-[#fff8e6] text-[#b99117] border border-[#f1d98a]";
 }
 
+function safeParseArray(value) {
+    if (Array.isArray(value)) return value;
+    if (!value) return [];
+
+    try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed : [];
+    } catch {
+        return [];
+    }
+}
+
 function normalizeQuotation(item) {
     if (!item || typeof item !== "object") return null;
 
     return {
         id: item.id,
         quotationId: item.quotation_id || item.quotationId || "",
-        fullName: item.full_name || item.fullName || item.owner_name || item.ownerName || "",
-        ownerName: item.owner_name || item.ownerName || item.full_name || item.fullName || "",
+        fullName:
+            item.full_name ||
+            item.fullName ||
+            item.owner_name ||
+            item.ownerName ||
+            "",
+        ownerName:
+            item.owner_name ||
+            item.ownerName ||
+            item.full_name ||
+            item.fullName ||
+            "",
         ownerEmail: item.owner_email || item.ownerEmail || item.email || "",
         email: item.email || item.owner_email || item.ownerEmail || "",
         contactNumber: item.contact_number || item.contactNumber || "",
@@ -70,11 +91,7 @@ function normalizeQuotation(item) {
         guests: Number(item.guests || 0),
         packageType: item.package_type || item.packageType || "",
         classicMenu: item.classic_menu || item.classicMenu || "",
-        addOns: Array.isArray(item.add_ons)
-            ? item.add_ons
-            : Array.isArray(item.addOns)
-                ? item.addOns
-                : [],
+        addOns: safeParseArray(item.add_ons ?? item.addOns),
         themePreference: item.theme_preference || item.themePreference || "",
         specialRequests: item.special_requests || item.specialRequests || "",
         packagePrice: Number(item.package_price || item.packagePrice || 0),
@@ -85,11 +102,9 @@ function normalizeQuotation(item) {
         ratePerPax: item.rate_per_pax || item.ratePerPax || null,
         excessGuests: Number(item.excess_guests || item.excessGuests || 0),
         excessCost: Number(item.excess_cost || item.excessCost || 0),
-        packageInclusions: Array.isArray(item.package_inclusions)
-            ? item.package_inclusions
-            : Array.isArray(item.packageInclusions)
-                ? item.packageInclusions
-                : [],
+        packageInclusions: safeParseArray(
+            item.package_inclusions ?? item.packageInclusions
+        ),
         status: item.status || "Pending",
         createdAt: item.created_at || item.createdAt || "",
     };
@@ -144,6 +159,7 @@ function AdminQuotations() {
     const [refreshKey, setRefreshKey] = useState(0);
     const [expandedId, setExpandedId] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [actionLoadingId, setActionLoadingId] = useState(null);
     const [quotations, setQuotations] = useState([]);
     const [popup, setPopup] = useState({
         open: false,
@@ -210,36 +226,29 @@ function AdminQuotations() {
     }, [quotations]);
 
     const approvedCount = useMemo(() => {
-        return quotations.filter(
-            (item) => String(item.status || "").toLowerCase() === "approved"
+        return quotations.filter((item) =>
+            ["approved", "confirmed", "paid"].includes(
+                String(item.status || "").toLowerCase()
+            )
         ).length;
     }, [quotations]);
 
     const handleApprove = async (quotation) => {
         try {
-            await quotationService.updateQuotationStatus(quotation.id, "Approved");
+            setActionLoadingId(quotation.id);
 
-            await bookingService.createBooking({
-                client_name: quotation.fullName || quotation.ownerName || "Client",
-                client_email: (quotation.email || quotation.ownerEmail || "").trim().toLowerCase(),
-                contact_number: quotation.contactNumber || "",
-                event_type: quotation.eventType || "",
-                package_name: quotation.packageType || "",
-                event_date: quotation.preferredDate || "",
-                event_time: quotation.eventTime || "",
-                venue: quotation.venue || "",
-                guests: Number(quotation.guests || 0),
-                total_price: Number(quotation.estimatedTotal || 0),
-                payment_status: "pending",
-                booking_status: "approved",
-                notes: quotation.specialRequests || quotation.classicMenu || "",
-            });
+            const response = await quotationService.updateQuotationStatus(
+                quotation.id,
+                "Approved"
+            );
 
             refresh();
             openPopup(
                 "success",
                 "Quotation Approved",
-                "The quotation was approved successfully and the booking record was created automatically."
+                response?.bookingCreated
+                    ? "The quotation was approved successfully and a booking record was created automatically."
+                    : "The quotation was approved successfully."
             );
         } catch (error) {
             console.error("Approve quotation error:", error);
@@ -248,11 +257,15 @@ function AdminQuotations() {
                 "Approval Failed",
                 error.message || "The quotation could not be approved."
             );
+        } finally {
+            setActionLoadingId(null);
         }
     };
 
     const handleReject = async (quotation) => {
         try {
+            setActionLoadingId(quotation.id);
+
             await quotationService.updateQuotationStatus(quotation.id, "Rejected");
 
             refresh();
@@ -268,6 +281,8 @@ function AdminQuotations() {
                 "Reject Failed",
                 error.message || "The quotation could not be rejected."
             );
+        } finally {
+            setActionLoadingId(null);
         }
     };
 
@@ -291,7 +306,12 @@ function AdminQuotations() {
                         />
                         <motion.div
                             animate={{ scale: [1, 1.1, 1], opacity: [0.1, 0.16, 0.1] }}
-                            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
+                            transition={{
+                                duration: 8,
+                                repeat: Infinity,
+                                ease: "easeInOut",
+                                delay: 0.4,
+                            }}
                             className="absolute bottom-[-30px] left-[-20px] h-28 w-28 rounded-full bg-white/10 blur-3xl"
                         />
                     </div>
@@ -368,6 +388,7 @@ function AdminQuotations() {
                             const isPending = status.toLowerCase() === "pending";
                             const currentId = quote.id || index;
                             const isExpanded = expandedId === currentId;
+                            const isActing = actionLoadingId === quote.id;
 
                             return (
                                 <motion.div
@@ -448,16 +469,26 @@ function AdminQuotations() {
                                                     <motion.button
                                                         whileTap={{ scale: 0.985 }}
                                                         onClick={() => handleApprove(quote)}
-                                                        className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-[#0f4d3c] px-5 py-3 font-bold text-white transition hover:bg-[#0c3f31]"
+                                                        disabled={isActing}
+                                                        className={`flex-1 inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 font-bold text-white transition ${isActing
+                                                                ? "cursor-not-allowed bg-[#0f4d3c]/70"
+                                                                : "bg-[#0f4d3c] hover:bg-[#0c3f31]"
+                                                            }`}
                                                     >
                                                         <CheckCircle2 size={18} />
-                                                        Approve & Create Booking
+                                                        {isActing
+                                                            ? "Processing..."
+                                                            : "Approve & Create Booking"}
                                                     </motion.button>
 
                                                     <motion.button
                                                         whileTap={{ scale: 0.985 }}
                                                         onClick={() => handleReject(quote)}
-                                                        className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-red-500 px-5 py-3 font-bold text-white transition hover:bg-red-600"
+                                                        disabled={isActing}
+                                                        className={`flex-1 inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 font-bold text-white transition ${isActing
+                                                                ? "cursor-not-allowed bg-red-400"
+                                                                : "bg-red-500 hover:bg-red-600"
+                                                            }`}
                                                     >
                                                         <XCircle size={18} />
                                                         Reject
@@ -524,7 +555,10 @@ function AdminQuotations() {
 
                                                         <div className="grid gap-x-6 gap-y-4 text-sm sm:grid-cols-2">
                                                             <DetailItem label="Full Name" value={quote.fullName} />
-                                                            <DetailItem label="Contact Number" value={quote.contactNumber} />
+                                                            <DetailItem
+                                                                label="Contact Number"
+                                                                value={quote.contactNumber}
+                                                            />
                                                             <DetailItem
                                                                 label="Email Address"
                                                                 value={quote.email || quote.ownerEmail}
@@ -535,26 +569,47 @@ function AdminQuotations() {
                                                                 value={formatDate(quote.preferredDate)}
                                                             />
                                                             <DetailItem label="Event Time" value={quote.eventTime} />
-                                                            <DetailItem label="Venue / Location" value={quote.venue} />
-                                                            <DetailItem label="Number of Guests" value={quote.guests} />
-                                                            <DetailItem label="Preferred Package" value={quote.packageType} />
-                                                            <DetailItem label="Classic Menu" value={quote.classicMenu} />
-                                                            <DetailItem label="Theme / Style" value={quote.themePreference} />
+                                                            <DetailItem
+                                                                label="Venue / Location"
+                                                                value={quote.venue}
+                                                            />
+                                                            <DetailItem
+                                                                label="Number of Guests"
+                                                                value={quote.guests}
+                                                            />
+                                                            <DetailItem
+                                                                label="Preferred Package"
+                                                                value={quote.packageType}
+                                                            />
+                                                            <DetailItem
+                                                                label="Classic Menu"
+                                                                value={quote.classicMenu}
+                                                            />
+                                                            <DetailItem
+                                                                label="Theme / Style"
+                                                                value={quote.themePreference}
+                                                            />
                                                             <DetailItem
                                                                 label="Status"
                                                                 value={quote.status || "Pending"}
                                                             />
                                                             <DetailItem
                                                                 label="Package Price"
-                                                                value={formatCurrency(quote.packagePrice || 0)}
+                                                                value={formatCurrency(
+                                                                    quote.packagePrice || 0
+                                                                )}
                                                             />
                                                             <DetailItem
                                                                 label="Add-ons Total"
-                                                                value={formatCurrency(quote.addOnsTotal || 0)}
+                                                                value={formatCurrency(
+                                                                    quote.addOnsTotal || 0
+                                                                )}
                                                             />
                                                             <DetailItem
                                                                 label="Estimated Total"
-                                                                value={formatCurrency(quote.estimatedTotal || 0)}
+                                                                value={formatCurrency(
+                                                                    quote.estimatedTotal || 0
+                                                                )}
                                                             />
                                                             <DetailItem
                                                                 label="Package Coverage"
@@ -575,7 +630,8 @@ function AdminQuotations() {
                                                                 Special Requests
                                                             </p>
                                                             <div className="rounded-2xl border border-[#e1ece8] bg-[#f8fbfa] p-4 text-sm leading-6 text-slate-600">
-                                                                {quote.specialRequests || "No special requests."}
+                                                                {quote.specialRequests ||
+                                                                    "No special requests."}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -592,9 +648,18 @@ function AdminQuotations() {
                                                                     {quote.addOns.map((addon, i) => (
                                                                         <motion.span
                                                                             key={`${addon}-${i}`}
-                                                                            initial={{ opacity: 0, scale: 0.9 }}
-                                                                            animate={{ opacity: 1, scale: 1 }}
-                                                                            transition={{ duration: 0.22, delay: i * 0.03 }}
+                                                                            initial={{
+                                                                                opacity: 0,
+                                                                                scale: 0.9,
+                                                                            }}
+                                                                            animate={{
+                                                                                opacity: 1,
+                                                                                scale: 1,
+                                                                            }}
+                                                                            transition={{
+                                                                                duration: 0.22,
+                                                                                delay: i * 0.03,
+                                                                            }}
                                                                             className="rounded-full border border-[#e5d390] bg-[#fff8e6] px-3 py-1 text-sm font-medium text-[#0f4d3c]"
                                                                         >
                                                                             {addon}
@@ -616,22 +681,34 @@ function AdminQuotations() {
                                                             {Array.isArray(quote.packageInclusions) &&
                                                                 quote.packageInclusions.length > 0 ? (
                                                                 <ul className="space-y-3">
-                                                                    {quote.packageInclusions.map((item, i) => (
-                                                                        <motion.li
-                                                                            key={`${item}-${i}`}
-                                                                            initial={{ opacity: 0, x: -8 }}
-                                                                            animate={{ opacity: 1, x: 0 }}
-                                                                            transition={{ duration: 0.24, delay: i * 0.03 }}
-                                                                            className="flex items-start gap-3 text-sm text-slate-700"
-                                                                        >
-                                                                            <span className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full bg-[#d4af37]" />
-                                                                            <span>{item}</span>
-                                                                        </motion.li>
-                                                                    ))}
+                                                                    {quote.packageInclusions.map(
+                                                                        (item, i) => (
+                                                                            <motion.li
+                                                                                key={`${item}-${i}`}
+                                                                                initial={{
+                                                                                    opacity: 0,
+                                                                                    x: -8,
+                                                                                }}
+                                                                                animate={{
+                                                                                    opacity: 1,
+                                                                                    x: 0,
+                                                                                }}
+                                                                                transition={{
+                                                                                    duration: 0.24,
+                                                                                    delay: i * 0.03,
+                                                                                }}
+                                                                                className="flex items-start gap-3 text-sm text-slate-700"
+                                                                            >
+                                                                                <span className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full bg-[#d4af37]" />
+                                                                                <span>{item}</span>
+                                                                            </motion.li>
+                                                                        )
+                                                                    )}
                                                                 </ul>
                                                             ) : (
                                                                 <p className="text-sm text-slate-500">
-                                                                    No package inclusions recorded in this quotation.
+                                                                    No package inclusions recorded
+                                                                    in this quotation.
                                                                 </p>
                                                             )}
                                                         </div>
@@ -673,7 +750,11 @@ function AdminQuotations() {
                                     <motion.div
                                         initial={{ scale: 0.85, rotate: -8 }}
                                         animate={{ scale: 1, rotate: 0 }}
-                                        transition={{ type: "spring", stiffness: 260, damping: 18 }}
+                                        transition={{
+                                            type: "spring",
+                                            stiffness: 260,
+                                            damping: 18,
+                                        }}
                                         className="flex h-14 w-14 items-center justify-center rounded-full bg-white/15"
                                     >
                                         {popup.type === "success" ? (
