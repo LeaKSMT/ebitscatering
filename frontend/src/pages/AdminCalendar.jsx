@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
     CalendarDays,
     ChevronLeft,
@@ -16,6 +17,7 @@ import {
     BadgeCheck,
     PartyPopper,
     Mail,
+    Sparkles,
 } from "lucide-react";
 
 const PAX_RATE = 400;
@@ -127,6 +129,11 @@ const allPackages = [
     ...debutPackages,
     ...weddingPackages,
 ];
+
+const fadeUp = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 },
+};
 
 function safeParse(key, fallback = []) {
     try {
@@ -448,9 +455,11 @@ function AdminCalendar() {
             email: storageEmail,
             eventType: form.eventType,
             preferredDate: form.preferredDate,
+            eventDate: form.preferredDate,
             eventTime: form.eventTime,
             venue: form.venue,
             guests: Number(form.guests || 0),
+            guestCount: Number(form.guests || 0),
             packageType: form.packageType,
             classicMenu: form.classicMenu,
             addOns: form.addOns,
@@ -459,6 +468,7 @@ function AdminCalendar() {
             packagePrice,
             addOnsTotal,
             estimatedTotal,
+            totalAmount: estimatedTotal,
             includedPax: selectedPackage?.includedPax || null,
             pricingType: selectedPackage?.pricingType || "",
             ratePerPax: selectedPackage?.ratePerPax || null,
@@ -579,7 +589,7 @@ function AdminCalendar() {
         days.push(
             <div
                 key={`blank-${i}`}
-                className="min-h-[132px] rounded-[22px] border border-transparent"
+                className="min-h-[140px] rounded-[22px] border border-transparent"
             />
         );
     }
@@ -593,11 +603,12 @@ function AdminCalendar() {
         const hasBooking = dayBookings.length > 0;
 
         days.push(
-            <div
+            <motion.div
                 key={day}
-                className={`group relative min-h-[132px] rounded-[22px] border p-3 transition-all duration-200 ${hasBooking
-                    ? "border-[#d5b33f] bg-[#d8b63a] text-[#174c3c] shadow-sm"
-                    : "border-[#e8eceb] bg-[#f4f5f5] text-[#174c3c] hover:border-[#22b67f]/40 hover:shadow-sm"
+                whileHover={{ y: -2 }}
+                className={`group relative min-h-[140px] rounded-[22px] border p-3 transition-all duration-200 ${hasBooking
+                        ? "border-[#d5b33f] bg-[linear-gradient(180deg,#fff6cf_0%,#f5dea0_100%)] text-[#174c3c] shadow-sm"
+                        : "border-[#e8eceb] bg-[#f8faf9] text-[#174c3c] hover:border-[#22b67f]/40 hover:shadow-sm"
                     } ${isToday ? "ring-2 ring-[#0f5b46]/60" : ""}`}
             >
                 <div className="flex items-start justify-between">
@@ -607,7 +618,7 @@ function AdminCalendar() {
                         <button
                             type="button"
                             onClick={() => openManageModal(dayBookings[0])}
-                            className="h-3 w-3 rounded-full bg-[#0f5b46] shadow"
+                            className="h-3.5 w-3.5 rounded-full bg-[#0f5b46] shadow"
                             title="Manage booking"
                         />
                     ) : (
@@ -617,8 +628,8 @@ function AdminCalendar() {
                             className="opacity-0 transition group-hover:opacity-100"
                             title="Add booking"
                         >
-                            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-[#0f5b46] shadow-sm">
-                                <Plus size={15} />
+                            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#0f5b46] shadow-sm">
+                                <Plus size={16} />
                             </span>
                         </button>
                     )}
@@ -626,7 +637,7 @@ function AdminCalendar() {
 
                 {hasBooking && (
                     <div className="mt-5 space-y-2">
-                        <div className="line-clamp-1 text-sm font-semibold">
+                        <div className="line-clamp-1 text-sm font-bold">
                             {dayBookings[0].eventType || "Booking"}
                         </div>
                         <div className="line-clamp-1 text-xs opacity-80">
@@ -637,34 +648,65 @@ function AdminCalendar() {
                         </div>
                     </div>
                 )}
-            </div>
+            </motion.div>
         );
     }
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                <div>
-                    <h1 className="text-3xl font-extrabold tracking-tight text-[#174c3c]">
-                        Event Calendar
-                    </h1>
-                    <p className="mt-1 text-base text-slate-500">
-                        Manage bookings and monitor event schedules across months
-                    </p>
-                </div>
+        <motion.div
+            initial="hidden"
+            animate="show"
+            transition={{ staggerChildren: 0.08 }}
+            className="space-y-6"
+        >
+            <motion.section
+                variants={fadeUp}
+                className="overflow-hidden rounded-[30px] border border-[#dce7e2] bg-white shadow-[0_18px_50px_rgba(14,61,47,0.07)]"
+            >
+                <div className="relative overflow-hidden bg-[linear-gradient(135deg,#07382d_0%,#0c4d3d_34%,#0f6b52_68%,#18a06c_100%)] px-6 py-7 text-white md:px-8">
+                    <div className="pointer-events-none absolute inset-0">
+                        <div className="absolute -top-12 right-[-30px] h-40 w-40 rounded-full bg-[#d4af37]/20 blur-3xl" />
+                        <div className="absolute bottom-[-30px] left-[-20px] h-28 w-28 rounded-full bg-white/10 blur-3xl" />
+                    </div>
 
-                <div className="rounded-[22px] border border-[#e8eceb] bg-white px-5 py-4 shadow-sm">
-                    <p className="text-sm text-slate-500">Current Month Bookings</p>
-                    <p className="mt-1 text-right text-3xl font-extrabold text-[#d5b33f]">
-                        {currentMonthBookings.length}
-                    </p>
+                    <div className="relative flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
+                        <div>
+                            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.22em] text-white/80">
+                                <Sparkles size={13} />
+                                Event Calendar
+                            </div>
+
+                            <h1 className="mt-4 text-3xl font-extrabold md:text-[42px]">
+                                Manage Event Schedules
+                            </h1>
+                            <p className="mt-2 max-w-3xl text-sm leading-7 text-white/85 md:text-[15px]">
+                                Monitor all event schedules, create manual bookings, and
+                                manage the status of upcoming catering events in one
+                                premium calendar workspace.
+                            </p>
+                        </div>
+
+                        <div className="grid gap-3 sm:grid-cols-2 xl:w-[420px]">
+                            <HeaderMiniCard
+                                label="Current Month Bookings"
+                                value={currentMonthBookings.length}
+                            />
+                            <HeaderMiniCard
+                                label="Upcoming Events"
+                                value={upcomingEvents.length}
+                            />
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </motion.section>
 
             <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-                <div className="rounded-[28px] border border-[#e8eceb] bg-white p-5 shadow-sm">
-                    <div className="rounded-[24px] bg-[#0f5b46] px-5 py-5 text-white">
-                        <div className="flex items-center justify-between">
+                <motion.div
+                    variants={fadeUp}
+                    className="rounded-[28px] border border-[#e8eceb] bg-white p-5 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
+                >
+                    <div className="rounded-[24px] bg-[linear-gradient(135deg,#0f5b46_0%,#138062_100%)] px-5 py-5 text-white">
+                        <div className="flex items-center justify-between gap-3">
                             <button
                                 type="button"
                                 onClick={() => changeMonth(-1)}
@@ -702,11 +744,11 @@ function AdminCalendar() {
 
                     <div className="mt-6 flex flex-wrap items-center justify-center gap-6 text-sm text-[#174c3c]">
                         <div className="flex items-center gap-2">
-                            <span className="h-4 w-4 rounded bg-[#d8b63a]" />
+                            <span className="h-4 w-4 rounded bg-[#f0d37a]" />
                             <span>Booked</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <span className="h-4 w-4 rounded border border-[#e5e7eb] bg-[#f4f5f5]" />
+                            <span className="h-4 w-4 rounded border border-[#e5e7eb] bg-[#f8faf9]" />
                             <span>Available</span>
                         </div>
                         <div className="flex items-center gap-2">
@@ -714,10 +756,13 @@ function AdminCalendar() {
                             <span>Today</span>
                         </div>
                     </div>
-                </div>
+                </motion.div>
 
-                <div className="rounded-[28px] border border-[#e8eceb] bg-white shadow-sm">
-                    <div className="rounded-t-[28px] bg-[#22b67f] px-6 py-5 text-lg font-bold text-white">
+                <motion.div
+                    variants={fadeUp}
+                    className="overflow-hidden rounded-[28px] border border-[#e8eceb] bg-white shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
+                >
+                    <div className="bg-[linear-gradient(135deg,#22b67f_0%,#169566_100%)] px-6 py-5 text-lg font-bold text-white">
                         Upcoming Events
                     </div>
 
@@ -728,24 +773,25 @@ function AdminCalendar() {
                             </div>
                         ) : (
                             upcomingEvents.map((event) => (
-                                <button
+                                <motion.button
+                                    whileHover={{ y: -2 }}
                                     type="button"
                                     key={event.id}
                                     onClick={() => openManageModal(event)}
-                                    className="w-full rounded-[22px] bg-[#f8f9f9] p-5 text-left transition hover:shadow-sm"
+                                    className="w-full rounded-[22px] border border-[#e7ecea] bg-[#f8f9f9] p-5 text-left transition hover:shadow-sm"
                                 >
                                     <div className="flex items-start justify-between gap-3">
                                         <div>
-                                            <h3 className="text-2xl font-bold text-[#174c3c]">
+                                            <h3 className="text-2xl font-extrabold text-[#174c3c]">
                                                 {event.eventType || "Event"}
                                             </h3>
-                                            <p className="mt-2 text-lg text-slate-600">
+                                            <p className="mt-2 text-base text-slate-600">
                                                 {event.fullName || "Unnamed client"}
                                             </p>
-                                            <p className="mt-2 text-lg font-semibold text-[#d5b33f]">
+                                            <p className="mt-2 text-sm font-semibold text-[#b99117]">
                                                 {formatDate(event.preferredDate)}
                                             </p>
-                                            <p className="mt-2 text-base text-slate-500">
+                                            <p className="mt-2 text-sm text-slate-500">
                                                 {event.guests || 0} guests •{" "}
                                                 {formatCurrency(event.estimatedTotal)}
                                             </p>
@@ -753,630 +799,677 @@ function AdminCalendar() {
 
                                         <div>{renderStatusBadge(event.status)}</div>
                                     </div>
-                                </button>
+                                </motion.button>
                             ))
                         )}
                     </div>
-                </div>
+                </motion.div>
             </div>
 
-            {showAddModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 px-4 py-6">
-                    <div className="max-h-[92vh] w-full max-w-6xl overflow-y-auto rounded-[30px] bg-[#f6f1e7] shadow-2xl">
-                        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[#eadfc4] bg-[#f6f1e7] px-8 py-6">
-                            <div>
-                                <h2 className="text-4xl font-extrabold text-[#22b67f]">
-                                    Add Booking
-                                </h2>
-                                <p className="mt-1 text-slate-500">
-                                    Fill in the event details using the same quotation flow
-                                </p>
-                            </div>
-
-                            <button
-                                type="button"
-                                onClick={closeAddModal}
-                                className="rounded-full p-2 text-slate-500 transition hover:bg-white/70"
-                            >
-                                <X size={24} />
-                            </button>
-                        </div>
-
-                        <div className="grid gap-8 lg:grid-cols-[0.92fr_1.25fr] p-8">
-                            <div className="rounded-[28px] bg-gradient-to-br from-[#0b5a43] via-[#0c6048] to-[#094534] p-6 text-white shadow-[0_18px_45px_rgba(11,90,67,0.18)]">
-                                <div className="flex items-center gap-3 mb-5">
-                                    <div className="h-11 w-11 rounded-2xl bg-[#d4af37] text-[#0f4d3c] flex items-center justify-center text-xl font-extrabold">
-                                        ✦
-                                    </div>
-                                    <div>
-                                        <p className="text-xs uppercase tracking-[0.2em] text-white/70">
-                                            Event Planning
-                                        </p>
-                                        <h3 className="text-2xl font-extrabold">
-                                            Plan your event with us
-                                        </h3>
-                                    </div>
-                                </div>
-
-                                <p className="text-white/90 leading-8 mb-6">
-                                    Select the actual package, classic menu, and add-ons so the
-                                    total booking amount is automatically computed.
-                                </p>
-
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-                                    {[
-                                        "Weddings",
-                                        "Debuts",
-                                        "Birthdays",
-                                        "Anniversaries",
-                                        "Baptismal celebrations",
-                                    ].map((item) => (
-                                        <div
-                                            key={item}
-                                            className="rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-sm font-medium"
-                                        >
-                                            {item}
-                                        </div>
-                                    ))}
-                                </div>
-
-                                <div className="bg-white/10 rounded-[22px] p-5 border border-white/10 mb-6">
-                                    <h4 className="text-xl font-bold text-[#f5c94a] mb-3">
-                                        Booking Summary
-                                    </h4>
-
-                                    <div className="space-y-3 text-sm">
-                                        <div className="flex items-start justify-between gap-4">
-                                            <span className="text-white/75">Selected Date</span>
-                                            <span className="font-semibold text-right">
-                                                {selectedDate || "Not selected"}
-                                            </span>
-                                        </div>
-
-                                        <div className="flex items-start justify-between gap-4">
-                                            <span className="text-white/75">Selected Package</span>
-                                            <span className="font-semibold text-right max-w-[180px]">
-                                                {form.packageType || "Not selected"}
-                                            </span>
-                                        </div>
-
-                                        <div className="flex items-start justify-between gap-4">
-                                            <span className="text-white/75">Package Coverage</span>
-                                            <span className="font-semibold text-right max-w-[180px]">
-                                                {packageCoverageText}
-                                            </span>
-                                        </div>
-
-                                        <div className="flex items-start justify-between gap-4">
-                                            <span className="text-white/75">Classic Menu</span>
-                                            <span className="font-semibold text-right max-w-[180px]">
-                                                {form.classicMenu || "Not selected"}
-                                            </span>
-                                        </div>
-
-                                        <div className="flex items-center justify-between gap-4">
-                                            <span className="text-white/75">Package Price</span>
-                                            <span className="font-semibold">
-                                                {packagePrice ? formatCurrency(packagePrice) : "—"}
-                                            </span>
-                                        </div>
-
-                                        <div className="flex items-center justify-between gap-4">
-                                            <span className="text-white/75">Add-ons Total</span>
-                                            <span className="font-semibold">
-                                                {formatCurrency(addOnsTotal)}
-                                            </span>
-                                        </div>
-
-                                        {!selectedPackage?.pricingType ||
-                                            selectedPackage?.pricingType === "perPax" ? null : (
-                                            <>
-                                                <div className="flex items-center justify-between gap-4">
-                                                    <span className="text-white/75">Excess Guests</span>
-                                                    <span className="font-semibold">
-                                                        {excessGuests}
-                                                    </span>
-                                                </div>
-
-                                                <div className="flex items-center justify-between gap-4">
-                                                    <span className="text-white/75">Excess Cost</span>
-                                                    <span className="font-semibold">
-                                                        {formatCurrency(excessCost)}
-                                                    </span>
-                                                </div>
-                                            </>
-                                        )}
-
-                                        <div className="border-t border-white/20 pt-4 flex items-center justify-between gap-4">
-                                            <span className="font-bold text-base">
-                                                Estimated Total
-                                            </span>
-                                            <span className="font-extrabold text-xl text-[#f5c94a]">
-                                                {estimatedTotal
-                                                    ? formatCurrency(estimatedTotal)
-                                                    : "—"}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="bg-[#fff9ea] text-[#0f4d3c] rounded-[22px] p-5 border-2 border-[#efd67a]">
-                                    <p className="text-xs uppercase tracking-[0.22em] text-[#b99117] font-semibold mb-2">
-                                        Pricing Note
-                                    </p>
-                                    <p className="leading-7 text-sm">
-                                        Standard per-head rate is <strong>₱400 per guest</strong>{" "}
-                                        for Birthday, Anniversary, and Baptismal packages.
-                                        Wedding and Debut packages use fixed package pricing
-                                        with excess guest computation when applicable.
+            <AnimatePresence>
+                {showAddModal && (
+                    <ModalShell onClose={closeAddModal}>
+                        <motion.div
+                            initial={{ opacity: 0, y: 18, scale: 0.98 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 18, scale: 0.98 }}
+                            className="max-h-[92vh] w-full max-w-6xl overflow-y-auto rounded-[30px] bg-[#f6f1e7] shadow-2xl"
+                        >
+                            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[#eadfc4] bg-[#f6f1e7] px-8 py-6">
+                                <div>
+                                    <h2 className="text-4xl font-extrabold text-[#22b67f]">
+                                        Add Booking
+                                    </h2>
+                                    <p className="mt-1 text-slate-500">
+                                        Fill in the event details using the same quotation flow
                                     </p>
                                 </div>
-                            </div>
 
-                            <div className="rounded-[28px] bg-white p-7 shadow-[0_18px_45px_rgba(0,0,0,0.06)] border border-[#ece4d4]">
-                                <div className="flex items-center justify-between gap-4 mb-8">
-                                    <div>
-                                        <p className="text-xs uppercase tracking-[0.25em] text-[#b99117] font-semibold mb-2">
-                                            Booking Details
-                                        </p>
-                                        <h3 className="text-2xl sm:text-3xl font-extrabold text-[#0f4d3c]">
-                                            Add Booking Form
-                                        </h3>
-                                    </div>
-
-                                    <div className="hidden md:flex items-center gap-2 rounded-full bg-[#f8f3e4] px-4 py-2 border border-[#ecd88d]">
-                                        <span className="h-2.5 w-2.5 rounded-full bg-[#0f8a61]" />
-                                        <span className="text-sm font-medium text-[#0f4d3c]">
-                                            Ready to submit
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <form onSubmit={handleAddBooking}>
-                                    <div className="grid md:grid-cols-2 gap-5">
-                                        <Field
-                                            label="Full Name"
-                                            name="fullName"
-                                            value={form.fullName}
-                                            onChange={handleFormChange}
-                                            placeholder="Enter client name"
-                                            required
-                                        />
-
-                                        <Field
-                                            label="Contact Number"
-                                            name="contactNumber"
-                                            value={form.contactNumber}
-                                            onChange={handleFormChange}
-                                            placeholder="Enter contact number"
-                                        />
-
-                                        <Field
-                                            label="Email Address"
-                                            name="email"
-                                            value={form.email}
-                                            onChange={handleFormChange}
-                                            placeholder="Enter email address"
-                                        />
-
-                                        <SelectField
-                                            label="Event Type"
-                                            name="eventType"
-                                            value={form.eventType}
-                                            onChange={handleFormChange}
-                                            options={[
-                                                "Wedding",
-                                                "Debut",
-                                                "Birthday",
-                                                "Anniversary",
-                                                "Baptismal",
-                                            ]}
-                                            required
-                                        />
-
-                                        <Field
-                                            label="Preferred Date"
-                                            name="preferredDate"
-                                            type="date"
-                                            value={form.preferredDate}
-                                            onChange={handleFormChange}
-                                            required
-                                        />
-
-                                        <Field
-                                            label="Event Time"
-                                            name="eventTime"
-                                            type="time"
-                                            value={form.eventTime}
-                                            onChange={handleFormChange}
-                                        />
-
-                                        <Field
-                                            label="Venue / Location"
-                                            name="venue"
-                                            value={form.venue}
-                                            onChange={handleFormChange}
-                                            placeholder="Enter venue or event location"
-                                        />
-
-                                        <Field
-                                            label="Number of Guests"
-                                            name="guests"
-                                            type="number"
-                                            value={form.guests}
-                                            onChange={handleFormChange}
-                                            placeholder="Enter number of guests"
-                                        />
-
-                                        <SelectField
-                                            label="Preferred Package"
-                                            name="packageType"
-                                            value={form.packageType}
-                                            onChange={handleFormChange}
-                                            options={availablePackages.map((pkg) => pkg.name)}
-                                            required
-                                            disabled={!form.eventType}
-                                            emptyLabel={
-                                                form.eventType
-                                                    ? "Select preferred package"
-                                                    : "Select event type first"
-                                            }
-                                        />
-
-                                        <SelectField
-                                            label="Classic Menu"
-                                            name="classicMenu"
-                                            value={form.classicMenu}
-                                            onChange={handleFormChange}
-                                            options={classicMenus}
-                                        />
-
-                                        <div className="md:col-span-2">
-                                            <Field
-                                                label="Theme / Style Preference"
-                                                name="themePreference"
-                                                value={form.themePreference}
-                                                onChange={handleFormChange}
-                                                placeholder="Enter preferred motif, theme, or style"
-                                            />
-                                        </div>
-
-                                        <div className="md:col-span-2">
-                                            <label className="block">
-                                                <span className="mb-3 block text-sm font-semibold text-[#0f4d3c]">
-                                                    Add-ons
-                                                </span>
-
-                                                <div className="grid sm:grid-cols-2 gap-3">
-                                                    {addOnOptions.map((item) => {
-                                                        const checked = form.addOns.includes(item.name);
-
-                                                        return (
-                                                            <label
-                                                                key={item.name}
-                                                                className={`flex items-center justify-between gap-3 rounded-2xl border px-4 py-3.5 cursor-pointer transition ${checked
-                                                                    ? "border-[#d4af37] bg-[#fff8e6] shadow-sm"
-                                                                    : "border-gray-200 bg-white hover:border-[#d4af37]"
-                                                                    }`}
-                                                            >
-                                                                <div className="flex items-center gap-3">
-                                                                    <input
-                                                                        type="checkbox"
-                                                                        checked={checked}
-                                                                        onChange={() =>
-                                                                            handleAddOnToggle(item.name)
-                                                                        }
-                                                                        className="accent-[#0f4d3c]"
-                                                                    />
-                                                                    <span className="font-medium text-[#0f4d3c]">
-                                                                        {item.name}
-                                                                    </span>
-                                                                </div>
-
-                                                                <span className="text-[#b99117] font-bold">
-                                                                    {formatCurrency(item.price)}
-                                                                </span>
-                                                            </label>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </label>
-                                        </div>
-
-                                        <div className="md:col-span-2">
-                                            <TextAreaField
-                                                label="Special Requests"
-                                                name="specialRequests"
-                                                value={form.specialRequests}
-                                                onChange={handleFormChange}
-                                                placeholder="Add preferred menu, setup, add-ons, or other requests"
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <SelectField
-                                                label="Status"
-                                                name="status"
-                                                value={form.status}
-                                                onChange={handleFormChange}
-                                                options={[
-                                                    "Confirmed",
-                                                    "Pending",
-                                                    "Ongoing",
-                                                    "Completed",
-                                                ]}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="mt-8 flex flex-col sm:flex-row gap-4">
-                                        <button
-                                            type="submit"
-                                            className="flex-1 bg-[#0f4d3c] text-white py-3.5 rounded-2xl font-bold hover:bg-[#0c3f31] transition shadow-md"
-                                        >
-                                            Add Booking
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            onClick={closeAddModal}
-                                            className="flex-1 bg-[#d4af37] text-[#0b4a3a] py-3.5 rounded-2xl font-bold text-center hover:bg-[#c79f23] transition shadow-sm"
-                                        >
-                                            Cancel
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {showManageModal && selectedBooking && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 px-4 py-6">
-                    <div className="max-h-[92vh] w-full max-w-5xl overflow-y-auto rounded-[30px] bg-white shadow-2xl">
-                        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100 bg-white px-8 py-6">
-                            <div>
-                                <h2 className="text-4xl font-extrabold text-[#22b67f]">
-                                    Manage Booking
-                                </h2>
-                                <p className="mt-1 text-slate-500">
-                                    Review full booking details and update event status
-                                </p>
-                            </div>
-
-                            <button
-                                type="button"
-                                onClick={closeManageModal}
-                                className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100"
-                            >
-                                <X size={24} />
-                            </button>
-                        </div>
-
-                        <div className="p-8">
-                            <div className="rounded-[24px] bg-[#f8faf9] p-6">
-                                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                                    <div>
-                                        <h3 className="text-3xl font-extrabold text-[#174c3c]">
-                                            {selectedBooking.eventType || "Booking"}
-                                        </h3>
-                                        <p className="mt-2 text-lg text-slate-500">
-                                            Complete booking details based on your current system
-                                        </p>
-                                    </div>
-
-                                    <div>{renderStatusBadge(selectedBooking.status)}</div>
-                                </div>
-
-                                <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                                    <InfoCard
-                                        icon={<User size={18} />}
-                                        label="Full Name"
-                                        value={selectedBooking.fullName}
-                                    />
-                                    <InfoCard
-                                        icon={<Phone size={18} />}
-                                        label="Contact Number"
-                                        value={selectedBooking.contactNumber}
-                                    />
-                                    <InfoCard
-                                        icon={<Mail size={18} />}
-                                        label="Email Address"
-                                        value={selectedBooking.email}
-                                    />
-                                    <InfoCard
-                                        icon={<PartyPopper size={18} />}
-                                        label="Event Type"
-                                        value={selectedBooking.eventType}
-                                    />
-                                    <InfoCard
-                                        icon={<CalendarDays size={18} />}
-                                        label="Preferred Date"
-                                        value={formatDate(selectedBooking.preferredDate)}
-                                    />
-                                    <InfoCard
-                                        icon={<Clock3 size={18} />}
-                                        label="Event Time"
-                                        value={selectedBooking.eventTime}
-                                    />
-                                    <InfoCard
-                                        icon={<MapPin size={18} />}
-                                        label="Venue / Location"
-                                        value={selectedBooking.venue}
-                                    />
-                                    <InfoCard
-                                        icon={<Users size={18} />}
-                                        label="Number of Guests"
-                                        value={selectedBooking.guests}
-                                    />
-                                    <InfoCard
-                                        icon={<FileText size={18} />}
-                                        label="Preferred Package"
-                                        value={selectedBooking.packageType}
-                                    />
-                                    <InfoCard
-                                        icon={<BadgeCheck size={18} />}
-                                        label="Classic Menu"
-                                        value={selectedBooking.classicMenu}
-                                    />
-                                    <InfoCard
-                                        icon={<CircleDollarSign size={18} />}
-                                        label="Package Price"
-                                        value={formatCurrency(selectedBooking.packagePrice)}
-                                    />
-                                    <InfoCard
-                                        icon={<CircleDollarSign size={18} />}
-                                        label="Add-ons Total"
-                                        value={formatCurrency(selectedBooking.addOnsTotal)}
-                                    />
-                                    <InfoCard
-                                        icon={<CircleDollarSign size={18} />}
-                                        label="Estimated Total"
-                                        value={formatCurrency(selectedBooking.estimatedTotal)}
-                                    />
-                                    <InfoCard
-                                        icon={<BadgeCheck size={18} />}
-                                        label="Pricing Type"
-                                        value={selectedBooking.pricingType || "—"}
-                                    />
-                                    <InfoCard
-                                        icon={<Users size={18} />}
-                                        label="Included Pax"
-                                        value={selectedBooking.includedPax || "—"}
-                                    />
-                                    <InfoCard
-                                        icon={<CircleDollarSign size={18} />}
-                                        label="Rate Per Pax"
-                                        value={
-                                            selectedBooking.ratePerPax
-                                                ? formatCurrency(selectedBooking.ratePerPax)
-                                                : "—"
-                                        }
-                                    />
-                                    <InfoCard
-                                        icon={<Users size={18} />}
-                                        label="Excess Guests"
-                                        value={selectedBooking.excessGuests || 0}
-                                    />
-                                    <InfoCard
-                                        icon={<CircleDollarSign size={18} />}
-                                        label="Excess Cost"
-                                        value={formatCurrency(selectedBooking.excessCost)}
-                                    />
-                                    <InfoCard
-                                        icon={<FileText size={18} />}
-                                        label="Theme / Style Preference"
-                                        value={selectedBooking.themePreference}
-                                    />
-                                    <InfoCard
-                                        icon={<BadgeCheck size={18} />}
-                                        label="Status"
-                                        value={selectedBooking.status}
-                                    />
-                                </div>
-
-                                <div className="mt-5 grid gap-4 xl:grid-cols-2">
-                                    <LongInfoCard
-                                        label="Add-ons"
-                                        value={
-                                            Array.isArray(selectedBooking.addOns)
-                                                ? selectedBooking.addOns.join(", ")
-                                                : "—"
-                                        }
-                                    />
-                                    <LongInfoCard
-                                        label="Special Requests"
-                                        value={selectedBooking.specialRequests}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="mt-8">
-                                <h4 className="text-xl font-bold text-[#174c3c]">
-                                    Change Status
-                                </h4>
-
-                                <div className="mt-4 grid gap-3 md:grid-cols-2">
-                                    <ActionButton
-                                        label="Mark as Confirmed"
-                                        onClick={() => updateSelectedStatus("Confirmed")}
-                                        className="border-[#22b67f] text-[#174c3c] hover:bg-[#ecfff7]"
-                                    />
-                                    <ActionButton
-                                        label="Mark as Pending"
-                                        onClick={() => updateSelectedStatus("Pending")}
-                                        className="border-blue-200 text-blue-700 hover:bg-blue-50"
-                                    />
-                                    <ActionButton
-                                        label="Mark as Ongoing"
-                                        onClick={() => updateSelectedStatus("Ongoing")}
-                                        className="border-amber-200 text-amber-700 hover:bg-amber-50"
-                                    />
-                                    <ActionButton
-                                        label="Mark as Completed"
-                                        onClick={() => updateSelectedStatus("Completed")}
-                                        className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                                 <button
                                     type="button"
-                                    onClick={handleDeleteBooking}
-                                    className="inline-flex items-center justify-center gap-2 rounded-[16px] bg-red-600 px-7 py-4 text-base font-bold text-white transition hover:bg-red-700"
+                                    onClick={closeAddModal}
+                                    className="rounded-full p-2 text-slate-500 transition hover:bg-white/70"
                                 >
-                                    <Trash2 size={18} />
-                                    Cancel / Delete Booking
+                                    <X size={24} />
                                 </button>
+                            </div>
+
+                            <div className="grid gap-8 p-8 lg:grid-cols-[0.92fr_1.25fr]">
+                                <div className="rounded-[28px] bg-gradient-to-br from-[#0b5a43] via-[#0c6048] to-[#094534] p-6 text-white shadow-[0_18px_45px_rgba(11,90,67,0.18)]">
+                                    <div className="mb-5 flex items-center gap-3">
+                                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#d4af37] text-[#0f4d3c] text-xl font-extrabold">
+                                            ✦
+                                        </div>
+                                        <div>
+                                            <p className="text-xs uppercase tracking-[0.2em] text-white/70">
+                                                Event Planning
+                                            </p>
+                                            <h3 className="text-2xl font-extrabold">
+                                                Plan your event with us
+                                            </h3>
+                                        </div>
+                                    </div>
+
+                                    <p className="mb-6 text-white/90 leading-8">
+                                        Select the actual package, classic menu, and add-ons so
+                                        the total booking amount is automatically computed.
+                                    </p>
+
+                                    <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                        {[
+                                            "Weddings",
+                                            "Debuts",
+                                            "Birthdays",
+                                            "Anniversaries",
+                                            "Baptismal celebrations",
+                                        ].map((item) => (
+                                            <div
+                                                key={item}
+                                                className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm font-medium"
+                                            >
+                                                {item}
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <div className="mb-6 rounded-[22px] border border-white/10 bg-white/10 p-5">
+                                        <h4 className="mb-3 text-xl font-bold text-[#f5c94a]">
+                                            Booking Summary
+                                        </h4>
+
+                                        <div className="space-y-3 text-sm">
+                                            <SummaryRow
+                                                label="Selected Date"
+                                                value={selectedDate || "Not selected"}
+                                            />
+                                            <SummaryRow
+                                                label="Selected Package"
+                                                value={form.packageType || "Not selected"}
+                                            />
+                                            <SummaryRow
+                                                label="Package Coverage"
+                                                value={packageCoverageText}
+                                            />
+                                            <SummaryRow
+                                                label="Classic Menu"
+                                                value={form.classicMenu || "Not selected"}
+                                            />
+                                            <SummaryRow
+                                                label="Package Price"
+                                                value={
+                                                    packagePrice
+                                                        ? formatCurrency(packagePrice)
+                                                        : "—"
+                                                }
+                                            />
+                                            <SummaryRow
+                                                label="Add-ons Total"
+                                                value={formatCurrency(addOnsTotal)}
+                                            />
+
+                                            {!selectedPackage?.pricingType ||
+                                                selectedPackage?.pricingType === "perPax" ? null : (
+                                                <>
+                                                    <SummaryRow
+                                                        label="Excess Guests"
+                                                        value={excessGuests}
+                                                    />
+                                                    <SummaryRow
+                                                        label="Excess Cost"
+                                                        value={formatCurrency(excessCost)}
+                                                    />
+                                                </>
+                                            )}
+
+                                            <div className="flex items-center justify-between gap-4 border-t border-white/20 pt-4">
+                                                <span className="font-bold text-base">
+                                                    Estimated Total
+                                                </span>
+                                                <span className="text-xl font-extrabold text-[#f5c94a]">
+                                                    {estimatedTotal
+                                                        ? formatCurrency(estimatedTotal)
+                                                        : "—"}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="rounded-[22px] border-2 border-[#efd67a] bg-[#fff9ea] p-5 text-[#0f4d3c]">
+                                        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.22em] text-[#b99117]">
+                                            Pricing Note
+                                        </p>
+                                        <p className="text-sm leading-7">
+                                            Standard per-head rate is <strong>₱400 per guest</strong>{" "}
+                                            for Birthday, Anniversary, and Baptismal packages.
+                                            Wedding and Debut packages use fixed package pricing
+                                            with excess guest computation when applicable.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="rounded-[28px] border border-[#ece4d4] bg-white p-7 shadow-[0_18px_45px_rgba(0,0,0,0.06)]">
+                                    <div className="mb-8 flex items-center justify-between gap-4">
+                                        <div>
+                                            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.25em] text-[#b99117]">
+                                                Booking Details
+                                            </p>
+                                            <h3 className="text-2xl font-extrabold text-[#0f4d3c] sm:text-3xl">
+                                                Add Booking Form
+                                            </h3>
+                                        </div>
+
+                                        <div className="hidden items-center gap-2 rounded-full border border-[#ecd88d] bg-[#f8f3e4] px-4 py-2 md:flex">
+                                            <span className="h-2.5 w-2.5 rounded-full bg-[#0f8a61]" />
+                                            <span className="text-sm font-medium text-[#0f4d3c]">
+                                                Ready to submit
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <form onSubmit={handleAddBooking}>
+                                        <div className="grid gap-5 md:grid-cols-2">
+                                            <Field
+                                                label="Full Name"
+                                                name="fullName"
+                                                value={form.fullName}
+                                                onChange={handleFormChange}
+                                                placeholder="Enter client name"
+                                                required
+                                            />
+
+                                            <Field
+                                                label="Contact Number"
+                                                name="contactNumber"
+                                                value={form.contactNumber}
+                                                onChange={handleFormChange}
+                                                placeholder="Enter contact number"
+                                            />
+
+                                            <Field
+                                                label="Email Address"
+                                                name="email"
+                                                value={form.email}
+                                                onChange={handleFormChange}
+                                                placeholder="Enter email address"
+                                            />
+
+                                            <SelectField
+                                                label="Event Type"
+                                                name="eventType"
+                                                value={form.eventType}
+                                                onChange={handleFormChange}
+                                                options={[
+                                                    "Wedding",
+                                                    "Debut",
+                                                    "Birthday",
+                                                    "Anniversary",
+                                                    "Baptismal",
+                                                ]}
+                                                required
+                                            />
+
+                                            <Field
+                                                label="Preferred Date"
+                                                name="preferredDate"
+                                                type="date"
+                                                value={form.preferredDate}
+                                                onChange={handleFormChange}
+                                                required
+                                            />
+
+                                            <Field
+                                                label="Event Time"
+                                                name="eventTime"
+                                                type="time"
+                                                value={form.eventTime}
+                                                onChange={handleFormChange}
+                                            />
+
+                                            <Field
+                                                label="Venue / Location"
+                                                name="venue"
+                                                value={form.venue}
+                                                onChange={handleFormChange}
+                                                placeholder="Enter venue or event location"
+                                            />
+
+                                            <Field
+                                                label="Number of Guests"
+                                                name="guests"
+                                                type="number"
+                                                value={form.guests}
+                                                onChange={handleFormChange}
+                                                placeholder="Enter number of guests"
+                                            />
+
+                                            <SelectField
+                                                label="Preferred Package"
+                                                name="packageType"
+                                                value={form.packageType}
+                                                onChange={handleFormChange}
+                                                options={availablePackages.map((pkg) => pkg.name)}
+                                                required
+                                                disabled={!form.eventType}
+                                                emptyLabel={
+                                                    form.eventType
+                                                        ? "Select preferred package"
+                                                        : "Select event type first"
+                                                }
+                                            />
+
+                                            <SelectField
+                                                label="Classic Menu"
+                                                name="classicMenu"
+                                                value={form.classicMenu}
+                                                onChange={handleFormChange}
+                                                options={classicMenus}
+                                            />
+
+                                            <div className="md:col-span-2">
+                                                <Field
+                                                    label="Theme / Style Preference"
+                                                    name="themePreference"
+                                                    value={form.themePreference}
+                                                    onChange={handleFormChange}
+                                                    placeholder="Enter preferred motif, theme, or style"
+                                                />
+                                            </div>
+
+                                            <div className="md:col-span-2">
+                                                <label className="block">
+                                                    <span className="mb-3 block text-sm font-semibold text-[#0f4d3c]">
+                                                        Add-ons
+                                                    </span>
+
+                                                    <div className="grid gap-3 sm:grid-cols-2">
+                                                        {addOnOptions.map((item) => {
+                                                            const checked = form.addOns.includes(
+                                                                item.name
+                                                            );
+
+                                                            return (
+                                                                <label
+                                                                    key={item.name}
+                                                                    className={`flex cursor-pointer items-center justify-between gap-3 rounded-2xl border px-4 py-3.5 transition ${checked
+                                                                            ? "border-[#d4af37] bg-[#fff8e6] shadow-sm"
+                                                                            : "border-gray-200 bg-white hover:border-[#d4af37]"
+                                                                        }`}
+                                                                >
+                                                                    <div className="flex items-center gap-3">
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            checked={checked}
+                                                                            onChange={() =>
+                                                                                handleAddOnToggle(
+                                                                                    item.name
+                                                                                )
+                                                                            }
+                                                                            className="accent-[#0f4d3c]"
+                                                                        />
+                                                                        <span className="font-medium text-[#0f4d3c]">
+                                                                            {item.name}
+                                                                        </span>
+                                                                    </div>
+
+                                                                    <span className="font-bold text-[#b99117]">
+                                                                        {formatCurrency(item.price)}
+                                                                    </span>
+                                                                </label>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </label>
+                                            </div>
+
+                                            <div className="md:col-span-2">
+                                                <TextAreaField
+                                                    label="Special Requests"
+                                                    name="specialRequests"
+                                                    value={form.specialRequests}
+                                                    onChange={handleFormChange}
+                                                    placeholder="Add preferred menu, setup, add-ons, or other requests"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <SelectField
+                                                    label="Status"
+                                                    name="status"
+                                                    value={form.status}
+                                                    onChange={handleFormChange}
+                                                    options={[
+                                                        "Confirmed",
+                                                        "Pending",
+                                                        "Ongoing",
+                                                        "Completed",
+                                                    ]}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-8 flex flex-col gap-4 sm:flex-row">
+                                            <button
+                                                type="submit"
+                                                className="flex-1 rounded-2xl bg-[#0f4d3c] py-3.5 font-bold text-white shadow-md transition hover:bg-[#0c3f31]"
+                                            >
+                                                Add Booking
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                onClick={closeAddModal}
+                                                className="flex-1 rounded-2xl bg-[#d4af37] py-3.5 text-center font-bold text-[#0b4a3a] shadow-sm transition hover:bg-[#c79f23]"
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </ModalShell>
+                )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+                {showManageModal && selectedBooking && (
+                    <ModalShell onClose={closeManageModal}>
+                        <motion.div
+                            initial={{ opacity: 0, y: 18, scale: 0.98 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 18, scale: 0.98 }}
+                            className="max-h-[92vh] w-full max-w-5xl overflow-y-auto rounded-[30px] bg-white shadow-2xl"
+                        >
+                            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100 bg-white px-8 py-6">
+                                <div>
+                                    <h2 className="text-4xl font-extrabold text-[#22b67f]">
+                                        Manage Booking
+                                    </h2>
+                                    <p className="mt-1 text-slate-500">
+                                        Review full booking details and update event status
+                                    </p>
+                                </div>
 
                                 <button
                                     type="button"
                                     onClick={closeManageModal}
-                                    className="rounded-[16px] border border-slate-200 px-7 py-4 text-base font-semibold text-slate-700 transition hover:bg-slate-50"
+                                    className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100"
                                 >
-                                    Close
+                                    <X size={24} />
                                 </button>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            )}
 
-            {showSuccessModal && (
-                <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center px-4">
-                    <div className="w-full max-w-md rounded-[28px] bg-white shadow-2xl border border-gray-200 overflow-hidden">
-                        <div className="bg-gradient-to-r from-[#0f5b46] to-[#22b67f] px-6 py-7 text-white text-center">
-                            <div className="flex justify-center mb-4">
-                                <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-3xl font-bold">
-                                    ✓
+                            <div className="p-8">
+                                <div className="rounded-[24px] bg-[#f8faf9] p-6">
+                                    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                                        <div>
+                                            <h3 className="text-3xl font-extrabold text-[#174c3c]">
+                                                {selectedBooking.eventType || "Booking"}
+                                            </h3>
+                                            <p className="mt-2 text-lg text-slate-500">
+                                                Complete booking details based on your current system
+                                            </p>
+                                        </div>
+
+                                        <div>{renderStatusBadge(selectedBooking.status)}</div>
+                                    </div>
+
+                                    <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                                        <InfoCard
+                                            icon={<User size={18} />}
+                                            label="Full Name"
+                                            value={selectedBooking.fullName}
+                                        />
+                                        <InfoCard
+                                            icon={<Phone size={18} />}
+                                            label="Contact Number"
+                                            value={selectedBooking.contactNumber}
+                                        />
+                                        <InfoCard
+                                            icon={<Mail size={18} />}
+                                            label="Email Address"
+                                            value={selectedBooking.email}
+                                        />
+                                        <InfoCard
+                                            icon={<PartyPopper size={18} />}
+                                            label="Event Type"
+                                            value={selectedBooking.eventType}
+                                        />
+                                        <InfoCard
+                                            icon={<CalendarDays size={18} />}
+                                            label="Preferred Date"
+                                            value={formatDate(selectedBooking.preferredDate)}
+                                        />
+                                        <InfoCard
+                                            icon={<Clock3 size={18} />}
+                                            label="Event Time"
+                                            value={selectedBooking.eventTime}
+                                        />
+                                        <InfoCard
+                                            icon={<MapPin size={18} />}
+                                            label="Venue / Location"
+                                            value={selectedBooking.venue}
+                                        />
+                                        <InfoCard
+                                            icon={<Users size={18} />}
+                                            label="Number of Guests"
+                                            value={selectedBooking.guests}
+                                        />
+                                        <InfoCard
+                                            icon={<FileText size={18} />}
+                                            label="Preferred Package"
+                                            value={selectedBooking.packageType}
+                                        />
+                                        <InfoCard
+                                            icon={<BadgeCheck size={18} />}
+                                            label="Classic Menu"
+                                            value={selectedBooking.classicMenu}
+                                        />
+                                        <InfoCard
+                                            icon={<CircleDollarSign size={18} />}
+                                            label="Package Price"
+                                            value={formatCurrency(selectedBooking.packagePrice)}
+                                        />
+                                        <InfoCard
+                                            icon={<CircleDollarSign size={18} />}
+                                            label="Add-ons Total"
+                                            value={formatCurrency(selectedBooking.addOnsTotal)}
+                                        />
+                                        <InfoCard
+                                            icon={<CircleDollarSign size={18} />}
+                                            label="Estimated Total"
+                                            value={formatCurrency(selectedBooking.estimatedTotal)}
+                                        />
+                                        <InfoCard
+                                            icon={<BadgeCheck size={18} />}
+                                            label="Pricing Type"
+                                            value={selectedBooking.pricingType || "—"}
+                                        />
+                                        <InfoCard
+                                            icon={<Users size={18} />}
+                                            label="Included Pax"
+                                            value={selectedBooking.includedPax || "—"}
+                                        />
+                                        <InfoCard
+                                            icon={<CircleDollarSign size={18} />}
+                                            label="Rate Per Pax"
+                                            value={
+                                                selectedBooking.ratePerPax
+                                                    ? formatCurrency(selectedBooking.ratePerPax)
+                                                    : "—"
+                                            }
+                                        />
+                                        <InfoCard
+                                            icon={<Users size={18} />}
+                                            label="Excess Guests"
+                                            value={selectedBooking.excessGuests || 0}
+                                        />
+                                        <InfoCard
+                                            icon={<CircleDollarSign size={18} />}
+                                            label="Excess Cost"
+                                            value={formatCurrency(selectedBooking.excessCost)}
+                                        />
+                                        <InfoCard
+                                            icon={<BadgeCheck size={18} />}
+                                            label="Theme / Style Preference"
+                                            value={selectedBooking.themePreference}
+                                        />
+                                        <InfoCard
+                                            icon={<BadgeCheck size={18} />}
+                                            label="Status"
+                                            value={selectedBooking.status}
+                                        />
+                                    </div>
+
+                                    <div className="mt-5 grid gap-4 xl:grid-cols-2">
+                                        <LongInfoCard
+                                            label="Add-ons"
+                                            value={
+                                                Array.isArray(selectedBooking.addOns)
+                                                    ? selectedBooking.addOns.join(", ")
+                                                    : "—"
+                                            }
+                                        />
+                                        <LongInfoCard
+                                            label="Special Requests"
+                                            value={selectedBooking.specialRequests}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="mt-8">
+                                    <h4 className="text-xl font-bold text-[#174c3c]">
+                                        Change Status
+                                    </h4>
+
+                                    <div className="mt-4 grid gap-3 md:grid-cols-2">
+                                        <ActionButton
+                                            label="Mark as Confirmed"
+                                            onClick={() => updateSelectedStatus("Confirmed")}
+                                            className="border-[#22b67f] text-[#174c3c] hover:bg-[#ecfff7]"
+                                        />
+                                        <ActionButton
+                                            label="Mark as Pending"
+                                            onClick={() => updateSelectedStatus("Pending")}
+                                            className="border-blue-200 text-blue-700 hover:bg-blue-50"
+                                        />
+                                        <ActionButton
+                                            label="Mark as Ongoing"
+                                            onClick={() => updateSelectedStatus("Ongoing")}
+                                            className="border-amber-200 text-amber-700 hover:bg-amber-50"
+                                        />
+                                        <ActionButton
+                                            label="Mark as Completed"
+                                            onClick={() => updateSelectedStatus("Completed")}
+                                            className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                                    <button
+                                        type="button"
+                                        onClick={handleDeleteBooking}
+                                        className="inline-flex items-center justify-center gap-2 rounded-[16px] bg-red-600 px-7 py-4 text-base font-bold text-white transition hover:bg-red-700"
+                                    >
+                                        <Trash2 size={18} />
+                                        Cancel / Delete Booking
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={closeManageModal}
+                                        className="rounded-[16px] border border-slate-200 px-7 py-4 text-base font-semibold text-slate-700 transition hover:bg-slate-50"
+                                    >
+                                        Close
+                                    </button>
                                 </div>
                             </div>
+                        </motion.div>
+                    </ModalShell>
+                )}
+            </AnimatePresence>
 
-                            <h3 className="text-2xl font-extrabold">
-                                Booking Added Successfully
-                            </h3>
-                            <p className="text-sm text-white/80 mt-1">
-                                The event has been saved to your calendar.
-                            </p>
-                        </div>
+            <AnimatePresence>
+                {showSuccessModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm"
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, y: 20, scale: 0.96 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 20, scale: 0.96 }}
+                            className="w-full max-w-md overflow-hidden rounded-[28px] border border-gray-200 bg-white shadow-2xl"
+                        >
+                            <div className="bg-gradient-to-r from-[#0f5b46] to-[#22b67f] px-6 py-7 text-center text-white">
+                                <div className="mb-4 flex justify-center">
+                                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/20 text-3xl font-bold">
+                                        ✓
+                                    </div>
+                                </div>
 
-                        <div className="px-6 py-6 text-center">
-                            <p className="text-gray-600">
-                                You can now manage this booking anytime in your admin panel.
-                            </p>
+                                <h3 className="text-2xl font-extrabold">
+                                    Booking Added Successfully
+                                </h3>
+                                <p className="mt-1 text-sm text-white/80">
+                                    The event has been saved to your calendar.
+                                </p>
+                            </div>
 
-                            <button
-                                onClick={() => setShowSuccessModal(false)}
-                                className="mt-6 w-full rounded-2xl bg-[#d4af37] py-3 font-bold text-[#0b4a3a] hover:bg-[#c79f23] transition"
-                            >
-                                Continue
-                            </button>
-                        </div>
-                    </div>
+                            <div className="px-6 py-6 text-center">
+                                <p className="text-gray-600">
+                                    You can now manage this booking anytime in your admin panel.
+                                </p>
+
+                                <button
+                                    onClick={() => setShowSuccessModal(false)}
+                                    className="mt-6 w-full rounded-2xl bg-[#d4af37] py-3 font-bold text-[#0b4a3a] transition hover:bg-[#c79f23]"
+                                >
+                                    Continue
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </motion.div>
+    );
+}
+
+function ModalShell({ children, onClose }) {
+    return (
+        <div
+            className="fixed inset-0 z-[90] overflow-y-auto bg-black/45 px-3 py-4 backdrop-blur-[3px] sm:px-4"
+            onClick={onClose}
+        >
+            <div className="flex min-h-full items-start justify-center">
+                <div onClick={(e) => e.stopPropagation()} className="w-full">
+                    {children}
                 </div>
-            )}
+            </div>
+        </div>
+    );
+}
+
+function HeaderMiniCard({ label, value }) {
+    return (
+        <div className="rounded-[22px] border border-white/10 bg-white/10 p-4 backdrop-blur-md">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">
+                {label}
+            </p>
+            <p className="mt-1 text-2xl font-extrabold text-white">{value}</p>
+        </div>
+    );
+}
+
+function SummaryRow({ label, value }) {
+    return (
+        <div className="flex items-start justify-between gap-4">
+            <span className="text-white/75">{label}</span>
+            <span className="max-w-[190px] text-right font-semibold">{value}</span>
         </div>
     );
 }
@@ -1392,7 +1485,7 @@ function Field({
 }) {
     return (
         <div>
-            <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
+            <label className="mb-2 block text-sm font-semibold text-[#0f4d3c]">
                 {label} {required ? <span className="text-red-500">*</span> : null}
             </label>
             <input
@@ -1402,7 +1495,7 @@ function Field({
                 onChange={onChange}
                 placeholder={placeholder}
                 required={required}
-                className="w-full rounded-2xl border border-gray-300 px-4 py-3.5 outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition"
+                className="w-full rounded-2xl border border-gray-300 px-4 py-3.5 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
             />
         </div>
     );
@@ -1420,7 +1513,7 @@ function SelectField({
 }) {
     return (
         <div>
-            <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
+            <label className="mb-2 block text-sm font-semibold text-[#0f4d3c]">
                 {label} {required ? <span className="text-red-500">*</span> : null}
             </label>
             <select
@@ -1429,7 +1522,7 @@ function SelectField({
                 onChange={onChange}
                 required={required}
                 disabled={disabled}
-                className="w-full rounded-2xl border border-gray-300 px-4 py-3.5 outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition disabled:bg-gray-100"
+                className="w-full rounded-2xl border border-gray-300 px-4 py-3.5 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 disabled:bg-gray-100"
             >
                 <option value="">
                     {emptyLabel || `Select ${label.toLowerCase()}`}
@@ -1454,7 +1547,7 @@ function TextAreaField({
 }) {
     return (
         <div>
-            <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
+            <label className="mb-2 block text-sm font-semibold text-[#0f4d3c]">
                 {label}
             </label>
             <textarea
@@ -1463,7 +1556,7 @@ function TextAreaField({
                 onChange={onChange}
                 placeholder={placeholder}
                 rows={rows}
-                className="w-full rounded-2xl border border-gray-300 px-4 py-3.5 outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition resize-none"
+                className="w-full resize-none rounded-2xl border border-gray-300 px-4 py-3.5 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
             />
         </div>
     );

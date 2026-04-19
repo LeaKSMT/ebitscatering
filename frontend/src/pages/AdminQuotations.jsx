@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
     CheckCircle2,
     XCircle,
@@ -6,9 +7,13 @@ import {
     Users,
     MapPin,
     FileText,
-    CircleDollarSign,
     ChevronDown,
     ChevronUp,
+    Sparkles,
+    BadgeCheck,
+    CircleDollarSign,
+    ClipboardList,
+    PartyPopper,
 } from "lucide-react";
 
 function safeParse(key, fallback = []) {
@@ -66,7 +71,7 @@ function getStatusClasses(status) {
     const normalized = (status || "").toLowerCase();
 
     if (normalized === "approved" || normalized === "confirmed") {
-        return "bg-green-50 text-green-700 border border-green-200";
+        return "bg-emerald-50 text-emerald-700 border border-emerald-200";
     }
 
     if (normalized === "rejected") {
@@ -79,6 +84,11 @@ function getStatusClasses(status) {
 
     return "bg-[#fff8e6] text-[#b99117] border border-[#f1d98a]";
 }
+
+const fadeUp = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 },
+};
 
 function AdminQuotations() {
     const [refreshKey, setRefreshKey] = useState(0);
@@ -243,343 +253,499 @@ function AdminQuotations() {
         );
     };
 
+    const pendingCount = quotations.filter(
+        (item) => (item.status || "Pending").toLowerCase() === "pending"
+    ).length;
+
+    const approvedCount = quotations.filter(
+        (item) => (item.status || "").toLowerCase() === "approved"
+    ).length;
+
     return (
-        <div className="space-y-6">
-            <section className="rounded-[28px] bg-gradient-to-r from-[#0f4d3c] via-[#0e5b46] to-[#137255] p-7 text-white shadow-[0_18px_40px_rgba(15,77,60,0.15)]">
-                <p className="text-xs uppercase tracking-[0.3em] text-white/70 font-semibold">
-                    Quotation Management
-                </p>
-                <h1 className="mt-3 text-3xl md:text-4xl font-extrabold">
-                    Review Client Quotations
-                </h1>
-                <p className="mt-3 max-w-3xl text-white/85 leading-7">
-                    Review submitted quotation requests, inspect full package details,
-                    and approve them to automatically create booking records for the
-                    calendar, event management, and financial modules.
-                </p>
-            </section>
+        <motion.div
+            initial="hidden"
+            animate="show"
+            transition={{ staggerChildren: 0.08 }}
+            className="space-y-6"
+        >
+            <motion.section
+                variants={fadeUp}
+                className="overflow-hidden rounded-[30px] border border-[#dce7e2] bg-white shadow-[0_18px_50px_rgba(14,61,47,0.07)]"
+            >
+                <div className="relative overflow-hidden bg-[linear-gradient(135deg,#07382d_0%,#0c4d3d_34%,#0f6b52_68%,#18a06c_100%)] px-6 py-7 text-white md:px-8">
+                    <div className="pointer-events-none absolute inset-0">
+                        <div className="absolute -top-12 right-[-30px] h-40 w-40 rounded-full bg-[#d4af37]/20 blur-3xl" />
+                        <div className="absolute bottom-[-30px] left-[-20px] h-28 w-28 rounded-full bg-white/10 blur-3xl" />
+                    </div>
 
-            <section className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                <SummaryCard
-                    title="Total Quotations"
-                    value={quotations.length}
-                    subtitle="All submitted quotation requests"
-                />
-                <SummaryCard
-                    title="Pending Requests"
-                    value={
-                        quotations.filter(
-                            (item) => (item.status || "Pending") === "Pending"
-                        ).length
-                    }
-                    subtitle="Waiting for admin review"
-                />
-                <SummaryCard
-                    title="Approved Requests"
-                    value={
-                        quotations.filter(
-                            (item) => (item.status || "").toLowerCase() === "approved"
-                        ).length
-                    }
-                    subtitle="Already converted to booking"
-                />
-            </section>
-
-            {quotations.length === 0 ? (
-                <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-8">
-                    <h2 className="text-3xl font-extrabold text-[#0f4d3c]">
-                        Quotations
-                    </h2>
-                    <p className="mt-4 text-gray-500">No quotations yet.</p>
-                </div>
-            ) : (
-                <div className="grid gap-5">
-                    {quotations.map((quote, index) => {
-                        const status = quote.status || "Pending";
-                        const isPending = status === "Pending";
-                        const isExpanded = expandedId === (quote.id || index);
-
-                        return (
-                            <div
-                                key={quote.id || index}
-                                className="bg-white rounded-[24px] border border-gray-100 shadow-sm overflow-hidden"
-                            >
-                                <div className="p-6">
-                                    <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-5">
-                                        <div className="space-y-3">
-                                            <div className="flex flex-wrap items-center gap-3">
-                                                <h2 className="text-2xl font-extrabold text-[#0f4d3c]">
-                                                    {quote.quotationId || `Q${String(index + 1).padStart(2, "0")}`}
-                                                </h2>
-                                                <span
-                                                    className={`inline-flex px-3 py-1 rounded-full text-sm font-semibold ${getStatusClasses(
-                                                        status
-                                                    )}`}
-                                                >
-                                                    {status}
-                                                </span>
-                                            </div>
-
-                                            <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-3 text-sm">
-                                                <InfoRow
-                                                    icon={<FileText size={16} />}
-                                                    label="Client"
-                                                    value={quote.fullName || quote.ownerName || "—"}
-                                                />
-                                                <InfoRow
-                                                    icon={<CalendarDays size={16} />}
-                                                    label="Event Type"
-                                                    value={quote.eventType || "—"}
-                                                />
-                                                <InfoRow
-                                                    icon={<Users size={16} />}
-                                                    label="Guests"
-                                                    value={quote.guests || "0"}
-                                                />
-                                                <InfoRow
-                                                    icon={<CalendarDays size={16} />}
-                                                    label="Preferred Date"
-                                                    value={formatDate(quote.preferredDate)}
-                                                />
-                                                <InfoRow
-                                                    icon={<MapPin size={16} />}
-                                                    label="Venue"
-                                                    value={quote.venue || "—"}
-                                                />
-                                                <InfoRow
-                                                    icon={<FileText size={16} />}
-                                                    label="Package"
-                                                    value={quote.packageType || "—"}
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="xl:text-right">
-                                            <p className="text-sm text-gray-500">Estimated Total</p>
-                                            <p className="mt-1 text-3xl font-extrabold text-[#d4af37]">
-                                                {formatCurrency(quote.estimatedTotal || 0)}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div className="mt-5 flex flex-col md:flex-row gap-3">
-                                        {isPending ? (
-                                            <>
-                                                <button
-                                                    onClick={() => handleApprove(quote)}
-                                                    className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-[#0f4d3c] px-5 py-3 font-bold text-white hover:bg-[#0c3f31] transition"
-                                                >
-                                                    <CheckCircle2 size={18} />
-                                                    Approve & Create Booking
-                                                </button>
-
-                                                <button
-                                                    onClick={() => handleReject(quote)}
-                                                    className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-red-500 px-5 py-3 font-bold text-white hover:bg-red-600 transition"
-                                                >
-                                                    <XCircle size={18} />
-                                                    Reject
-                                                </button>
-                                            </>
-                                        ) : (
-                                            <button
-                                                disabled
-                                                className="flex-1 rounded-2xl bg-gray-100 px-5 py-3 font-bold text-gray-500 cursor-not-allowed"
-                                            >
-                                                This quotation is already {status.toLowerCase()}
-                                            </button>
-                                        )}
-
-                                        <button
-                                            onClick={() =>
-                                                setExpandedId(isExpanded ? null : quote.id || index)
-                                            }
-                                            className="md:w-[220px] inline-flex items-center justify-center gap-2 rounded-2xl border border-[#d4af37] bg-[#fff8e6] px-5 py-3 font-bold text-[#0f4d3c] hover:bg-[#ffefbd] transition"
-                                        >
-                                            {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                                            {isExpanded ? "Hide Details" : "View Full Details"}
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {isExpanded && (
-                                    <div className="border-t border-gray-100 bg-[#fcfcfb] p-6">
-                                        <div className="grid xl:grid-cols-[1fr_1fr] gap-6">
-                                            <div className="rounded-[22px] border border-[#e5ece8] bg-white p-5">
-                                                <h3 className="text-xl font-bold text-[#0f4d3c] mb-4">
-                                                    Quotation Information
-                                                </h3>
-
-                                                <div className="grid sm:grid-cols-2 gap-x-6 gap-y-4 text-sm">
-                                                    <DetailItem label="Full Name" value={quote.fullName} />
-                                                    <DetailItem label="Contact Number" value={quote.contactNumber} />
-                                                    <DetailItem label="Email Address" value={quote.email || quote.ownerEmail} />
-                                                    <DetailItem label="Event Type" value={quote.eventType} />
-                                                    <DetailItem label="Preferred Date" value={formatDate(quote.preferredDate)} />
-                                                    <DetailItem label="Event Time" value={quote.eventTime} />
-                                                    <DetailItem label="Venue / Location" value={quote.venue} />
-                                                    <DetailItem label="Number of Guests" value={quote.guests} />
-                                                    <DetailItem label="Preferred Package" value={quote.packageType} />
-                                                    <DetailItem label="Classic Menu" value={quote.classicMenu} />
-                                                    <DetailItem label="Theme / Style" value={quote.themePreference} />
-                                                    <DetailItem label="Status" value={quote.status || "Pending"} />
-                                                    <DetailItem
-                                                        label="Package Price"
-                                                        value={formatCurrency(quote.packagePrice || 0)}
-                                                    />
-                                                    <DetailItem
-                                                        label="Add-ons Total"
-                                                        value={formatCurrency(quote.addOnsTotal || 0)}
-                                                    />
-                                                    <DetailItem
-                                                        label="Estimated Total"
-                                                        value={formatCurrency(quote.estimatedTotal || 0)}
-                                                    />
-                                                    <DetailItem
-                                                        label="Package Coverage"
-                                                        value={
-                                                            quote.includedPax
-                                                                ? `${quote.includedPax} pax included`
-                                                                : quote.ratePerPax
-                                                                    ? `${formatCurrency(quote.ratePerPax)}/pax`
-                                                                    : "—"
-                                                        }
-                                                    />
-                                                </div>
-
-                                                <div className="mt-5">
-                                                    <p className="text-sm font-semibold text-[#0f4d3c] mb-2">
-                                                        Special Requests
-                                                    </p>
-                                                    <div className="rounded-2xl bg-[#f8fbfa] border border-[#e1ece8] p-4 text-sm text-gray-600 leading-6">
-                                                        {quote.specialRequests || "No special requests."}
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div className="space-y-6">
-                                                <div className="rounded-[22px] border border-[#e5ece8] bg-white p-5">
-                                                    <h3 className="text-xl font-bold text-[#0f4d3c] mb-4">
-                                                        Selected Add-ons
-                                                    </h3>
-
-                                                    {Array.isArray(quote.addOns) && quote.addOns.length > 0 ? (
-                                                        <div className="flex flex-wrap gap-2">
-                                                            {quote.addOns.map((addon, i) => (
-                                                                <span
-                                                                    key={`${addon}-${i}`}
-                                                                    className="rounded-full border border-[#e5d390] bg-[#fff8e6] px-3 py-1 text-sm font-medium text-[#0f4d3c]"
-                                                                >
-                                                                    {addon}
-                                                                </span>
-                                                            ))}
-                                                        </div>
-                                                    ) : (
-                                                        <p className="text-sm text-gray-500">No add-ons selected.</p>
-                                                    )}
-                                                </div>
-
-                                                <div className="rounded-[22px] border border-[#e5ece8] bg-white p-5">
-                                                    <h3 className="text-xl font-bold text-[#0f4d3c] mb-4">
-                                                        Package Inclusions
-                                                    </h3>
-
-                                                    {Array.isArray(quote.packageInclusions) &&
-                                                        quote.packageInclusions.length > 0 ? (
-                                                        <ul className="space-y-3">
-                                                            {quote.packageInclusions.map((item, i) => (
-                                                                <li
-                                                                    key={`${item}-${i}`}
-                                                                    className="flex items-start gap-3 text-sm text-gray-700"
-                                                                >
-                                                                    <span className="mt-1.5 h-2.5 w-2.5 rounded-full bg-[#d4af37] shrink-0" />
-                                                                    <span>{item}</span>
-                                                                </li>
-                                                            ))}
-                                                        </ul>
-                                                    ) : (
-                                                        <p className="text-sm text-gray-500">
-                                                            No package inclusions recorded in this quotation.
-                                                        </p>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })}
-                </div>
-            )}
-
-            {popup.open && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-[2px] px-4">
-                    <div className="w-full max-w-md rounded-[28px] bg-white shadow-[0_25px_60px_rgba(0,0,0,0.25)] border border-gray-100 overflow-hidden animate-[fadeIn_.2s_ease-out]">
-                        <div
-                            className={`px-6 py-5 text-white ${popup.type === "success"
-                                    ? "bg-gradient-to-r from-[#0f4d3c] via-[#11614c] to-[#22b67f]"
-                                    : "bg-gradient-to-r from-[#b91c1c] via-[#dc2626] to-[#ef4444]"
-                                }`}
-                        >
-                            <div className="flex items-center gap-4">
-                                <div className="h-14 w-14 rounded-full bg-white/15 flex items-center justify-center">
-                                    {popup.type === "success" ? (
-                                        <CheckCircle2 size={30} />
-                                    ) : (
-                                        <XCircle size={30} />
-                                    )}
-                                </div>
-
-                                <div>
-                                    <p className="text-xs uppercase tracking-[0.25em] text-white/80 font-semibold">
-                                        System Update
-                                    </p>
-                                    <h3 className="mt-1 text-2xl font-extrabold">
-                                        {popup.title}
-                                    </h3>
-                                </div>
-                            </div>
+                    <div className="relative">
+                        <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.22em] text-white/80">
+                            <Sparkles size={13} />
+                            Quotation Management
                         </div>
 
-                        <div className="px-6 py-6">
-                            <p className="text-gray-600 leading-7 text-[15px]">
-                                {popup.message}
-                            </p>
-
-                            <button
-                                onClick={closePopup}
-                                className={`mt-6 w-full rounded-2xl px-5 py-3.5 font-bold text-white transition ${popup.type === "success"
-                                        ? "bg-[#0f4d3c] hover:bg-[#0c3f31]"
-                                        : "bg-red-500 hover:bg-red-600"
-                                    }`}
-                            >
-                                Okay
-                            </button>
-                        </div>
+                        <h1 className="mt-4 text-3xl font-extrabold md:text-[42px]">
+                            Review Client Quotations
+                        </h1>
+                        <p className="mt-2 max-w-3xl text-sm leading-7 text-white/85 md:text-[15px]">
+                            Review submitted quotation requests, inspect full package
+                            details, approve qualified submissions, and automatically
+                            convert them into booking records.
+                        </p>
                     </div>
                 </div>
+
+                <div className="grid gap-4 border-t border-[#e8efeb] bg-[#fbfdfc] px-5 py-5 md:grid-cols-3 md:px-6">
+                    <SummaryCard
+                        icon={ClipboardList}
+                        label="Total Quotations"
+                        value={quotations.length}
+                    />
+                    <SummaryCard
+                        icon={PartyPopper}
+                        label="Pending Requests"
+                        value={pendingCount}
+                    />
+                    <SummaryCard
+                        icon={BadgeCheck}
+                        label="Approved Requests"
+                        value={approvedCount}
+                    />
+                </div>
+            </motion.section>
+
+            {quotations.length === 0 ? (
+                <motion.div
+                    variants={fadeUp}
+                    className="rounded-[28px] border border-[#dce7e2] bg-white p-10 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
+                >
+                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#edf8f3] text-[#0f4d3c]">
+                        <FileText className="h-8 w-8" />
+                    </div>
+                    <h2 className="mt-5 text-center text-3xl font-extrabold text-[#0f4d3c]">
+                        No quotations yet
+                    </h2>
+                    <p className="mx-auto mt-3 max-w-2xl text-center text-sm leading-7 text-slate-500">
+                        Submitted client quotations will appear here for admin review,
+                        approval, and conversion into booking records.
+                    </p>
+                </motion.div>
+            ) : (
+                <div className="grid gap-5">
+                    <AnimatePresence>
+                        {quotations.map((quote, index) => {
+                            const status = quote.status || "Pending";
+                            const isPending =
+                                status.toLowerCase() === "pending";
+                            const currentId = quote.id || index;
+                            const isExpanded = expandedId === currentId;
+
+                            return (
+                                <motion.div
+                                    key={currentId}
+                                    variants={fadeUp}
+                                    initial="hidden"
+                                    animate="show"
+                                    exit={{ opacity: 0, y: 16 }}
+                                    whileHover={{ y: -3 }}
+                                    className="overflow-hidden rounded-[28px] border border-[#dce7e2] bg-white shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
+                                >
+                                    <div className="p-6">
+                                        <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+                                            <div className="space-y-4">
+                                                <div className="flex flex-wrap items-center gap-3">
+                                                    <h2 className="text-2xl font-extrabold text-[#0f4d3c] md:text-3xl">
+                                                        {quote.quotationId ||
+                                                            `Q${String(index + 1).padStart(2, "0")}`}
+                                                    </h2>
+                                                    <span
+                                                        className={`inline-flex rounded-full px-3 py-1 text-sm font-semibold ${getStatusClasses(
+                                                            status
+                                                        )}`}
+                                                    >
+                                                        {status}
+                                                    </span>
+                                                </div>
+
+                                                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                                                    <InfoCard
+                                                        icon={FileText}
+                                                        label="Client"
+                                                        value={
+                                                            quote.fullName ||
+                                                            quote.ownerName ||
+                                                            "—"
+                                                        }
+                                                    />
+                                                    <InfoCard
+                                                        icon={CalendarDays}
+                                                        label="Event Type"
+                                                        value={quote.eventType || "—"}
+                                                    />
+                                                    <InfoCard
+                                                        icon={Users}
+                                                        label="Guests"
+                                                        value={quote.guests || "0"}
+                                                    />
+                                                    <InfoCard
+                                                        icon={CalendarDays}
+                                                        label="Preferred Date"
+                                                        value={formatDate(
+                                                            quote.preferredDate
+                                                        )}
+                                                    />
+                                                    <InfoCard
+                                                        icon={MapPin}
+                                                        label="Venue"
+                                                        value={quote.venue || "—"}
+                                                    />
+                                                    <InfoCard
+                                                        icon={BadgeCheck}
+                                                        label="Package"
+                                                        value={quote.packageType || "—"}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="xl:min-w-[220px] xl:text-right">
+                                                <p className="text-sm text-slate-500">
+                                                    Estimated Total
+                                                </p>
+                                                <p className="mt-2 text-3xl font-extrabold text-[#d4af37]">
+                                                    {formatCurrency(
+                                                        quote.estimatedTotal || 0
+                                                    )}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-6 flex flex-col gap-3 md:flex-row">
+                                            {isPending ? (
+                                                <>
+                                                    <button
+                                                        onClick={() => handleApprove(quote)}
+                                                        className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-[#0f4d3c] px-5 py-3 font-bold text-white transition hover:bg-[#0c3f31]"
+                                                    >
+                                                        <CheckCircle2 size={18} />
+                                                        Approve & Create Booking
+                                                    </button>
+
+                                                    <button
+                                                        onClick={() => handleReject(quote)}
+                                                        className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-red-500 px-5 py-3 font-bold text-white transition hover:bg-red-600"
+                                                    >
+                                                        <XCircle size={18} />
+                                                        Reject
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <button
+                                                    disabled
+                                                    className="flex-1 rounded-2xl bg-gray-100 px-5 py-3 font-bold text-gray-500 cursor-not-allowed"
+                                                >
+                                                    This quotation is already{" "}
+                                                    {status.toLowerCase()}
+                                                </button>
+                                            )}
+
+                                            <button
+                                                onClick={() =>
+                                                    setExpandedId(
+                                                        isExpanded ? null : currentId
+                                                    )
+                                                }
+                                                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#d4af37] bg-[#fff8e6] px-5 py-3 font-bold text-[#0f4d3c] transition hover:bg-[#ffefbd] md:w-[220px]"
+                                            >
+                                                {isExpanded ? (
+                                                    <ChevronUp size={18} />
+                                                ) : (
+                                                    <ChevronDown size={18} />
+                                                )}
+                                                {isExpanded
+                                                    ? "Hide Details"
+                                                    : "View Full Details"}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <AnimatePresence>
+                                        {isExpanded && (
+                                            <motion.div
+                                                initial={{ opacity: 0, height: 0 }}
+                                                animate={{ opacity: 1, height: "auto" }}
+                                                exit={{ opacity: 0, height: 0 }}
+                                                transition={{ duration: 0.25 }}
+                                                className="border-t border-[#e8efeb] bg-[#fcfcfb]"
+                                            >
+                                                <div className="grid gap-6 p-6 xl:grid-cols-[1fr_1fr]">
+                                                    <div className="rounded-[24px] border border-[#e5ece8] bg-white p-5 shadow-sm">
+                                                        <h3 className="mb-4 text-xl font-extrabold text-[#0f4d3c]">
+                                                            Quotation Information
+                                                        </h3>
+
+                                                        <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2 text-sm">
+                                                            <DetailItem
+                                                                label="Full Name"
+                                                                value={quote.fullName}
+                                                            />
+                                                            <DetailItem
+                                                                label="Contact Number"
+                                                                value={quote.contactNumber}
+                                                            />
+                                                            <DetailItem
+                                                                label="Email Address"
+                                                                value={
+                                                                    quote.email ||
+                                                                    quote.ownerEmail
+                                                                }
+                                                            />
+                                                            <DetailItem
+                                                                label="Event Type"
+                                                                value={quote.eventType}
+                                                            />
+                                                            <DetailItem
+                                                                label="Preferred Date"
+                                                                value={formatDate(
+                                                                    quote.preferredDate
+                                                                )}
+                                                            />
+                                                            <DetailItem
+                                                                label="Event Time"
+                                                                value={quote.eventTime}
+                                                            />
+                                                            <DetailItem
+                                                                label="Venue / Location"
+                                                                value={quote.venue}
+                                                            />
+                                                            <DetailItem
+                                                                label="Number of Guests"
+                                                                value={quote.guests}
+                                                            />
+                                                            <DetailItem
+                                                                label="Preferred Package"
+                                                                value={quote.packageType}
+                                                            />
+                                                            <DetailItem
+                                                                label="Classic Menu"
+                                                                value={quote.classicMenu}
+                                                            />
+                                                            <DetailItem
+                                                                label="Theme / Style"
+                                                                value={quote.themePreference}
+                                                            />
+                                                            <DetailItem
+                                                                label="Status"
+                                                                value={
+                                                                    quote.status || "Pending"
+                                                                }
+                                                            />
+                                                            <DetailItem
+                                                                label="Package Price"
+                                                                value={formatCurrency(
+                                                                    quote.packagePrice || 0
+                                                                )}
+                                                            />
+                                                            <DetailItem
+                                                                label="Add-ons Total"
+                                                                value={formatCurrency(
+                                                                    quote.addOnsTotal || 0
+                                                                )}
+                                                            />
+                                                            <DetailItem
+                                                                label="Estimated Total"
+                                                                value={formatCurrency(
+                                                                    quote.estimatedTotal || 0
+                                                                )}
+                                                            />
+                                                            <DetailItem
+                                                                label="Package Coverage"
+                                                                value={
+                                                                    quote.includedPax
+                                                                        ? `${quote.includedPax} pax included`
+                                                                        : quote.ratePerPax
+                                                                            ? `${formatCurrency(
+                                                                                quote.ratePerPax
+                                                                            )}/pax`
+                                                                            : "—"
+                                                                }
+                                                            />
+                                                        </div>
+
+                                                        <div className="mt-5">
+                                                            <p className="mb-2 text-sm font-semibold text-[#0f4d3c]">
+                                                                Special Requests
+                                                            </p>
+                                                            <div className="rounded-2xl border border-[#e1ece8] bg-[#f8fbfa] p-4 text-sm leading-6 text-slate-600">
+                                                                {quote.specialRequests ||
+                                                                    "No special requests."}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="space-y-6">
+                                                        <div className="rounded-[24px] border border-[#e5ece8] bg-white p-5 shadow-sm">
+                                                            <h3 className="mb-4 text-xl font-extrabold text-[#0f4d3c]">
+                                                                Selected Add-ons
+                                                            </h3>
+
+                                                            {Array.isArray(quote.addOns) &&
+                                                                quote.addOns.length > 0 ? (
+                                                                <div className="flex flex-wrap gap-2">
+                                                                    {quote.addOns.map(
+                                                                        (addon, i) => (
+                                                                            <span
+                                                                                key={`${addon}-${i}`}
+                                                                                className="rounded-full border border-[#e5d390] bg-[#fff8e6] px-3 py-1 text-sm font-medium text-[#0f4d3c]"
+                                                                            >
+                                                                                {addon}
+                                                                            </span>
+                                                                        )
+                                                                    )}
+                                                                </div>
+                                                            ) : (
+                                                                <p className="text-sm text-slate-500">
+                                                                    No add-ons selected.
+                                                                </p>
+                                                            )}
+                                                        </div>
+
+                                                        <div className="rounded-[24px] border border-[#e5ece8] bg-white p-5 shadow-sm">
+                                                            <h3 className="mb-4 text-xl font-extrabold text-[#0f4d3c]">
+                                                                Package Inclusions
+                                                            </h3>
+
+                                                            {Array.isArray(
+                                                                quote.packageInclusions
+                                                            ) &&
+                                                                quote.packageInclusions.length >
+                                                                0 ? (
+                                                                <ul className="space-y-3">
+                                                                    {quote.packageInclusions.map(
+                                                                        (item, i) => (
+                                                                            <li
+                                                                                key={`${item}-${i}`}
+                                                                                className="flex items-start gap-3 text-sm text-slate-700"
+                                                                            >
+                                                                                <span className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full bg-[#d4af37]" />
+                                                                                <span>{item}</span>
+                                                                            </li>
+                                                                        )
+                                                                    )}
+                                                                </ul>
+                                                            ) : (
+                                                                <p className="text-sm text-slate-500">
+                                                                    No package inclusions recorded
+                                                                    in this quotation.
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </motion.div>
+                            );
+                        })}
+                    </AnimatePresence>
+                </div>
             )}
+
+            <AnimatePresence>
+                {popup.open && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 px-4 backdrop-blur-[2px]"
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, y: 20, scale: 0.96 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 16, scale: 0.96 }}
+                            className="w-full max-w-md overflow-hidden rounded-[28px] border border-gray-100 bg-white shadow-[0_25px_60px_rgba(0,0,0,0.25)]"
+                        >
+                            <div
+                                className={`px-6 py-5 text-white ${popup.type === "success"
+                                        ? "bg-gradient-to-r from-[#0f4d3c] via-[#11614c] to-[#22b67f]"
+                                        : "bg-gradient-to-r from-[#b91c1c] via-[#dc2626] to-[#ef4444]"
+                                    }`}
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/15">
+                                        {popup.type === "success" ? (
+                                            <CheckCircle2 size={30} />
+                                        ) : (
+                                            <XCircle size={30} />
+                                        )}
+                                    </div>
+
+                                    <div>
+                                        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-white/80">
+                                            System Update
+                                        </p>
+                                        <h3 className="mt-1 text-2xl font-extrabold">
+                                            {popup.title}
+                                        </h3>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="px-6 py-6">
+                                <p className="text-[15px] leading-7 text-gray-600">
+                                    {popup.message}
+                                </p>
+
+                                <button
+                                    onClick={closePopup}
+                                    className={`mt-6 w-full rounded-2xl px-5 py-3.5 font-bold text-white transition ${popup.type === "success"
+                                            ? "bg-[#0f4d3c] hover:bg-[#0c3f31]"
+                                            : "bg-red-500 hover:bg-red-600"
+                                        }`}
+                                >
+                                    Okay
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </motion.div>
+    );
+}
+
+function SummaryCard({ icon: Icon, label, value }) {
+    return (
+        <div className="rounded-[22px] border border-[#e2ebe7] bg-white p-4 shadow-sm">
+            <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#edf8f3_0%,#dff1e8_100%)] text-[#0f4d3c]">
+                    <Icon size={20} />
+                </div>
+                <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                        {label}
+                    </p>
+                    <h3 className="mt-1 text-2xl font-extrabold text-[#0f4d3c]">
+                        {value}
+                    </h3>
+                </div>
+            </div>
         </div>
     );
 }
 
-function SummaryCard({ title, value, subtitle }) {
+function InfoCard({ icon: Icon, label, value }) {
     return (
-        <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5">
-            <p className="text-sm text-gray-500">{title}</p>
-            <h2 className="text-3xl font-extrabold text-[#0f4d3c] mt-2">{value}</h2>
-            <p className="text-xs text-gray-400 mt-2">{subtitle}</p>
-        </div>
-    );
-}
-
-function InfoRow({ icon, label, value }) {
-    return (
-        <div className="flex items-center gap-2 text-gray-600">
-            <span className="text-[#0f4d3c]">{icon}</span>
-            <span className="font-medium">{label}:</span>
-            <span>{value || "—"}</span>
+        <div className="rounded-[22px] border border-[#e4ece8] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-4 shadow-sm">
+            <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-[#edf8f3] text-[#0f4d3c]">
+                <Icon size={18} />
+            </div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+                {label}
+            </p>
+            <p className="mt-2 text-base font-bold text-[#0f4d3c]">
+                {value || "—"}
+            </p>
         </div>
     );
 }
@@ -587,8 +753,8 @@ function InfoRow({ icon, label, value }) {
 function DetailItem({ label, value }) {
     return (
         <div>
-            <p className="text-gray-500">{label}</p>
-            <p className="mt-1 font-semibold text-[#0f4d3c] break-words">
+            <p className="text-slate-500">{label}</p>
+            <p className="mt-1 break-words font-semibold text-[#0f4d3c]">
                 {value || "—"}
             </p>
         </div>
