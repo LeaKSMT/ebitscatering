@@ -3,16 +3,19 @@ const db = require("../config/db");
 exports.getBookings = (req, res) => {
     const query = `
         SELECT * FROM bookings
-        ORDER BY created_at DESC, id DESC
+        ORDER BY id DESC
     `;
 
     db.query(query, (err, results) => {
         if (err) {
             console.error("Get bookings error:", err);
-            return res.status(500).json({ message: "Failed to fetch bookings" });
+            return res.status(500).json({
+                message: "Failed to fetch bookings",
+                error: err.message,
+            });
         }
 
-        return res.status(200).json(results);
+        return res.status(200).json(results || []);
     });
 };
 
@@ -22,10 +25,13 @@ exports.getBookingById = (req, res) => {
     db.query("SELECT * FROM bookings WHERE id = ? LIMIT 1", [id], (err, results) => {
         if (err) {
             console.error("Get booking by id error:", err);
-            return res.status(500).json({ message: "Failed to fetch booking" });
+            return res.status(500).json({
+                message: "Failed to fetch booking",
+                error: err.message,
+            });
         }
 
-        if (results.length === 0) {
+        if (!results || results.length === 0) {
             return res.status(404).json({ message: "Booking not found" });
         }
 
@@ -85,8 +91,8 @@ exports.createBooking = (req, res) => {
         event_date,
         event_time || null,
         venue,
-        guests || 0,
-        total_price || 0,
+        Number(guests || 0),
+        Number(total_price || 0),
         payment_status || "pending",
         booking_status || "pending",
         notes || null,
@@ -95,7 +101,10 @@ exports.createBooking = (req, res) => {
     db.query(query, values, (err, result) => {
         if (err) {
             console.error("Create booking error:", err);
-            return res.status(500).json({ message: "Failed to create booking" });
+            return res.status(500).json({
+                message: "Failed to create booking",
+                error: err.message,
+            });
         }
 
         return res.status(201).json({
@@ -151,8 +160,8 @@ exports.updateBooking = (req, res) => {
         event_date,
         event_time || null,
         venue,
-        guests || 0,
-        total_price || 0,
+        Number(guests || 0),
+        Number(total_price || 0),
         payment_status || "pending",
         booking_status || "pending",
         notes || null,
@@ -162,10 +171,13 @@ exports.updateBooking = (req, res) => {
     db.query(query, values, (err, result) => {
         if (err) {
             console.error("Update booking error:", err);
-            return res.status(500).json({ message: "Failed to update booking" });
+            return res.status(500).json({
+                message: "Failed to update booking",
+                error: err.message,
+            });
         }
 
-        if (result.affectedRows === 0) {
+        if (!result || result.affectedRows === 0) {
             return res.status(404).json({ message: "Booking not found" });
         }
 
@@ -179,10 +191,13 @@ exports.deleteBooking = (req, res) => {
     db.query("DELETE FROM bookings WHERE id = ?", [id], (err, result) => {
         if (err) {
             console.error("Delete booking error:", err);
-            return res.status(500).json({ message: "Failed to delete booking" });
+            return res.status(500).json({
+                message: "Failed to delete booking",
+                error: err.message,
+            });
         }
 
-        if (result.affectedRows === 0) {
+        if (!result || result.affectedRows === 0) {
             return res.status(404).json({ message: "Booking not found" });
         }
 

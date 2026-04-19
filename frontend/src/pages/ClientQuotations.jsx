@@ -1,11 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     FileText,
     CalendarDays,
     MapPin,
     Users,
-    Trash2,
     Sparkles,
     BadgeCheck,
     Wallet,
@@ -13,15 +12,6 @@ import {
     Mail,
     Phone,
 } from "lucide-react";
-
-function safeParse(key, fallback = []) {
-    try {
-        const raw = localStorage.getItem(key);
-        return raw ? JSON.parse(raw) : fallback;
-    } catch {
-        return fallback;
-    }
-}
 
 function getClientUser() {
     try {
@@ -55,9 +45,29 @@ function getCurrentClientName() {
     );
 }
 
-function getScopedKey(baseKey, email) {
-    return email ? `${baseKey}_${email}` : `${baseKey}_guest`;
+function getStoredToken() {
+    return (
+        localStorage.getItem("token") ||
+        localStorage.getItem("clientToken") ||
+        localStorage.getItem("authToken") ||
+        localStorage.getItem("adminToken") ||
+        ""
+    );
 }
+
+function getApiBaseUrl() {
+    const envUrl = import.meta.env.VITE_API_URL?.trim();
+
+    if (!envUrl) {
+        console.warn("VITE_API_URL is missing. Using localhost fallback.");
+        return "http://localhost:5000/api";
+    }
+
+    const cleaned = envUrl.replace(/\/+$/, "");
+    return cleaned.endsWith("/api") ? cleaned : `${cleaned}/api`;
+}
+
+const API_BASE_URL = getApiBaseUrl();
 
 function formatCurrency(value) {
     const num = Number(value || 0);
@@ -90,10 +100,26 @@ function formatDateTime(dateString) {
     });
 }
 
+function formatTime(timeString) {
+    if (!timeString) return "Not specified";
+
+    const parsed = new Date(`2000-01-01T${timeString}`);
+    if (Number.isNaN(parsed.getTime())) return timeString;
+
+    return parsed.toLocaleTimeString("en-PH", {
+        hour: "numeric",
+        minute: "2-digit",
+    });
+}
+
 function getStatusClasses(status) {
     const normalized = (status || "pending").toLowerCase();
 
-    if (normalized === "approved" || normalized === "confirmed") {
+    if (
+        normalized === "approved" ||
+        normalized === "confirmed" ||
+        normalized === "paid"
+    ) {
         return "bg-emerald-100 text-emerald-700 border border-emerald-200";
     }
 
@@ -111,7 +137,11 @@ function getStatusClasses(status) {
 function getStatusMessage(status) {
     const normalized = (status || "pending").toLowerCase();
 
-    if (normalized === "approved" || normalized === "confirmed") {
+    if (
+        normalized === "approved" ||
+        normalized === "confirmed" ||
+        normalized === "paid"
+    ) {
         return "Your quotation has been approved. Please monitor your booking and payment updates for the next steps.";
     }
 
@@ -126,23 +156,139 @@ function getStatusMessage(status) {
     return "Your quotation is pending review. The admin will evaluate your request and update the status soon.";
 }
 
+function normalizeQuotation(item) {
+    if (!item || typeof item !== "object") return null;
+
+    let parsedAddOns = [];
+    let parsedInclusions = [];
+
+    try {
+        parsedAddOns = Array.isArray(item.add_ons)
+            ? item.add_ons
+            : JSON.parse(item.add_ons || "[]");
+    } catch {
+        parsedAddOns = [];
+    }
+
+    try {
+        parsedInclusions = Array.isArray(item.package_inclusions)
+            ? item.package_inclusions
+            : JSON.parse(item.package_inclusions || "[]");
+    } catch {
+        parsedInclusions = [];
+    }
+
+    return {
+        id: item.id,
+        quotationId: item.quotation_id || `Q${item.id}`,
+        clientName: item.full_name || item.owner_name || "",
+        fullName: item.full_name || item.owner_name || "",
+        email: item.email || item.owner_email || "",
+        contactNumber: item.contact_number || "",
+        eventType: item.event_type || "",
+        eventDate: item.preferred_date || "",
+        eventTime: item.event_time || "",
+        venue: item.venue || "",
+        guests: Number(item.guests || 0),
+        packageName: item.package_type || "",
+        packageType: item.package_type || "",
+        classicMenu: item.classic_menu || "",
+        addOns: parsedAddOns,
+        themePreference: item.theme_preference || "",
+        specialRequests: item.special_requests || "",
+        estimatedTotal: Number(item.estimated_total || 0),
+        totalPrice: Number(item.estimated_total || 0),
+        packagePrice: Number(item.package_price || 0),
+        addOnsTotal: Number(item.add_ons_total || 0),
+        includedPax: item.included_pax,
+        pricingType: item.pricing_type || "",
+        ratePerPax: item.rate_per_pax,
+        excessGuests: Number(item.excess_guests || 0),
+        excessCost: Number(item.excess_cost || 0),
+        packageInclusions: parsedInclusions,
+        status: item.status || "Pending",
+        createdAt: item.created_at || "",
+        submittedAt: item.created_at || "",
+    };
+}
+
 const fadeUp = {
     hidden: { opacity: 0, y: 18 },
     show: { opacity: 1, y: 0 },
 };
 
 function ClientQuotations() {
-    const clientEmail = getCurrentClientEmail();
-    const clientName = getCurrentClientName();
-    const storageKey = getScopedKey("clientQuotations", clientEmail);
+    const clientEmail = getCurrentClientEmail().toLowerCase().trim();
+    const clientName = getCurrentClientName().toLowerCase().trim();
 
-    const [quotations, setQuotations] = useState(() =>
-        safeParse(storageKey, []).sort(
-            (a, b) =>
-                new Date(b.createdAt || b.submittedAt || 0) -
-                new Date(a.createdAt || a.submittedAt || 0)
-        )
-    );
+    const [quotations, setQuotations] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        const fetchQuotations = async () => {
+            try {
+                setLoading(true);
+                setError("");
+
+                const token = getStoredToken();
+
+                if (!token) {
+                    throw new Error("No token found. Please log in again.");
+                }
+
+                const res = await fetch(`${API_BASE_URL}/quotations`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+
+                const data = await res.json().catch(() => []);
+
+                if (!res.ok) {
+                    throw new Error(data?.message || "Failed to fetch quotations.");
+                }
+
+                const normalized = Array.isArray(data)
+                    ? data.map(normalizeQuotation).filter(Boolean)
+                    : [];
+
+                const filtered = normalized.filter((item) => {
+                    const itemEmail = String(item.email || "").toLowerCase().trim();
+                    const itemName = String(item.clientName || "").toLowerCase().trim();
+
+                    return (
+                        (clientEmail && itemEmail === clientEmail) ||
+                        (clientName && itemName === clientName)
+                    );
+                });
+
+                filtered.sort((a, b) => {
+                    const first = new Date(b.createdAt || b.submittedAt || 0).getTime();
+                    const second = new Date(a.createdAt || a.submittedAt || 0).getTime();
+                    return first - second;
+                });
+
+                setQuotations(filtered);
+            } catch (err) {
+                console.error("Fetch client quotations error:", err);
+                setError(err.message || "Failed to load quotations.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (!clientEmail && !clientName) {
+            setQuotations([]);
+            setLoading(false);
+            setError("No client session found.");
+            return;
+        }
+
+        fetchQuotations();
+    }, [clientEmail, clientName]);
 
     const summary = useMemo(() => {
         const total = quotations.length;
@@ -150,7 +296,7 @@ function ClientQuotations() {
             (item) => (item.status || "pending").toLowerCase() === "pending"
         ).length;
         const approved = quotations.filter((item) =>
-            ["approved", "confirmed"].includes(
+            ["approved", "confirmed", "paid"].includes(
                 (item.status || "").toLowerCase()
             )
         ).length;
@@ -162,25 +308,6 @@ function ClientQuotations() {
 
         return { total, pending, approved, rejected };
     }, [quotations]);
-
-    const handleDeleteQuotation = (id) => {
-        const target = quotations.find((q) => q.id === id);
-
-        if ((target?.status || "pending").toLowerCase() !== "pending") {
-            alert("You can only delete pending quotations.");
-            return;
-        }
-
-        const confirmed = window.confirm(
-            "Are you sure you want to delete this quotation?"
-        );
-
-        if (!confirmed) return;
-
-        const updated = quotations.filter((quote) => quote.id !== id);
-        setQuotations(updated);
-        localStorage.setItem(storageKey, JSON.stringify(updated));
-    };
 
     return (
         <motion.div
@@ -221,7 +348,7 @@ function ClientQuotations() {
                                 Logged in as
                             </p>
                             <p className="mt-2 text-lg font-bold text-white">
-                                {clientName}
+                                {getCurrentClientName()}
                             </p>
                             {clientEmail ? (
                                 <p className="mt-1 text-sm text-white/75">{clientEmail}</p>
@@ -252,7 +379,26 @@ function ClientQuotations() {
                 </div>
             </motion.div>
 
-            {quotations.length === 0 ? (
+            {loading ? (
+                <motion.div
+                    variants={fadeUp}
+                    className="rounded-[32px] border border-[#dce7e2] bg-white px-6 py-16 text-center shadow-sm"
+                >
+                    <h2 className="text-2xl font-bold text-[#0d5c46]">
+                        Loading quotations...
+                    </h2>
+                </motion.div>
+            ) : error ? (
+                <motion.div
+                    variants={fadeUp}
+                    className="rounded-[32px] border border-red-200 bg-white px-6 py-16 text-center shadow-sm"
+                >
+                    <h2 className="text-2xl font-bold text-red-600">
+                        Failed to load quotations
+                    </h2>
+                    <p className="mt-2 text-sm text-slate-500">{error}</p>
+                </motion.div>
+            ) : quotations.length === 0 ? (
                 <motion.div
                     variants={fadeUp}
                     className="rounded-[32px] border border-dashed border-[#d7e3de] bg-white px-6 py-16 text-center shadow-sm"
@@ -278,21 +424,6 @@ function ClientQuotations() {
                                 quote.submittedAt ||
                                 quote.dateSubmitted ||
                                 "";
-
-                            const guestCount =
-                                quote.guestCount ||
-                                quote.guests ||
-                                quote.pax ||
-                                0;
-
-                            const estimatedTotal =
-                                quote.totalPrice ||
-                                quote.estimatedTotal ||
-                                quote.total ||
-                                0;
-
-                            const isPending =
-                                (quote.status || "pending").toLowerCase() === "pending";
 
                             return (
                                 <motion.div
@@ -327,16 +458,6 @@ function ClientQuotations() {
                                                     </span>
                                                 </p>
                                             </div>
-
-                                            {isPending && (
-                                                <button
-                                                    onClick={() => handleDeleteQuotation(quote.id)}
-                                                    className="inline-flex items-center justify-center gap-2 rounded-full border border-rose-200 bg-white px-4 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-50"
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                    Delete
-                                                </button>
-                                            )}
                                         </div>
                                     </div>
 
@@ -348,9 +469,7 @@ function ClientQuotations() {
                                                         Package
                                                     </p>
                                                     <p className="mt-2 text-base font-bold text-slate-800">
-                                                        {quote.packageName ||
-                                                            quote.packageType ||
-                                                            "Not selected"}
+                                                        {quote.packageName || "Not selected"}
                                                     </p>
                                                 </div>
 
@@ -359,8 +478,7 @@ function ClientQuotations() {
                                                         Theme Preference
                                                     </p>
                                                     <p className="mt-2 text-base font-bold text-slate-800">
-                                                        {quote.themePreference ||
-                                                            "Not specified"}
+                                                        {quote.themePreference || "Not specified"}
                                                     </p>
                                                 </div>
                                             </div>
@@ -386,9 +504,7 @@ function ClientQuotations() {
                                                         </p>
                                                     </div>
                                                     <p className="mt-2 text-sm font-semibold text-slate-800">
-                                                        {quote.venue ||
-                                                            quote.location ||
-                                                            "No venue provided"}
+                                                        {quote.venue || "No venue provided"}
                                                     </p>
                                                 </div>
 
@@ -400,71 +516,58 @@ function ClientQuotations() {
                                                         </p>
                                                     </div>
                                                     <p className="mt-2 text-sm font-semibold text-slate-800">
-                                                        {guestCount || "0"} pax
+                                                        {quote.guests || 0} pax
                                                     </p>
                                                 </div>
                                             </div>
 
-                                            {(quote.clientName ||
-                                                quote.fullName ||
-                                                quote.email ||
-                                                quote.phone ||
-                                                quote.contactNumber) && (
-                                                    <div className="rounded-[24px] border border-[#e3ebe7] px-5 py-5">
-                                                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                                                            Client Information
+                                            <div className="rounded-[24px] border border-[#e3ebe7] px-5 py-5">
+                                                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                                    Client Information
+                                                </p>
+
+                                                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                                                    <div className="rounded-2xl bg-[#f8fbfa] p-4">
+                                                        <p className="flex items-center gap-2 text-xs text-slate-500">
+                                                            <BadgeCheck size={14} />
+                                                            Full Name
                                                         </p>
-
-                                                        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                                                            <div className="rounded-2xl bg-[#f8fbfa] p-4">
-                                                                <p className="flex items-center gap-2 text-xs text-slate-500">
-                                                                    <BadgeCheck size={14} />
-                                                                    Full Name
-                                                                </p>
-                                                                <p className="mt-2 text-sm font-semibold text-slate-800">
-                                                                    {quote.clientName ||
-                                                                        quote.fullName ||
-                                                                        clientName}
-                                                                </p>
-                                                            </div>
-
-                                                            <div className="rounded-2xl bg-[#f8fbfa] p-4">
-                                                                <p className="flex items-center gap-2 text-xs text-slate-500">
-                                                                    <Mail size={14} />
-                                                                    Email
-                                                                </p>
-                                                                <p className="mt-2 text-sm font-semibold text-slate-800 break-all">
-                                                                    {quote.email ||
-                                                                        clientEmail ||
-                                                                        "No email provided"}
-                                                                </p>
-                                                            </div>
-
-                                                            <div className="rounded-2xl bg-[#f8fbfa] p-4">
-                                                                <p className="flex items-center gap-2 text-xs text-slate-500">
-                                                                    <Phone size={14} />
-                                                                    Contact Number
-                                                                </p>
-                                                                <p className="mt-2 text-sm font-semibold text-slate-800">
-                                                                    {quote.phone ||
-                                                                        quote.contactNumber ||
-                                                                        "No contact number"}
-                                                                </p>
-                                                            </div>
-
-                                                            <div className="rounded-2xl bg-[#f8fbfa] p-4">
-                                                                <p className="flex items-center gap-2 text-xs text-slate-500">
-                                                                    <Clock3 size={14} />
-                                                                    Event Time
-                                                                </p>
-                                                                <p className="mt-2 text-sm font-semibold text-slate-800">
-                                                                    {quote.eventTime ||
-                                                                        "Not specified"}
-                                                                </p>
-                                                            </div>
-                                                        </div>
+                                                        <p className="mt-2 text-sm font-semibold text-slate-800">
+                                                            {quote.clientName || getCurrentClientName()}
+                                                        </p>
                                                     </div>
-                                                )}
+
+                                                    <div className="rounded-2xl bg-[#f8fbfa] p-4">
+                                                        <p className="flex items-center gap-2 text-xs text-slate-500">
+                                                            <Mail size={14} />
+                                                            Email
+                                                        </p>
+                                                        <p className="mt-2 text-sm font-semibold text-slate-800 break-all">
+                                                            {quote.email || clientEmail || "No email provided"}
+                                                        </p>
+                                                    </div>
+
+                                                    <div className="rounded-2xl bg-[#f8fbfa] p-4">
+                                                        <p className="flex items-center gap-2 text-xs text-slate-500">
+                                                            <Phone size={14} />
+                                                            Contact Number
+                                                        </p>
+                                                        <p className="mt-2 text-sm font-semibold text-slate-800">
+                                                            {quote.contactNumber || "No contact number"}
+                                                        </p>
+                                                    </div>
+
+                                                    <div className="rounded-2xl bg-[#f8fbfa] p-4">
+                                                        <p className="flex items-center gap-2 text-xs text-slate-500">
+                                                            <Clock3 size={14} />
+                                                            Event Time
+                                                        </p>
+                                                        <p className="mt-2 text-sm font-semibold text-slate-800">
+                                                            {formatTime(quote.eventTime)}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
 
                                             {Array.isArray(quote.addOns) &&
                                                 quote.addOns.length > 0 && (
@@ -473,16 +576,14 @@ function ClientQuotations() {
                                                             Selected Add-ons
                                                         </p>
                                                         <div className="mt-3 flex flex-wrap gap-2">
-                                                            {quote.addOns.map(
-                                                                (addon, addonIndex) => (
-                                                                    <span
-                                                                        key={`${addon}-${addonIndex}`}
-                                                                        className="rounded-full bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-700"
-                                                                    >
-                                                                        {addon}
-                                                                    </span>
-                                                                )
-                                                            )}
+                                                            {quote.addOns.map((addon, addonIndex) => (
+                                                                <span
+                                                                    key={`${addon}-${addonIndex}`}
+                                                                    className="rounded-full bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-700"
+                                                                >
+                                                                    {addon}
+                                                                </span>
+                                                            ))}
                                                         </div>
                                                     </div>
                                                 )}
@@ -497,17 +598,6 @@ function ClientQuotations() {
                                                     </p>
                                                 </div>
                                             )}
-
-                                            {quote.notes && (
-                                                <div className="rounded-[24px] border border-[#e3ebe7] px-5 py-5">
-                                                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                                                        Notes
-                                                    </p>
-                                                    <p className="mt-3 text-sm leading-6 text-slate-700">
-                                                        {quote.notes}
-                                                    </p>
-                                                </div>
-                                            )}
                                         </div>
 
                                         <div className="space-y-4">
@@ -516,7 +606,7 @@ function ClientQuotations() {
                                                     Estimated Total
                                                 </p>
                                                 <p className="mt-2 text-3xl font-extrabold text-[#b9911f]">
-                                                    {formatCurrency(estimatedTotal)}
+                                                    {formatCurrency(quote.estimatedTotal)}
                                                 </p>
                                             </div>
 
