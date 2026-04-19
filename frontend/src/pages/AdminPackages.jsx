@@ -257,7 +257,7 @@ const addOns = [
 ];
 
 const fadeUp = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 18 },
     show: { opacity: 1, y: 0 },
 };
 
@@ -267,10 +267,10 @@ function AdminPackageCard({ item, index = 0 }) {
             variants={fadeUp}
             initial="hidden"
             whileInView="show"
-            viewport={{ once: true, amount: 0.2 }}
-            transition={{ duration: 0.35, delay: index * 0.03 }}
+            viewport={{ once: true, amount: 0.15 }}
+            transition={{ duration: 0.46, delay: index * 0.06, ease: "easeOut" }}
             whileHover={{ y: -4 }}
-            className="rounded-[28px] border border-[#dce7e2] bg-white p-6 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
+            className="rounded-[28px] border border-[#dce7e2] bg-white p-6 shadow-[0_14px_36px_rgba(14,61,47,0.06)] transition-shadow hover:shadow-[0_18px_42px_rgba(14,61,47,0.10)]"
         >
             <div className="flex items-start justify-between gap-4">
                 <div>
@@ -297,13 +297,21 @@ function AdminPackageCard({ item, index = 0 }) {
 
                 <ul className="mt-4 grid gap-3">
                     {item.features.map((feature, featureIndex) => (
-                        <li
+                        <motion.li
                             key={featureIndex}
+                            initial={{ opacity: 0, x: -10 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }}
+                            transition={{
+                                duration: 0.32,
+                                delay: 0.06 + featureIndex * 0.018,
+                                ease: "easeOut",
+                            }}
                             className="flex items-start gap-3 text-sm text-slate-700"
                         >
                             <span className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full bg-[#d4af37]" />
                             <span>{feature}</span>
-                        </li>
+                        </motion.li>
                     ))}
                 </ul>
             </div>
@@ -311,11 +319,14 @@ function AdminPackageCard({ item, index = 0 }) {
     );
 }
 
-function SummaryCard({ icon: Icon, label, value }) {
+function SummaryCard({ icon: Icon, label, value, delay = 0 }) {
     return (
         <motion.div
-            whileHover={{ y: -3 }}
-            className="rounded-[22px] border border-[#f0e2b7] bg-white p-5 shadow-sm"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.42, delay, ease: "easeOut" }}
+            whileHover={{ y: -4 }}
+            className="rounded-[22px] border border-[#f0e2b7] bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
         >
             <div className="flex items-center gap-3">
                 <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#fff6dc] text-[#0f4d3c]">
@@ -337,11 +348,12 @@ function AdminPackages() {
         <motion.div
             initial="hidden"
             animate="show"
-            transition={{ staggerChildren: 0.08 }}
+            transition={{ staggerChildren: 0.1 }}
             className="space-y-8"
         >
             <motion.section
                 variants={fadeUp}
+                transition={{ duration: 0.46, ease: "easeOut" }}
                 className="overflow-hidden rounded-[30px] border border-[#dce7e2] bg-white shadow-[0_18px_50px_rgba(14,61,47,0.07)]"
             >
                 <div className="relative overflow-hidden bg-[linear-gradient(135deg,#07382d_0%,#0c4d3d_34%,#0f6b52_68%,#18a06c_100%)] px-6 py-7 text-white md:px-8">
@@ -349,6 +361,17 @@ function AdminPackages() {
                         <div className="absolute -top-12 right-[-30px] h-40 w-40 rounded-full bg-[#d4af37]/20 blur-3xl" />
                         <div className="absolute bottom-[-30px] left-[-20px] h-28 w-28 rounded-full bg-white/10 blur-3xl" />
                     </div>
+
+                    <motion.div
+                        animate={{ x: ["-30%", "130%"] }}
+                        transition={{
+                            duration: 7,
+                            repeat: Infinity,
+                            repeatDelay: 2,
+                            ease: "linear",
+                        }}
+                        className="pointer-events-none absolute inset-y-0 left-[-35%] w-[28%] rotate-[18deg] bg-gradient-to-r from-transparent via-white/10 to-transparent"
+                    />
 
                     <div className="relative">
                         <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.22em] text-white/80">
@@ -370,6 +393,7 @@ function AdminPackages() {
 
             <motion.section
                 variants={fadeUp}
+                transition={{ duration: 0.46, ease: "easeOut" }}
                 className="rounded-[28px] border border-[#e9dec2] bg-[#fffaf0] p-6 shadow-sm"
             >
                 <div className="grid gap-4 md:grid-cols-3">
@@ -377,21 +401,28 @@ function AdminPackages() {
                         icon={Gem}
                         label="Wedding Packages"
                         value={weddingPackages.length}
+                        delay={0.04}
                     />
                     <SummaryCard
                         icon={Package2}
                         label="Debut Packages"
                         value={debutPackages.length}
+                        delay={0.1}
                     />
                     <SummaryCard
                         icon={Gift}
                         label="Available Add-ons"
                         value={addOns.length}
+                        delay={0.16}
                     />
                 </div>
             </motion.section>
 
-            <motion.section variants={fadeUp} className="space-y-6">
+            <motion.section
+                variants={fadeUp}
+                transition={{ duration: 0.46, ease: "easeOut" }}
+                className="space-y-6"
+            >
                 <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#b99117]">
                         Catering Packages
@@ -408,7 +439,11 @@ function AdminPackages() {
                 </div>
             </motion.section>
 
-            <motion.section variants={fadeUp} className="space-y-6">
+            <motion.section
+                variants={fadeUp}
+                transition={{ duration: 0.46, ease: "easeOut" }}
+                className="space-y-6"
+            >
                 <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#b99117]">
                         Celebration Packages
@@ -427,6 +462,7 @@ function AdminPackages() {
 
             <motion.section
                 variants={fadeUp}
+                transition={{ duration: 0.46, ease: "easeOut" }}
                 className="rounded-[28px] border border-[#dce7e2] bg-white p-6 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
             >
                 <div className="mb-6">
@@ -442,12 +478,16 @@ function AdminPackages() {
                     {addOns.map((item, index) => (
                         <motion.div
                             key={item.name}
-                            initial={{ opacity: 0, y: 14 }}
+                            initial={{ opacity: 0, y: 16 }}
                             whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.3, delay: index * 0.03 }}
-                            whileHover={{ y: -3 }}
-                            className="rounded-[22px] border border-[#dce7e2] bg-[#f8fbfa] p-5 shadow-sm"
+                            viewport={{ once: true, amount: 0.15 }}
+                            transition={{
+                                duration: 0.42,
+                                delay: index * 0.06,
+                                ease: "easeOut",
+                            }}
+                            whileHover={{ y: -4 }}
+                            className="rounded-[22px] border border-[#dce7e2] bg-[#f8fbfa] p-5 shadow-sm transition-shadow hover:shadow-md"
                         >
                             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#edf8f3] text-[#0f4d3c]">
                                 <BadgeCheck size={20} />
