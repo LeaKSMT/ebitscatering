@@ -52,7 +52,7 @@ import {
 const CHART_COLORS = ["#0f4d3c", "#d4af37", "#22b67f", "#ef4444", "#64748b"];
 
 const fadeUp = {
-    hidden: { opacity: 0, y: 22 },
+    hidden: { opacity: 0, y: 18 },
     show: { opacity: 1, y: 0 },
 };
 
@@ -218,14 +218,15 @@ function AdminDashboard() {
 
     return (
         <motion.div
-            data-build="premium-admin-dashboard-v4-executive"
+            data-build="premium-admin-dashboard-v5-smooth"
             initial="hidden"
             animate="show"
-            transition={{ staggerChildren: 0.08 }}
+            transition={{ staggerChildren: 0.1 }}
             className="space-y-5"
         >
             <motion.section
                 variants={fadeUp}
+                transition={{ duration: 0.46, ease: "easeOut" }}
                 className="relative overflow-hidden rounded-[34px] border border-[#dbe7e2] bg-white shadow-[0_22px_60px_rgba(14,61,47,0.08)]"
             >
                 <div className="pointer-events-none absolute inset-0">
@@ -237,7 +238,7 @@ function AdminDashboard() {
                 <div className="relative overflow-hidden bg-[linear-gradient(135deg,#07382d_0%,#0c4d3d_34%,#0f6b52_68%,#18a06c_100%)] px-6 py-7 text-white md:px-8 md:py-8">
                     <motion.div
                         animate={{ y: [0, -5, 0] }}
-                        transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
+                        transition={{ duration: 4.8, repeat: Infinity, ease: "easeInOut" }}
                         className="absolute right-6 top-6 hidden h-20 w-20 rounded-full border border-white/10 bg-white/5 blur-[1px] md:block"
                     />
 
@@ -286,7 +287,8 @@ function AdminDashboard() {
                         </div>
 
                         <motion.div
-                            whileHover={{ y: -3, scale: 1.015 }}
+                            whileHover={{ y: -3, scale: 1.012 }}
+                            transition={{ duration: 0.22, ease: "easeOut" }}
                             className="rounded-[28px] border border-white/10 bg-white/10 p-5 backdrop-blur-md shadow-[0_15px_35px_rgba(0,0,0,0.12)]"
                         >
                             <div className="flex items-center justify-between gap-3">
@@ -334,30 +336,34 @@ function AdminDashboard() {
                         subtitle="Approved and confirmed booking totals"
                         icon={Wallet}
                         accent="gold"
+                        delay={0.04}
                     />
                     <StatCard
                         title="Total Bookings"
                         value={stats.totalBookings}
                         subtitle="All booking records in the system"
                         icon={ClipboardList}
+                        delay={0.1}
                     />
                     <StatCard
                         title="Upcoming Events"
                         value={stats.upcomingEvents}
                         subtitle="Events scheduled from today onward"
                         icon={CalendarRange}
+                        delay={0.16}
                     />
                     <StatCard
                         title="Guests Served"
                         value={stats.totalGuests}
                         subtitle="Combined guest count from bookings"
                         icon={Users}
+                        delay={0.22}
                     />
                 </div>
             </motion.section>
 
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                <motion.div variants={fadeUp}>
+                <motion.div variants={fadeUp} transition={{ duration: 0.42, ease: "easeOut" }}>
                     <MiniMetricCard
                         title="Collected Payments"
                         value={formatCurrency(stats.totalCollected)}
@@ -365,7 +371,7 @@ function AdminDashboard() {
                     />
                 </motion.div>
 
-                <motion.div variants={fadeUp}>
+                <motion.div variants={fadeUp} transition={{ duration: 0.42, ease: "easeOut" }}>
                     <MiniMetricCard
                         title="Pending Quotations"
                         value={stats.pendingQuotations}
@@ -373,7 +379,7 @@ function AdminDashboard() {
                     />
                 </motion.div>
 
-                <motion.div variants={fadeUp}>
+                <motion.div variants={fadeUp} transition={{ duration: 0.42, ease: "easeOut" }}>
                     <MiniMetricCard
                         title="Confirmed Bookings"
                         value={stats.confirmedBookings}
@@ -381,7 +387,7 @@ function AdminDashboard() {
                     />
                 </motion.div>
 
-                <motion.div variants={fadeUp}>
+                <motion.div variants={fadeUp} transition={{ duration: 0.42, ease: "easeOut" }}>
                     <MiniMetricCard
                         title="Completed Events"
                         value={stats.completedEvents}
@@ -649,6 +655,7 @@ function AdminDashboard() {
                                     metaLeft={booking.eventType || "Event"}
                                     metaRight={formatEventDate(booking.eventDate)}
                                     status={booking.status || "Pending"}
+                                    delay={index * 0.04}
                                 />
                             ))}
                         </div>
@@ -678,6 +685,7 @@ function AdminDashboard() {
                                         quotation.createdAt || quotation.dateCreated
                                     )}
                                     status={quotation.status || "Pending"}
+                                    delay={index * 0.04}
                                 />
                             ))}
                         </div>
@@ -692,9 +700,9 @@ function DashboardCard({ title, subtitle, children, variants }) {
     return (
         <motion.section
             variants={variants}
+            transition={{ duration: 0.46, ease: "easeOut" }}
             whileHover={{ y: -4 }}
-            transition={{ duration: 0.22 }}
-            className="rounded-[28px] border border-[#dce7e2] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-5 shadow-[0_12px_30px_rgba(14,61,47,0.06)]"
+            className="rounded-[28px] border border-[#dce7e2] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-5 shadow-[0_12px_30px_rgba(14,61,47,0.06)] transition-shadow hover:shadow-[0_18px_38px_rgba(14,61,47,0.10)]"
         >
             <SectionHeader title={title} subtitle={subtitle} />
             {children}
@@ -724,7 +732,7 @@ function ProgressRow({ label, value }) {
                 <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${value}%` }}
-                    transition={{ duration: 0.8, ease: "easeOut" }}
+                    transition={{ duration: 0.9, ease: "easeOut" }}
                     className="h-full rounded-full bg-[linear-gradient(90deg,#f6df96_0%,#d4af37_100%)]"
                 />
             </div>
@@ -732,7 +740,14 @@ function ProgressRow({ label, value }) {
     );
 }
 
-function StatCard({ title, value, subtitle, icon: Icon, accent = "green" }) {
+function StatCard({
+    title,
+    value,
+    subtitle,
+    icon: Icon,
+    accent = "green",
+    delay = 0,
+}) {
     const iconStyle =
         accent === "gold"
             ? "bg-gradient-to-br from-[#fff8e3] to-[#ffefbf] text-[#b99117]"
@@ -740,8 +755,10 @@ function StatCard({ title, value, subtitle, icon: Icon, accent = "green" }) {
 
     return (
         <motion.div
-            whileHover={{ y: -6, scale: 1.015 }}
-            transition={{ duration: 0.22 }}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.42, delay, ease: "easeOut" }}
+            whileHover={{ y: -6, scale: 1.012 }}
             className="group rounded-[24px] border border-[#e3ebe7] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-5 shadow-sm transition hover:shadow-[0_20px_40px_rgba(15,77,60,0.12)]"
         >
             <div className="flex items-start justify-between gap-4">
@@ -750,6 +767,7 @@ function StatCard({ title, value, subtitle, icon: Icon, accent = "green" }) {
                     <motion.h3
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.4, delay: delay + 0.04, ease: "easeOut" }}
                         className="mt-3 text-3xl font-extrabold text-[#0f4d3c]"
                     >
                         {value}
@@ -758,7 +776,8 @@ function StatCard({ title, value, subtitle, icon: Icon, accent = "green" }) {
                 </div>
 
                 <motion.div
-                    whileHover={{ rotate: -6, scale: 1.06 }}
+                    whileHover={{ rotate: -6, scale: 1.05 }}
+                    transition={{ duration: 0.22, ease: "easeOut" }}
                     className={`flex h-12 w-12 items-center justify-center rounded-2xl shadow-sm ${iconStyle}`}
                 >
                     <Icon size={22} />
@@ -771,13 +790,14 @@ function StatCard({ title, value, subtitle, icon: Icon, accent = "green" }) {
 function MiniMetricCard({ title, value, icon: Icon }) {
     return (
         <motion.div
-            whileHover={{ y: -5, scale: 1.015 }}
-            transition={{ duration: 0.22 }}
+            whileHover={{ y: -5, scale: 1.012 }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
             className="rounded-[24px] border border-[#dfe9e4] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-4 shadow-[0_10px_24px_rgba(14,61,47,0.05)] transition hover:shadow-[0_16px_34px_rgba(15,77,60,0.10)]"
         >
             <div className="flex items-center gap-3">
                 <motion.div
-                    whileHover={{ rotate: -8, scale: 1.06 }}
+                    whileHover={{ rotate: -8, scale: 1.05 }}
+                    transition={{ duration: 0.22, ease: "easeOut" }}
                     className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#edf8f3_0%,#dff1e8_100%)] text-[#0f4d3c] shadow-sm"
                 >
                     <Icon size={20} />
@@ -802,7 +822,8 @@ function InsightTile({ icon: Icon, label, value, tone = "green" }) {
 
     return (
         <motion.div
-            whileHover={{ y: -4, scale: 1.015 }}
+            whileHover={{ y: -4, scale: 1.012 }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
             className={`rounded-[22px] border p-4 shadow-sm transition ${styles}`}
         >
             <div className="flex items-start justify-between gap-3">
@@ -820,7 +841,7 @@ function InsightTile({ icon: Icon, label, value, tone = "green" }) {
     );
 }
 
-function ListRow({ title, metaLeft, metaRight, status }) {
+function ListRow({ title, metaLeft, metaRight, status, delay = 0 }) {
     const normalized = normalizeStatus(status);
     const statusClass =
         normalized === "confirmed" || normalized === "approved" || normalized === "completed"
@@ -831,8 +852,11 @@ function ListRow({ title, metaLeft, metaRight, status }) {
 
     return (
         <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.38, delay, ease: "easeOut" }}
             whileHover={{ y: -3 }}
-            className="flex flex-col gap-3 rounded-[22px] border border-[#e4ece8] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between"
+            className="flex flex-col gap-3 rounded-[22px] border border-[#e4ece8] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-4 shadow-sm transition-shadow hover:shadow-md sm:flex-row sm:items-center sm:justify-between"
         >
             <div className="min-w-0">
                 <h4 className="truncate text-base font-bold text-[#0f4d3c]">{title}</h4>
