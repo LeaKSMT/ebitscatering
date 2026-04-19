@@ -29,7 +29,11 @@ async function handleResponse(response) {
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw new Error(data.message || `Request failed with status ${response.status}`);
+    throw new Error(
+      data?.error
+        ? `${data.message}: ${data.error}`
+        : data?.message || `Request failed with status ${response.status}`
+    );
   }
 
   return data;

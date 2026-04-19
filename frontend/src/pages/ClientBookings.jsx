@@ -47,6 +47,16 @@ function getCurrentClientName() {
     );
 }
 
+function getStoredToken() {
+    return (
+        localStorage.getItem("token") ||
+        localStorage.getItem("clientToken") ||
+        localStorage.getItem("authToken") ||
+        localStorage.getItem("adminToken") ||
+        ""
+    );
+}
+
 function formatCurrency(value) {
     return `₱${Number(value || 0).toLocaleString()}`;
 }
@@ -61,6 +71,18 @@ function formatDate(dateStr) {
         year: "numeric",
         month: "long",
         day: "numeric",
+    });
+}
+
+function formatTime(timeStr) {
+    if (!timeStr) return "Not specified";
+
+    const parsed = new Date(`2000-01-01T${timeStr}`);
+    if (Number.isNaN(parsed.getTime())) return timeStr;
+
+    return parsed.toLocaleTimeString("en-PH", {
+        hour: "numeric",
+        minute: "2-digit",
     });
 }
 
@@ -119,11 +141,19 @@ const fadeUp = {
     show: { opacity: 1, y: 0 },
 };
 
-const API_BASE_URL =
-    (import.meta.env.VITE_API_URL || "http://localhost:5000/api").replace(
-        /\/+$/,
-        ""
-    );
+function getApiBaseUrl() {
+    const envUrl = import.meta.env.VITE_API_URL?.trim();
+
+    if (!envUrl) {
+        console.warn("VITE_API_URL is missing. Using localhost fallback.");
+        return "http://localhost:5000/api";
+    }
+
+    const cleaned = envUrl.replace(/\/+$/, "");
+    return cleaned.endsWith("/api") ? cleaned : `${cleaned}/api`;
+}
+
+const API_BASE_URL = getApiBaseUrl();
 
 export default function ClientBookings() {
     const email = getCurrentClientEmail().toLowerCase().trim();
@@ -139,13 +169,17 @@ export default function ClientBookings() {
                 setLoading(true);
                 setError("");
 
-                const token = localStorage.getItem("token");
+                const token = getStoredToken();
+
+                if (!token) {
+                    throw new Error("No token found. Please log in again.");
+                }
 
                 const res = await fetch(`${API_BASE_URL}/bookings`, {
                     method: "GET",
                     headers: {
                         "Content-Type": "application/json",
-                        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                        Authorization: `Bearer ${token}`,
                     },
                 });
 
@@ -395,7 +429,7 @@ export default function ClientBookings() {
                                         <span className="text-sm font-bold">Time</span>
                                     </div>
                                     <p className="mt-2 text-sm text-slate-600">
-                                        {booking.time || "Not specified"}
+                                        {formatTime(booking.time)}
                                     </p>
                                 </div>
 

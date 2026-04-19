@@ -96,98 +96,80 @@ exports.createQuotation = (req, res) => {
         });
     }
 
-    const getNextIdQuery = "SELECT IFNULL(MAX(id), 0) + 1 AS nextId FROM quotations";
+    const insertQuery = `
+        INSERT INTO quotations (
+            quotation_id,
+            owner_email,
+            owner_name,
+            full_name,
+            email,
+            contact_number,
+            event_type,
+            preferred_date,
+            event_time,
+            venue,
+            guests,
+            package_type,
+            classic_menu,
+            add_ons,
+            theme_preference,
+            special_requests,
+            package_price,
+            add_ons_total,
+            estimated_total,
+            included_pax,
+            pricing_type,
+            rate_per_pax,
+            excess_guests,
+            excess_cost,
+            package_inclusions,
+            status
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
 
-    db.query(getNextIdQuery, (idErr, idResults) => {
-        if (idErr) {
-            console.error("Get next quotation id error:", idErr);
+    const values = [
+        quotation_id || `Q${Date.now()}`,
+        owner_email || email || null,
+        owner_name || full_name || null,
+        full_name,
+        email,
+        contact_number || null,
+        event_type,
+        preferred_date,
+        event_time || null,
+        venue,
+        Number(guests || 0),
+        package_type || null,
+        classic_menu || null,
+        JSON.stringify(Array.isArray(add_ons) ? add_ons : []),
+        theme_preference || null,
+        special_requests || null,
+        Number(package_price || 0),
+        Number(add_ons_total || 0),
+        Number(estimated_total || 0),
+        included_pax != null ? Number(included_pax) : null,
+        pricing_type || "fixed",
+        rate_per_pax != null ? Number(rate_per_pax) : null,
+        Number(excess_guests || 0),
+        Number(excess_cost || 0),
+        JSON.stringify(Array.isArray(package_inclusions) ? package_inclusions : []),
+        status || "Pending",
+    ];
+
+    db.query(insertQuery, values, (err, result) => {
+        if (err) {
+            console.error("Create quotation error:", err);
             return res.status(500).json({
                 message: "Failed to create quotation",
-                error: idErr.message,
+                error: err.message,
             });
         }
 
-        const nextId = Number(idResults?.[0]?.nextId || 1);
-
-        const insertQuery = `
-            INSERT INTO quotations (
-                id,
-                quotation_id,
-                owner_email,
-                owner_name,
-                full_name,
-                email,
-                contact_number,
-                event_type,
-                preferred_date,
-                event_time,
-                venue,
-                guests,
-                package_type,
-                classic_menu,
-                add_ons,
-                theme_preference,
-                special_requests,
-                package_price,
-                add_ons_total,
-                estimated_total,
-                included_pax,
-                pricing_type,
-                rate_per_pax,
-                excess_guests,
-                excess_cost,
-                package_inclusions,
-                status,
-                created_at
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `;
-
-        const values = [
-            nextId,
-            quotation_id || `Q${Date.now()}`,
-            owner_email || email || null,
-            owner_name || full_name || null,
-            full_name,
-            email,
-            contact_number || null,
-            event_type,
-            preferred_date,
-            event_time || null,
-            venue,
-            Number(guests || 0),
-            package_type || null,
-            classic_menu || null,
-            JSON.stringify(Array.isArray(add_ons) ? add_ons : []),
-            theme_preference || null,
-            special_requests || null,
-            Number(package_price || 0),
-            Number(add_ons_total || 0),
-            Number(estimated_total || 0),
-            included_pax != null ? Number(included_pax) : null,
-            pricing_type || "fixed",
-            rate_per_pax != null ? Number(rate_per_pax) : null,
-            Number(excess_guests || 0),
-            Number(excess_cost || 0),
-            JSON.stringify(Array.isArray(package_inclusions) ? package_inclusions : []),
-            status || "Pending",
-            new Date(),
-        ];
-
-        db.query(insertQuery, values, (err) => {
-            if (err) {
-                console.error("Create quotation error:", err);
-                return res.status(500).json({
-                    message: "Failed to create quotation",
-                    error: err.message,
-                });
-            }
-
-            return res.status(201).json({
-                message: "Quotation created successfully",
-                id: nextId,
-                insertId: nextId,
-            });
+        return res.status(201).json({
+            message: "Quotation created successfully",
+            id: result.insertId,
+            insertId: result.insertId,
         });
     });
 };
