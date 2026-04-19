@@ -23,19 +23,6 @@ function getCurrentClient() {
     return { email, name };
 }
 
-function getQuotationKey(email) {
-    return email ? `clientQuotations_${email}` : "clientQuotations_guest";
-}
-
-function safeParse(key, fallback = []) {
-    try {
-        const raw = localStorage.getItem(key);
-        return raw ? JSON.parse(raw) : fallback;
-    } catch {
-        return fallback;
-    }
-}
-
 const PAX_RATE = 400;
 
 const dynamicPerPaxPackages = [
@@ -364,6 +351,7 @@ function Quotation({ mode = "public" }) {
 
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [submittedQuotation, setSubmittedQuotation] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const [formData, setFormData] = useState({
         fullName: isClientMode ? currentClient.name : "",
@@ -389,7 +377,11 @@ function Quotation({ mode = "public" }) {
             ...prev,
             eventType: savedPackage.eventType || prev.eventType,
             packageType: savedPackage.title || savedPackage.name || prev.packageType,
-            guests: savedPackage.includedPax || savedPackage.pax?.includes("100") ? "100" : prev.guests,
+            guests:
+                savedPackage.includedPax ||
+                    savedPackage.pax?.includes("100")
+                    ? "100"
+                    : prev.guests,
         }));
     }, []);
 
@@ -504,48 +496,73 @@ function Quotation({ mode = "public" }) {
         });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const currentClientData = getCurrentClient();
-        const storageEmail = isClientMode
-            ? currentClientData.email
-            : (formData.email || "").trim().toLowerCase();
+        if (isSubmitting) return;
 
-        const storageKey = getQuotationKey(storageEmail);
-        const existing = safeParse(storageKey, []);
+        try {
+            setIsSubmitting(true);
 
-        const nextNumber = existing.length + 1;
-        const displayId = `Q${String(nextNumber).padStart(2, "0")}`;
+            const currentClientData = getCurrentClient();
+            const normalizedEmail = (
+                isClientMode ? currentClientData.email : formData.email
+            )
+                .trim()
+                .toLowerCase();
 
-        const quotationData = {
-            id: `quotation_${Date.now()}`,
-            quotationId: displayId,
-            ownerEmail: storageEmail,
-            ownerName:
-                (isClientMode ? currentClientData.name : formData.fullName) || "Client",
-            ...formData,
-            email: storageEmail || formData.email,
-            fullName:
-                (isClientMode ? currentClientData.name : formData.fullName) ||
-                formData.fullName,
-            packagePrice,
-            addOnsTotal,
-            estimatedTotal,
-            includedPax: selectedPackage?.includedPax || null,
-            pricingType: selectedPackage?.pricingType || "fixed",
-            ratePerPax: selectedPackage?.ratePerPax || null,
-            excessGuests,
-            excessCost,
-            packageInclusions: selectedPackage?.features || [],
-            status: "Pending",
-            createdAt: new Date().toLocaleString(),
-        };
+            const quotationId = `Q${Date.now()}`;
 
-        localStorage.setItem(storageKey, JSON.stringify([quotationData, ...existing]));
-        setSubmittedQuotation(quotationData);
-        setShowSuccessModal(true);
-        localStorage.removeItem("selectedPackage");
+            const payload = {
+                quotation_id: quotationId,
+                owner_email: normalizedEmail,
+                owner_name:
+                    (isClientMode ? currentClientData.name : formData.fullName) || "Client",
+                full_name:
+                    (isClientMode ? currentClientData.name : formData.fullName) ||
+                    formData.fullName,
+                email: normalizedEmail,
+                contact_number: formData.contactNumber,
+                event_type: formData.eventType,
+                preferred_date: formData.preferredDate,
+                event_time: formData.eventTime || null,
+                venue: formData.venue,
+                guests: Number(formData.guests || 0),
+                package_type: formData.packageType,
+                classic_menu: formData.classicMenu || null,
+                add_ons: formData.addOns,
+                theme_preference: formData.themePreference || null,
+                special_requests: formData.specialRequests || null,
+                package_price: Number(packagePrice || 0),
+                add_ons_total: Number(addOnsTotal || 0),
+                estimated_total: Number(estimatedTotal || 0),
+                included_pax: selectedPackage?.includedPax || null,
+                pricing_type: selectedPackage?.pricingType || "fixed",
+                rate_per_pax: selectedPackage?.ratePerPax || null,
+                excess_guests: Number(excessGuests || 0),
+                excess_cost: Number(excessCost || 0),
+                package_inclusions: selectedPackage?.features || [],
+                status: "Pending",
+            };
+
+            await quotationService.createQuotation(payload);
+
+            setSubmittedQuotation({
+                quotationId,
+                fullName: payload.full_name,
+                eventType: payload.event_type,
+                status: payload.status,
+                estimatedTotal: payload.estimated_total,
+            });
+
+            setShowSuccessModal(true);
+            localStorage.removeItem("selectedPackage");
+        } catch (error) {
+            console.error("Quotation submit error:", error);
+            alert(error.message || "Failed to submit quotation.");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const handleViewMyQuotations = () => {
@@ -917,8 +934,8 @@ function Quotation({ mode = "public" }) {
                                             <label
                                                 key={item.name}
                                                 className={`flex items-center justify-between gap-3 rounded-2xl border px-4 py-3.5 cursor-pointer transition ${checked
-                                                    ? "border-[#d4af37] bg-[#fff8e6] shadow-sm"
-                                                    : "border-gray-200 bg-white hover:border-[#d4af37]"
+                                                        ? "border-[#d4af37] bg-[#fff8e6] shadow-sm"
+                                                        : "border-gray-200 bg-white hover:border-[#d4af37]"
                                                     }`}
                                             >
                                                 <div className="flex items-center gap-3">
@@ -973,9 +990,13 @@ function Quotation({ mode = "public" }) {
                             <div className="md:col-span-2 flex flex-col sm:flex-row gap-4 pt-2">
                                 <button
                                     type="submit"
-                                    className="flex-1 bg-[#0f4d3c] text-white py-3.5 rounded-2xl font-bold hover:bg-[#0c3f31] transition shadow-md"
+                                    disabled={isSubmitting}
+                                    className={`flex-1 rounded-2xl py-3.5 font-bold text-white transition shadow-md ${isSubmitting
+                                            ? "cursor-not-allowed bg-[#0f4d3c]/70"
+                                            : "bg-[#0f4d3c] hover:bg-[#0c3f31]"
+                                        }`}
                                 >
-                                    Submit Request
+                                    {isSubmitting ? "Submitting..." : "Submit Request"}
                                 </button>
 
                                 {isClientMode ? (
