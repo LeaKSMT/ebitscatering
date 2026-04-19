@@ -55,9 +55,12 @@ export default function ChatBot() {
 
     useEffect(() => {
         if (messagesEndRef.current) {
-            messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+            messagesEndRef.current.scrollIntoView({
+                behavior: "smooth",
+                block: "end",
+            });
         }
-    }, [messages, isTyping]);
+    }, [messages, isTyping, open]);
 
     const addUserMessage = (text) => {
         setMessages((prev) => [
@@ -82,9 +85,7 @@ export default function ChatBot() {
     };
 
     const formatCurrency = (amount) => `₱${amount.toLocaleString()}`;
-
     const normalize = (text) => text.toLowerCase().trim();
-
     const hasAny = (msg, words) => words.some((word) => msg.includes(word));
 
     const extractGuests = (msg) => {
@@ -871,19 +872,19 @@ If you're on desktop, you can copy the number from the popup.`;
     };
 
     return (
-        <div className="fixed bottom-5 right-5 z-[9999]">
+        <div className="fixed bottom-5 right-5 z-[9999] max-h-[calc(100vh-40px)] sm:bottom-6 sm:right-6">
             <AnimatePresence>
                 {!open && (
                     <motion.button
                         initial={{ opacity: 0, scale: 0.7, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.7, y: 20 }}
-                        transition={{ duration: 0.3 }}
+                        transition={{ duration: 0.32 }}
                         onClick={() => setOpen(true)}
-                        className="group relative flex h-[74px] w-[74px] items-center justify-center rounded-full border border-[#d4af37]/30 bg-gradient-to-br from-[#d4af37] via-[#f0cf62] to-[#b99117] shadow-[0_18px_40px_rgba(15,77,60,0.28)]"
+                        className="group relative flex h-[74px] w-[74px] items-center justify-center rounded-full border border-[#d4af37]/35 bg-[linear-gradient(135deg,#d4af37_0%,#f3d769_48%,#b78917_100%)] shadow-[0_20px_40px_rgba(15,77,60,0.28)]"
                     >
-                        <span className="absolute inset-0 rounded-full animate-ping bg-[#d4af37]/20"></span>
-                        <span className="absolute -inset-1 rounded-full bg-gradient-to-r from-[#d4af37]/20 to-[#0f4d3c]/20 blur-md"></span>
+                        <span className="absolute inset-0 rounded-full bg-[#d4af37]/20 animate-[ping_2.5s_ease-out_infinite]"></span>
+                        <span className="absolute -inset-2 rounded-full bg-[#d4af37]/15 blur-xl"></span>
                         <MessageCircle
                             size={31}
                             className="relative z-10 text-[#0b4f3a] transition-transform duration-300 group-hover:scale-110"
@@ -895,26 +896,26 @@ If you're on desktop, you can copy the number from the popup.`;
             <AnimatePresence>
                 {open && (
                     <motion.div
-                        initial={{ opacity: 0, y: 30, scale: 0.94 }}
+                        initial={{ opacity: 0, y: 34, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 20, scale: 0.97 }}
+                        exit={{ opacity: 0, y: 18, scale: 0.98 }}
                         transition={{ duration: 0.28, ease: "easeOut" }}
-                        className="h-[780px] w-[520px] max-w-[calc(100vw-24px)] overflow-hidden rounded-[30px] border border-white/40 bg-white/95 shadow-[0_30px_90px_rgba(2,20,16,0.26)] backdrop-blur-xl"
+                        className="flex h-[min(780px,calc(100vh-40px))] w-[520px] max-w-[calc(100vw-20px)] flex-col overflow-hidden rounded-[30px] border border-white/40 bg-white/95 shadow-[0_30px_90px_rgba(2,20,16,0.26)] backdrop-blur-xl"
                     >
-                        <div className="relative overflow-hidden bg-[linear-gradient(135deg,#0b4f3a_0%,#0f6a4e_60%,#0b4f3a_100%)] px-5 py-5 text-white">
+                        <div className="relative overflow-hidden bg-[linear-gradient(135deg,#0b4f3a_0%,#0d6047_55%,#07382d_100%)] px-5 py-5 text-white">
                             <div className="absolute -right-10 -top-10 h-36 w-36 rounded-full bg-[#d4af37]/20 blur-2xl"></div>
-                            <div className="absolute -left-8 bottom-0 h-24 w-24 rounded-full bg-white/10 blur-2xl"></div>
+                            <div className="absolute left-0 bottom-0 h-24 w-24 rounded-full bg-white/10 blur-2xl"></div>
 
-                            <div className="relative flex items-start justify-between">
+                            <div className="relative flex items-start justify-between gap-4">
                                 <div className="flex items-start gap-3">
-                                    <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#f4d56a] to-[#c89c1d] shadow-lg">
+                                    <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#f4d56a_0%,#d4af37_60%,#b88919_100%)] shadow-lg">
                                         <Bot size={28} className="text-[#0b4f3a]" />
-                                        <span className="absolute -right-1 -top-1 flex h-4 w-4 rounded-full border-2 border-[#0b4f3a] bg-lime-400"></span>
+                                        <span className="absolute -right-1 -top-1 h-4 w-4 rounded-full border-2 border-[#0b4f3a] bg-lime-400 shadow-[0_0_12px_rgba(132,204,22,0.85)]"></span>
                                     </div>
 
                                     <div>
                                         <div className="flex items-center gap-2">
-                                            <h2 className="text-[22px] font-extrabold leading-none tracking-tight">
+                                            <h2 className="text-[21px] font-extrabold leading-none tracking-tight sm:text-[22px]">
                                                 Ebit&apos;s Catering
                                             </h2>
                                             <Sparkles size={16} className="text-[#f4d56a]" />
@@ -924,8 +925,8 @@ If you're on desktop, you can copy the number from the popup.`;
                                             Virtual Assistant
                                         </p>
 
-                                        <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[13px] text-white/95 backdrop-blur">
-                                            <span className="inline-block h-2.5 w-2.5 rounded-full bg-lime-400 shadow-[0_0_10px_rgba(163,230,53,0.95)]"></span>
+                                        <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[12px] text-white/95 backdrop-blur">
+                                            <span className="h-2.5 w-2.5 rounded-full bg-lime-400 shadow-[0_0_10px_rgba(132,204,22,0.95)]"></span>
                                             Online now
                                         </div>
                                     </div>
@@ -933,17 +934,17 @@ If you're on desktop, you can copy the number from the popup.`;
 
                                 <motion.button
                                     whileHover={{ rotate: 90, scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
+                                    whileTap={{ scale: 0.94 }}
                                     onClick={() => setOpen(false)}
-                                    className="rounded-full border border-white/10 bg-white/10 p-2 text-white/90 transition hover:bg-white/15 hover:text-white"
+                                    className="rounded-full border border-white/10 bg-white/10 p-2 text-white/90 hover:bg-white/15 hover:text-white"
                                 >
-                                    <X size={21} />
+                                    <X size={20} />
                                 </motion.button>
                             </div>
                         </div>
 
-                        <div className="flex flex-1 flex-col bg-[linear-gradient(180deg,#f8faf9_0%,#f3f5f4_100%)]">
-                            <div className="flex-1 overflow-y-auto px-4 py-4">
+                        <div className="flex min-h-0 flex-1 flex-col bg-[linear-gradient(180deg,#f8faf9_0%,#f2f5f3_100%)]">
+                            <div className="chatbot-scroll min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-5">
                                 <div className="space-y-4">
                                     {messages.map((msg, index) => (
                                         <motion.div
@@ -951,17 +952,16 @@ If you're on desktop, you can copy the number from the popup.`;
                                             initial={{ opacity: 0, y: 14 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ duration: 0.22 }}
-                                            className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"
-                                                }`}
+                                            className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
                                         >
                                             <div
-                                                className={`max-w-[88%] ${msg.sender === "user" ? "items-end" : "items-start"
-                                                    } flex flex-col`}
+                                                className={`flex max-w-[88%] flex-col ${msg.sender === "user" ? "items-end" : "items-start"
+                                                    }`}
                                             >
                                                 <div
-                                                    className={`rounded-[22px] px-4 py-3 text-[15px] leading-7 shadow-sm whitespace-pre-line ${msg.sender === "bot"
-                                                            ? "border border-[#e5e7eb] bg-white text-slate-700"
-                                                            : "bg-[linear-gradient(135deg,#d4af37_0%,#f4d56a_100%)] text-[#0b4f3a] shadow-[0_12px_30px_rgba(212,175,55,0.28)]"
+                                                    className={`whitespace-pre-line rounded-[22px] px-4 py-3 text-[14px] leading-7 sm:text-[15px] ${msg.sender === "bot"
+                                                            ? "border border-[#e5e7eb] bg-white text-slate-700 shadow-[0_10px_25px_rgba(0,0,0,0.06)]"
+                                                            : "bg-[linear-gradient(135deg,#d4af37_0%,#f4d56a_100%)] text-[#0b4f3a] shadow-[0_12px_30px_rgba(212,175,55,0.30)]"
                                                         }`}
                                                 >
                                                     {msg.text}
@@ -983,7 +983,7 @@ If you're on desktop, you can copy the number from the popup.`;
                                             animate={{ opacity: 1, y: 0 }}
                                             className="flex justify-start"
                                         >
-                                            <div className="rounded-[20px] border border-[#e5e7eb] bg-white px-4 py-3 shadow-sm">
+                                            <div className="rounded-[20px] border border-[#e5e7eb] bg-white px-4 py-3 shadow-[0_10px_24px_rgba(0,0,0,0.06)]">
                                                 <div className="flex items-center gap-1.5">
                                                     <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-[#0f4d3c] [animation-delay:-0.3s]"></span>
                                                     <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-[#0f4d3c] [animation-delay:-0.15s]"></span>
@@ -997,10 +997,10 @@ If you're on desktop, you can copy the number from the popup.`;
                                 </div>
                             </div>
 
-                            <div className="border-t border-slate-200/80 bg-white/90 px-4 py-4 backdrop-blur">
+                            <div className="border-t border-slate-200/80 bg-white/95 px-4 py-4 backdrop-blur sm:px-5">
                                 <div className="mb-3 flex items-center gap-2">
-                                    <div className="h-7 w-1 rounded-full bg-gradient-to-b from-[#d4af37] to-[#0f4d3c]"></div>
-                                    <p className="text-[14px] font-bold tracking-wide text-slate-700">
+                                    <div className="h-6 w-1 rounded-full bg-[linear-gradient(180deg,#d4af37_0%,#0f4d3c_100%)]"></div>
+                                    <p className="text-[13px] font-bold uppercase tracking-[0.12em] text-[#0b4f3a]">
                                         Quick Replies
                                     </p>
                                 </div>
@@ -1012,10 +1012,10 @@ If you're on desktop, you can copy the number from the popup.`;
                                             whileHover={{ y: -2, scale: 1.01 }}
                                             whileTap={{ scale: 0.98 }}
                                             onClick={() => handleSend(item.label)}
-                                            className="flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-3 text-[14px] font-semibold text-[#0b4f3a] shadow-sm transition hover:border-[#d4af37]/60 hover:bg-[#fffdf5]"
+                                            className="flex items-center justify-center gap-2 rounded-2xl border border-[#e7eaed] bg-white px-3 py-3 text-[13px] font-semibold text-[#0b4f3a] shadow-[0_6px_18px_rgba(0,0,0,0.06)] transition-all duration-200 hover:border-[#d4af37]/70 hover:bg-[#fffdf6] hover:shadow-[0_12px_26px_rgba(212,175,55,0.18)] sm:text-[14px]"
                                         >
                                             <span className="text-[#b99117]">{item.icon}</span>
-                                            <span>{item.label}</span>
+                                            <span className="truncate">{item.label}</span>
                                         </motion.button>
                                     ))}
                                 </div>
@@ -1028,7 +1028,7 @@ If you're on desktop, you can copy the number from the popup.`;
                                             value={input}
                                             onChange={(e) => setInput(e.target.value)}
                                             onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                                            className="w-full rounded-2xl border border-slate-200 bg-[#fafaf9] px-4 py-3.5 pr-12 text-[15px] outline-none transition focus:border-[#d4af37] focus:bg-white focus:shadow-[0_0_0_4px_rgba(212,175,55,0.12)]"
+                                            className="w-full rounded-2xl border border-[#e5e7eb] bg-[#fafaf9] px-4 py-3.5 pr-12 text-[14px] outline-none transition focus:border-[#d4af37] focus:bg-white focus:shadow-[0_0_0_4px_rgba(212,175,55,0.12)] sm:text-[15px]"
                                         />
                                         <MessageCircle
                                             size={17}
@@ -1040,7 +1040,7 @@ If you're on desktop, you can copy the number from the popup.`;
                                         whileHover={{ scale: 1.04, rotate: -8 }}
                                         whileTap={{ scale: 0.95 }}
                                         onClick={() => handleSend()}
-                                        className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#d4af37_0%,#f4d56a_100%)] shadow-[0_12px_26px_rgba(212,175,55,0.32)] transition"
+                                        className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#d4af37_0%,#f4d56a_100%)] shadow-[0_12px_26px_rgba(212,175,55,0.34)]"
                                     >
                                         <Send size={20} className="text-[#0b4f3a]" />
                                     </motion.button>
@@ -1051,7 +1051,7 @@ If you're on desktop, you can copy the number from the popup.`;
                                         whileHover={{ y: -2 }}
                                         whileTap={{ scale: 0.98 }}
                                         onClick={handleCallUs}
-                                        className="flex items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#0ca83a_0%,#079230_100%)] py-3.5 text-[15px] font-bold text-white shadow-[0_14px_26px_rgba(12,168,58,0.22)]"
+                                        className="flex items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#10b53f_0%,#079230_100%)] py-3.5 text-[14px] font-bold text-white shadow-[0_14px_26px_rgba(12,168,58,0.24)] sm:text-[15px]"
                                     >
                                         <Phone size={17} />
                                         Call Us
@@ -1063,7 +1063,7 @@ If you're on desktop, you can copy the number from the popup.`;
                                         href={MAP_LINK}
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="flex items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#0b4f3a_0%,#10684d_100%)] py-3.5 text-[15px] font-bold text-white shadow-[0_14px_26px_rgba(11,79,58,0.22)]"
+                                        className="flex items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#0b4f3a_0%,#10684d_100%)] py-3.5 text-[14px] font-bold text-white shadow-[0_14px_26px_rgba(11,79,58,0.24)] sm:text-[15px]"
                                     >
                                         <MapPin size={17} />
                                         Location
@@ -1089,7 +1089,7 @@ If you're on desktop, you can copy the number from the popup.`;
                             exit={{ opacity: 0, y: 12, scale: 0.97 }}
                             className="w-full max-w-sm rounded-[28px] border border-white/30 bg-white/95 p-6 text-center shadow-[0_30px_70px_rgba(0,0,0,0.22)] backdrop-blur-xl"
                         >
-                            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#f7e7a6] to-[#d4af37] shadow-md">
+                            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#f7e7a6_0%,#d4af37_100%)] shadow-md">
                                 <Phone className="text-[#0B4F3A]" size={28} />
                             </div>
 
@@ -1108,7 +1108,7 @@ If you're on desktop, you can copy the number from the popup.`;
                             <div className="flex gap-3">
                                 <button
                                     onClick={copyPhoneNumber}
-                                    className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[#f8f3df] py-3 font-bold text-[#0B4F3A] transition hover:bg-[#f3e7bc]"
+                                    className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[#f8f3df] py-3 font-bold text-[#0B4F3A] hover:bg-[#f3e7bc]"
                                 >
                                     <Copy size={17} />
                                     Copy Number
@@ -1116,7 +1116,7 @@ If you're on desktop, you can copy the number from the popup.`;
 
                                 <button
                                     onClick={() => setShowCallPopup(false)}
-                                    className="flex-1 rounded-2xl bg-[#0B4F3A] py-3 font-bold text-white transition hover:brightness-95"
+                                    className="flex-1 rounded-2xl bg-[#0B4F3A] py-3 font-bold text-white hover:brightness-95"
                                 >
                                     Close
                                 </button>
