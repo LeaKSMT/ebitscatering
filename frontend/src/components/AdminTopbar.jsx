@@ -1,6 +1,12 @@
 import { useMemo } from "react";
 import { motion } from "framer-motion";
-import { Bell, ShieldCheck, Sparkles } from "lucide-react";
+import {
+    Bell,
+    ShieldCheck,
+    Sparkles,
+    Activity,
+    ArrowUpRight,
+} from "lucide-react";
 
 function AdminTopbar({ currentPath = "" }) {
     const adminUser =
@@ -11,23 +17,28 @@ function AdminTopbar({ currentPath = "" }) {
     const pageTitles = {
         "/admin/dashboard": {
             title: "Admin Dashboard",
-            subtitle: "Executive overview of bookings, revenue, payments, and overall business performance.",
+            subtitle:
+                "Executive overview of bookings, revenue, payments, and overall business performance.",
         },
         "/admin/inquiries": {
             title: "Inquiry Management",
-            subtitle: "Review and manage client concerns with a clean and professional workflow.",
+            subtitle:
+                "Review and manage client concerns with a clean and professional workflow.",
         },
         "/admin/financial-management": {
             title: "Financial Management",
-            subtitle: "Track revenue, expenses, and overall financial health in one place.",
+            subtitle:
+                "Track revenue, expenses, and overall financial health in one place.",
         },
         "/admin/quotations": {
             title: "Quotation Management",
-            subtitle: "Manage client quotation requests, pricing, and proposal flow.",
+            subtitle:
+                "Manage client quotation requests, pricing, and proposal flow.",
         },
         "/admin/event-management": {
             title: "Event Management",
-            subtitle: "Monitor event details, scheduling, and staff coordination.",
+            subtitle:
+                "Monitor event details, scheduling, and staff coordination.",
         },
         "/admin/calendar": {
             title: "Event Calendar",
@@ -35,7 +46,8 @@ function AdminTopbar({ currentPath = "" }) {
         },
         "/admin/packages": {
             title: "Package Content",
-            subtitle: "Manage package inclusions aligned with your service offerings.",
+            subtitle:
+                "Manage package inclusions aligned with your service offerings.",
         },
         "/admin/pricing": {
             title: "Package Breakdown & Pricing",
@@ -73,7 +85,8 @@ function AdminTopbar({ currentPath = "" }) {
 
     const current = pageTitles[currentPath] || {
         title: "Admin Dashboard",
-        subtitle: "Executive overview of bookings, revenue, payments, and overall business performance.",
+        subtitle:
+            "Executive overview of bookings, revenue, payments, and overall business performance.",
     };
 
     const greeting = useMemo(() => {
@@ -84,66 +97,78 @@ function AdminTopbar({ currentPath = "" }) {
     }, []);
 
     return (
-        <header className="sticky top-0 z-30 border-b border-white/60 bg-[rgba(248,251,250,0.72)] backdrop-blur-xl">
+        <header className="sticky top-0 z-30 border-b border-white/60 bg-[rgba(248,251,250,0.75)] backdrop-blur-2xl">
             <div className="px-3 pb-3 pt-14 sm:px-4 md:px-5 lg:px-6 lg:pb-4 lg:pt-4">
                 <motion.div
                     initial={{ opacity: 0, y: -12 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.45, ease: "easeOut" }}
-                    className="overflow-hidden rounded-[24px] border border-white/70 bg-[linear-gradient(135deg,rgba(11,74,58,0.97)_0%,rgba(15,93,73,0.97)_58%,rgba(22,132,101,0.96)_100%)] text-white shadow-[0_18px_45px_rgba(12,63,50,0.18)]"
+                    className="relative overflow-hidden rounded-[28px] border border-white/60 bg-[linear-gradient(135deg,#0a4637_0%,#0d5c48_52%,#148266_100%)] text-white shadow-[0_20px_50px_rgba(10,70,55,0.20)]"
                 >
+                    <div className="pointer-events-none absolute inset-0">
+                        <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-[#f3d57a]/18 blur-3xl" />
+                        <div className="absolute left-[-30px] top-[25%] h-24 w-24 rounded-full bg-white/8 blur-3xl" />
+                        <div className="absolute bottom-[-25px] right-[24%] h-20 w-20 rounded-full bg-white/6 blur-2xl" />
+                    </div>
+
+                    <motion.div
+                        animate={{ x: ["-30%", "135%"] }}
+                        transition={{
+                            duration: 6.2,
+                            repeat: Infinity,
+                            repeatDelay: 2.2,
+                            ease: "linear",
+                        }}
+                        className="pointer-events-none absolute inset-y-0 left-[-35%] w-[28%] rotate-[18deg] bg-gradient-to-r from-transparent via-white/10 to-transparent"
+                    />
+
                     <div className="relative px-4 py-4 sm:px-5 md:px-6 lg:px-7 lg:py-5">
-                        <motion.div
-                            animate={{ x: ["-20%", "120%"] }}
-                            transition={{
-                                duration: 5.5,
-                                repeat: Infinity,
-                                repeatDelay: 2,
-                                ease: "linear",
-                            }}
-                            className="pointer-events-none absolute inset-y-0 left-[-35%] w-[30%] rotate-[18deg] bg-gradient-to-r from-transparent via-white/10 to-transparent"
-                        />
-
-                        <div className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-[#f3d57a]/18 blur-3xl" />
-
-                        <div className="relative flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+                        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
                             <div className="min-w-0">
-                                <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.22em] text-white/80">
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.96 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ delay: 0.08, duration: 0.3 }}
+                                    className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.24em] text-white/80 backdrop-blur-md"
+                                >
                                     <Sparkles size={12} />
                                     Executive View
-                                </div>
+                                </motion.div>
 
-                                <h1 className="mt-3 text-[24px] font-extrabold tracking-tight text-white sm:text-[28px] lg:text-[30px]">
+                                <h1 className="mt-3 text-[24px] font-extrabold tracking-tight text-white sm:text-[28px] lg:text-[32px]">
                                     {current.title}
                                 </h1>
 
-                                <p className="mt-1 max-w-3xl text-sm leading-6 text-white/80">
+                                <p className="mt-1 max-w-3xl text-sm leading-6 text-white/80 md:text-[15px]">
                                     {current.subtitle}
                                 </p>
                             </div>
 
                             <div className="flex flex-col gap-3 sm:flex-row xl:justify-end">
                                 <motion.div
-                                    whileHover={{ y: -2, scale: 1.02 }}
-                                    className="hidden md:flex items-center gap-3 rounded-[20px] border border-white/10 bg-white/10 px-4 py-3 backdrop-blur-md"
+                                    whileHover={{ y: -3, scale: 1.02 }}
+                                    transition={{ duration: 0.2 }}
+                                    className="hidden items-center gap-3 rounded-[22px] border border-white/10 bg-white/10 px-4 py-3 backdrop-blur-md shadow-[0_14px_30px_rgba(0,0,0,0.10)] md:flex"
                                 >
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/12">
-                                        <Bell size={17} />
+                                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-white">
+                                        <Bell size={18} />
                                     </div>
 
                                     <div>
                                         <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/60">
                                             Status
                                         </p>
-                                        <p className="mt-0.5 text-sm font-semibold text-white">
-                                            System Active
-                                        </p>
+                                        <div className="mt-0.5 flex items-center gap-2 text-sm font-semibold text-white">
+                                            <Activity size={14} className="text-[#9ef2c9]" />
+                                            <span>System Active</span>
+                                        </div>
                                     </div>
                                 </motion.div>
 
                                 <motion.div
-                                    whileHover={{ y: -2, scale: 1.02 }}
-                                    className="flex items-center gap-3 rounded-[20px] border border-white/10 bg-white/10 px-4 py-3 backdrop-blur-md"
+                                    whileHover={{ y: -3, scale: 1.02 }}
+                                    transition={{ duration: 0.2 }}
+                                    className="flex items-center gap-3 rounded-[22px] border border-white/10 bg-white/10 px-4 py-3 backdrop-blur-md shadow-[0_14px_30px_rgba(0,0,0,0.10)]"
                                 >
                                     <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#fff3c8_0%,#f2cf63_100%)] text-[#8a6710] shadow-sm">
                                         <ShieldCheck size={19} />
@@ -156,7 +181,10 @@ function AdminTopbar({ currentPath = "" }) {
                                         <p className="max-w-[180px] truncate text-sm font-bold text-white">
                                             {adminUser.name}
                                         </p>
-                                        <p className="text-xs text-white/65">Administrator Access</p>
+                                        <div className="mt-0.5 flex items-center gap-1.5 text-xs text-white/65">
+                                            <span>Administrator Access</span>
+                                            <ArrowUpRight size={12} />
+                                        </div>
                                     </div>
                                 </motion.div>
                             </div>
