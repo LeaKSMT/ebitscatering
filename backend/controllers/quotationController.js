@@ -31,7 +31,7 @@ exports.getQuotations = (req, res) => {
             });
         }
 
-        return res.status(200).json(results);
+        return res.status(200).json(results || []);
     });
 };
 
@@ -44,10 +44,13 @@ exports.getQuotationById = (req, res) => {
         (err, results) => {
             if (err) {
                 console.error("Get quotation by id error:", err);
-                return res.status(500).json({ message: "Failed to fetch quotation" });
+                return res.status(500).json({
+                    message: "Failed to fetch quotation",
+                    error: err.message,
+                });
             }
 
-            if (results.length === 0) {
+            if (!results || results.length === 0) {
                 return res.status(404).json({ message: "Quotation not found" });
             }
 
@@ -93,78 +96,99 @@ exports.createQuotation = (req, res) => {
         });
     }
 
-    const query = `
-        INSERT INTO quotations (
-            quotation_id,
-            owner_email,
-            owner_name,
-            full_name,
-            email,
-            contact_number,
-            event_type,
-            preferred_date,
-            event_time,
-            venue,
-            guests,
-            package_type,
-            classic_menu,
-            add_ons,
-            theme_preference,
-            special_requests,
-            package_price,
-            add_ons_total,
-            estimated_total,
-            included_pax,
-            pricing_type,
-            rate_per_pax,
-            excess_guests,
-            excess_cost,
-            package_inclusions,
-            status
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
+    db.query(
+        "SELECT COALESCE(MAX(id), 0) + 1 AS nextId FROM quotations",
+        (idErr, idResults) => {
+            if (idErr) {
+                console.error("Get next quotation id error:", idErr);
+                return res.status(500).json({
+                    message: "Failed to create quotation",
+                    error: idErr.message,
+                });
+            }
 
-    const values = [
-        quotation_id || null,
-        owner_email || null,
-        owner_name || null,
-        full_name,
-        email,
-        contact_number || null,
-        event_type,
-        preferred_date,
-        event_time || null,
-        venue,
-        Number(guests || 0),
-        package_type || null,
-        classic_menu || null,
-        JSON.stringify(Array.isArray(add_ons) ? add_ons : []),
-        theme_preference || null,
-        special_requests || null,
-        Number(package_price || 0),
-        Number(add_ons_total || 0),
-        Number(estimated_total || 0),
-        included_pax != null ? Number(included_pax) : null,
-        pricing_type || "fixed",
-        rate_per_pax != null ? Number(rate_per_pax) : null,
-        Number(excess_guests || 0),
-        Number(excess_cost || 0),
-        JSON.stringify(Array.isArray(package_inclusions) ? package_inclusions : []),
-        status || "Pending",
-    ];
+            const nextId = idResults?.[0]?.nextId || 1;
 
-    db.query(query, values, (err, result) => {
-        if (err) {
-            console.error("Create quotation error:", err);
-            return res.status(500).json({ message: "Failed to create quotation" });
+            const query = `
+                INSERT INTO quotations (
+                    id,
+                    quotation_id,
+                    owner_email,
+                    owner_name,
+                    full_name,
+                    email,
+                    contact_number,
+                    event_type,
+                    preferred_date,
+                    event_time,
+                    venue,
+                    guests,
+                    package_type,
+                    classic_menu,
+                    add_ons,
+                    theme_preference,
+                    special_requests,
+                    package_price,
+                    add_ons_total,
+                    estimated_total,
+                    included_pax,
+                    pricing_type,
+                    rate_per_pax,
+                    excess_guests,
+                    excess_cost,
+                    package_inclusions,
+                    status
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `;
+
+            const values = [
+                nextId,
+                quotation_id || null,
+                owner_email || null,
+                owner_name || null,
+                full_name,
+                email,
+                contact_number || null,
+                event_type,
+                preferred_date,
+                event_time || null,
+                venue,
+                Number(guests || 0),
+                package_type || null,
+                classic_menu || null,
+                JSON.stringify(Array.isArray(add_ons) ? add_ons : []),
+                theme_preference || null,
+                special_requests || null,
+                Number(package_price || 0),
+                Number(add_ons_total || 0),
+                Number(estimated_total || 0),
+                included_pax != null ? Number(included_pax) : null,
+                pricing_type || "fixed",
+                rate_per_pax != null ? Number(rate_per_pax) : null,
+                Number(excess_guests || 0),
+                Number(excess_cost || 0),
+                JSON.stringify(Array.isArray(package_inclusions) ? package_inclusions : []),
+                status || "Pending",
+            ];
+
+            db.query(query, values, (err, result) => {
+                if (err) {
+                    console.error("Create quotation error:", err);
+                    return res.status(500).json({
+                        message: "Failed to create quotation",
+                        error: err.message,
+                    });
+                }
+
+                return res.status(201).json({
+                    message: "Quotation created successfully",
+                    id: nextId,
+                    insertId: result?.insertId || nextId,
+                });
+            });
         }
-
-        return res.status(201).json({
-            message: "Quotation created successfully",
-            id: result.insertId,
-        });
-    });
+    );
 };
 
 exports.updateQuotationStatus = (req, res) => {
@@ -181,12 +205,13 @@ exports.updateQuotationStatus = (req, res) => {
         (fetchErr, quotationResults) => {
             if (fetchErr) {
                 console.error("Fetch quotation before status update error:", fetchErr);
-                return res
-                    .status(500)
-                    .json({ message: "Failed to update quotation status" });
+                return res.status(500).json({
+                    message: "Failed to update quotation status",
+                    error: fetchErr.message,
+                });
             }
 
-            if (quotationResults.length === 0) {
+            if (!quotationResults || quotationResults.length === 0) {
                 return res.status(404).json({ message: "Quotation not found" });
             }
 
@@ -202,12 +227,13 @@ exports.updateQuotationStatus = (req, res) => {
                 (updateErr, updateResult) => {
                     if (updateErr) {
                         console.error("Update quotation status error:", updateErr);
-                        return res
-                            .status(500)
-                            .json({ message: "Failed to update quotation status" });
+                        return res.status(500).json({
+                            message: "Failed to update quotation status",
+                            error: updateErr.message,
+                        });
                     }
 
-                    if (updateResult.affectedRows === 0) {
+                    if (!updateResult || updateResult.affectedRows === 0) {
                         return res.status(404).json({ message: "Quotation not found" });
                     }
 
@@ -248,10 +274,11 @@ exports.updateQuotationStatus = (req, res) => {
                                 return res.status(500).json({
                                     message:
                                         "Quotation status updated but failed to sync booking",
+                                    error: bookingCheckErr.message,
                                 });
                             }
 
-                            if (bookingResults.length > 0) {
+                            if (bookingResults && bookingResults.length > 0) {
                                 return res.status(200).json({
                                     message: "Quotation status updated successfully",
                                     bookingSynced: true,
@@ -340,6 +367,7 @@ exports.updateQuotationStatus = (req, res) => {
                                         return res.status(500).json({
                                             message:
                                                 "Quotation status updated but failed to create booking",
+                                            error: bookingInsertErr.message,
                                         });
                                     }
 
@@ -364,10 +392,13 @@ exports.deleteQuotation = (req, res) => {
     db.query("DELETE FROM quotations WHERE id = ?", [id], (err, result) => {
         if (err) {
             console.error("Delete quotation error:", err);
-            return res.status(500).json({ message: "Failed to delete quotation" });
+            return res.status(500).json({
+                message: "Failed to delete quotation",
+                error: err.message,
+            });
         }
 
-        if (result.affectedRows === 0) {
+        if (!result || result.affectedRows === 0) {
             return res.status(404).json({ message: "Quotation not found" });
         }
 
