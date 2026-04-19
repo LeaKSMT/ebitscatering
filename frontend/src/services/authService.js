@@ -1,4 +1,14 @@
-const API_BASE_URL = "https://ebitscatering.onrender.com";
+function getApiBaseUrl() {
+  const envUrl = import.meta.env.VITE_API_URL?.trim();
+
+  if (envUrl) {
+    return envUrl.replace(/\/+$/, "");
+  }
+
+  return "http://localhost:5000/api";
+}
+
+const API_BASE_URL = getApiBaseUrl();
 
 async function handleResponse(response) {
   const data = await response.json().catch(() => ({}));
@@ -12,7 +22,7 @@ async function handleResponse(response) {
 
 export const authService = {
   async login(email, password) {
-    const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -24,7 +34,7 @@ export const authService = {
   },
 
   async register({ name, email, password, contactNumber }) {
-    const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+    const response = await fetch(`${API_BASE_URL}/auth/register`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -40,3 +50,5 @@ export const authService = {
     return handleResponse(response);
   },
 };
+
+export { API_BASE_URL };

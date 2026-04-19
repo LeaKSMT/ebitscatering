@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
+import { authService } from "../services/authService";
 
 function AdminLogin() {
     const navigate = useNavigate();
@@ -12,6 +13,7 @@ function AdminLogin() {
 
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -22,29 +24,37 @@ function AdminLogin() {
         setError("");
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const inputEmail = formData.email.trim().toLowerCase();
-        const inputPassword = formData.password.trim();
+        try {
+            setIsSubmitting(true);
+            setError("");
 
-        if (
-            inputEmail === ADMIN_CREDENTIALS.email &&
-            inputPassword === ADMIN_CREDENTIALS.password
-        ) {
+            const inputEmail = formData.email.trim().toLowerCase();
+            const inputPassword = formData.password.trim();
+
+            const data = await authService.login(inputEmail, inputPassword);
+
+            if (!data?.token || !data?.user) {
+                throw new Error("Invalid login response from server.");
+            }
+
+            if (data.user.role !== "admin") {
+                throw new Error("This account does not have admin access.");
+            }
+
+            localStorage.setItem("token", data.token);
             localStorage.setItem("adminAuth", "true");
-            localStorage.setItem(
-                "adminUser",
-                JSON.stringify({
-                    name: ADMIN_CREDENTIALS.name,
-                    email: ADMIN_CREDENTIALS.email,
-                    role: "admin",
-                })
-            );
+            localStorage.setItem("adminUser", JSON.stringify(data.user));
+            localStorage.setItem("user", JSON.stringify(data.user));
 
             navigate("/admin/dashboard");
-        } else {
-            setError("Invalid admin email or password.");
+        } catch (err) {
+            console.error("Admin login error:", err);
+            setError(err.message || "Login failed.");
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -107,9 +117,13 @@ function AdminLogin() {
 
                     <button
                         type="submit"
-                        className="w-full rounded-xl bg-[#d4af37] hover:bg-[#c79f22] text-[#0b4a3a] font-bold py-3 transition"
+                        disabled={isSubmitting}
+                        className={`w-full rounded-xl font-bold py-3 transition ${isSubmitting
+                                ? "bg-[#d4af37]/70 text-[#0b4a3a] cursor-not-allowed"
+                                : "bg-[#d4af37] hover:bg-[#c79f22] text-[#0b4a3a]"
+                            }`}
                     >
-                        Sign In
+                        {isSubmitting ? "Signing In..." : "Sign In"}
                     </button>
                 </form>
 
@@ -124,13 +138,10 @@ function AdminLogin() {
 
                 <div className="mt-6 rounded-2xl bg-[#f8fafc] border border-gray-200 p-4">
                     <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                        Demo Admin Credentials
+                        Admin Account
                     </p>
                     <p className="text-sm text-[#0b4a3a]">
-                        <span className="font-semibold">Email:</span> admin@ebitscatering.com
-                    </p>
-                    <p className="text-sm text-[#0b4a3a]">
-                        <span className="font-semibold">Password:</span> admin123
+                        Use your admin account stored in the database.
                     </p>
                 </div>
             </div>
