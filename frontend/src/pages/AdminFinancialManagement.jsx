@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import {
     getAllBookings,
     getAllPayments,
@@ -10,6 +11,25 @@ import {
     formatDate,
 } from "../utils/AdminData";
 import { buildPrintableTable, openPrintWindow } from "../utils/AdminPrint";
+import {
+    Wallet,
+    BadgeDollarSign,
+    ReceiptText,
+    Landmark,
+    Sparkles,
+    TrendingUp,
+    CircleDollarSign,
+    BriefcaseBusiness,
+    CalendarRange,
+    BarChart3,
+    FileSpreadsheet,
+    PlusCircle,
+} from "lucide-react";
+
+const fadeUp = {
+    hidden: { opacity: 0, y: 22 },
+    show: { opacity: 1, y: 0 },
+};
 
 function AdminFinancialManagement() {
     const [expenseForm, setExpenseForm] = useState({
@@ -182,63 +202,144 @@ function AdminFinancialManagement() {
     };
 
     return (
-        <div className="space-y-6">
-            <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+        <motion.div
+            initial="hidden"
+            animate="show"
+            transition={{ staggerChildren: 0.08 }}
+            className="space-y-6"
+        >
+            <motion.section
+                variants={fadeUp}
+                className="overflow-hidden rounded-[30px] border border-[#dce7e2] bg-white shadow-[0_18px_50px_rgba(14,61,47,0.07)]"
+            >
+                <div className="relative overflow-hidden bg-[linear-gradient(135deg,#07382d_0%,#0c4d3d_34%,#0f6b52_68%,#18a06c_100%)] px-6 py-7 text-white md:px-8">
+                    <div className="pointer-events-none absolute inset-0">
+                        <div className="absolute -top-12 right-[-30px] h-40 w-40 rounded-full bg-[#d4af37]/20 blur-3xl" />
+                        <div className="absolute bottom-[-30px] left-[-20px] h-28 w-28 rounded-full bg-white/10 blur-3xl" />
+                    </div>
+
+                    <div className="relative flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
+                        <div>
+                            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.22em] text-white/80">
+                                <Sparkles size={13} />
+                                Executive View
+                            </div>
+
+                            <h1 className="mt-4 text-3xl font-extrabold md:text-[42px]">
+                                Financial Management
+                            </h1>
+                            <p className="mt-2 max-w-3xl text-sm leading-7 text-white/85 md:text-[15px]">
+                                Track revenue, collections, expenses, profitability, and
+                                financial performance in one premium management workspace.
+                            </p>
+                        </div>
+
+                        <div className="grid gap-3 sm:grid-cols-2 xl:w-[430px]">
+                            <HeaderMiniCard
+                                icon={TrendingUp}
+                                label="Financial Health"
+                                value={
+                                    summary.netProfit >= 0 ? "Stable" : "Needs Attention"
+                                }
+                            />
+                            <HeaderMiniCard
+                                icon={FileSpreadsheet}
+                                label="Records"
+                                value={`${financialRows.length} Event${financialRows.length === 1 ? "" : "s"
+                                    }`}
+                            />
+                        </div>
+                    </div>
+                </div>
+            </motion.section>
+
+            <motion.section
+                variants={fadeUp}
+                className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4"
+            >
                 <SummaryCard
+                    icon={Wallet}
                     title="Total Revenue"
                     value={formatCurrency(summary.totalRevenue)}
                     subtitle="Based on booking totals"
                 />
                 <SummaryCard
+                    icon={BadgeDollarSign}
                     title="Total Collected"
                     value={formatCurrency(summary.totalCollected)}
                     subtitle="Based on recorded payments"
                 />
                 <SummaryCard
+                    icon={ReceiptText}
                     title="Total Expenses"
                     value={formatCurrency(summary.totalExpenses)}
                     subtitle="Admin-recorded expenses"
                 />
                 <SummaryCard
+                    icon={Landmark}
                     title="Net Profit"
                     value={formatCurrency(summary.netProfit)}
                     subtitle="Revenue minus expenses"
                 />
-            </section>
+            </motion.section>
 
-            <section className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6">
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <motion.section
+                variants={fadeUp}
+                className="rounded-[28px] border border-[#dce7e2] bg-white p-6 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
+            >
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                     <div>
-                        <h2 className="text-2xl font-bold text-[#0f4d3c]">
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#b99117]">
                             Financial Overview
+                        </p>
+                        <h2 className="mt-1 text-2xl font-extrabold text-[#0f4d3c]">
+                            Revenue and Profit Snapshot
                         </h2>
-                        <p className="text-sm text-gray-500 mt-1">
-                            Real-time financial summary based on current system records.
+                        <p className="mt-2 text-sm text-slate-500">
+                            Real-time financial summary based on your current booking,
+                            payment, and expense records.
                         </p>
                     </div>
 
                     <button
                         onClick={handlePrintFinancialSummary}
-                        className="rounded-2xl bg-[#0b4a3a] px-5 py-3 font-bold text-white hover:bg-[#09382d] transition"
+                        className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#0b4a3a] px-5 py-3 font-bold text-white transition hover:-translate-y-0.5 hover:bg-[#09382d]"
                     >
+                        <FileSpreadsheet size={18} />
                         Generate PDF Report
                     </button>
                 </div>
-            </section>
+            </motion.section>
 
-            <section className="grid grid-cols-1 xl:grid-cols-[1.2fr_0.8fr] gap-6">
-                <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6">
-                    <h2 className="text-2xl font-bold text-[#0f4d3c] mb-4">
-                        Profit Analysis Per Event
-                    </h2>
+            <section className="grid grid-cols-1 gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+                <motion.div
+                    variants={fadeUp}
+                    className="rounded-[28px] border border-[#dce7e2] bg-white p-6 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
+                >
+                    <div className="mb-5 flex items-center gap-3">
+                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#edf8f3] text-[#0f4d3c]">
+                            <BarChart3 size={20} />
+                        </div>
+                        <div>
+                            <h2 className="text-2xl font-extrabold text-[#0f4d3c]">
+                                Profit Analysis Per Event
+                            </h2>
+                            <p className="text-sm text-slate-500">
+                                Revenue, expenses, collections, and computed margin per booking
+                            </p>
+                        </div>
+                    </div>
 
                     {financialRows.length === 0 ? (
-                        <p className="text-gray-500">No financial records yet.</p>
+                        <EmptyState
+                            title="No financial records yet"
+                            description="Approved bookings and recorded expenses will appear here once your financial data becomes available."
+                        />
                     ) : (
                         <div className="overflow-x-auto">
-                            <table className="w-full min-w-[980px] text-sm">
+                            <table className="w-full min-w-[1050px] text-sm">
                                 <thead>
-                                    <tr className="border-b border-gray-100 text-left text-gray-500">
+                                    <tr className="border-b border-[#e8efeb] text-left text-slate-500">
                                         <th className="py-3 font-semibold">Booking ID</th>
                                         <th className="py-3 font-semibold">Client</th>
                                         <th className="py-3 font-semibold">Event</th>
@@ -251,22 +352,25 @@ function AdminFinancialManagement() {
                                 </thead>
                                 <tbody>
                                     {financialRows.map((row) => (
-                                        <tr key={row.id} className="border-b border-gray-50">
-                                            <td className="py-4 font-semibold text-[#0f4d3c]">
+                                        <tr
+                                            key={row.id}
+                                            className="border-b border-[#f1f5f3] transition hover:bg-[#fbfdfc]"
+                                        >
+                                            <td className="py-4 font-bold text-[#0f4d3c]">
                                                 {row.bookingId}
                                             </td>
-                                            <td className="py-4">{row.fullName}</td>
-                                            <td className="py-4">{row.eventType}</td>
-                                            <td className="py-4 font-semibold text-[#0f4d3c]">
+                                            <td className="py-4 text-slate-700">{row.fullName}</td>
+                                            <td className="py-4 text-slate-700">{row.eventType}</td>
+                                            <td className="py-4 font-bold text-[#0f4d3c]">
                                                 {formatCurrency(row.totalAmount)}
                                             </td>
-                                            <td className="py-4 font-semibold text-[#10b981]">
+                                            <td className="py-4 font-bold text-emerald-600">
                                                 {formatCurrency(row.paid)}
                                             </td>
-                                            <td className="py-4 font-semibold text-[#d4af37]">
+                                            <td className="py-4 font-bold text-[#c79f23]">
                                                 {formatCurrency(row.totalExpenses)}
                                             </td>
-                                            <td className="py-4 font-semibold text-[#10b981]">
+                                            <td className="py-4 font-bold text-[#0f7a51]">
                                                 {formatCurrency(row.profit)}
                                             </td>
                                             <td className="py-4">
@@ -280,23 +384,36 @@ function AdminFinancialManagement() {
                             </table>
                         </div>
                     )}
-                </div>
+                </motion.div>
 
                 <div className="space-y-6">
-                    <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6">
-                        <h2 className="text-2xl font-bold text-[#0f4d3c]">
-                            Add Expense
-                        </h2>
-
-                        <form onSubmit={handleAddExpense} className="mt-5 space-y-4">
+                    <motion.div
+                        variants={fadeUp}
+                        className="rounded-[28px] border border-[#dce7e2] bg-white p-6 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
+                    >
+                        <div className="mb-5 flex items-center gap-3">
+                            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#fff7e3] text-[#b99117]">
+                                <PlusCircle size={20} />
+                            </div>
                             <div>
-                                <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
+                                <h2 className="text-2xl font-extrabold text-[#0f4d3c]">
+                                    Add Expense
+                                </h2>
+                                <p className="text-sm text-slate-500">
+                                    Record operational or event-based expenses
+                                </p>
+                            </div>
+                        </div>
+
+                        <form onSubmit={handleAddExpense} className="space-y-4">
+                            <div>
+                                <label className="mb-2 block text-sm font-semibold text-[#0f4d3c]">
                                     Booking ID
                                 </label>
                                 <select
                                     value={expenseForm.bookingId}
                                     onChange={handleBookingSelect}
-                                    className="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-[#d4af37]"
+                                    className="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
                                     required
                                 >
                                     <option value="">Select booking</option>
@@ -309,7 +426,7 @@ function AdminFinancialManagement() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
+                                <label className="mb-2 block text-sm font-semibold text-[#0f4d3c]">
                                     Client Name
                                 </label>
                                 <input
@@ -317,13 +434,13 @@ function AdminFinancialManagement() {
                                     name="clientName"
                                     value={expenseForm.clientName}
                                     onChange={handleExpenseChange}
-                                    className="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-[#d4af37]"
+                                    className="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
                                     required
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
+                                <label className="mb-2 block text-sm font-semibold text-[#0f4d3c]">
                                     Event Type
                                 </label>
                                 <input
@@ -331,13 +448,13 @@ function AdminFinancialManagement() {
                                     name="eventType"
                                     value={expenseForm.eventType}
                                     onChange={handleExpenseChange}
-                                    className="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-[#d4af37]"
+                                    className="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
                                     required
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
+                                <label className="mb-2 block text-sm font-semibold text-[#0f4d3c]">
                                     Expense Category
                                 </label>
                                 <input
@@ -345,14 +462,14 @@ function AdminFinancialManagement() {
                                     name="category"
                                     value={expenseForm.category}
                                     onChange={handleExpenseChange}
-                                    placeholder="Food, Transportation, Decoration, etc."
-                                    className="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-[#d4af37]"
+                                    placeholder="Food, transportation, decoration, etc."
+                                    className="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
                                     required
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
+                                <label className="mb-2 block text-sm font-semibold text-[#0f4d3c]">
                                     Amount
                                 </label>
                                 <input
@@ -361,62 +478,93 @@ function AdminFinancialManagement() {
                                     name="amount"
                                     value={expenseForm.amount}
                                     onChange={handleExpenseChange}
-                                    className="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-[#d4af37]"
+                                    className="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
                                     required
                                 />
                             </div>
 
                             <button
                                 type="submit"
-                                className="w-full rounded-2xl bg-[#d4af37] px-5 py-3 font-bold text-[#0b4a3a] hover:bg-[#c79f23] transition"
+                                className="w-full rounded-2xl bg-[#d4af37] px-5 py-3 font-bold text-[#0b4a3a] transition hover:bg-[#c79f23]"
                             >
                                 Save Expense
                             </button>
                         </form>
-                    </div>
+                    </motion.div>
 
-                    <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6">
-                        <h2 className="text-2xl font-bold text-[#0f4d3c]">
-                            Demand Forecast
-                        </h2>
+                    <motion.div
+                        variants={fadeUp}
+                        className="rounded-[28px] border border-[#dce7e2] bg-white p-6 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
+                    >
+                        <div className="mb-5 flex items-center gap-3">
+                            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#edf8f3] text-[#0f4d3c]">
+                                <TrendingUp size={20} />
+                            </div>
+                            <div>
+                                <h2 className="text-2xl font-extrabold text-[#0f4d3c]">
+                                    Demand Forecast
+                                </h2>
+                                <p className="text-sm text-slate-500">
+                                    Event demand based on current booking distribution
+                                </p>
+                            </div>
+                        </div>
 
-                        <div className="mt-5 space-y-4">
+                        <div className="space-y-4">
                             {demandForecast.map((item) => (
                                 <div key={item.type}>
-                                    <div className="flex items-center justify-between text-sm mb-2">
-                                        <span className="font-medium text-[#0f4d3c]">
+                                    <div className="mb-2 flex items-center justify-between text-sm">
+                                        <span className="font-semibold text-[#0f4d3c]">
                                             {item.type}
                                         </span>
-                                        <span className="text-gray-500">
+                                        <span className="text-slate-500">
                                             {item.count} booking(s) • {item.percent}%
                                         </span>
                                     </div>
 
-                                    <div className="h-3 rounded-full bg-gray-100 overflow-hidden">
-                                        <div
-                                            className="h-full rounded-full bg-[#0b4a3a]"
-                                            style={{ width: `${item.percent}%` }}
+                                    <div className="h-3 overflow-hidden rounded-full bg-[#edf2ef]">
+                                        <motion.div
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${item.percent}%` }}
+                                            transition={{ duration: 0.7, ease: "easeOut" }}
+                                            className="h-full rounded-full bg-[linear-gradient(90deg,#0f4d3c_0%,#22b67f_100%)]"
                                         />
                                     </div>
                                 </div>
                             ))}
                         </div>
-                    </div>
+                    </motion.div>
                 </div>
             </section>
 
-            <section className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6">
-                <h2 className="text-2xl font-bold text-[#0f4d3c] mb-4">
-                    Monthly Financial Summary
-                </h2>
+            <motion.section
+                variants={fadeUp}
+                className="rounded-[28px] border border-[#dce7e2] bg-white p-6 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
+            >
+                <div className="mb-5 flex items-center gap-3">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#edf8f3] text-[#0f4d3c]">
+                        <CalendarRange size={20} />
+                    </div>
+                    <div>
+                        <h2 className="text-2xl font-extrabold text-[#0f4d3c]">
+                            Monthly Financial Summary
+                        </h2>
+                        <p className="text-sm text-slate-500">
+                            Revenue, expenses, profit, and monthly margin overview
+                        </p>
+                    </div>
+                </div>
 
                 {monthlyRows.length === 0 ? (
-                    <p className="text-gray-500">No monthly data yet.</p>
+                    <EmptyState
+                        title="No monthly data yet"
+                        description="Monthly financial summaries will appear here as soon as the system has enough revenue and expense records."
+                    />
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full min-w-[760px] text-sm">
                             <thead>
-                                <tr className="border-b border-gray-100 text-left text-gray-500">
+                                <tr className="border-b border-[#e8efeb] text-left text-slate-500">
                                     <th className="py-3 font-semibold">Month</th>
                                     <th className="py-3 font-semibold">Revenue</th>
                                     <th className="py-3 font-semibold">Expenses</th>
@@ -426,13 +574,22 @@ function AdminFinancialManagement() {
                             </thead>
                             <tbody>
                                 {monthlyRows.map((row) => (
-                                    <tr key={row.label} className="border-b border-gray-50">
-                                        <td className="py-4 font-semibold text-[#0f4d3c]">
+                                    <tr
+                                        key={row.label}
+                                        className="border-b border-[#f1f5f3] transition hover:bg-[#fbfdfc]"
+                                    >
+                                        <td className="py-4 font-bold text-[#0f4d3c]">
                                             {row.label}
                                         </td>
-                                        <td className="py-4">{formatCurrency(row.revenue)}</td>
-                                        <td className="py-4">{formatCurrency(row.expenses)}</td>
-                                        <td className="py-4">{formatCurrency(row.profit)}</td>
+                                        <td className="py-4 text-slate-700">
+                                            {formatCurrency(row.revenue)}
+                                        </td>
+                                        <td className="py-4 text-slate-700">
+                                            {formatCurrency(row.expenses)}
+                                        </td>
+                                        <td className="py-4 font-semibold text-[#0f7a51]">
+                                            {formatCurrency(row.profit)}
+                                        </td>
                                         <td className="py-4">
                                             <span className="inline-flex rounded-full bg-[#ecfdf5] px-3 py-1 text-xs font-semibold text-[#0f766e]">
                                                 {row.margin.toFixed(1)}%
@@ -444,20 +601,36 @@ function AdminFinancialManagement() {
                         </table>
                     </div>
                 )}
-            </section>
+            </motion.section>
 
-            <section className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-6">
-                <h2 className="text-2xl font-bold text-[#0f4d3c] mb-4">
-                    Recent Expenses
-                </h2>
+            <motion.section
+                variants={fadeUp}
+                className="rounded-[28px] border border-[#dce7e2] bg-white p-6 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
+            >
+                <div className="mb-5 flex items-center gap-3">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#fff7e3] text-[#b99117]">
+                        <BriefcaseBusiness size={20} />
+                    </div>
+                    <div>
+                        <h2 className="text-2xl font-extrabold text-[#0f4d3c]">
+                            Recent Expenses
+                        </h2>
+                        <p className="text-sm text-slate-500">
+                            Latest admin-recorded operating and event expenses
+                        </p>
+                    </div>
+                </div>
 
                 {expenses.length === 0 ? (
-                    <p className="text-gray-500">No expense records yet.</p>
+                    <EmptyState
+                        title="No expense records yet"
+                        description="Recorded expenses will appear here once you start adding expense entries from the form."
+                    />
                 ) : (
                     <div className="overflow-x-auto">
-                        <table className="w-full min-w-[760px] text-sm">
+                        <table className="w-full min-w-[820px] text-sm">
                             <thead>
-                                <tr className="border-b border-gray-100 text-left text-gray-500">
+                                <tr className="border-b border-[#e8efeb] text-left text-slate-500">
                                     <th className="py-3 font-semibold">Booking ID</th>
                                     <th className="py-3 font-semibold">Client</th>
                                     <th className="py-3 font-semibold">Event Type</th>
@@ -468,34 +641,90 @@ function AdminFinancialManagement() {
                             </thead>
                             <tbody>
                                 {expenses.map((expense) => (
-                                    <tr key={expense.id} className="border-b border-gray-50">
-                                        <td className="py-4 font-semibold text-[#0f4d3c]">
+                                    <tr
+                                        key={expense.id}
+                                        className="border-b border-[#f1f5f3] transition hover:bg-[#fbfdfc]"
+                                    >
+                                        <td className="py-4 font-bold text-[#0f4d3c]">
                                             {expense.bookingId || "—"}
                                         </td>
-                                        <td className="py-4">{expense.clientName || "—"}</td>
-                                        <td className="py-4">{expense.eventType || "—"}</td>
-                                        <td className="py-4">{expense.category || "—"}</td>
-                                        <td className="py-4 font-semibold text-[#d4af37]">
+                                        <td className="py-4 text-slate-700">
+                                            {expense.clientName || "—"}
+                                        </td>
+                                        <td className="py-4 text-slate-700">
+                                            {expense.eventType || "—"}
+                                        </td>
+                                        <td className="py-4 text-slate-700">
+                                            {expense.category || "—"}
+                                        </td>
+                                        <td className="py-4 font-bold text-[#b99117]">
                                             {formatCurrency(expense.amount)}
                                         </td>
-                                        <td className="py-4">{formatDate(expense.createdAt)}</td>
+                                        <td className="py-4 text-slate-700">
+                                            {formatDate(expense.createdAt)}
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
                     </div>
                 )}
-            </section>
+            </motion.section>
+        </motion.div>
+    );
+}
+
+function HeaderMiniCard({ icon: Icon, label, value }) {
+    return (
+        <div className="rounded-[22px] border border-white/10 bg-white/10 p-4 backdrop-blur-md">
+            <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 text-white">
+                    <Icon size={18} />
+                </div>
+                <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">
+                        {label}
+                    </p>
+                    <p className="mt-1 text-lg font-extrabold text-white">{value}</p>
+                </div>
+            </div>
         </div>
     );
 }
 
-function SummaryCard({ title, value, subtitle }) {
+function SummaryCard({ icon: Icon, title, value, subtitle }) {
     return (
-        <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm p-5">
-            <p className="text-sm text-gray-500">{title}</p>
-            <h2 className="text-3xl font-extrabold text-[#0f4d3c] mt-2">{value}</h2>
-            <p className="text-xs text-gray-400 mt-2">{subtitle}</p>
+        <motion.div
+            whileHover={{ y: -4 }}
+            className="rounded-[24px] border border-[#dce7e2] bg-white p-5 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
+        >
+            <div className="flex items-start justify-between gap-3">
+                <div>
+                    <p className="text-sm text-slate-500">{title}</p>
+                    <h2 className="mt-2 text-3xl font-extrabold text-[#0f4d3c]">
+                        {value}
+                    </h2>
+                    <p className="mt-2 text-xs text-slate-400">{subtitle}</p>
+                </div>
+
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#edf8f3_0%,#dff1e8_100%)] text-[#0f4d3c]">
+                    <Icon size={22} />
+                </div>
+            </div>
+        </motion.div>
+    );
+}
+
+function EmptyState({ title, description }) {
+    return (
+        <div className="rounded-[24px] border border-dashed border-[#d9e5e0] bg-[#fbfdfc] px-6 py-12 text-center">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#edf8f3] text-[#0f4d3c]">
+                <CircleDollarSign className="h-8 w-8" />
+            </div>
+            <h3 className="mt-4 text-2xl font-extrabold text-[#0f4d3c]">{title}</h3>
+            <p className="mx-auto mt-2 max-w-2xl text-sm leading-7 text-slate-500">
+                {description}
+            </p>
         </div>
     );
 }

@@ -1,4 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+    MessageSquareText,
+    Mail,
+    Trash2,
+    Send,
+    UserRound,
+    ShieldCheck,
+    Sparkles,
+    Clock3,
+    ChevronRight,
+    AlertTriangle,
+} from "lucide-react";
 
 const DEFAULT_ACKNOWLEDGMENT =
     "Thank you for your inquiry. Our admin has received your message and will respond as soon as possible.";
@@ -71,6 +84,11 @@ function getAllInquiryThreads() {
     );
 }
 
+const fadeUp = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 },
+};
+
 function AdminInquiryManagement() {
     const [threads, setThreads] = useState([]);
     const [selectedThreadKey, setSelectedThreadKey] = useState("");
@@ -109,6 +127,14 @@ function AdminInquiryManagement() {
             threads.find((thread) => thread.storageKey === selectedThreadKey) || null
         );
     }, [threads, selectedThreadKey]);
+
+    const pendingThreadCount = useMemo(() => {
+        return threads.filter((thread) => thread.adminMessageCount === 0).length;
+    }, [threads]);
+
+    const repliedThreadCount = useMemo(() => {
+        return threads.filter((thread) => thread.adminMessageCount > 0).length;
+    }, [threads]);
 
     const handleSendReply = () => {
         const trimmed = replyText.trim();
@@ -156,106 +182,189 @@ function AdminInquiryManagement() {
     };
 
     return (
-        <div className="space-y-6">
-            <div>
-                <h1 className="text-4xl font-bold text-[#0f4d3c]">
-                    Inquiry Management
-                </h1>
-                <p className="text-gray-500 mt-1">
-                    Manage client inquiries and send replies in one place.
-                </p>
-            </div>
-
-            {threads.length === 0 ? (
-                <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 p-10 text-center">
-                    <div className="w-16 h-16 rounded-full bg-[#0f4d3c] text-white flex items-center justify-center text-2xl font-bold mx-auto mb-4">
-                        💬
-                    </div>
-                    <h2 className="text-2xl font-bold text-[#0f4d3c]">
-                        No inquiries yet
-                    </h2>
-                    <p className="text-gray-500 mt-2">
-                        Client messages will appear here once they send an inquiry.
-                    </p>
+        <motion.div
+            initial="hidden"
+            animate="show"
+            transition={{ staggerChildren: 0.08 }}
+            className="space-y-6"
+        >
+            <motion.section
+                variants={fadeUp}
+                className="relative overflow-hidden rounded-[30px] border border-[#d9e6e0] bg-white shadow-[0_18px_45px_rgba(15,77,60,0.08)]"
+            >
+                <div className="absolute inset-0 pointer-events-none">
+                    <div className="absolute -top-12 right-[-50px] h-44 w-44 rounded-full bg-[#d4af37]/15 blur-3xl" />
+                    <div className="absolute bottom-[-30px] left-[-20px] h-32 w-32 rounded-full bg-[#22b67f]/10 blur-3xl" />
                 </div>
-            ) : (
-                <div className="grid grid-cols-1 xl:grid-cols-[360px_1fr] gap-6">
-                    <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 overflow-hidden">
-                        <div className="px-5 py-4 border-b border-gray-100 bg-[#0f4d3c] text-white">
-                            <h2 className="text-xl font-bold">Client Threads</h2>
-                            <p className="text-sm text-white/80 mt-1">
-                                Select a client conversation.
+
+                <div className="relative bg-[linear-gradient(135deg,#0b5a43_0%,#0f6d51_55%,#138062_100%)] px-6 py-8 text-white md:px-8 md:py-9">
+                    <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
+                        <div>
+                            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.22em] text-white/80">
+                                <Sparkles size={14} />
+                                Executive View
+                            </div>
+
+                            <h1 className="mt-4 text-3xl font-extrabold md:text-5xl">
+                                Inquiry Management
+                            </h1>
+
+                            <p className="mt-3 max-w-3xl text-sm leading-7 text-white/85 md:text-base">
+                                Review client concerns, manage conversation threads, and
+                                send clean professional replies in one premium admin
+                                workspace.
                             </p>
                         </div>
 
-                        <div className="max-h-[680px] overflow-y-auto">
-                            {threads.map((thread) => {
-                                const isActive =
-                                    selectedThreadKey === thread.storageKey;
-
-                                return (
-                                    <button
-                                        key={thread.storageKey}
-                                        type="button"
-                                        onClick={() =>
-                                            setSelectedThreadKey(thread.storageKey)
-                                        }
-                                        className={`w-full text-left px-5 py-4 border-b border-gray-100 transition ${isActive
-                                                ? "bg-[#fff8e6]"
-                                                : "bg-white hover:bg-[#f8fafc]"
-                                            }`}
-                                    >
-                                        <div className="flex items-start justify-between gap-3">
-                                            <div className="min-w-0">
-                                                <p className="text-base font-bold text-[#0f4d3c] truncate">
-                                                    {thread.clientName}
-                                                </p>
-                                                <p className="text-xs text-gray-500 truncate mt-1">
-                                                    {thread.email}
-                                                </p>
-                                            </div>
-
-                                            <span className="px-2.5 py-1 rounded-full bg-[#0f4d3c] text-white text-xs font-semibold">
-                                                {thread.clientMessageCount}
-                                            </span>
-                                        </div>
-
-                                        <p className="text-sm text-gray-600 mt-3 line-clamp-2">
-                                            {thread.latestMessage?.text || "No message"}
-                                        </p>
-
-                                        <p className="text-xs text-gray-400 mt-2">
-                                            {formatDateTime(thread.latestAt)}
-                                        </p>
-                                    </button>
-                                );
-                            })}
+                        <div className="grid gap-3 sm:grid-cols-3">
+                            <TopStatCard
+                                icon={<MessageSquareText size={18} />}
+                                label="Total Threads"
+                                value={threads.length}
+                            />
+                            <TopStatCard
+                                icon={<Clock3 size={18} />}
+                                label="Waiting Reply"
+                                value={pendingThreadCount}
+                            />
+                            <TopStatCard
+                                icon={<ShieldCheck size={18} />}
+                                label="Replied"
+                                value={repliedThreadCount}
+                            />
                         </div>
                     </div>
+                </div>
+            </motion.section>
 
-                    <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 overflow-hidden">
+            {threads.length === 0 ? (
+                <motion.div
+                    variants={fadeUp}
+                    className="overflow-hidden rounded-[30px] border border-[#dce7e2] bg-white shadow-[0_14px_35px_rgba(15,77,60,0.06)]"
+                >
+                    <div className="px-6 py-14 text-center md:px-8">
+                        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[linear-gradient(135deg,#0f4d3c_0%,#138062_100%)] text-white shadow-lg">
+                            <MessageSquareText className="h-9 w-9" />
+                        </div>
+
+                        <h2 className="mt-6 text-3xl font-extrabold text-[#0f4d3c]">
+                            No inquiries yet
+                        </h2>
+
+                        <p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-slate-500 md:text-base">
+                            Client messages will appear here once they send an inquiry.
+                            This page will help you monitor, review, and respond to each
+                            conversation professionally.
+                        </p>
+                    </div>
+                </motion.div>
+            ) : (
+                <div className="grid grid-cols-1 gap-6 xl:grid-cols-[360px_1fr]">
+                    <motion.div
+                        variants={fadeUp}
+                        className="overflow-hidden rounded-[30px] border border-[#dce7e2] bg-white shadow-[0_14px_35px_rgba(15,77,60,0.06)]"
+                    >
+                        <div className="border-b border-[#edf2ef] bg-[linear-gradient(135deg,#0c5a43_0%,#106d50_100%)] px-5 py-5 text-white">
+                            <h2 className="text-xl font-extrabold">Client Threads</h2>
+                            <p className="mt-1 text-sm text-white/80">
+                                Select a client conversation to review the full inquiry.
+                            </p>
+                        </div>
+
+                        <div className="max-h-[700px] overflow-y-auto p-3">
+                            <div className="space-y-3">
+                                {threads.map((thread, index) => {
+                                    const isActive =
+                                        selectedThreadKey === thread.storageKey;
+                                    const waitingReply = thread.adminMessageCount === 0;
+
+                                    return (
+                                        <motion.button
+                                            key={thread.storageKey}
+                                            variants={fadeUp}
+                                            transition={{ delay: index * 0.02 }}
+                                            type="button"
+                                            onClick={() =>
+                                                setSelectedThreadKey(thread.storageKey)
+                                            }
+                                            whileHover={{ y: -2 }}
+                                            className={`w-full rounded-[24px] border px-4 py-4 text-left transition ${isActive
+                                                ? "border-[#d4af37] bg-[linear-gradient(135deg,#fff8e6_0%,#fffdf6_100%)] shadow-sm"
+                                                : "border-[#e6eeea] bg-white hover:border-[#cfe0d8] hover:bg-[#fbfdfc]"
+                                                }`}
+                                        >
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div className="min-w-0">
+                                                    <div className="flex items-center gap-2">
+                                                        <p className="truncate text-base font-bold text-[#0f4d3c]">
+                                                            {thread.clientName}
+                                                        </p>
+
+                                                        {waitingReply && (
+                                                            <span className="inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-amber-700">
+                                                                New
+                                                            </span>
+                                                        )}
+                                                    </div>
+
+                                                    <p className="mt-1 flex items-center gap-2 truncate text-xs text-slate-500">
+                                                        <Mail size={12} />
+                                                        {thread.email}
+                                                    </p>
+                                                </div>
+
+                                                <div className="flex flex-col items-end gap-2">
+                                                    <span className="inline-flex min-w-[34px] items-center justify-center rounded-full bg-[#0f4d3c] px-2.5 py-1 text-xs font-semibold text-white">
+                                                        {thread.clientMessageCount}
+                                                    </span>
+                                                    <ChevronRight
+                                                        size={16}
+                                                        className={`text-slate-400 transition ${isActive ? "translate-x-0.5 text-[#0f4d3c]" : ""
+                                                            }`}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <p className="mt-3 line-clamp-2 text-sm leading-6 text-slate-600">
+                                                {thread.latestMessage?.text || "No message"}
+                                            </p>
+
+                                            <p className="mt-3 text-xs text-slate-400">
+                                                {formatDateTime(thread.latestAt)}
+                                            </p>
+                                        </motion.button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </motion.div>
+
+                    <motion.div
+                        variants={fadeUp}
+                        className="overflow-hidden rounded-[30px] border border-[#dce7e2] bg-white shadow-[0_14px_35px_rgba(15,77,60,0.06)]"
+                    >
                         {!selectedThread ? (
-                            <div className="p-10 text-center text-gray-500">
+                            <div className="px-6 py-16 text-center text-slate-500">
                                 Select a conversation to view messages.
                             </div>
                         ) : (
                             <>
-                                <div className="px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-[#0b5a43] to-[#0f6b50] text-white">
-                                    <div className="flex flex-wrap items-center justify-between gap-4">
+                                <div className="border-b border-[#edf2ef] bg-[linear-gradient(135deg,#0b5a43_0%,#0f6b50_58%,#138062_100%)] px-6 py-6 text-white md:px-7">
+                                    <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
                                         <div>
-                                            <p className="uppercase tracking-[0.22em] text-xs text-white/70">
+                                            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/70">
                                                 Active Conversation
                                             </p>
-                                            <h2 className="text-2xl font-extrabold mt-1">
+                                            <h2 className="mt-2 text-3xl font-extrabold">
                                                 {selectedThread.clientName}
                                             </h2>
-                                            <p className="text-sm text-white/80 mt-1">
+                                            <p className="mt-2 text-sm text-white/80">
                                                 {selectedThread.email}
                                             </p>
                                         </div>
 
-                                        <div className="flex items-center gap-3">
-                                            <div className="px-4 py-2 rounded-2xl bg-white/10 border border-white/10 text-sm">
+                                        <div className="flex flex-wrap items-center gap-3">
+                                            <div className="rounded-[20px] border border-white/10 bg-white/10 px-4 py-3 text-sm backdrop-blur-md">
                                                 {selectedThread.clientMessageCount} client
                                                 message(s) • {selectedThread.adminMessageCount} admin
                                                 repl
@@ -267,130 +376,198 @@ function AdminInquiryManagement() {
                                             <button
                                                 type="button"
                                                 onClick={() => setShowDeleteModal(true)}
-                                                className="px-4 py-2 rounded-2xl bg-red-500 hover:bg-red-600 text-white text-sm font-semibold transition"
+                                                className="inline-flex items-center gap-2 rounded-[20px] bg-rose-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-rose-600"
                                             >
+                                                <Trash2 size={16} />
                                                 Delete
                                             </button>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="bg-[#f8fafc] p-5 md:p-6 min-h-[500px] max-h-[500px] overflow-y-auto space-y-4">
-                                    {selectedThread.messages.map((message) => {
-                                        const isAdmin = message.sender === "admin";
+                                <div className="min-h-[520px] max-h-[520px] space-y-4 overflow-y-auto bg-[linear-gradient(180deg,#f8fbfa_0%,#f5f8f7_100%)] p-5 md:p-6">
+                                    <AnimatePresence>
+                                        {selectedThread.messages.map((message) => {
+                                            const isAdmin = message.sender === "admin";
 
-                                        return (
-                                            <div
-                                                key={message.id}
-                                                className={`flex ${isAdmin
+                                            return (
+                                                <motion.div
+                                                    key={message.id}
+                                                    initial={{ opacity: 0, y: 16 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, y: 10 }}
+                                                    className={`flex ${isAdmin
                                                         ? "justify-end"
                                                         : "justify-start"
-                                                    }`}
-                                            >
-                                                <div
-                                                    className={`max-w-[85%] md:max-w-[70%] rounded-[24px] px-4 py-3 shadow-sm ${isAdmin
-                                                            ? "bg-[#d4af37] text-[#0f4d3c]"
-                                                            : "bg-white border border-gray-200 text-gray-700"
                                                         }`}
                                                 >
-                                                    <p className="text-xs font-bold uppercase tracking-[0.15em] opacity-80 mb-2">
-                                                        {isAdmin
-                                                            ? message.senderName || "Admin"
-                                                            : message.senderName || "Client"}
-                                                    </p>
+                                                    <div
+                                                        className={`max-w-[88%] rounded-[24px] px-4 py-4 shadow-sm md:max-w-[72%] ${isAdmin
+                                                            ? "border border-[#e7d18c] bg-[linear-gradient(135deg,#fff4ca_0%,#f6dfa0_100%)] text-[#0f4d3c]"
+                                                            : "border border-[#e6ece9] bg-white text-slate-700"
+                                                            }`}
+                                                    >
+                                                        <div className="mb-2 flex items-center gap-2">
+                                                            <div
+                                                                className={`flex h-8 w-8 items-center justify-center rounded-full ${isAdmin
+                                                                    ? "bg-[#0f4d3c] text-white"
+                                                                    : "bg-[#eef5f1] text-[#0f4d3c]"
+                                                                    }`}
+                                                            >
+                                                                {isAdmin ? (
+                                                                    <ShieldCheck size={15} />
+                                                                ) : (
+                                                                    <UserRound size={15} />
+                                                                )}
+                                                            </div>
 
-                                                    <p className="text-sm leading-7 whitespace-pre-wrap">
-                                                        {message.text}
-                                                    </p>
+                                                            <p className="text-xs font-bold uppercase tracking-[0.15em] opacity-80">
+                                                                {isAdmin
+                                                                    ? message.senderName || "Admin"
+                                                                    : message.senderName || "Client"}
+                                                            </p>
+                                                        </div>
 
-                                                    <p className="text-[11px] mt-3 opacity-70 text-right">
-                                                        {formatDateTime(message.createdAt)}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
+                                                        <p className="whitespace-pre-wrap text-sm leading-7">
+                                                            {message.text}
+                                                        </p>
+
+                                                        <p className="mt-3 text-right text-[11px] opacity-70">
+                                                            {formatDateTime(message.createdAt)}
+                                                        </p>
+                                                    </div>
+                                                </motion.div>
+                                            );
+                                        })}
+                                    </AnimatePresence>
                                 </div>
 
-                                <div className="border-t border-gray-100 bg-white p-5">
-                                    <div className="flex flex-col md:flex-row gap-3">
-                                        <input
-                                            type="text"
-                                            value={replyText}
-                                            onChange={(e) =>
-                                                setReplyText(e.target.value)
-                                            }
-                                            onKeyDown={(e) => {
-                                                if (e.key === "Enter") {
-                                                    handleSendReply();
+                                <div className="border-t border-[#edf2ef] bg-white p-5 md:p-6">
+                                    <div className="flex flex-col gap-3 md:flex-row">
+                                        <div className="relative flex-1">
+                                            <input
+                                                type="text"
+                                                value={replyText}
+                                                onChange={(e) =>
+                                                    setReplyText(e.target.value)
                                                 }
-                                            }}
-                                            placeholder="Type your reply here..."
-                                            className="flex-1 rounded-2xl border border-gray-300 px-4 py-3 outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-[#f4e2a0]"
-                                        />
+                                                onKeyDown={(e) => {
+                                                    if (e.key === "Enter") {
+                                                        handleSendReply();
+                                                    }
+                                                }}
+                                                placeholder="Type your reply here..."
+                                                className="w-full rounded-[22px] border border-[#d5dfda] bg-[#fbfcfc] px-4 py-3.5 pr-12 outline-none transition focus:border-[#d4af37] focus:ring-4 focus:ring-[#f6e7b0]"
+                                            />
+                                            <Send
+                                                size={17}
+                                                className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"
+                                            />
+                                        </div>
 
                                         <button
                                             type="button"
                                             onClick={handleSendReply}
-                                            className="px-6 py-3 rounded-2xl bg-[#0f4d3c] text-white font-semibold hover:bg-[#0c3f31] transition"
+                                            className="inline-flex items-center justify-center gap-2 rounded-[22px] bg-[linear-gradient(135deg,#0f4d3c_0%,#137255_100%)] px-6 py-3.5 font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                                         >
+                                            <Send size={16} />
                                             Send Reply
                                         </button>
                                     </div>
 
-                                    <p className="text-xs text-gray-400 mt-3">
+                                    <p className="mt-3 text-xs text-slate-400">
                                         Replies sent here will also appear in the client inquiry
                                         page.
                                     </p>
                                 </div>
                             </>
                         )}
-                    </div>
+                    </motion.div>
                 </div>
             )}
 
-            {showDeleteModal && selectedThread && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-                    <div className="w-full max-w-md rounded-3xl bg-white shadow-2xl overflow-hidden">
-                        <div className="bg-red-500 px-6 py-4">
-                            <h2 className="text-xl font-bold text-white">
-                                Delete Conversation
-                            </h2>
-                            <p className="text-sm text-white/90 mt-1">
-                                This will permanently remove this inquiry thread.
-                            </p>
-                        </div>
-
-                        <div className="p-6">
-                            <p className="text-gray-700 leading-7">
-                                Are you sure you want to delete the conversation of{" "}
-                                <span className="font-semibold text-[#0f4d3c]">
-                                    {selectedThread.clientName}
-                                </span>
-                                ? This action cannot be undone.
-                            </p>
-
-                            <div className="mt-6 flex justify-end gap-3">
-                                <button
-                                    type="button"
-                                    onClick={() => setShowDeleteModal(false)}
-                                    className="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-600 font-semibold hover:bg-gray-50 transition"
-                                >
-                                    Cancel
-                                </button>
-
-                                <button
-                                    type="button"
-                                    onClick={handleDeleteConversation}
-                                    className="px-5 py-2.5 rounded-xl bg-red-500 text-white font-semibold hover:bg-red-600 transition"
-                                >
-                                    Delete
-                                </button>
+            <AnimatePresence>
+                {showDeleteModal && selectedThread && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 px-4"
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, y: 24, scale: 0.96 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 18, scale: 0.96 }}
+                            className="w-full max-w-md overflow-hidden rounded-[30px] border border-white/10 bg-white shadow-[0_30px_70px_rgba(0,0,0,0.28)]"
+                        >
+                            <div className="bg-[linear-gradient(135deg,#dc2626_0%,#ef4444_100%)] px-6 py-5 text-white">
+                                <div className="flex items-center gap-4">
+                                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/15">
+                                        <AlertTriangle size={28} />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/80">
+                                            Critical Action
+                                        </p>
+                                        <h2 className="mt-1 text-2xl font-extrabold">
+                                            Delete Conversation
+                                        </h2>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
+
+                            <div className="p-6">
+                                <p className="leading-7 text-slate-600">
+                                    Are you sure you want to permanently remove the
+                                    conversation of{" "}
+                                    <span className="font-semibold text-[#0f4d3c]">
+                                        {selectedThread.clientName}
+                                    </span>
+                                    ? This action cannot be undone.
+                                </p>
+
+                                <div className="mt-6 flex justify-end gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowDeleteModal(false)}
+                                        className="rounded-xl border border-gray-200 px-5 py-2.5 font-semibold text-slate-600 transition hover:bg-gray-50"
+                                    >
+                                        Cancel
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={handleDeleteConversation}
+                                        className="rounded-xl bg-red-500 px-5 py-2.5 font-semibold text-white transition hover:bg-red-600"
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </motion.div>
+    );
+}
+
+function TopStatCard({ icon, label, value }) {
+    return (
+        <div className="rounded-[22px] border border-white/10 bg-white/10 p-4 backdrop-blur-md">
+            <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 text-white">
+                    {icon}
                 </div>
-            )}
+                <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">
+                        {label}
+                    </p>
+                    <p className="mt-1 text-2xl font-extrabold text-white">
+                        {value}
+                    </p>
+                </div>
+            </div>
         </div>
     );
 }
