@@ -32,7 +32,8 @@ function AdminSidebar() {
     const [mobileOpen, setMobileOpen] = useState(false);
 
     const adminUser =
-        JSON.parse(localStorage.getItem("adminUser") || "null") || {
+        JSON.parse(localStorage.getItem("adminUser") || "null") ||
+        JSON.parse(localStorage.getItem("user") || "null") || {
             name: "Admin User",
         };
 
@@ -61,7 +62,7 @@ function AdminSidebar() {
         localStorage.removeItem("user");
         setShowLogoutModal(false);
         setMobileOpen(false);
-        navigate("/admin-login");
+        navigate("/login");
     };
 
     const navContent = (

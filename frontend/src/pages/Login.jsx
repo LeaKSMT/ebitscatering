@@ -1,7 +1,13 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { signInWithPopup } from "firebase/auth";
-import { Eye, EyeOff, ShieldCheck, Sparkles, UtensilsCrossed } from "lucide-react";
+import {
+    Eye,
+    EyeOff,
+    ShieldCheck,
+    Sparkles,
+    UtensilsCrossed,
+} from "lucide-react";
 import { motion } from "framer-motion";
 import Swal from "sweetalert2";
 import { auth, googleProvider } from "../firebase";
@@ -36,15 +42,17 @@ function Login() {
         localStorage.removeItem("currentClientEmail");
         localStorage.removeItem("isClientLoggedIn");
         localStorage.removeItem("adminAuth");
+        localStorage.removeItem("adminUser");
     };
 
     const saveClientSession = ({ id = null, name, email, photo = "" }) => {
-        const finalName = name?.trim() || email.split("@")[0] || "Client";
+        const safeEmail = email?.trim().toLowerCase() || "";
+        const finalName = name?.trim() || safeEmail.split("@")[0] || "Client";
 
         const userData = {
             id,
             name: finalName,
-            email,
+            email: safeEmail,
             photo,
             role: "client",
         };
@@ -53,25 +61,27 @@ function Login() {
         localStorage.setItem("user", JSON.stringify(userData));
         localStorage.setItem("clientUser", JSON.stringify(userData));
         localStorage.setItem("clientName", finalName);
-        localStorage.setItem("clientEmail", email);
+        localStorage.setItem("clientEmail", safeEmail);
         localStorage.setItem("currentClientName", finalName);
-        localStorage.setItem("currentClientEmail", email);
+        localStorage.setItem("currentClientEmail", safeEmail);
         localStorage.setItem("isClientLoggedIn", "true");
     };
 
     const saveAdminSession = ({ id = null, name, email, photo = "" }, token = "") => {
-        const finalName = name?.trim() || email.split("@")[0] || "Admin";
+        const safeEmail = email?.trim().toLowerCase() || "";
+        const finalName = name?.trim() || safeEmail.split("@")[0] || "Admin";
 
         const userData = {
             id,
             name: finalName,
-            email,
+            email: safeEmail,
             photo,
             role: "admin",
         };
 
         clearSession();
         localStorage.setItem("user", JSON.stringify(userData));
+        localStorage.setItem("adminUser", JSON.stringify(userData));
         localStorage.setItem("adminAuth", "true");
 
         if (token) {

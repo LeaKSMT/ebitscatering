@@ -5,10 +5,12 @@ import AdminTopbar from "../components/AdminTopbar";
 
 function AdminLayout() {
     const isAdminAuth = localStorage.getItem("adminAuth") === "true";
+    const savedUser = JSON.parse(localStorage.getItem("user") || "null");
+    const isAdminUser = savedUser?.role === "admin";
     const location = useLocation();
 
-    if (!isAdminAuth) {
-        return <Navigate to="/admin-login" replace />;
+    if (!isAdminAuth || !isAdminUser) {
+        return <Navigate to="/login" replace />;
     }
 
     return (
