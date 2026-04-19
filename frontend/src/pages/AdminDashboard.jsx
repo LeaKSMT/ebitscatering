@@ -160,6 +160,7 @@ function AdminDashboard() {
 
     return (
         <motion.div
+            data-build="clean-admin-dashboard-v2"
             initial="hidden"
             animate="show"
             transition={{ staggerChildren: 0.08 }}
@@ -169,7 +170,7 @@ function AdminDashboard() {
                 variants={fadeUp}
                 className="relative overflow-hidden rounded-[30px] border border-[#dbe7e2] bg-white shadow-[0_18px_50px_rgba(14,61,47,0.08)]"
             >
-                <div className="absolute inset-0 pointer-events-none">
+                <div className="pointer-events-none absolute inset-0">
                     <div className="absolute -top-14 right-[-40px] h-44 w-44 rounded-full bg-[#d4af37]/18 blur-3xl" />
                     <div className="absolute bottom-[-30px] left-[-20px] h-32 w-32 rounded-full bg-white/12 blur-3xl" />
                 </div>
@@ -192,7 +193,8 @@ function AdminDashboard() {
                                 Premium Admin Dashboard
                             </h2>
                             <p className="mt-2 max-w-3xl text-sm leading-7 text-white/85 md:text-[15px]">
-                                Monitor bookings, quotations, payments, revenue, and client event activity through a premium executive interface.
+                                Monitor bookings, quotations, payments, revenue, and client event
+                                activity through a premium executive interface.
                             </p>
                         </div>
 
@@ -214,7 +216,7 @@ function AdminDashboard() {
                     </div>
                 </div>
 
-                <div className="grid gap-4 px-5 py-5 sm:grid-cols-2 xl:grid-cols-4 md:px-6">
+                <div className="grid gap-4 px-5 py-5 sm:grid-cols-2 md:px-6 xl:grid-cols-4">
                     <StatCard
                         title="Total Revenue"
                         value={formatCurrency(stats.totalRevenue)}
