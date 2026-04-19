@@ -131,7 +131,7 @@ const allPackages = [
 ];
 
 const fadeUp = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 18 },
     show: { opacity: 1, y: 0 },
 };
 
@@ -605,7 +605,14 @@ function AdminCalendar() {
         days.push(
             <motion.div
                 key={day}
-                whileHover={{ y: -2 }}
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                    duration: 0.4,
+                    delay: day * 0.01,
+                    ease: "easeOut",
+                }}
+                whileHover={{ y: -3 }}
                 className={`group relative min-h-[140px] rounded-[22px] border p-3 transition-all duration-200 ${hasBooking
                         ? "border-[#d5b33f] bg-[linear-gradient(180deg,#fff6cf_0%,#f5dea0_100%)] text-[#174c3c] shadow-sm"
                         : "border-[#e8eceb] bg-[#f8faf9] text-[#174c3c] hover:border-[#22b67f]/40 hover:shadow-sm"
@@ -656,11 +663,12 @@ function AdminCalendar() {
         <motion.div
             initial="hidden"
             animate="show"
-            transition={{ staggerChildren: 0.08 }}
+            transition={{ staggerChildren: 0.1 }}
             className="space-y-6"
         >
             <motion.section
                 variants={fadeUp}
+                transition={{ duration: 0.46, ease: "easeOut" }}
                 className="overflow-hidden rounded-[30px] border border-[#dce7e2] bg-white shadow-[0_18px_50px_rgba(14,61,47,0.07)]"
             >
                 <div className="relative overflow-hidden bg-[linear-gradient(135deg,#07382d_0%,#0c4d3d_34%,#0f6b52_68%,#18a06c_100%)] px-6 py-7 text-white md:px-8">
@@ -668,6 +676,17 @@ function AdminCalendar() {
                         <div className="absolute -top-12 right-[-30px] h-40 w-40 rounded-full bg-[#d4af37]/20 blur-3xl" />
                         <div className="absolute bottom-[-30px] left-[-20px] h-28 w-28 rounded-full bg-white/10 blur-3xl" />
                     </div>
+
+                    <motion.div
+                        animate={{ x: ["-30%", "130%"] }}
+                        transition={{
+                            duration: 7,
+                            repeat: Infinity,
+                            repeatDelay: 2,
+                            ease: "linear",
+                        }}
+                        className="pointer-events-none absolute inset-y-0 left-[-35%] w-[28%] rotate-[18deg] bg-gradient-to-r from-transparent via-white/10 to-transparent"
+                    />
 
                     <div className="relative flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
                         <div>
@@ -690,10 +709,12 @@ function AdminCalendar() {
                             <HeaderMiniCard
                                 label="Current Month Bookings"
                                 value={currentMonthBookings.length}
+                                delay={0.04}
                             />
                             <HeaderMiniCard
                                 label="Upcoming Events"
                                 value={upcomingEvents.length}
+                                delay={0.1}
                             />
                         </div>
                     </div>
@@ -703,32 +724,37 @@ function AdminCalendar() {
             <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
                 <motion.div
                     variants={fadeUp}
+                    transition={{ duration: 0.46, ease: "easeOut" }}
                     className="rounded-[28px] border border-[#e8eceb] bg-white p-5 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
                 >
                     <div className="rounded-[24px] bg-[linear-gradient(135deg,#0f5b46_0%,#138062_100%)] px-5 py-5 text-white">
                         <div className="flex items-center justify-between gap-3">
-                            <button
+                            <motion.button
+                                whileHover={{ y: -2, scale: 1.01 }}
+                                whileTap={{ scale: 0.98 }}
                                 type="button"
                                 onClick={() => changeMonth(-1)}
                                 className="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm font-semibold transition hover:bg-white/10"
                             >
                                 <ChevronLeft size={18} />
                                 Previous
-                            </button>
+                            </motion.button>
 
                             <div className="flex items-center gap-3 text-xl font-bold">
                                 <CalendarDays size={22} />
                                 <span>{getMonthLabel(currentDate)}</span>
                             </div>
 
-                            <button
+                            <motion.button
+                                whileHover={{ y: -2, scale: 1.01 }}
+                                whileTap={{ scale: 0.98 }}
                                 type="button"
                                 onClick={() => changeMonth(1)}
                                 className="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm font-semibold transition hover:bg-white/10"
                             >
                                 Next
                                 <ChevronRight size={18} />
-                            </button>
+                            </motion.button>
                         </div>
                     </div>
 
@@ -760,6 +786,7 @@ function AdminCalendar() {
 
                 <motion.div
                     variants={fadeUp}
+                    transition={{ duration: 0.46, ease: "easeOut" }}
                     className="overflow-hidden rounded-[28px] border border-[#e8eceb] bg-white shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
                 >
                     <div className="bg-[linear-gradient(135deg,#22b67f_0%,#169566_100%)] px-6 py-5 text-lg font-bold text-white">
@@ -772,9 +799,16 @@ function AdminCalendar() {
                                 No upcoming events yet.
                             </div>
                         ) : (
-                            upcomingEvents.map((event) => (
+                            upcomingEvents.map((event, index) => (
                                 <motion.button
-                                    whileHover={{ y: -2 }}
+                                    initial={{ opacity: 0, y: 14 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{
+                                        duration: 0.4,
+                                        delay: index * 0.05,
+                                        ease: "easeOut",
+                                    }}
+                                    whileHover={{ y: -3 }}
                                     type="button"
                                     key={event.id}
                                     onClick={() => openManageModal(event)}
@@ -810,9 +844,10 @@ function AdminCalendar() {
                 {showAddModal && (
                     <ModalShell onClose={closeAddModal}>
                         <motion.div
-                            initial={{ opacity: 0, y: 18, scale: 0.98 }}
+                            initial={{ opacity: 0, y: 20, scale: 0.97 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: 18, scale: 0.98 }}
+                            exit={{ opacity: 0, y: 20, scale: 0.97 }}
+                            transition={{ duration: 0.28, ease: "easeOut" }}
                             className="max-h-[92vh] w-full max-w-6xl overflow-y-auto rounded-[30px] bg-[#f6f1e7] shadow-2xl"
                         >
                             <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[#eadfc4] bg-[#f6f1e7] px-8 py-6">
@@ -835,7 +870,12 @@ function AdminCalendar() {
                             </div>
 
                             <div className="grid gap-8 p-8 lg:grid-cols-[0.92fr_1.25fr]">
-                                <div className="rounded-[28px] bg-gradient-to-br from-[#0b5a43] via-[#0c6048] to-[#094534] p-6 text-white shadow-[0_18px_45px_rgba(11,90,67,0.18)]">
+                                <motion.div
+                                    initial={{ opacity: 0, x: -14 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ duration: 0.42, ease: "easeOut" }}
+                                    className="rounded-[28px] bg-gradient-to-br from-[#0b5a43] via-[#0c6048] to-[#094534] p-6 text-white shadow-[0_18px_45px_rgba(11,90,67,0.18)]"
+                                >
                                     <div className="mb-5 flex items-center gap-3">
                                         <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#d4af37] text-[#0f4d3c] text-xl font-extrabold">
                                             ✦
@@ -862,13 +902,20 @@ function AdminCalendar() {
                                             "Birthdays",
                                             "Anniversaries",
                                             "Baptismal celebrations",
-                                        ].map((item) => (
-                                            <div
+                                        ].map((item, index) => (
+                                            <motion.div
                                                 key={item}
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{
+                                                    duration: 0.32,
+                                                    delay: index * 0.04,
+                                                    ease: "easeOut",
+                                                }}
                                                 className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm font-medium"
                                             >
                                                 {item}
-                                            </div>
+                                            </motion.div>
                                         ))}
                                     </div>
 
@@ -945,9 +992,14 @@ function AdminCalendar() {
                                             with excess guest computation when applicable.
                                         </p>
                                     </div>
-                                </div>
+                                </motion.div>
 
-                                <div className="rounded-[28px] border border-[#ece4d4] bg-white p-7 shadow-[0_18px_45px_rgba(0,0,0,0.06)]">
+                                <motion.div
+                                    initial={{ opacity: 0, x: 14 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ duration: 0.42, ease: "easeOut" }}
+                                    className="rounded-[28px] border border-[#ece4d4] bg-white p-7 shadow-[0_18px_45px_rgba(0,0,0,0.06)]"
+                                >
                                     <div className="mb-8 flex items-center justify-between gap-4">
                                         <div>
                                             <p className="mb-2 text-xs font-semibold uppercase tracking-[0.25em] text-[#b99117]">
@@ -1082,14 +1134,21 @@ function AdminCalendar() {
                                                     </span>
 
                                                     <div className="grid gap-3 sm:grid-cols-2">
-                                                        {addOnOptions.map((item) => {
+                                                        {addOnOptions.map((item, index) => {
                                                             const checked = form.addOns.includes(
                                                                 item.name
                                                             );
 
                                                             return (
-                                                                <label
+                                                                <motion.label
                                                                     key={item.name}
+                                                                    initial={{ opacity: 0, y: 10 }}
+                                                                    animate={{ opacity: 1, y: 0 }}
+                                                                    transition={{
+                                                                        duration: 0.3,
+                                                                        delay: index * 0.03,
+                                                                        ease: "easeOut",
+                                                                    }}
                                                                     className={`flex cursor-pointer items-center justify-between gap-3 rounded-2xl border px-4 py-3.5 transition ${checked
                                                                             ? "border-[#d4af37] bg-[#fff8e6] shadow-sm"
                                                                             : "border-gray-200 bg-white hover:border-[#d4af37]"
@@ -1114,7 +1173,7 @@ function AdminCalendar() {
                                                                     <span className="font-bold text-[#b99117]">
                                                                         {formatCurrency(item.price)}
                                                                     </span>
-                                                                </label>
+                                                                </motion.label>
                                                             );
                                                         })}
                                                     </div>
@@ -1148,23 +1207,27 @@ function AdminCalendar() {
                                         </div>
 
                                         <div className="mt-8 flex flex-col gap-4 sm:flex-row">
-                                            <button
+                                            <motion.button
+                                                whileHover={{ y: -2, scale: 1.01 }}
+                                                whileTap={{ scale: 0.98 }}
                                                 type="submit"
                                                 className="flex-1 rounded-2xl bg-[#0f4d3c] py-3.5 font-bold text-white shadow-md transition hover:bg-[#0c3f31]"
                                             >
                                                 Add Booking
-                                            </button>
+                                            </motion.button>
 
-                                            <button
+                                            <motion.button
+                                                whileHover={{ y: -2, scale: 1.01 }}
+                                                whileTap={{ scale: 0.98 }}
                                                 type="button"
                                                 onClick={closeAddModal}
                                                 className="flex-1 rounded-2xl bg-[#d4af37] py-3.5 text-center font-bold text-[#0b4a3a] shadow-sm transition hover:bg-[#c79f23]"
                                             >
                                                 Cancel
-                                            </button>
+                                            </motion.button>
                                         </div>
                                     </form>
-                                </div>
+                                </motion.div>
                             </div>
                         </motion.div>
                     </ModalShell>
@@ -1175,9 +1238,10 @@ function AdminCalendar() {
                 {showManageModal && selectedBooking && (
                     <ModalShell onClose={closeManageModal}>
                         <motion.div
-                            initial={{ opacity: 0, y: 18, scale: 0.98 }}
+                            initial={{ opacity: 0, y: 20, scale: 0.97 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: 18, scale: 0.98 }}
+                            exit={{ opacity: 0, y: 20, scale: 0.97 }}
+                            transition={{ duration: 0.28, ease: "easeOut" }}
                             className="max-h-[92vh] w-full max-w-5xl overflow-y-auto rounded-[30px] bg-white shadow-2xl"
                         >
                             <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100 bg-white px-8 py-6">
@@ -1219,76 +1283,91 @@ function AdminCalendar() {
                                             icon={<User size={18} />}
                                             label="Full Name"
                                             value={selectedBooking.fullName}
+                                            delay={0.02}
                                         />
                                         <InfoCard
                                             icon={<Phone size={18} />}
                                             label="Contact Number"
                                             value={selectedBooking.contactNumber}
+                                            delay={0.04}
                                         />
                                         <InfoCard
                                             icon={<Mail size={18} />}
                                             label="Email Address"
                                             value={selectedBooking.email}
+                                            delay={0.06}
                                         />
                                         <InfoCard
                                             icon={<PartyPopper size={18} />}
                                             label="Event Type"
                                             value={selectedBooking.eventType}
+                                            delay={0.08}
                                         />
                                         <InfoCard
                                             icon={<CalendarDays size={18} />}
                                             label="Preferred Date"
                                             value={formatDate(selectedBooking.preferredDate)}
+                                            delay={0.1}
                                         />
                                         <InfoCard
                                             icon={<Clock3 size={18} />}
                                             label="Event Time"
                                             value={selectedBooking.eventTime}
+                                            delay={0.12}
                                         />
                                         <InfoCard
                                             icon={<MapPin size={18} />}
                                             label="Venue / Location"
                                             value={selectedBooking.venue}
+                                            delay={0.14}
                                         />
                                         <InfoCard
                                             icon={<Users size={18} />}
                                             label="Number of Guests"
                                             value={selectedBooking.guests}
+                                            delay={0.16}
                                         />
                                         <InfoCard
                                             icon={<FileText size={18} />}
                                             label="Preferred Package"
                                             value={selectedBooking.packageType}
+                                            delay={0.18}
                                         />
                                         <InfoCard
                                             icon={<BadgeCheck size={18} />}
                                             label="Classic Menu"
                                             value={selectedBooking.classicMenu}
+                                            delay={0.2}
                                         />
                                         <InfoCard
                                             icon={<CircleDollarSign size={18} />}
                                             label="Package Price"
                                             value={formatCurrency(selectedBooking.packagePrice)}
+                                            delay={0.22}
                                         />
                                         <InfoCard
                                             icon={<CircleDollarSign size={18} />}
                                             label="Add-ons Total"
                                             value={formatCurrency(selectedBooking.addOnsTotal)}
+                                            delay={0.24}
                                         />
                                         <InfoCard
                                             icon={<CircleDollarSign size={18} />}
                                             label="Estimated Total"
                                             value={formatCurrency(selectedBooking.estimatedTotal)}
+                                            delay={0.26}
                                         />
                                         <InfoCard
                                             icon={<BadgeCheck size={18} />}
                                             label="Pricing Type"
                                             value={selectedBooking.pricingType || "—"}
+                                            delay={0.28}
                                         />
                                         <InfoCard
                                             icon={<Users size={18} />}
                                             label="Included Pax"
                                             value={selectedBooking.includedPax || "—"}
+                                            delay={0.3}
                                         />
                                         <InfoCard
                                             icon={<CircleDollarSign size={18} />}
@@ -1298,26 +1377,31 @@ function AdminCalendar() {
                                                     ? formatCurrency(selectedBooking.ratePerPax)
                                                     : "—"
                                             }
+                                            delay={0.32}
                                         />
                                         <InfoCard
                                             icon={<Users size={18} />}
                                             label="Excess Guests"
                                             value={selectedBooking.excessGuests || 0}
+                                            delay={0.34}
                                         />
                                         <InfoCard
                                             icon={<CircleDollarSign size={18} />}
                                             label="Excess Cost"
                                             value={formatCurrency(selectedBooking.excessCost)}
+                                            delay={0.36}
                                         />
                                         <InfoCard
                                             icon={<BadgeCheck size={18} />}
                                             label="Theme / Style Preference"
                                             value={selectedBooking.themePreference}
+                                            delay={0.38}
                                         />
                                         <InfoCard
                                             icon={<BadgeCheck size={18} />}
                                             label="Status"
                                             value={selectedBooking.status}
+                                            delay={0.4}
                                         />
                                     </div>
 
@@ -1367,22 +1451,26 @@ function AdminCalendar() {
                                 </div>
 
                                 <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                                    <button
+                                    <motion.button
+                                        whileHover={{ y: -2, scale: 1.01 }}
+                                        whileTap={{ scale: 0.98 }}
                                         type="button"
                                         onClick={handleDeleteBooking}
                                         className="inline-flex items-center justify-center gap-2 rounded-[16px] bg-red-600 px-7 py-4 text-base font-bold text-white transition hover:bg-red-700"
                                     >
                                         <Trash2 size={18} />
                                         Cancel / Delete Booking
-                                    </button>
+                                    </motion.button>
 
-                                    <button
+                                    <motion.button
+                                        whileHover={{ y: -2, scale: 1.01 }}
+                                        whileTap={{ scale: 0.98 }}
                                         type="button"
                                         onClick={closeManageModal}
                                         className="rounded-[16px] border border-slate-200 px-7 py-4 text-base font-semibold text-slate-700 transition hover:bg-slate-50"
                                     >
                                         Close
-                                    </button>
+                                    </motion.button>
                                 </div>
                             </div>
                         </motion.div>
@@ -1399,9 +1487,10 @@ function AdminCalendar() {
                         className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm"
                     >
                         <motion.div
-                            initial={{ opacity: 0, y: 20, scale: 0.96 }}
+                            initial={{ opacity: 0, y: 20, scale: 0.97 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: 20, scale: 0.96 }}
+                            exit={{ opacity: 0, y: 20, scale: 0.97 }}
+                            transition={{ duration: 0.28, ease: "easeOut" }}
                             className="w-full max-w-md overflow-hidden rounded-[28px] border border-gray-200 bg-white shadow-2xl"
                         >
                             <div className="bg-gradient-to-r from-[#0f5b46] to-[#22b67f] px-6 py-7 text-center text-white">
@@ -1424,12 +1513,14 @@ function AdminCalendar() {
                                     You can now manage this booking anytime in your admin panel.
                                 </p>
 
-                                <button
+                                <motion.button
+                                    whileHover={{ y: -2, scale: 1.01 }}
+                                    whileTap={{ scale: 0.98 }}
                                     onClick={() => setShowSuccessModal(false)}
                                     className="mt-6 w-full rounded-2xl bg-[#d4af37] py-3 font-bold text-[#0b4a3a] transition hover:bg-[#c79f23]"
                                 >
                                     Continue
-                                </button>
+                                </motion.button>
                             </div>
                         </motion.div>
                     </motion.div>
@@ -1441,7 +1532,10 @@ function AdminCalendar() {
 
 function ModalShell({ children, onClose }) {
     return (
-        <div
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             className="fixed inset-0 z-[90] overflow-y-auto bg-black/45 px-3 py-4 backdrop-blur-[3px] sm:px-4"
             onClick={onClose}
         >
@@ -1450,18 +1544,24 @@ function ModalShell({ children, onClose }) {
                     {children}
                 </div>
             </div>
-        </div>
+        </motion.div>
     );
 }
 
-function HeaderMiniCard({ label, value }) {
+function HeaderMiniCard({ label, value, delay = 0 }) {
     return (
-        <div className="rounded-[22px] border border-white/10 bg-white/10 p-4 backdrop-blur-md">
+        <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.42, delay, ease: "easeOut" }}
+            whileHover={{ y: -3 }}
+            className="rounded-[22px] border border-white/10 bg-white/10 p-4 backdrop-blur-md transition-shadow hover:shadow-md"
+        >
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">
                 {label}
             </p>
             <p className="mt-1 text-2xl font-extrabold text-white">{value}</p>
-        </div>
+        </motion.div>
     );
 }
 
@@ -1562,38 +1662,52 @@ function TextAreaField({
     );
 }
 
-function InfoCard({ icon, label, value }) {
+function InfoCard({ icon, label, value, delay = 0 }) {
     return (
-        <div className="rounded-[18px] border border-[#e7ecea] bg-white p-4">
+        <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.34, delay, ease: "easeOut" }}
+            whileHover={{ y: -2 }}
+            className="rounded-[18px] border border-[#e7ecea] bg-white p-4 transition-shadow hover:shadow-sm"
+        >
             <div className="flex items-center gap-2 text-sm font-semibold text-[#174c3c]">
                 <span>{icon}</span>
                 <span>{label}</span>
             </div>
             <p className="mt-2 text-base text-slate-600">{value || "—"}</p>
-        </div>
+        </motion.div>
     );
 }
 
 function LongInfoCard({ label, value }) {
     return (
-        <div className="rounded-[18px] border border-[#e7ecea] bg-white p-4">
+        <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.34, ease: "easeOut" }}
+            whileHover={{ y: -2 }}
+            className="rounded-[18px] border border-[#e7ecea] bg-white p-4 transition-shadow hover:shadow-sm"
+        >
             <div className="text-sm font-semibold text-[#174c3c]">{label}</div>
             <p className="mt-2 whitespace-pre-line text-base text-slate-600">
                 {value || "—"}
             </p>
-        </div>
+        </motion.div>
     );
 }
 
 function ActionButton({ label, onClick, className = "" }) {
     return (
-        <button
+        <motion.button
+            whileHover={{ y: -2, scale: 1.01 }}
+            whileTap={{ scale: 0.98 }}
             type="button"
             onClick={onClick}
             className={`rounded-[16px] border px-5 py-4 text-base font-semibold transition ${className}`}
         >
             {label}
-        </button>
+        </motion.button>
     );
 }
 
