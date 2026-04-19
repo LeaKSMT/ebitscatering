@@ -1,5 +1,14 @@
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+function getApiBaseUrl() {
+  const envUrl = import.meta.env.VITE_API_URL?.trim();
+
+  if (envUrl) {
+    return envUrl.replace(/\/+$/, "");
+  }
+
+  return "http://localhost:5000/api";
+}
+
+const API_BASE_URL = getApiBaseUrl();
 
 function getAuthHeaders() {
   const token = localStorage.getItem("token");
@@ -82,3 +91,5 @@ export const quotationService = {
     return handleResponse(response);
   },
 };
+
+export { API_BASE_URL };

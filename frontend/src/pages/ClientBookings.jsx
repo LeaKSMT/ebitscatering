@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -14,15 +14,6 @@ import {
     Wallet,
     ArrowRight,
 } from "lucide-react";
-
-function safeParse(key, fallback = []) {
-    try {
-        const raw = localStorage.getItem(key);
-        return raw ? JSON.parse(raw) : fallback;
-    } catch {
-        return fallback;
-    }
-}
 
 function getClientUser() {
     try {
@@ -56,10 +47,6 @@ function getCurrentClientName() {
     );
 }
 
-function getScopedKey(baseKey, email) {
-    return email ? `${baseKey}_${email}` : `${baseKey}_guest`;
-}
-
 function formatCurrency(value) {
     return `₱${Number(value || 0).toLocaleString()}`;
 }
@@ -81,30 +68,19 @@ function normalizeBooking(item) {
     if (!item || typeof item !== "object") return null;
 
     return {
-        ...item,
-        id:
-            item.id ||
-            item.bookingId ||
-            item.quotationId ||
-            `booking_${Math.random().toString(36).slice(2, 9)}`,
-        email: item.email || item.clientEmail || item.userEmail || "",
-        clientName: item.clientName || item.fullName || item.name || "",
-        date: item.date || item.preferredDate || item.eventDate || "",
-        time: item.time || item.eventTime || "",
-        venue: item.venue || item.location || "",
-        guests: Number(item.guests || item.numberOfGuests || item.pax || 0),
-        packageName: item.packageName || item.packageType || item.package || "",
-        classicMenu: item.classicMenu || "",
-        totalAmount:
-            Number(
-                item.totalAmount ||
-                item.amount ||
-                item.estimatedTotal ||
-                item.packagePrice ||
-                0
-            ) || 0,
-        status: item.status || "Pending",
-        eventType: item.eventType || "Event Booking",
+        id: item.id,
+        bookingId: item.id,
+        email: item.client_email || "",
+        clientName: item.client_name || "",
+        date: item.event_date || "",
+        time: item.event_time || "",
+        venue: item.venue || "",
+        guests: Number(item.guests || 0),
+        packageName: item.package_name || "",
+        classicMenu: item.notes || "",
+        totalAmount: Number(item.total_price || 0),
+        status: item.booking_status || "Pending",
+        eventType: item.event_type || "Event Booking",
     };
 }
 
@@ -143,64 +119,79 @@ const fadeUp = {
     show: { opacity: 1, y: 0 },
 };
 
+const API_BASE_URL =
+    (import.meta.env.VITE_API_URL || "http://localhost:5000/api").replace(
+        /\/+$/,
+        ""
+    );
+
 export default function ClientBookings() {
-    const email = getCurrentClientEmail().toLowerCase();
-    const clientName = getCurrentClientName().toLowerCase();
+    const email = getCurrentClientEmail().toLowerCase().trim();
+    const clientName = getCurrentClientName().toLowerCase().trim();
 
-    const possibleBookingSources = [
-        ...safeParse(getScopedKey("clientBookings", email), []),
-        ...safeParse("clientBookings", []),
-        ...safeParse(getScopedKey("approvedBookings", email), []),
-        ...safeParse("approvedBookings", []),
-        ...safeParse(getScopedKey("clientApprovedBookings", email), []),
-        ...safeParse("clientApprovedBookings", []),
-        ...safeParse(getScopedKey("clientQuotations", email), []),
-        ...safeParse("clientQuotations", []),
-    ];
+    const [bookings, setBookings] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
-    const bookings = useMemo(() => {
-        const unique = [];
-        const seen = new Set();
+    useEffect(() => {
+        const fetchBookings = async () => {
+            try {
+                setLoading(true);
+                setError("");
 
-        possibleBookingSources.forEach((rawItem) => {
-            const item = normalizeBooking(rawItem);
-            if (!item) return;
+                const token = localStorage.getItem("token");
 
-            const itemEmail = String(item.email || "").toLowerCase();
-            const itemName = String(item.clientName || "").toLowerCase();
-            const status = String(item.status || "").toLowerCase();
+                const res = await fetch(`${API_BASE_URL}/bookings`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                    },
+                });
 
-            const belongsToCurrentUser =
-                (email && itemEmail === email) ||
-                (clientName && itemName === clientName);
+                const data = await res.json().catch(() => []);
 
-            const allowedStatus =
-                status === "confirmed" ||
-                status === "approved" ||
-                status === "ongoing" ||
-                status === "upcoming" ||
-                status === "paid" ||
-                status === "pending" ||
-                status === "";
+                if (!res.ok) {
+                    throw new Error(data?.message || "Failed to fetch bookings.");
+                }
 
-            if (!belongsToCurrentUser) return;
-            if (!allowedStatus) return;
+                const normalized = Array.isArray(data)
+                    ? data.map(normalizeBooking).filter(Boolean)
+                    : [];
 
-            const uniqueKey = [
-                item.id || "",
-                item.date || "",
-                item.eventType || "",
-                item.venue || "",
-                item.totalAmount || "",
-            ].join("|");
+                const filtered = normalized.filter((item) => {
+                    const itemEmail = String(item.email || "").toLowerCase().trim();
+                    const itemName = String(item.clientName || "").toLowerCase().trim();
 
-            if (!seen.has(uniqueKey)) {
-                seen.add(uniqueKey);
-                unique.push(item);
+                    return (
+                        (email && itemEmail === email) ||
+                        (clientName && itemName === clientName)
+                    );
+                });
+
+                filtered.sort((a, b) => {
+                    const first = new Date(a.date).getTime();
+                    const second = new Date(b.date).getTime();
+                    return first - second;
+                });
+
+                setBookings(filtered);
+            } catch (err) {
+                console.error("Fetch bookings error:", err);
+                setError(err.message || "Failed to load bookings.");
+            } finally {
+                setLoading(false);
             }
-        });
+        };
 
-        return unique.sort((a, b) => new Date(a.date) - new Date(b.date));
+        if (!email && !clientName) {
+            setBookings([]);
+            setLoading(false);
+            setError("No client session found.");
+            return;
+        }
+
+        fetchBookings();
     }, [email, clientName]);
 
     const summary = useMemo(() => {
@@ -259,7 +250,10 @@ export default function ClientBookings() {
                         >
                             <span className="absolute inset-0 bg-white/20 opacity-0 transition group-hover:opacity-100" />
                             <span className="relative">New Booking Request</span>
-                            <ArrowRight size={16} className="relative transition group-hover:translate-x-1" />
+                            <ArrowRight
+                                size={16}
+                                className="relative transition group-hover:translate-x-1"
+                            />
                         </Link>
                     </div>
                 </div>
@@ -295,7 +289,26 @@ export default function ClientBookings() {
                 </div>
             </motion.div>
 
-            {bookings.length === 0 ? (
+            {loading ? (
+                <motion.div
+                    variants={fadeUp}
+                    className="rounded-[32px] border border-[#dce7e2] bg-white px-6 py-14 text-center shadow-sm"
+                >
+                    <h2 className="text-2xl font-extrabold text-[#0d5c46]">
+                        Loading bookings...
+                    </h2>
+                </motion.div>
+            ) : error ? (
+                <motion.div
+                    variants={fadeUp}
+                    className="rounded-[32px] border border-red-200 bg-white px-6 py-14 text-center shadow-sm"
+                >
+                    <h2 className="text-2xl font-extrabold text-red-600">
+                        Failed to load bookings
+                    </h2>
+                    <p className="mt-3 text-slate-500">{error}</p>
+                </motion.div>
+            ) : bookings.length === 0 ? (
                 <motion.div
                     variants={fadeUp}
                     className="rounded-[32px] border border-[#dce7e2] bg-white px-6 py-14 text-center shadow-sm"
@@ -308,8 +321,8 @@ export default function ClientBookings() {
                         No bookings yet
                     </h2>
                     <p className="mx-auto mt-3 max-w-xl text-slate-500">
-                        You do not have any booking records yet. Start by submitting a
-                        quotation request for your event.
+                        You do not have any booking records yet. Your booking will appear
+                        here once your quotation is approved or confirmed by the admin.
                     </p>
 
                     <Link

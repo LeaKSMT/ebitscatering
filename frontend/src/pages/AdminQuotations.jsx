@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     CheckCircle2,
@@ -14,15 +14,8 @@ import {
     ClipboardList,
     PartyPopper,
 } from "lucide-react";
-
-function safeParse(key, fallback = []) {
-    try {
-        const raw = localStorage.getItem(key);
-        return raw ? JSON.parse(raw) : fallback;
-    } catch {
-        return fallback;
-    }
-}
+import { quotationService } from "../services/quotationService";
+import { bookingService } from "../services/bookingService";
 
 function formatCurrency(value) {
     return `₱${Number(value || 0).toLocaleString()}`;
@@ -41,33 +34,8 @@ function formatDate(dateStr) {
     });
 }
 
-function getAllScopedQuotations() {
-    const keys = Object.keys(localStorage).filter((key) =>
-        key.startsWith("clientQuotations_")
-    );
-
-    let all = [];
-
-    keys.forEach((key) => {
-        const items = safeParse(key, []);
-        if (Array.isArray(items)) {
-            const normalizedItems = items.map((item) => ({
-                ...item,
-                __storageKey: key,
-            }));
-            all = [...all, ...normalizedItems];
-        }
-    });
-
-    return all.sort((a, b) => {
-        const aTime = new Date(a.createdAt || 0).getTime();
-        const bTime = new Date(b.createdAt || 0).getTime();
-        return bTime - aTime;
-    });
-}
-
 function getStatusClasses(status) {
-    const normalized = (status || "").toLowerCase();
+    const normalized = String(status || "").toLowerCase();
 
     if (normalized === "approved" || normalized === "confirmed") {
         return "bg-emerald-50 text-emerald-700 border border-emerald-200";
@@ -82,6 +50,49 @@ function getStatusClasses(status) {
     }
 
     return "bg-[#fff8e6] text-[#b99117] border border-[#f1d98a]";
+}
+
+function normalizeQuotation(item) {
+    if (!item || typeof item !== "object") return null;
+
+    return {
+        id: item.id,
+        quotationId: item.quotation_id || item.quotationId || "",
+        fullName: item.full_name || item.fullName || item.owner_name || item.ownerName || "",
+        ownerName: item.owner_name || item.ownerName || item.full_name || item.fullName || "",
+        ownerEmail: item.owner_email || item.ownerEmail || item.email || "",
+        email: item.email || item.owner_email || item.ownerEmail || "",
+        contactNumber: item.contact_number || item.contactNumber || "",
+        eventType: item.event_type || item.eventType || "",
+        preferredDate: item.preferred_date || item.preferredDate || "",
+        eventTime: item.event_time || item.eventTime || "",
+        venue: item.venue || "",
+        guests: Number(item.guests || 0),
+        packageType: item.package_type || item.packageType || "",
+        classicMenu: item.classic_menu || item.classicMenu || "",
+        addOns: Array.isArray(item.add_ons)
+            ? item.add_ons
+            : Array.isArray(item.addOns)
+                ? item.addOns
+                : [],
+        themePreference: item.theme_preference || item.themePreference || "",
+        specialRequests: item.special_requests || item.specialRequests || "",
+        packagePrice: Number(item.package_price || item.packagePrice || 0),
+        addOnsTotal: Number(item.add_ons_total || item.addOnsTotal || 0),
+        estimatedTotal: Number(item.estimated_total || item.estimatedTotal || 0),
+        includedPax: item.included_pax || item.includedPax || null,
+        pricingType: item.pricing_type || item.pricingType || "fixed",
+        ratePerPax: item.rate_per_pax || item.ratePerPax || null,
+        excessGuests: Number(item.excess_guests || item.excessGuests || 0),
+        excessCost: Number(item.excess_cost || item.excessCost || 0),
+        packageInclusions: Array.isArray(item.package_inclusions)
+            ? item.package_inclusions
+            : Array.isArray(item.packageInclusions)
+                ? item.packageInclusions
+                : [],
+        status: item.status || "Pending",
+        createdAt: item.created_at || item.createdAt || "",
+    };
 }
 
 const containerVariants = {
@@ -132,16 +143,14 @@ const cardReveal = {
 function AdminQuotations() {
     const [refreshKey, setRefreshKey] = useState(0);
     const [expandedId, setExpandedId] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [quotations, setQuotations] = useState([]);
     const [popup, setPopup] = useState({
         open: false,
         type: "success",
         title: "",
         message: "",
     });
-
-    const quotations = useMemo(() => {
-        return getAllScopedQuotations();
-    }, [refreshKey]);
 
     const refresh = () => setRefreshKey((prev) => prev + 1);
 
@@ -163,142 +172,104 @@ function AdminQuotations() {
         });
     };
 
-    const handleApprove = (quotation) => {
-        const ownerEmail =
-            (quotation.ownerEmail || quotation.email || "").trim().toLowerCase() ||
-            "guest@local";
+    useEffect(() => {
+        const fetchQuotations = async () => {
+            try {
+                setLoading(true);
+                const data = await quotationService.getQuotations();
+                const normalized = Array.isArray(data)
+                    ? data.map(normalizeQuotation).filter(Boolean)
+                    : [];
 
-        const quotationStorageKey =
-            quotation.__storageKey || `clientQuotations_${ownerEmail}`;
-        const bookingStorageKey = `clientBookings_${ownerEmail}`;
+                normalized.sort((a, b) => {
+                    const aTime = new Date(a.createdAt || 0).getTime();
+                    const bTime = new Date(b.createdAt || 0).getTime();
+                    return bTime - aTime;
+                });
 
-        const quotationItems = safeParse(quotationStorageKey, []);
-        const updatedQuotations = quotationItems.map((item) => {
-            if (item.id !== quotation.id) return item;
+                setQuotations(normalized);
+            } catch (error) {
+                console.error("Failed to fetch quotations:", error);
+                openPopup(
+                    "error",
+                    "Load Failed",
+                    error.message || "Failed to load quotations from the server."
+                );
+            } finally {
+                setLoading(false);
+            }
+        };
 
-            return {
-                ...item,
-                status: "Approved",
-                approvedAt: new Date().toLocaleString(),
-            };
-        });
+        fetchQuotations();
+    }, [refreshKey]);
 
-        localStorage.setItem(
-            quotationStorageKey,
-            JSON.stringify(updatedQuotations)
-        );
+    const pendingCount = useMemo(() => {
+        return quotations.filter(
+            (item) => String(item.status || "Pending").toLowerCase() === "pending"
+        ).length;
+    }, [quotations]);
 
-        const existingBookings = safeParse(bookingStorageKey, []);
-        const alreadyExists = existingBookings.some(
-            (booking) => booking.sourceQuotationId === quotation.id
-        );
+    const approvedCount = useMemo(() => {
+        return quotations.filter(
+            (item) => String(item.status || "").toLowerCase() === "approved"
+        ).length;
+    }, [quotations]);
 
-        if (!alreadyExists) {
-            const nextNumber = existingBookings.length + 1;
-            const bookingId = `B${String(nextNumber).padStart(2, "0")}`;
+    const handleApprove = async (quotation) => {
+        try {
+            await quotationService.updateQuotationStatus(quotation.id, "Approved");
 
-            const bookingRecord = {
-                id: `booking_${Date.now()}`,
-                bookingId,
-                sourceQuotationId: quotation.id,
-                quotationId: quotation.quotationId || null,
-
-                ownerEmail,
-                ownerName: quotation.fullName || quotation.ownerName || "Client",
-
-                fullName: quotation.fullName || quotation.ownerName || "Client",
-                contactNumber: quotation.contactNumber || "",
-                email: ownerEmail,
-
-                eventType: quotation.eventType || "",
-                preferredDate: quotation.preferredDate || "",
-                eventDate: quotation.preferredDate || "",
-                eventTime: quotation.eventTime || "",
+            await bookingService.createBooking({
+                client_name: quotation.fullName || quotation.ownerName || "Client",
+                client_email: (quotation.email || quotation.ownerEmail || "").trim().toLowerCase(),
+                contact_number: quotation.contactNumber || "",
+                event_type: quotation.eventType || "",
+                package_name: quotation.packageType || "",
+                event_date: quotation.preferredDate || "",
+                event_time: quotation.eventTime || "",
                 venue: quotation.venue || "",
-
                 guests: Number(quotation.guests || 0),
-                guestCount: Number(quotation.guests || 0),
+                total_price: Number(quotation.estimatedTotal || 0),
+                payment_status: "pending",
+                booking_status: "approved",
+                notes: quotation.specialRequests || quotation.classicMenu || "",
+            });
 
-                packageType: quotation.packageType || "",
-                classicMenu: quotation.classicMenu || "",
-                addOns: Array.isArray(quotation.addOns) ? quotation.addOns : [],
-                themePreference: quotation.themePreference || "",
-                specialRequests: quotation.specialRequests || "",
-
-                packagePrice: Number(quotation.packagePrice || 0),
-                addOnsTotal: Number(quotation.addOnsTotal || 0),
-                estimatedTotal: Number(quotation.estimatedTotal || 0),
-                totalAmount: Number(quotation.estimatedTotal || 0),
-
-                includedPax: quotation.includedPax || null,
-                pricingType: quotation.pricingType || "fixed",
-                ratePerPax: quotation.ratePerPax || null,
-                excessGuests: Number(quotation.excessGuests || 0),
-                excessCost: Number(quotation.excessCost || 0),
-
-                packageInclusions: Array.isArray(quotation.packageInclusions)
-                    ? quotation.packageInclusions
-                    : [],
-
-                assignedStaff: [],
-                status: "Confirmed",
-                source: "approved-quotation",
-                createdAt: new Date().toLocaleString(),
-            };
-
-            localStorage.setItem(
-                bookingStorageKey,
-                JSON.stringify([bookingRecord, ...existingBookings])
+            refresh();
+            openPopup(
+                "success",
+                "Quotation Approved",
+                "The quotation was approved successfully and the booking record was created automatically."
+            );
+        } catch (error) {
+            console.error("Approve quotation error:", error);
+            openPopup(
+                "error",
+                "Approval Failed",
+                error.message || "The quotation could not be approved."
             );
         }
-
-        refresh();
-        openPopup(
-            "success",
-            "Quotation Approved",
-            "The quotation was approved successfully and the booking record was created automatically."
-        );
     };
 
-    const handleReject = (quotation) => {
-        const ownerEmail =
-            (quotation.ownerEmail || quotation.email || "").trim().toLowerCase() ||
-            "guest@local";
+    const handleReject = async (quotation) => {
+        try {
+            await quotationService.updateQuotationStatus(quotation.id, "Rejected");
 
-        const quotationStorageKey =
-            quotation.__storageKey || `clientQuotations_${ownerEmail}`;
-
-        const quotationItems = safeParse(quotationStorageKey, []);
-        const updatedQuotations = quotationItems.map((item) => {
-            if (item.id !== quotation.id) return item;
-
-            return {
-                ...item,
-                status: "Rejected",
-                rejectedAt: new Date().toLocaleString(),
-            };
-        });
-
-        localStorage.setItem(
-            quotationStorageKey,
-            JSON.stringify(updatedQuotations)
-        );
-
-        refresh();
-        openPopup(
-            "error",
-            "Quotation Rejected",
-            "The quotation request was rejected successfully. No booking record was created."
-        );
+            refresh();
+            openPopup(
+                "error",
+                "Quotation Rejected",
+                "The quotation request was rejected successfully. No booking record was created."
+            );
+        } catch (error) {
+            console.error("Reject quotation error:", error);
+            openPopup(
+                "error",
+                "Reject Failed",
+                error.message || "The quotation could not be rejected."
+            );
+        }
     };
-
-    const pendingCount = quotations.filter(
-        (item) => (item.status || "Pending").toLowerCase() === "pending"
-    ).length;
-
-    const approvedCount = quotations.filter(
-        (item) => (item.status || "").toLowerCase() === "approved"
-    ).length;
 
     return (
         <motion.div
@@ -361,7 +332,19 @@ function AdminQuotations() {
                 </div>
             </motion.section>
 
-            {quotations.length === 0 ? (
+            {loading ? (
+                <motion.div
+                    variants={fadeUp}
+                    className="rounded-[28px] border border-[#dce7e2] bg-white p-10 text-center shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
+                >
+                    <h2 className="text-2xl font-extrabold text-[#0f4d3c]">
+                        Loading quotations...
+                    </h2>
+                    <p className="mt-3 text-sm text-slate-500">
+                        Please wait while the records are being loaded.
+                    </p>
+                </motion.div>
+            ) : quotations.length === 0 ? (
                 <motion.div
                     variants={fadeUp}
                     className="rounded-[28px] border border-[#dce7e2] bg-white p-10 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"

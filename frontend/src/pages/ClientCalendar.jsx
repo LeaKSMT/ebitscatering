@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
     CalendarDays,
@@ -9,15 +9,7 @@ import {
     Clock3,
     Sparkles,
 } from "lucide-react";
-
-function safeParse(key, fallback = []) {
-    try {
-        const raw = localStorage.getItem(key);
-        return raw ? JSON.parse(raw) : fallback;
-    } catch {
-        return fallback;
-    }
-}
+import { bookingService } from "../services/bookingService";
 
 function getClientUser() {
     try {
@@ -49,10 +41,6 @@ function getCurrentClientName() {
         user?.name ||
         ""
     );
-}
-
-function getScopedKey(baseKey, email) {
-    return email ? `${baseKey}_${email}` : `${baseKey}_guest`;
 }
 
 function formatCurrency(value) {
@@ -95,29 +83,25 @@ function normalizeBooking(item) {
     if (!item || typeof item !== "object") return null;
 
     return {
-        ...item,
-        id:
-            item.id ||
-            item.bookingId ||
-            item.quotationId ||
-            `booking_${Math.random().toString(36).slice(2, 9)}`,
-        email: item.email || item.clientEmail || item.userEmail || "",
-        clientName: item.clientName || item.fullName || item.name || "",
-        date: item.date || item.preferredDate || item.eventDate || "",
-        time: item.time || item.eventTime || "",
+        id: item.id || `booking_${Math.random().toString(36).slice(2, 9)}`,
+        email: item.client_email || item.email || item.clientEmail || "",
+        clientName: item.client_name || item.clientName || item.fullName || item.name || "",
+        date: item.event_date || item.date || item.preferredDate || item.eventDate || "",
+        time: item.event_time || item.time || item.eventTime || "",
         venue: item.venue || item.location || "",
         guests: Number(item.guests || item.pax || 0),
-        packageName: item.packageName || item.packageType || item.package || "",
-        classicMenu: item.classicMenu || "",
+        packageName: item.package_name || item.packageName || item.packageType || item.package || "",
+        classicMenu: item.classic_menu || item.classicMenu || item.notes || "",
         totalAmount:
             Number(
+                item.total_price ||
                 item.totalAmount ||
                 item.estimatedTotal ||
                 item.packagePrice ||
                 0
             ) || 0,
-        status: item.status || "Booked",
-        eventType: item.eventType || "Event Booking",
+        status: item.booking_status || item.status || "Booked",
+        eventType: item.event_type || item.eventType || "Event Booking",
     };
 }
 
@@ -127,70 +111,71 @@ const fadeUp = {
 };
 
 export default function ClientCalendar() {
-    const email = getCurrentClientEmail().toLowerCase();
-    const clientName = getCurrentClientName().toLowerCase();
+    const email = getCurrentClientEmail().toLowerCase().trim();
+    const clientName = getCurrentClientName().toLowerCase().trim();
 
-    const possibleBookingSources = [
-        ...safeParse(getScopedKey("clientBookings", email), []),
-        ...safeParse("clientBookings", []),
-        ...safeParse(getScopedKey("approvedBookings", email), []),
-        ...safeParse("approvedBookings", []),
-        ...safeParse(getScopedKey("clientApprovedBookings", email), []),
-        ...safeParse("clientApprovedBookings", []),
-        ...safeParse(getScopedKey("clientQuotations", email), []),
-        ...safeParse("clientQuotations", []),
-    ];
-
-    const bookings = useMemo(() => {
-        const unique = [];
-        const seen = new Set();
-
-        possibleBookingSources.forEach((rawItem) => {
-            const item = normalizeBooking(rawItem);
-            if (!item) return;
-
-            const itemEmail = String(item.email || "").toLowerCase();
-            const itemName = String(item.clientName || "").toLowerCase();
-            const status = String(item.status || "").toLowerCase();
-
-            const belongsToCurrentUser =
-                (email && itemEmail === email) ||
-                (clientName && itemName === clientName);
-
-            const allowedStatus =
-                status === "confirmed" ||
-                status === "approved" ||
-                status === "ongoing" ||
-                status === "upcoming" ||
-                status === "paid" ||
-                status === "pending" ||
-                status === "";
-
-            if (!belongsToCurrentUser) return;
-            if (!allowedStatus) return;
-
-            const uniqueKey = [
-                item.id || "",
-                item.date || "",
-                item.eventType || "",
-                item.venue || "",
-                item.totalAmount || "",
-            ].join("|");
-
-            if (!seen.has(uniqueKey)) {
-                seen.add(uniqueKey);
-                unique.push(item);
-            }
-        });
-
-        return unique.sort((a, b) => new Date(a.date) - new Date(b.date));
-    }, [email, clientName]);
+    const [bookings, setBookings] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
     const today = new Date();
     const [currentDate, setCurrentDate] = useState(
         new Date(today.getFullYear(), today.getMonth(), 1)
     );
     const [selectedDate, setSelectedDate] = useState(null);
+
+    useEffect(() => {
+        const fetchBookings = async () => {
+            try {
+                setLoading(true);
+                setError("");
+
+                const response = await bookingService.getAllBookings();
+                const allBookings = Array.isArray(response)
+                    ? response
+                    : Array.isArray(response?.bookings)
+                        ? response.bookings
+                        : [];
+
+                const normalized = allBookings
+                    .map(normalizeBooking)
+                    .filter(Boolean)
+                    .filter((item) => {
+                        const itemEmail = String(item.email || "").toLowerCase().trim();
+                        const itemName = String(item.clientName || "")
+                            .toLowerCase()
+                            .trim();
+                        const status = String(item.status || "").toLowerCase();
+
+                        const belongsToCurrentUser =
+                            (email && itemEmail === email) ||
+                            (clientName && itemName === clientName);
+
+                        const allowedStatus =
+                            status === "confirmed" ||
+                            status === "approved" ||
+                            status === "ongoing" ||
+                            status === "upcoming" ||
+                            status === "paid" ||
+                            status === "pending" ||
+                            status === "";
+
+                        return belongsToCurrentUser && allowedStatus;
+                    })
+                    .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+                setBookings(normalized);
+            } catch (err) {
+                console.error("Fetch client calendar bookings error:", err);
+                setError(err.message || "Failed to load calendar bookings.");
+                setBookings([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchBookings();
+    }, [email, clientName]);
 
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -297,7 +282,7 @@ export default function ClientCalendar() {
                                 Upcoming Events
                             </p>
                             <p className="mt-2 text-3xl font-extrabold text-white">
-                                {upcomingBookings.length}
+                                {loading ? "..." : upcomingBookings.length}
                             </p>
                             <p className="mt-1 text-sm text-white/75">
                                 Active records found
@@ -306,6 +291,18 @@ export default function ClientCalendar() {
                     </div>
                 </div>
             </motion.div>
+
+            {error ? (
+                <motion.div
+                    variants={fadeUp}
+                    className="rounded-[28px] border border-red-200 bg-white p-6 shadow-[0_12px_30px_rgba(14,61,47,0.06)]"
+                >
+                    <h3 className="text-xl font-extrabold text-red-600">
+                        Failed to load calendar
+                    </h3>
+                    <p className="mt-2 text-sm text-slate-600">{error}</p>
+                </motion.div>
+            ) : null}
 
             <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.7fr_1fr]">
                 <motion.div
@@ -339,45 +336,51 @@ export default function ClientCalendar() {
                             ))}
                         </div>
 
-                        <div className="grid grid-cols-7 gap-2 md:gap-3">
-                            {calendarDays.map((date, index) => {
-                                if (!date) {
+                        {loading ? (
+                            <div className="rounded-2xl border border-dashed border-gray-300 px-4 py-10 text-center text-gray-500">
+                                Loading calendar bookings...
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-7 gap-2 md:gap-3">
+                                {calendarDays.map((date, index) => {
+                                    if (!date) {
+                                        return (
+                                            <div
+                                                key={index}
+                                                className="h-16 rounded-2xl bg-transparent sm:h-20 md:h-24"
+                                            />
+                                        );
+                                    }
+
+                                    const booked = isBooked(date);
+                                    const todayMatch = isToday(date);
+                                    const selected =
+                                        selectedDate &&
+                                        toDateKey(date) === toDateKey(selectedDate);
+
                                     return (
-                                        <div
+                                        <button
                                             key={index}
-                                            className="h-16 rounded-2xl bg-transparent sm:h-20 md:h-24"
-                                        />
+                                            onClick={() => setSelectedDate(date)}
+                                            className={`relative h-16 rounded-2xl border text-sm font-bold transition sm:h-20 md:h-24 md:text-lg ${selected
+                                                    ? "border-[#0d5c46] ring-2 ring-[#0d5c46] bg-[#eef9f5] text-[#0d5c46]"
+                                                    : booked
+                                                        ? "border-[#d4af37] bg-[#fff4cc] text-[#8a6b00] shadow-sm"
+                                                        : todayMatch
+                                                            ? "border-[#0d5c46] bg-[#eef9f5] text-[#0d5c46]"
+                                                            : "border-gray-100 bg-[#f6f7f9] text-[#143c2f]"
+                                                }`}
+                                        >
+                                            <span>{date.getDate()}</span>
+
+                                            {booked && !selected && (
+                                                <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-[#d4af37]" />
+                                            )}
+                                        </button>
                                     );
-                                }
-
-                                const booked = isBooked(date);
-                                const todayMatch = isToday(date);
-                                const selected =
-                                    selectedDate &&
-                                    toDateKey(date) === toDateKey(selectedDate);
-
-                                return (
-                                    <button
-                                        key={index}
-                                        onClick={() => setSelectedDate(date)}
-                                        className={`relative h-16 rounded-2xl border text-sm font-bold transition sm:h-20 md:h-24 md:text-lg ${selected
-                                                ? "border-[#0d5c46] ring-2 ring-[#0d5c46] bg-[#eef9f5] text-[#0d5c46]"
-                                                : booked
-                                                    ? "border-[#d4af37] bg-[#fff4cc] text-[#8a6b00] shadow-sm"
-                                                    : todayMatch
-                                                        ? "border-[#0d5c46] bg-[#eef9f5] text-[#0d5c46]"
-                                                        : "border-gray-100 bg-[#f6f7f9] text-[#143c2f]"
-                                            }`}
-                                    >
-                                        <span>{date.getDate()}</span>
-
-                                        {booked && !selected && (
-                                            <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-[#d4af37]" />
-                                        )}
-                                    </button>
-                                );
-                            })}
-                        </div>
+                                })}
+                            </div>
+                        )}
 
                         <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm text-gray-600 md:gap-6">
                             <div className="flex items-center gap-2">
@@ -409,7 +412,11 @@ export default function ClientCalendar() {
                         </div>
 
                         <div className="p-5">
-                            {upcomingBookings.length === 0 ? (
+                            {loading ? (
+                                <div className="rounded-2xl border border-dashed border-gray-300 px-4 py-6 text-center text-gray-500">
+                                    Loading upcoming bookings...
+                                </div>
+                            ) : upcomingBookings.length === 0 ? (
                                 <div className="rounded-2xl border border-dashed border-gray-300 px-4 py-6 text-center text-gray-500">
                                     No upcoming bookings found.
                                 </div>
@@ -545,7 +552,7 @@ export default function ClientCalendar() {
                                             </div>
 
                                             {booking.classicMenu ? (
-                                                <div className="mt-4 rounded-2xl bg-white p-4 text-sm text-slate-700 border border-[#e3ebe7]">
+                                                <div className="mt-4 rounded-2xl border border-[#e3ebe7] bg-white p-4 text-sm text-slate-700">
                                                     <p className="font-semibold text-[#0d5c46]">
                                                         Classic Menu / Notes
                                                     </p>

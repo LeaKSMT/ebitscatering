@@ -1,5 +1,20 @@
 const db = require("../config/db");
 
+function normalizeStatus(status) {
+    return String(status || "").trim().toLowerCase();
+}
+
+function shouldCreateBooking(status) {
+    const normalized = normalizeStatus(status);
+    return (
+        normalized === "approved" ||
+        normalized === "confirmed" ||
+        normalized === "paid" ||
+        normalized === "upcoming" ||
+        normalized === "ongoing"
+    );
+}
+
 exports.getQuotations = (req, res) => {
     const query = `
         SELECT *
@@ -157,26 +172,189 @@ exports.updateQuotationStatus = (req, res) => {
         return res.status(400).json({ message: "status is required" });
     }
 
-    const query = `
-        UPDATE quotations
-        SET status = ?
-        WHERE id = ?
-    `;
+    db.query(
+        "SELECT * FROM quotations WHERE id = ? LIMIT 1",
+        [id],
+        (fetchErr, quotationResults) => {
+            if (fetchErr) {
+                console.error("Fetch quotation before status update error:", fetchErr);
+                return res
+                    .status(500)
+                    .json({ message: "Failed to update quotation status" });
+            }
 
-    db.query(query, [status, id], (err, result) => {
-        if (err) {
-            console.error("Update quotation status error:", err);
-            return res.status(500).json({ message: "Failed to update quotation status" });
+            if (quotationResults.length === 0) {
+                return res.status(404).json({ message: "Quotation not found" });
+            }
+
+            const quotation = quotationResults[0];
+
+            db.query(
+                `
+                    UPDATE quotations
+                    SET status = ?
+                    WHERE id = ?
+                `,
+                [status, id],
+                (updateErr, updateResult) => {
+                    if (updateErr) {
+                        console.error("Update quotation status error:", updateErr);
+                        return res
+                            .status(500)
+                            .json({ message: "Failed to update quotation status" });
+                    }
+
+                    if (updateResult.affectedRows === 0) {
+                        return res.status(404).json({ message: "Quotation not found" });
+                    }
+
+                    if (!shouldCreateBooking(status)) {
+                        return res.status(200).json({
+                            message: "Quotation status updated successfully",
+                        });
+                    }
+
+                    const bookingLookupQuery = `
+                        SELECT id
+                        FROM bookings
+                        WHERE client_email = ?
+                          AND event_date = ?
+                          AND venue = ?
+                          AND package_name = ?
+                          AND event_type = ?
+                        LIMIT 1
+                    `;
+
+                    const bookingLookupValues = [
+                        quotation.email || quotation.owner_email || "",
+                        quotation.preferred_date,
+                        quotation.venue || "",
+                        quotation.package_type || "",
+                        quotation.event_type || "",
+                    ];
+
+                    db.query(
+                        bookingLookupQuery,
+                        bookingLookupValues,
+                        (bookingCheckErr, bookingResults) => {
+                            if (bookingCheckErr) {
+                                console.error(
+                                    "Check existing booking error:",
+                                    bookingCheckErr
+                                );
+                                return res.status(500).json({
+                                    message:
+                                        "Quotation status updated but failed to sync booking",
+                                });
+                            }
+
+                            if (bookingResults.length > 0) {
+                                return res.status(200).json({
+                                    message:
+                                        "Quotation status updated successfully",
+                                    bookingSynced: true,
+                                    bookingCreated: false,
+                                });
+                            }
+
+                            const notesParts = [];
+
+                            if (quotation.classic_menu) {
+                                notesParts.push(`Classic Menu: ${quotation.classic_menu}`);
+                            }
+
+                            try {
+                                const parsedAddOns = JSON.parse(quotation.add_ons || "[]");
+                                if (Array.isArray(parsedAddOns) && parsedAddOns.length > 0) {
+                                    notesParts.push(`Add-ons: ${parsedAddOns.join(", ")}`);
+                                }
+                            } catch {
+                                if (quotation.add_ons) {
+                                    notesParts.push(`Add-ons: ${quotation.add_ons}`);
+                                }
+                            }
+
+                            if (quotation.theme_preference) {
+                                notesParts.push(
+                                    `Theme Preference: ${quotation.theme_preference}`
+                                );
+                            }
+
+                            if (quotation.special_requests) {
+                                notesParts.push(
+                                    `Special Requests: ${quotation.special_requests}`
+                                );
+                            }
+
+                            if (quotation.quotation_id) {
+                                notesParts.push(`Quotation ID: ${quotation.quotation_id}`);
+                            }
+
+                            const bookingInsertQuery = `
+                                INSERT INTO bookings
+                                (
+                                    client_name,
+                                    client_email,
+                                    contact_number,
+                                    event_type,
+                                    package_name,
+                                    event_date,
+                                    event_time,
+                                    venue,
+                                    guests,
+                                    total_price,
+                                    payment_status,
+                                    booking_status,
+                                    notes
+                                )
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            `;
+
+                            const bookingInsertValues = [
+                                quotation.full_name || quotation.owner_name || "Client",
+                                quotation.email || quotation.owner_email || null,
+                                quotation.contact_number || null,
+                                quotation.event_type || null,
+                                quotation.package_type || null,
+                                quotation.preferred_date,
+                                quotation.event_time || null,
+                                quotation.venue,
+                                Number(quotation.guests || 0),
+                                Number(quotation.estimated_total || 0),
+                                normalizeStatus(status) === "paid" ? "paid" : "pending",
+                                status,
+                                notesParts.join(" | ") || null,
+                            ];
+
+                            db.query(
+                                bookingInsertQuery,
+                                bookingInsertValues,
+                                (bookingInsertErr) => {
+                                    if (bookingInsertErr) {
+                                        console.error(
+                                            "Create booking from quotation error:",
+                                            bookingInsertErr
+                                        );
+                                        return res.status(500).json({
+                                            message:
+                                                "Quotation status updated but failed to create booking",
+                                        });
+                                    }
+
+                                    return res.status(200).json({
+                                        message:
+                                            "Quotation status updated successfully",
+                                        bookingSynced: true,
+                                        bookingCreated: true,
+                                    });
+                                }
+                            );
+                        }
+                    );
+                }
+            );
         }
-
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ message: "Quotation not found" });
-        }
-
-        return res.status(200).json({
-            message: "Quotation status updated successfully",
-        });
-    });
+    );
 };
 
 exports.deleteQuotation = (req, res) => {
