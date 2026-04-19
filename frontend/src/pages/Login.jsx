@@ -45,7 +45,10 @@ function Login() {
         localStorage.removeItem("adminUser");
     };
 
-    const saveClientSession = ({ id = null, name, email, photo = "" }) => {
+    const saveClientSession = (
+        { id = null, name, email, photo = "" },
+        token = ""
+    ) => {
         const safeEmail = email?.trim().toLowerCase() || "";
         const finalName = name?.trim() || safeEmail.split("@")[0] || "Client";
 
@@ -65,6 +68,10 @@ function Login() {
         localStorage.setItem("currentClientName", finalName);
         localStorage.setItem("currentClientEmail", safeEmail);
         localStorage.setItem("isClientLoggedIn", "true");
+
+        if (token) {
+            localStorage.setItem("token", token);
+        }
     };
 
     const saveAdminSession = ({ id = null, name, email, photo = "" }, token = "") => {
@@ -143,12 +150,15 @@ function Login() {
                     return;
                 }
 
-                saveClientSession({
-                    id: data.user.id || null,
-                    name: data.user.name || "",
-                    email: data.user.email,
-                    photo: "",
-                });
+                saveClientSession(
+                    {
+                        id: data.user.id || null,
+                        name: data.user.name || "",
+                        email: data.user.email,
+                        photo: "",
+                    },
+                    data.token || ""
+                );
 
                 setTimeout(() => navigate(getRedirectAfterLogin("client")), 1000);
                 return;
