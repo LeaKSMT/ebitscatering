@@ -11,6 +11,9 @@ import {
     CreditCard,
     X,
     ArrowRight,
+    Pencil,
+    Trash2,
+    History,
 } from "lucide-react";
 import {
     getAllBookings,
@@ -32,10 +35,6 @@ function safeParse(key, fallback = []) {
 function normalizeNumber(value) {
     const num = Number(value || 0);
     return Number.isFinite(num) ? num : 0;
-}
-
-function normalizeStatus(status) {
-    return String(status || "").trim().toLowerCase();
 }
 
 function getBookingTotalAmount(booking) {
@@ -71,6 +70,27 @@ function getPossiblePaymentKeys(booking) {
     return [...new Set(keys)];
 }
 
+function getPaymentIdentity(payment, index = 0) {
+    return (
+        payment?.id ||
+        payment?.paymentId ||
+        payment?.referenceNumber ||
+        `${payment?.bookingId || ""}_${payment?.amount || 0}_${payment?.createdAt || index}`
+    );
+}
+
+function isSamePaymentRecord(source, target, sourceIndex = 0) {
+    return (
+        getPaymentIdentity(source, sourceIndex) === getPaymentIdentity(target) &&
+        String(
+            source?.bookingId || source?.booking_id || source?.bookingCode || ""
+        ).trim() ===
+        String(
+            target?.bookingId || target?.booking_id || target?.bookingCode || ""
+        ).trim()
+    );
+}
+
 function getPaymentsForBooking(booking) {
     const bookingId = String(booking?.bookingId || "").trim();
 
@@ -86,11 +106,7 @@ function getPaymentsForBooking(booking) {
     const dedupedMap = new Map();
 
     merged.forEach((item, index) => {
-        const uniqueKey =
-            item?.id ||
-            item?.paymentId ||
-            item?.referenceNumber ||
-            `${item?.bookingId || ""}_${item?.amount || 0}_${item?.createdAt || index}`;
+        const uniqueKey = getPaymentIdentity(item, index);
 
         if (!dedupedMap.has(uniqueKey)) {
             dedupedMap.set(uniqueKey, item);
@@ -98,12 +114,14 @@ function getPaymentsForBooking(booking) {
     });
 
     return Array.from(dedupedMap.values()).filter((payment) => {
-        return String(
-            payment?.bookingId ||
-            payment?.booking_id ||
-            payment?.bookingCode ||
-            ""
-        ).trim() === bookingId;
+        return (
+            String(
+                payment?.bookingId ||
+                payment?.booking_id ||
+                payment?.bookingCode ||
+                ""
+            ).trim() === bookingId
+        );
     });
 }
 
@@ -130,11 +148,61 @@ function getPaymentSummaryPerBooking(booking) {
     };
 }
 
+function updatePaymentRecordAcrossStorage(booking, targetPayment, updates) {
+    const keys = getPossiblePaymentKeys(booking);
+
+    keys.forEach((key) => {
+        const records = safeParse(key, []);
+        if (!Array.isArray(records)) return;
+
+        let changed = false;
+
+        const updatedRecords = records.map((item, index) => {
+            if (isSamePaymentRecord(item, targetPayment, index)) {
+                changed = true;
+                return {
+                    ...item,
+                    ...updates,
+                    amount: normalizeNumber(
+                        updates?.amount ?? item?.amount ?? item?.paymentAmount
+                    ),
+                    paymentAmount: normalizeNumber(
+                        updates?.amount ?? item?.paymentAmount ?? item?.amount
+                    ),
+                    updatedAt: new Date().toISOString(),
+                };
+            }
+            return item;
+        });
+
+        if (changed) {
+            localStorage.setItem(key, JSON.stringify(updatedRecords));
+        }
+    });
+}
+
+function deletePaymentRecordAcrossStorage(booking, targetPayment) {
+    const keys = getPossiblePaymentKeys(booking);
+
+    keys.forEach((key) => {
+        const records = safeParse(key, []);
+        if (!Array.isArray(records)) return;
+
+        const filteredRecords = records.filter((item, index) => {
+            return !isSamePaymentRecord(item, targetPayment, index);
+        });
+
+        localStorage.setItem(key, JSON.stringify(filteredRecords));
+    });
+}
+
 function AdminPaymentTracking() {
     const [refreshKey, setRefreshKey] = useState(0);
-    const [editTarget, setEditTarget] = useState(null);
+    const [modalTarget, setModalTarget] = useState(null);
     const [paymentInput, setPaymentInput] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
+    const [editingPayment, setEditingPayment] = useState(null);
+    const [editingAmount, setEditingAmount] = useState("");
 
     const bookings = useMemo(() => getAllBookings(), [refreshKey]);
 
@@ -148,7 +216,11 @@ function AdminPaymentTracking() {
                 paid: summary.paid,
                 balance: summary.balance,
                 paymentStatus: summary.paymentStatus,
-                payments: summary.payments || [],
+                payments: (summary.payments || []).sort(
+                    (a, b) =>
+                        new Date(b?.createdAt || b?.updatedAt || 0) -
+                        new Date(a?.createdAt || a?.updatedAt || 0)
+                ),
             };
         });
     }, [bookings, refreshKey]);
@@ -190,18 +262,39 @@ function AdminPaymentTracking() {
         };
     }, [paymentRows]);
 
-    const handleEditClick = (row) => {
-        setEditTarget(row);
+    const selectedRow = useMemo(() => {
+        if (!modalTarget?.bookingId) return null;
+        return (
+            paymentRows.find((item) => item.bookingId === modalTarget.bookingId) || null
+        );
+    }, [modalTarget, paymentRows]);
+
+    const currentEditableRemaining = useMemo(() => {
+        if (!selectedRow || !editingPayment) return 0;
+
+        const currentAmount = normalizeNumber(
+            editingPayment?.amount || editingPayment?.paymentAmount
+        );
+
+        return normalizeNumber(selectedRow.balance) + currentAmount;
+    }, [selectedRow, editingPayment]);
+
+    const handleOpenModal = (row) => {
+        setModalTarget(row);
         setPaymentInput("");
+        setEditingPayment(null);
+        setEditingAmount("");
     };
 
-    const closeEditModal = () => {
-        setEditTarget(null);
+    const closePaymentModal = () => {
+        setModalTarget(null);
         setPaymentInput("");
+        setEditingPayment(null);
+        setEditingAmount("");
     };
 
     const handleSavePayment = () => {
-        if (!editTarget) return;
+        if (!selectedRow) return;
 
         const amount = normalizeNumber(paymentInput);
 
@@ -210,33 +303,100 @@ function AdminPaymentTracking() {
             return;
         }
 
-        if (editTarget.balance <= 0) {
+        if (selectedRow.balance <= 0) {
             alert("This booking is already fully paid.");
             return;
         }
 
-        if (amount > editTarget.balance) {
-            alert(`Payment exceeds the remaining balance of ${formatCurrency(editTarget.balance)}.`);
+        if (amount > selectedRow.balance) {
+            alert(
+                `Payment exceeds the remaining balance of ${formatCurrency(
+                    selectedRow.balance
+                )}.`
+            );
             return;
         }
 
         const paymentRecord = {
             id: `payment_${Date.now()}`,
             paymentId: `P${Date.now()}`,
-            bookingId: editTarget.bookingId,
-            ownerEmail: editTarget.ownerEmail || editTarget.email || editTarget.clientEmail || "",
-            clientName: editTarget.fullName || "Client",
+            bookingId: selectedRow.bookingId,
+            ownerEmail:
+                selectedRow.ownerEmail ||
+                selectedRow.email ||
+                selectedRow.clientEmail ||
+                "",
+            clientName: selectedRow.fullName || "Client",
             paymentType: "Booking Payment",
             paymentMethod: "Manual Admin Entry",
             amount,
+            paymentAmount: amount,
             referenceNumber: `REF-${Date.now()}`,
             createdAt: new Date().toISOString(),
-            status: amount === editTarget.balance ? "Paid" : "Partial",
+            status: amount === selectedRow.balance ? "Paid" : "Partial",
         };
 
         savePaymentRecord(paymentRecord);
 
-        closeEditModal();
+        setPaymentInput("");
+        setRefreshKey((prev) => prev + 1);
+    };
+
+    const startEditPayment = (payment) => {
+        setEditingPayment(payment);
+        setEditingAmount(
+            String(normalizeNumber(payment?.amount || payment?.paymentAmount))
+        );
+    };
+
+    const cancelEditPayment = () => {
+        setEditingPayment(null);
+        setEditingAmount("");
+    };
+
+    const handleUpdatePayment = () => {
+        if (!selectedRow || !editingPayment) return;
+
+        const newAmount = normalizeNumber(editingAmount);
+
+        if (newAmount <= 0) {
+            alert("Enter a valid updated payment amount.");
+            return;
+        }
+
+        if (newAmount > currentEditableRemaining) {
+            alert(
+                `Updated payment exceeds the allowed amount of ${formatCurrency(
+                    currentEditableRemaining
+                )}.`
+            );
+            return;
+        }
+
+        const status =
+            newAmount === currentEditableRemaining ? "Paid" : "Partial";
+
+        updatePaymentRecordAcrossStorage(selectedRow, editingPayment, {
+            amount: newAmount,
+            paymentAmount: newAmount,
+            status,
+        });
+
+        setEditingPayment(null);
+        setEditingAmount("");
+        setRefreshKey((prev) => prev + 1);
+    };
+
+    const handleDeletePayment = (payment) => {
+        const confirmed = window.confirm(
+            "Are you sure you want to delete this payment record?"
+        );
+
+        if (!confirmed || !selectedRow) return;
+
+        deletePaymentRecordAcrossStorage(selectedRow, payment);
+        setEditingPayment(null);
+        setEditingAmount("");
         setRefreshKey((prev) => prev + 1);
     };
 
@@ -250,7 +410,8 @@ function AdminPaymentTracking() {
                 { label: "Outstanding", value: formatCurrency(totals.balance) },
                 {
                     label: "Paid Bookings",
-                    value: paymentRows.filter((item) => item.paymentStatus === "paid").length,
+                    value: paymentRows.filter((item) => item.paymentStatus === "paid")
+                        .length,
                 },
             ],
             content: `
@@ -311,8 +472,8 @@ function AdminPaymentTracking() {
                                 Payment Tracking Dashboard
                             </h1>
                             <p className="mt-3 max-w-xl text-sm leading-6 text-white/75 md:text-base">
-                                Monitor booking payments, collected revenue, and outstanding balances
-                                through a cleaner premium financial interface.
+                                Monitor booking payments, collected revenue, and outstanding
+                                balances through a cleaner premium financial interface.
                             </p>
                         </div>
 
@@ -409,7 +570,7 @@ function AdminPaymentTracking() {
                         </div>
                     ) : (
                         <div className="overflow-x-auto">
-                            <table className="w-full min-w-[1080px] text-sm">
+                            <table className="w-full min-w-[1160px] text-sm">
                                 <thead>
                                     <tr className="bg-[#fcfcfd] text-left text-[12px] uppercase tracking-[0.16em] text-gray-500">
                                         <th className="px-6 py-4 font-bold">Booking</th>
@@ -472,7 +633,9 @@ function AdminPaymentTracking() {
 
                                             <td className="px-6 py-5">
                                                 <span
-                                                    className={`font-bold ${row.balance <= 0 ? "text-emerald-600" : "text-rose-500"
+                                                    className={`font-bold ${row.balance <= 0
+                                                        ? "text-emerald-600"
+                                                        : "text-rose-500"
                                                         }`}
                                                 >
                                                     {formatCurrency(row.balance)}
@@ -492,15 +655,11 @@ function AdminPaymentTracking() {
                                             <td className="px-6 py-5 text-center">
                                                 <button
                                                     type="button"
-                                                    onClick={() => handleEditClick(row)}
-                                                    disabled={row.balance <= 0}
-                                                    className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold text-white transition ${row.balance <= 0
-                                                            ? "cursor-not-allowed bg-emerald-600/70"
-                                                            : "bg-[#0b4a3a] hover:-translate-y-0.5 hover:bg-[#09382d]"
-                                                        }`}
+                                                    onClick={() => handleOpenModal(row)}
+                                                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#0b4a3a] px-4 py-2.5 text-xs font-bold text-white transition hover:-translate-y-0.5 hover:bg-[#09382d]"
                                                 >
                                                     <CreditCard className="h-4 w-4" />
-                                                    {row.balance <= 0 ? "Fully Paid" : "Add Payment"}
+                                                    Manage Payment
                                                 </button>
                                             </td>
                                         </motion.tr>
@@ -513,7 +672,7 @@ function AdminPaymentTracking() {
             </div>
 
             <AnimatePresence>
-                {editTarget && (
+                {selectedRow && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -525,7 +684,7 @@ function AdminPaymentTracking() {
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 20, scale: 0.96 }}
                             transition={{ duration: 0.25 }}
-                            className="relative w-full max-w-lg overflow-hidden rounded-[32px] border border-white/60 bg-white shadow-[0_30px_90px_rgba(2,6,23,0.30)]"
+                            className="relative max-h-[92vh] w-full max-w-4xl overflow-hidden rounded-[32px] border border-white/60 bg-white shadow-[0_30px_90px_rgba(2,6,23,0.30)]"
                         >
                             <div className="bg-[linear-gradient(135deg,#0f4d3c,#09382d)] p-6 text-white">
                                 <div className="flex items-start justify-between gap-4">
@@ -535,16 +694,18 @@ function AdminPaymentTracking() {
                                         </div>
 
                                         <div>
-                                            <h3 className="text-2xl font-black">Update Payment</h3>
+                                            <h3 className="text-2xl font-black">
+                                                Manage Payment
+                                            </h3>
                                             <p className="mt-1 text-sm text-white/75">
-                                                Add a new payment record for this booking.
+                                                Add, edit, or remove payment records for this booking.
                                             </p>
                                         </div>
                                     </div>
 
                                     <button
                                         type="button"
-                                        onClick={closeEditModal}
+                                        onClick={closePaymentModal}
                                         className="rounded-full bg-white/10 p-2 text-white transition hover:bg-white/20"
                                     >
                                         <X className="h-5 w-5" />
@@ -552,64 +713,243 @@ function AdminPaymentTracking() {
                                 </div>
                             </div>
 
-                            <div className="space-y-5 p-6">
-                                <div className="rounded-[24px] border border-[#f4ecd2] bg-[#fffaf0] p-4">
-                                    <p className="text-sm font-bold text-[#0f4d3c]">
-                                        {editTarget.fullName}
-                                    </p>
-                                    <p className="mt-1 text-xs text-gray-500">
-                                        Booking ID: {editTarget.bookingId}
-                                    </p>
-                                    <div className="mt-4 grid grid-cols-2 gap-3">
-                                        <MiniInfo
-                                            label="Total Amount"
-                                            value={formatCurrency(editTarget.totalAmount)}
-                                        />
-                                        <MiniInfo
-                                            label="Remaining Balance"
-                                            value={formatCurrency(editTarget.balance)}
-                                        />
+                            <div className="max-h-[calc(92vh-112px)] overflow-y-auto p-6">
+                                <div className="grid gap-6 xl:grid-cols-[1.05fr_1.35fr]">
+                                    <div className="space-y-5">
+                                        <div className="rounded-[24px] border border-[#f4ecd2] bg-[#fffaf0] p-4">
+                                            <p className="text-sm font-bold text-[#0f4d3c]">
+                                                {selectedRow.fullName}
+                                            </p>
+                                            <p className="mt-1 text-xs text-gray-500">
+                                                Booking ID: {selectedRow.bookingId}
+                                            </p>
+
+                                            <div className="mt-4 grid grid-cols-2 gap-3">
+                                                <MiniInfo
+                                                    label="Total Amount"
+                                                    value={formatCurrency(selectedRow.totalAmount)}
+                                                />
+                                                <MiniInfo
+                                                    label="Current Paid"
+                                                    value={formatCurrency(selectedRow.paid)}
+                                                />
+                                                <MiniInfo
+                                                    label="Balance"
+                                                    value={formatCurrency(selectedRow.balance)}
+                                                />
+                                                <MiniInfo
+                                                    label="Status"
+                                                    value={selectedRow.paymentStatus}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="rounded-[24px] border border-gray-100 bg-white p-5 shadow-sm">
+                                            <div className="mb-4 flex items-center gap-2">
+                                                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#ecfdf5]">
+                                                    <ArrowRight className="h-5 w-5 text-[#0f766e]" />
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-extrabold text-[#0f4d3c]">
+                                                        Add New Payment
+                                                    </h4>
+                                                    <p className="text-xs text-gray-500">
+                                                        Record an additional payment for this booking.
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label className="mb-2 block text-sm font-bold text-[#0f4d3c]">
+                                                    Amount Paid
+                                                </label>
+                                                <div className="relative">
+                                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400">
+                                                        ₱
+                                                    </span>
+                                                    <input
+                                                        type="number"
+                                                        min="1"
+                                                        max={selectedRow.balance}
+                                                        placeholder={
+                                                            selectedRow.balance <= 0
+                                                                ? "Booking already fully paid"
+                                                                : "Enter payment amount"
+                                                        }
+                                                        value={paymentInput}
+                                                        onChange={(e) => setPaymentInput(e.target.value)}
+                                                        disabled={selectedRow.balance <= 0}
+                                                        className="w-full rounded-2xl border border-gray-200 bg-[#f8fafc] py-3 pl-10 pr-4 outline-none transition focus:border-[#d4af37] focus:bg-white disabled:cursor-not-allowed disabled:bg-gray-100"
+                                                    />
+                                                </div>
+                                                <p className="mt-2 text-xs text-gray-500">
+                                                    Maximum allowed payment:{" "}
+                                                    {formatCurrency(selectedRow.balance)}
+                                                </p>
+                                            </div>
+
+                                            <button
+                                                type="button"
+                                                onClick={handleSavePayment}
+                                                disabled={selectedRow.balance <= 0}
+                                                className={`mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-bold text-white transition ${selectedRow.balance <= 0
+                                                    ? "cursor-not-allowed bg-emerald-600/70"
+                                                    : "bg-[#0b4a3a] hover:-translate-y-0.5 hover:bg-[#09382d]"
+                                                    }`}
+                                            >
+                                                <CreditCard className="h-4 w-4" />
+                                                {selectedRow.balance <= 0
+                                                    ? "Fully Paid"
+                                                    : "Save Payment"}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-5">
+                                        <div className="rounded-[24px] border border-gray-100 bg-white p-5 shadow-sm">
+                                            <div className="mb-4 flex items-center gap-2">
+                                                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#eff6ff]">
+                                                    <History className="h-5 w-5 text-[#2563eb]" />
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-extrabold text-[#0f4d3c]">
+                                                        Payment History
+                                                    </h4>
+                                                    <p className="text-xs text-gray-500">
+                                                        Edit or delete recorded payments when deductions are wrong.
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            {selectedRow.payments.length === 0 ? (
+                                                <div className="rounded-2xl border border-dashed border-gray-200 bg-[#fafafa] px-4 py-8 text-center text-sm text-gray-500">
+                                                    No payment records yet for this booking.
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-3">
+                                                    {selectedRow.payments.map((payment, index) => {
+                                                        const isEditing =
+                                                            editingPayment &&
+                                                            isSamePaymentRecord(
+                                                                payment,
+                                                                editingPayment,
+                                                                index
+                                                            );
+
+                                                        const amountValue = normalizeNumber(
+                                                            payment?.amount || payment?.paymentAmount
+                                                        );
+
+                                                        return (
+                                                            <div
+                                                                key={getPaymentIdentity(payment, index)}
+                                                                className="rounded-[22px] border border-gray-100 bg-[#fcfcfd] p-4"
+                                                            >
+                                                                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                                                                    <div className="min-w-0">
+                                                                        <p className="text-sm font-extrabold text-[#0f4d3c]">
+                                                                            {formatCurrency(amountValue)}
+                                                                        </p>
+                                                                        <p className="mt-1 text-xs text-gray-500">
+                                                                            {payment?.referenceNumber ||
+                                                                                payment?.paymentId ||
+                                                                                "Manual payment record"}
+                                                                        </p>
+                                                                        <p className="mt-1 text-xs text-gray-400">
+                                                                            {formatDate(
+                                                                                payment?.createdAt ||
+                                                                                payment?.updatedAt
+                                                                            )}
+                                                                        </p>
+                                                                    </div>
+
+                                                                    {!isEditing ? (
+                                                                        <div className="flex flex-wrap items-center gap-2">
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() =>
+                                                                                    startEditPayment(payment)
+                                                                                }
+                                                                                className="inline-flex items-center gap-2 rounded-xl border border-[#d4af37]/30 bg-[#fff8e6] px-3 py-2 text-xs font-bold text-[#8d6a0e] transition hover:bg-[#fff1c5]"
+                                                                            >
+                                                                                <Pencil className="h-3.5 w-3.5" />
+                                                                                Edit
+                                                                            </button>
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() =>
+                                                                                    handleDeletePayment(payment)
+                                                                                }
+                                                                                className="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-bold text-rose-600 transition hover:bg-rose-100"
+                                                                            >
+                                                                                <Trash2 className="h-3.5 w-3.5" />
+                                                                                Delete
+                                                                            </button>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <div className="w-full md:w-[280px]">
+                                                                            <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.14em] text-gray-500">
+                                                                                Edit payment amount
+                                                                            </label>
+                                                                            <div className="relative">
+                                                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400">
+                                                                                    ₱
+                                                                                </span>
+                                                                                <input
+                                                                                    type="number"
+                                                                                    min="1"
+                                                                                    max={currentEditableRemaining}
+                                                                                    value={editingAmount}
+                                                                                    onChange={(e) =>
+                                                                                        setEditingAmount(
+                                                                                            e.target.value
+                                                                                        )
+                                                                                    }
+                                                                                    className="w-full rounded-2xl border border-gray-200 bg-white py-3 pl-10 pr-4 text-sm outline-none transition focus:border-[#d4af37]"
+                                                                                />
+                                                                            </div>
+                                                                            <p className="mt-2 text-[11px] text-gray-500">
+                                                                                Max allowed:{" "}
+                                                                                {formatCurrency(
+                                                                                    currentEditableRemaining
+                                                                                )}
+                                                                            </p>
+
+                                                                            <div className="mt-3 flex flex-wrap gap-2">
+                                                                                <button
+                                                                                    type="button"
+                                                                                    onClick={handleUpdatePayment}
+                                                                                    className="inline-flex items-center gap-2 rounded-xl bg-[#0b4a3a] px-3 py-2 text-xs font-bold text-white transition hover:bg-[#09382d]"
+                                                                                >
+                                                                                    Save Update
+                                                                                </button>
+                                                                                <button
+                                                                                    type="button"
+                                                                                    onClick={cancelEditPayment}
+                                                                                    className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-bold text-gray-600 transition hover:bg-gray-50"
+                                                                                >
+                                                                                    Cancel
+                                                                                </button>
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div>
-                                    <label className="mb-2 block text-sm font-bold text-[#0f4d3c]">
-                                        Amount Paid
-                                    </label>
-                                    <div className="relative">
-                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400">
-                                            ₱
-                                        </span>
-                                        <input
-                                            type="number"
-                                            min="1"
-                                            max={editTarget.balance}
-                                            placeholder="Enter payment amount"
-                                            value={paymentInput}
-                                            onChange={(e) => setPaymentInput(e.target.value)}
-                                            className="w-full rounded-2xl border border-gray-200 bg-[#f8fafc] py-3 pl-10 pr-4 outline-none transition focus:border-[#d4af37] focus:bg-white"
-                                        />
-                                    </div>
-                                    <p className="mt-2 text-xs text-gray-500">
-                                        Maximum allowed payment: {formatCurrency(editTarget.balance)}
-                                    </p>
-                                </div>
-
-                                <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                                <div className="mt-6 flex justify-end">
                                     <button
                                         type="button"
-                                        onClick={closeEditModal}
+                                        onClick={closePaymentModal}
                                         className="rounded-2xl border border-gray-200 bg-white px-5 py-3 text-sm font-bold text-gray-600 transition hover:bg-gray-50"
                                     >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={handleSavePayment}
-                                        className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#0b4a3a] px-5 py-3 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-[#09382d]"
-                                    >
-                                        Save Payment
-                                        <ArrowRight className="h-4 w-4" />
+                                        Close
                                     </button>
                                 </div>
                             </div>
@@ -661,7 +1001,9 @@ function MiniInfo({ label, value }) {
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-gray-400">
                 {label}
             </p>
-            <p className="mt-2 font-extrabold text-[#0f4d3c]">{value}</p>
+            <p className="mt-2 font-extrabold capitalize text-[#0f4d3c]">
+                {value}
+            </p>
         </div>
     );
 }
