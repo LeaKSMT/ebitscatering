@@ -3,7 +3,7 @@ import { Sparkles, Palette, Tag } from "lucide-react";
 import { getAdminDecorations } from "../utils/AdminData";
 
 const fadeUp = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 18 },
     show: { opacity: 1, y: 0 },
 };
 
@@ -12,10 +12,10 @@ function DecorationCard({ item, index = 0 }) {
         <motion.div
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.35, delay: index * 0.04 }}
+            viewport={{ once: true, amount: 0.15 }}
+            transition={{ duration: 0.42, delay: index * 0.06, ease: "easeOut" }}
             whileHover={{ y: -4 }}
-            className="overflow-hidden rounded-[26px] border border-[#dce7e2] bg-white shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
+            className="overflow-hidden rounded-[26px] border border-[#dce7e2] bg-white shadow-[0_14px_36px_rgba(14,61,47,0.06)] transition-shadow hover:shadow-[0_18px_42px_rgba(14,61,47,0.10)]"
         >
             <div className="bg-gradient-to-r from-[#d4af37] to-[#1db784] px-6 py-4 text-white">
                 <h3 className="text-2xl font-extrabold">{item.name}</h3>
@@ -42,11 +42,12 @@ function AdminDecorations() {
         <motion.div
             initial="hidden"
             animate="show"
-            transition={{ staggerChildren: 0.08 }}
+            transition={{ staggerChildren: 0.1 }}
             className="space-y-6"
         >
             <motion.section
                 variants={fadeUp}
+                transition={{ duration: 0.46, ease: "easeOut" }}
                 className="overflow-hidden rounded-[30px] border border-[#dce7e2] bg-white shadow-[0_18px_50px_rgba(14,61,47,0.07)]"
             >
                 <div className="relative overflow-hidden bg-[linear-gradient(135deg,#07382d_0%,#0c4d3d_34%,#0f6b52_68%,#18a06c_100%)] px-6 py-7 text-white md:px-8">
@@ -54,6 +55,17 @@ function AdminDecorations() {
                         <div className="absolute -top-12 right-[-30px] h-40 w-40 rounded-full bg-[#d4af37]/20 blur-3xl" />
                         <div className="absolute bottom-[-30px] left-[-20px] h-28 w-28 rounded-full bg-white/10 blur-3xl" />
                     </div>
+
+                    <motion.div
+                        animate={{ x: ["-30%", "130%"] }}
+                        transition={{
+                            duration: 7,
+                            repeat: Infinity,
+                            repeatDelay: 2,
+                            ease: "linear",
+                        }}
+                        className="pointer-events-none absolute inset-y-0 left-[-35%] w-[28%] rotate-[18deg] bg-gradient-to-r from-transparent via-white/10 to-transparent"
+                    />
 
                     <div className="relative">
                         <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.22em] text-white/80">
@@ -74,6 +86,7 @@ function AdminDecorations() {
 
             <motion.section
                 variants={fadeUp}
+                transition={{ duration: 0.46, ease: "easeOut" }}
                 className="rounded-[28px] border border-[#e9dec2] bg-[#fffaf0] p-6 shadow-sm"
             >
                 <div className="flex items-start gap-4">
@@ -94,6 +107,7 @@ function AdminDecorations() {
 
             <motion.section
                 variants={fadeUp}
+                transition={{ duration: 0.46, ease: "easeOut" }}
                 className="grid gap-6 md:grid-cols-2 xl:grid-cols-3"
             >
                 {decorations.map((item, index) => (

@@ -11,13 +11,12 @@ import {
     PackageCheck,
     TriangleAlert,
     PackageX,
-    ClipboardList,
     Trash2,
     FileSpreadsheet,
 } from "lucide-react";
 
 const fadeUp = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 18 },
     show: { opacity: 1, y: 0 },
 };
 
@@ -121,11 +120,12 @@ function AdminInventory() {
         <motion.div
             initial="hidden"
             animate="show"
-            transition={{ staggerChildren: 0.08 }}
+            transition={{ staggerChildren: 0.1 }}
             className="space-y-6"
         >
             <motion.section
                 variants={fadeUp}
+                transition={{ duration: 0.46, ease: "easeOut" }}
                 className="overflow-hidden rounded-[30px] border border-[#dce7e2] bg-white shadow-[0_18px_50px_rgba(14,61,47,0.07)]"
             >
                 <div className="relative overflow-hidden bg-[linear-gradient(135deg,#07382d_0%,#0c4d3d_34%,#0f6b52_68%,#18a06c_100%)] px-6 py-7 text-white md:px-8">
@@ -133,6 +133,17 @@ function AdminInventory() {
                         <div className="absolute -top-12 right-[-30px] h-40 w-40 rounded-full bg-[#d4af37]/20 blur-3xl" />
                         <div className="absolute bottom-[-30px] left-[-20px] h-28 w-28 rounded-full bg-white/10 blur-3xl" />
                     </div>
+
+                    <motion.div
+                        animate={{ x: ["-30%", "130%"] }}
+                        transition={{
+                            duration: 7,
+                            repeat: Infinity,
+                            repeatDelay: 2,
+                            ease: "linear",
+                        }}
+                        className="pointer-events-none absolute inset-y-0 left-[-35%] w-[28%] rotate-[18deg] bg-gradient-to-r from-transparent via-white/10 to-transparent"
+                    />
 
                     <div className="relative">
                         <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.22em] text-white/80">
@@ -153,17 +164,19 @@ function AdminInventory() {
 
             <motion.section
                 variants={fadeUp}
+                transition={{ duration: 0.46, ease: "easeOut" }}
                 className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4"
             >
-                <SummaryCard icon={Boxes} title="Total Items" value={totals.totalItems} />
-                <SummaryCard icon={PackageCheck} title="In Stock" value={totals.inStock} />
-                <SummaryCard icon={TriangleAlert} title="Low Stock" value={totals.lowStock} />
-                <SummaryCard icon={PackageX} title="Out of Stock" value={totals.outOfStock} />
+                <SummaryCard icon={Boxes} title="Total Items" value={totals.totalItems} delay={0.04} />
+                <SummaryCard icon={PackageCheck} title="In Stock" value={totals.inStock} delay={0.1} />
+                <SummaryCard icon={TriangleAlert} title="Low Stock" value={totals.lowStock} delay={0.16} />
+                <SummaryCard icon={PackageX} title="Out of Stock" value={totals.outOfStock} delay={0.22} />
             </motion.section>
 
             <section className="grid grid-cols-1 gap-6 xl:grid-cols-[0.85fr_1.15fr]">
                 <motion.div
                     variants={fadeUp}
+                    transition={{ duration: 0.46, ease: "easeOut" }}
                     className="rounded-[28px] border border-[#dce7e2] bg-white p-6 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
                 >
                     <h2 className="text-2xl font-extrabold text-[#0f4d3c]">
@@ -220,17 +233,20 @@ function AdminInventory() {
                             </select>
                         </div>
 
-                        <button
+                        <motion.button
+                            whileHover={{ y: -2, scale: 1.01 }}
+                            whileTap={{ scale: 0.98 }}
                             type="submit"
                             className="w-full rounded-2xl bg-[#d4af37] px-5 py-3 font-bold text-[#0b4a3a] transition hover:bg-[#c79f23]"
                         >
                             Add Item
-                        </button>
+                        </motion.button>
                     </form>
                 </motion.div>
 
                 <motion.div
                     variants={fadeUp}
+                    transition={{ duration: 0.46, ease: "easeOut" }}
                     className="rounded-[28px] border border-[#dce7e2] bg-white p-6 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
                 >
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -243,13 +259,15 @@ function AdminInventory() {
                             </p>
                         </div>
 
-                        <button
+                        <motion.button
+                            whileHover={{ y: -2, scale: 1.01 }}
+                            whileTap={{ scale: 0.98 }}
                             onClick={handlePrintInventory}
                             className="inline-flex items-center gap-2 rounded-2xl bg-[#0b4a3a] px-5 py-3 font-bold text-white transition hover:bg-[#09382d]"
                         >
                             <FileSpreadsheet size={18} />
                             Generate PDF Report
-                        </button>
+                        </motion.button>
                     </div>
 
                     {inventory.length === 0 ? (
@@ -258,11 +276,14 @@ function AdminInventory() {
                         </div>
                     ) : (
                         <div className="mt-6 space-y-3">
-                            {inventory.map((item) => (
+                            {inventory.map((item, index) => (
                                 <motion.div
                                     key={item.id}
-                                    whileHover={{ y: -2 }}
-                                    className="rounded-2xl border border-gray-200 bg-[#f8fafc] p-4"
+                                    initial={{ opacity: 0, y: 16 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.38, delay: index * 0.04, ease: "easeOut" }}
+                                    whileHover={{ y: -3 }}
+                                    className="rounded-2xl border border-gray-200 bg-[#f8fafc] p-4 transition-shadow hover:shadow-md"
                                 >
                                     <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                                         <div>
@@ -283,13 +304,15 @@ function AdminInventory() {
                                                 {item.status}
                                             </span>
 
-                                            <button
+                                            <motion.button
+                                                whileHover={{ y: -2, scale: 1.01 }}
+                                                whileTap={{ scale: 0.98 }}
                                                 onClick={() => handleDeleteItem(item.id)}
                                                 className="inline-flex items-center gap-2 rounded-xl bg-red-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-red-600"
                                             >
                                                 <Trash2 size={14} />
                                                 Delete
-                                            </button>
+                                            </motion.button>
                                         </div>
                                     </div>
                                 </motion.div>
@@ -302,11 +325,14 @@ function AdminInventory() {
     );
 }
 
-function SummaryCard({ icon: Icon, title, value }) {
+function SummaryCard({ icon: Icon, title, value, delay = 0 }) {
     return (
         <motion.div
-            whileHover={{ y: -3 }}
-            className="rounded-[24px] border border-[#dce7e2] bg-white p-5 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.42, delay, ease: "easeOut" }}
+            whileHover={{ y: -4 }}
+            className="rounded-[24px] border border-[#dce7e2] bg-white p-5 shadow-[0_14px_36px_rgba(14,61,47,0.06)] transition-shadow hover:shadow-md"
         >
             <div className="flex items-center gap-3">
                 <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#edf8f3] text-[#0f4d3c]">
