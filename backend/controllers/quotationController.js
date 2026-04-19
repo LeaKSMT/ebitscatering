@@ -19,13 +19,16 @@ exports.getQuotations = (req, res) => {
     const query = `
         SELECT *
         FROM quotations
-        ORDER BY created_at DESC, id DESC
+        ORDER BY id DESC
     `;
 
     db.query(query, (err, results) => {
         if (err) {
             console.error("Get quotations error:", err);
-            return res.status(500).json({ message: "Failed to fetch quotations" });
+            return res.status(500).json({
+                message: "Failed to fetch quotations",
+                error: err.message,
+            });
         }
 
         return res.status(200).json(results);
@@ -250,8 +253,7 @@ exports.updateQuotationStatus = (req, res) => {
 
                             if (bookingResults.length > 0) {
                                 return res.status(200).json({
-                                    message:
-                                        "Quotation status updated successfully",
+                                    message: "Quotation status updated successfully",
                                     bookingSynced: true,
                                     bookingCreated: false,
                                 });
@@ -342,8 +344,7 @@ exports.updateQuotationStatus = (req, res) => {
                                     }
 
                                     return res.status(200).json({
-                                        message:
-                                            "Quotation status updated successfully",
+                                        message: "Quotation status updated successfully",
                                         bookingSynced: true,
                                         bookingCreated: true,
                                     });
