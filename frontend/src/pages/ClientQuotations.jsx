@@ -164,6 +164,13 @@ function ClientQuotations() {
     }, [quotations]);
 
     const handleDeleteQuotation = (id) => {
+        const target = quotations.find((q) => q.id === id);
+
+        if ((target?.status || "pending").toLowerCase() !== "pending") {
+            alert("You can only delete pending quotations.");
+            return;
+        }
+
         const confirmed = window.confirm(
             "Are you sure you want to delete this quotation?"
         );
@@ -284,6 +291,9 @@ function ClientQuotations() {
                                 quote.total ||
                                 0;
 
+                            const isPending =
+                                (quote.status || "pending").toLowerCase() === "pending";
+
                             return (
                                 <motion.div
                                     key={quote.id || `${quote.eventType}-${index}`}
@@ -318,13 +328,15 @@ function ClientQuotations() {
                                                 </p>
                                             </div>
 
-                                            <button
-                                                onClick={() => handleDeleteQuotation(quote.id)}
-                                                className="inline-flex items-center justify-center gap-2 rounded-full border border-rose-200 bg-white px-4 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-50"
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                                Delete
-                                            </button>
+                                            {isPending && (
+                                                <button
+                                                    onClick={() => handleDeleteQuotation(quote.id)}
+                                                    className="inline-flex items-center justify-center gap-2 rounded-full border border-rose-200 bg-white px-4 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-50"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                    Delete
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
 
