@@ -137,9 +137,10 @@ exports.createQuotation = (req, res) => {
                     excess_guests,
                     excess_cost,
                     package_inclusions,
-                    status
+                    status,
+                    created_at
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `;
 
             const values = [
@@ -170,6 +171,7 @@ exports.createQuotation = (req, res) => {
                 Number(excess_cost || 0),
                 JSON.stringify(Array.isArray(package_inclusions) ? package_inclusions : []),
                 status || "Pending",
+                new Date(),
             ];
 
             db.query(query, values, (err, result) => {
