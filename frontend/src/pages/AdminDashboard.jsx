@@ -24,6 +24,8 @@ import {
     CartesianGrid,
     LineChart,
     Line,
+    AreaChart,
+    Area,
 } from "recharts";
 import {
     Wallet,
@@ -38,6 +40,13 @@ import {
     CheckCircle2,
     Crown,
     TrendingUp,
+    Activity,
+    BriefcaseBusiness,
+    ReceiptText,
+    CalendarDays,
+    CircleDollarSign,
+    Target,
+    PartyPopper,
 } from "lucide-react";
 
 const CHART_COLORS = ["#0f4d3c", "#d4af37", "#22b67f", "#ef4444", "#64748b"];
@@ -160,9 +169,56 @@ function AdminDashboard() {
         ].filter((item) => item.value > 0);
     }, [bookings]);
 
+    const upcomingEventList = useMemo(() => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        return [...bookings]
+            .filter((booking) => {
+                const eventDate = new Date(booking.eventDate || "");
+                if (Number.isNaN(eventDate.getTime())) return false;
+                eventDate.setHours(0, 0, 0, 0);
+                return eventDate >= today;
+            })
+            .sort((a, b) => {
+                const aDate = new Date(a.eventDate || 0).getTime();
+                const bDate = new Date(b.eventDate || 0).getTime();
+                return aDate - bDate;
+            })
+            .slice(0, 5);
+    }, [bookings]);
+
+    const recentQuotations = useMemo(() => {
+        return [...quotations]
+            .sort((a, b) => {
+                const aTime = new Date(a.createdAt || a.dateCreated || 0).getTime();
+                const bTime = new Date(b.createdAt || b.dateCreated || 0).getTime();
+                return bTime - aTime;
+            })
+            .slice(0, 5);
+    }, [quotations]);
+
+    const collectionRate = useMemo(() => {
+        if (stats.totalRevenue <= 0) return 0;
+        return Math.min(
+            100,
+            Math.round((stats.totalCollected / stats.totalRevenue) * 100)
+        );
+    }, [stats.totalCollected, stats.totalRevenue]);
+
+    const completionRate = useMemo(() => {
+        if (stats.totalBookings <= 0) return 0;
+        return Math.round((stats.completedEvents / stats.totalBookings) * 100);
+    }, [stats.completedEvents, stats.totalBookings]);
+
+    const confirmationRate = useMemo(() => {
+        if (stats.totalBookings <= 0) return 0;
+        return Math.round((stats.confirmedBookings / stats.totalBookings) * 100);
+    }, [stats.confirmedBookings, stats.totalBookings]);
+
     return (
         <motion.div
-            data-build="premium-admin-dashboard-v3"
+            data-build="premium-admin-dashboard-v4-executive"
             initial="hidden"
             animate="show"
             transition={{ staggerChildren: 0.08 }}
@@ -170,61 +226,102 @@ function AdminDashboard() {
         >
             <motion.section
                 variants={fadeUp}
-                className="relative overflow-hidden rounded-[32px] border border-[#dbe7e2] bg-white shadow-[0_18px_50px_rgba(14,61,47,0.08)]"
+                className="relative overflow-hidden rounded-[34px] border border-[#dbe7e2] bg-white shadow-[0_22px_60px_rgba(14,61,47,0.08)]"
             >
                 <div className="pointer-events-none absolute inset-0">
-                    <div className="absolute -top-14 right-[-40px] h-44 w-44 rounded-full bg-[#d4af37]/18 blur-3xl" />
-                    <div className="absolute bottom-[-30px] left-[-20px] h-32 w-32 rounded-full bg-white/12 blur-3xl" />
+                    <div className="absolute -top-16 right-[-40px] h-52 w-52 rounded-full bg-[#d4af37]/20 blur-3xl" />
+                    <div className="absolute bottom-[-36px] left-[-24px] h-40 w-40 rounded-full bg-[#cde6dc]/35 blur-3xl" />
+                    <div className="absolute top-1/2 right-1/3 h-32 w-32 rounded-full bg-white/10 blur-3xl" />
                 </div>
 
-                <div className="relative overflow-hidden bg-[linear-gradient(135deg,#0a4637_0%,#0d5e49_52%,#118164_100%)] px-6 py-7 text-white md:px-8 md:py-8">
+                <div className="relative overflow-hidden bg-[linear-gradient(135deg,#07382d_0%,#0c4d3d_34%,#0f6b52_68%,#18a06c_100%)] px-6 py-7 text-white md:px-8 md:py-8">
                     <motion.div
-                        animate={{ y: [0, -4, 0] }}
+                        animate={{ y: [0, -5, 0] }}
                         transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
-                        className="absolute right-6 top-6 hidden h-16 w-16 rounded-full border border-white/10 bg-white/5 blur-[1px] md:block"
+                        className="absolute right-6 top-6 hidden h-20 w-20 rounded-full border border-white/10 bg-white/5 blur-[1px] md:block"
                     />
 
                     <motion.div
-                        animate={{ x: ["-35%", "135%"] }}
+                        animate={{ x: ["-30%", "130%"] }}
                         transition={{
-                            duration: 7,
+                            duration: 7.5,
                             repeat: Infinity,
                             repeatDelay: 2,
                             ease: "linear",
                         }}
-                        className="pointer-events-none absolute inset-y-0 left-[-35%] w-[28%] rotate-[18deg] bg-gradient-to-r from-transparent via-white/10 to-transparent"
+                        className="pointer-events-none absolute inset-y-0 left-[-30%] w-[28%] rotate-[18deg] bg-gradient-to-r from-transparent via-white/10 to-transparent"
                     />
 
-                    <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+                    <div className="grid gap-5 xl:grid-cols-[1.25fr_0.75fr] xl:items-end">
                         <div>
                             <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.22em] text-white/80">
                                 <Sparkles size={13} />
                                 Executive Overview
                             </div>
 
-                            <h2 className="mt-4 text-3xl font-extrabold md:text-[44px]">
+                            <h2 className="mt-4 text-3xl font-extrabold md:text-[46px] md:leading-[1.05]">
                                 Premium Admin Dashboard
                             </h2>
-                            <p className="mt-2 max-w-3xl text-sm leading-7 text-white/85 md:text-[15px]">
-                                Monitor bookings, quotations, payments, revenue, and client event
-                                activity through a premium executive interface.
+
+                            <p className="mt-3 max-w-3xl text-sm leading-7 text-white/85 md:text-[15px]">
+                                Monitor bookings, quotations, payments, revenue, and operational
+                                performance through a polished executive workspace designed for
+                                presentation, control, and visibility.
                             </p>
+
+                            <div className="mt-5 flex flex-wrap gap-3">
+                                <HeroBadge
+                                    icon={CircleDollarSign}
+                                    label={`Collected ${collectionRate}% of revenue`}
+                                />
+                                <HeroBadge
+                                    icon={Target}
+                                    label={`Confirmation rate ${confirmationRate}%`}
+                                />
+                                <HeroBadge
+                                    icon={PartyPopper}
+                                    label={`${stats.upcomingEvents} upcoming events`}
+                                />
+                            </div>
                         </div>
 
                         <motion.div
-                            whileHover={{ y: -3, scale: 1.02 }}
-                            className="rounded-[24px] border border-white/10 bg-white/10 p-5 backdrop-blur-md shadow-[0_15px_35px_rgba(0,0,0,0.12)]"
+                            whileHover={{ y: -3, scale: 1.015 }}
+                            className="rounded-[28px] border border-white/10 bg-white/10 p-5 backdrop-blur-md shadow-[0_15px_35px_rgba(0,0,0,0.12)]"
                         >
-                            <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">
-                                <Crown size={13} className="text-[#f3d57a]" />
-                                Business Health
+                            <div className="flex items-center justify-between gap-3">
+                                <div>
+                                    <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">
+                                        <Crown size={13} className="text-[#f3d57a]" />
+                                        Business Health
+                                    </div>
+                                    <p className="mt-2 text-3xl font-extrabold text-white">
+                                        Stable
+                                    </p>
+                                    <div className="mt-2 flex items-center gap-2 text-sm text-white/80">
+                                        <ArrowUpRight size={15} />
+                                        Strong visibility across active operations
+                                    </div>
+                                </div>
+
+                                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 text-[#f5d36a]">
+                                    <Activity size={26} />
+                                </div>
                             </div>
-                            <p className="mt-2 text-3xl font-extrabold text-white">
-                                Stable
-                            </p>
-                            <div className="mt-2 flex items-center gap-2 text-sm text-white/80">
-                                <ArrowUpRight size={15} />
-                                Strong visibility across active operations
+
+                            <div className="mt-5 space-y-3">
+                                <ProgressRow
+                                    label="Collection Performance"
+                                    value={collectionRate}
+                                />
+                                <ProgressRow
+                                    label="Booking Completion"
+                                    value={completionRate}
+                                />
+                                <ProgressRow
+                                    label="Booking Confirmation"
+                                    value={confirmationRate}
+                                />
                             </div>
                         </motion.div>
                     </div>
@@ -299,7 +396,7 @@ function AdminDashboard() {
                     subtitle="Revenue and expenses based on real booking totals."
                     variants={fadeUp}
                 >
-                    <div className="h-[300px]">
+                    <div className="h-[310px]">
                         {monthlyRows.length === 0 ? (
                             <EmptyChartState message="No monthly revenue data yet." />
                         ) : (
@@ -343,7 +440,7 @@ function AdminDashboard() {
                     subtitle="Booking share by event category."
                     variants={fadeUp}
                 >
-                    <div className="h-[300px]">
+                    <div className="h-[310px]">
                         {eventTypeChartData.length === 0 ? (
                             <EmptyChartState message="No event type data yet." />
                         ) : (
@@ -355,7 +452,7 @@ function AdminDashboard() {
                                         nameKey="name"
                                         cx="50%"
                                         cy="50%"
-                                        outerRadius={92}
+                                        outerRadius={95}
                                         innerRadius={52}
                                         paddingAngle={3}
                                     >
@@ -387,7 +484,7 @@ function AdminDashboard() {
                     subtitle="Number of bookings recorded per month."
                     variants={fadeUp}
                 >
-                    <div className="h-[300px]">
+                    <div className="h-[310px]">
                         {monthlyBookingTrend.length === 0 ? (
                             <EmptyChartState message="No booking trend data yet." />
                         ) : (
@@ -421,7 +518,7 @@ function AdminDashboard() {
                     subtitle="Booking payment completion distribution."
                     variants={fadeUp}
                 >
-                    <div className="h-[300px]">
+                    <div className="h-[310px]">
                         {paymentStatusChartData.length === 0 ? (
                             <EmptyChartState message="No payment status data yet." />
                         ) : (
@@ -433,8 +530,8 @@ function AdminDashboard() {
                                         nameKey="name"
                                         cx="50%"
                                         cy="50%"
-                                        outerRadius={95}
-                                        innerRadius={55}
+                                        outerRadius={98}
+                                        innerRadius={56}
                                         paddingAngle={4}
                                     >
                                         {paymentStatusChartData.map((entry, index) => (
@@ -458,6 +555,135 @@ function AdminDashboard() {
                     </div>
                 </DashboardCard>
             </div>
+
+            <div className="grid gap-5 xl:grid-cols-[1.05fr_0.95fr]">
+                <DashboardCard
+                    title="Revenue Flow Snapshot"
+                    subtitle="Visual summary of monthly revenue movement."
+                    variants={fadeUp}
+                >
+                    <div className="h-[300px]">
+                        {monthlyRows.length === 0 ? (
+                            <EmptyChartState message="No revenue flow data yet." />
+                        ) : (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={monthlyRows}>
+                                    <defs>
+                                        <linearGradient id="revFill" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#0f4d3c" stopOpacity={0.35} />
+                                            <stop offset="95%" stopColor="#0f4d3c" stopOpacity={0.03} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                                    <XAxis dataKey="label" stroke="#64748b" />
+                                    <YAxis stroke="#64748b" />
+                                    <Tooltip
+                                        formatter={(value) => formatCurrency(value)}
+                                        contentStyle={{
+                                            borderRadius: "16px",
+                                            border: "1px solid #e5e7eb",
+                                        }}
+                                    />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="revenue"
+                                        name="Revenue Flow"
+                                        stroke="#0f4d3c"
+                                        fill="url(#revFill)"
+                                        strokeWidth={3}
+                                    />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        )}
+                    </div>
+                </DashboardCard>
+
+                <DashboardCard
+                    title="Operational Snapshot"
+                    subtitle="Quick executive summary of active business metrics."
+                    variants={fadeUp}
+                >
+                    <div className="grid gap-3 sm:grid-cols-2">
+                        <InsightTile
+                            icon={BriefcaseBusiness}
+                            label="Total Operations"
+                            value={stats.totalBookings}
+                            tone="green"
+                        />
+                        <InsightTile
+                            icon={ReceiptText}
+                            label="Quotation Pipeline"
+                            value={stats.pendingQuotations}
+                            tone="gold"
+                        />
+                        <InsightTile
+                            icon={CalendarDays}
+                            label="Upcoming Schedule"
+                            value={stats.upcomingEvents}
+                            tone="green"
+                        />
+                        <InsightTile
+                            icon={CircleDollarSign}
+                            label="Collection Rate"
+                            value={`${collectionRate}%`}
+                            tone="gold"
+                        />
+                    </div>
+                </DashboardCard>
+            </div>
+
+            <div className="grid gap-5 xl:grid-cols-[1fr_1fr]">
+                <DashboardCard
+                    title="Upcoming Events"
+                    subtitle="Nearest scheduled events from the booking list."
+                    variants={fadeUp}
+                >
+                    {upcomingEventList.length === 0 ? (
+                        <EmptyListState message="No upcoming events available yet." />
+                    ) : (
+                        <div className="space-y-3">
+                            {upcomingEventList.map((booking, index) => (
+                                <ListRow
+                                    key={booking.id || booking._id || `${booking.clientName}-${index}`}
+                                    title={booking.clientName || booking.fullName || "Client Event"}
+                                    metaLeft={booking.eventType || "Event"}
+                                    metaRight={formatEventDate(booking.eventDate)}
+                                    status={booking.status || "Pending"}
+                                />
+                            ))}
+                        </div>
+                    )}
+                </DashboardCard>
+
+                <DashboardCard
+                    title="Recent Quotations"
+                    subtitle="Latest quotation activity recorded in the system."
+                    variants={fadeUp}
+                >
+                    {recentQuotations.length === 0 ? (
+                        <EmptyListState message="No quotations available yet." />
+                    ) : (
+                        <div className="space-y-3">
+                            {recentQuotations.map((quotation, index) => (
+                                <ListRow
+                                    key={quotation.id || quotation._id || `${quotation.email}-${index}`}
+                                    title={
+                                        quotation.fullName ||
+                                        quotation.clientName ||
+                                        quotation.email ||
+                                        "Quotation Request"
+                                    }
+                                    metaLeft={quotation.packageName || quotation.packageType || "Quotation"}
+                                    metaRight={formatEventDate(
+                                        quotation.createdAt || quotation.dateCreated
+                                    )}
+                                    status={quotation.status || "Pending"}
+                                />
+                            ))}
+                        </div>
+                    )}
+                </DashboardCard>
+            </div>
         </motion.div>
     );
 }
@@ -466,13 +692,43 @@ function DashboardCard({ title, subtitle, children, variants }) {
     return (
         <motion.section
             variants={variants}
-            whileHover={{ y: -5 }}
+            whileHover={{ y: -4 }}
             transition={{ duration: 0.22 }}
             className="rounded-[28px] border border-[#dce7e2] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-5 shadow-[0_12px_30px_rgba(14,61,47,0.06)]"
         >
             <SectionHeader title={title} subtitle={subtitle} />
             {children}
         </motion.section>
+    );
+}
+
+function HeroBadge({ icon: Icon, label }) {
+    return (
+        <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/10 px-4 py-2 text-xs font-semibold text-white/90 backdrop-blur-md">
+            <Icon size={14} className="text-[#f4d36d]" />
+            <span>{label}</span>
+        </div>
+    );
+}
+
+function ProgressRow({ label, value }) {
+    return (
+        <div>
+            <div className="mb-1.5 flex items-center justify-between gap-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/70">
+                    {label}
+                </p>
+                <p className="text-xs font-bold text-white">{value}%</p>
+            </div>
+            <div className="h-2.5 overflow-hidden rounded-full bg-white/10">
+                <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${value}%` }}
+                    transition={{ duration: 0.8, ease: "easeOut" }}
+                    className="h-full rounded-full bg-[linear-gradient(90deg,#f6df96_0%,#d4af37_100%)]"
+                />
+            </div>
+        </div>
     );
 }
 
@@ -486,7 +742,7 @@ function StatCard({ title, value, subtitle, icon: Icon, accent = "green" }) {
         <motion.div
             whileHover={{ y: -6, scale: 1.015 }}
             transition={{ duration: 0.22 }}
-            className="rounded-[24px] border border-[#e3ebe7] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-5 shadow-sm transition hover:shadow-[0_20px_40px_rgba(15,77,60,0.12)]"
+            className="group rounded-[24px] border border-[#e3ebe7] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-5 shadow-sm transition hover:shadow-[0_20px_40px_rgba(15,77,60,0.12)]"
         >
             <div className="flex items-start justify-between gap-4">
                 <div>
@@ -498,7 +754,7 @@ function StatCard({ title, value, subtitle, icon: Icon, accent = "green" }) {
                     >
                         {value}
                     </motion.h3>
-                    <p className="mt-2 text-xs text-slate-400">{subtitle}</p>
+                    <p className="mt-2 text-xs leading-5 text-slate-400">{subtitle}</p>
                 </div>
 
                 <motion.div
@@ -538,6 +794,64 @@ function MiniMetricCard({ title, value, icon: Icon }) {
     );
 }
 
+function InsightTile({ icon: Icon, label, value, tone = "green" }) {
+    const styles =
+        tone === "gold"
+            ? "border-[#f1e3b0] bg-[linear-gradient(180deg,#fffdf6_0%,#fff8e7_100%)] text-[#9b7510]"
+            : "border-[#dfe9e4] bg-[linear-gradient(180deg,#f8fcfa_0%,#f1f8f5_100%)] text-[#0f4d3c]";
+
+    return (
+        <motion.div
+            whileHover={{ y: -4, scale: 1.015 }}
+            className={`rounded-[22px] border p-4 shadow-sm transition ${styles}`}
+        >
+            <div className="flex items-start justify-between gap-3">
+                <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] opacity-70">
+                        {label}
+                    </p>
+                    <h4 className="mt-2 text-3xl font-extrabold">{value}</h4>
+                </div>
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/70 shadow-sm">
+                    <Icon size={20} />
+                </div>
+            </div>
+        </motion.div>
+    );
+}
+
+function ListRow({ title, metaLeft, metaRight, status }) {
+    const normalized = normalizeStatus(status);
+    const statusClass =
+        normalized === "confirmed" || normalized === "approved" || normalized === "completed"
+            ? "bg-[#ecf8f2] text-[#0f7a51]"
+            : normalized === "pending"
+                ? "bg-[#fff8e8] text-[#b07d12]"
+                : "bg-[#f1f5f9] text-[#64748b]";
+
+    return (
+        <motion.div
+            whileHover={{ y: -3 }}
+            className="flex flex-col gap-3 rounded-[22px] border border-[#e4ece8] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between"
+        >
+            <div className="min-w-0">
+                <h4 className="truncate text-base font-bold text-[#0f4d3c]">{title}</h4>
+                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-500">
+                    <span>{metaLeft}</span>
+                    <span className="hidden sm:inline">•</span>
+                    <span>{metaRight}</span>
+                </div>
+            </div>
+
+            <div
+                className={`inline-flex w-fit items-center rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-[0.16em] ${statusClass}`}
+            >
+                {String(status || "Pending")}
+            </div>
+        </motion.div>
+    );
+}
+
 function SectionHeader({ title, subtitle }) {
     return (
         <div className="mb-4">
@@ -559,6 +873,25 @@ function EmptyChartState({ message }) {
             {message}
         </div>
     );
+}
+
+function EmptyListState({ message }) {
+    return (
+        <div className="flex min-h-[220px] items-center justify-center rounded-[24px] border border-dashed border-[#dce7e2] bg-[#f8fbf9] p-6 text-center text-sm text-slate-500">
+            {message}
+        </div>
+    );
+}
+
+function formatEventDate(value) {
+    const date = new Date(value || "");
+    if (Number.isNaN(date.getTime())) return "No date available";
+
+    return date.toLocaleDateString("en-PH", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+    });
 }
 
 export default AdminDashboard;
