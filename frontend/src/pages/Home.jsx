@@ -364,11 +364,14 @@ function Home() {
                     backgroundRepeat: "no-repeat",
                 }}
             >
-                <div className="absolute inset-0 bg-[#0b4d3b]/76" />
-                <div className="absolute inset-0 bg-gradient-to-b from-[#06241d]/35 via-[#0b4d3b]/54 to-[#061f19]/92" />
-                <div className="absolute -left-16 top-10 h-72 w-72 rounded-full bg-yellow-300/10 blur-3xl" />
-                <div className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-emerald-200/10 blur-3xl" />
-                <div className="absolute right-1/3 top-16 h-40 w-40 rounded-full bg-white/5 blur-3xl" />
+                <div className="hero-luxury-overlay absolute inset-0" />
+                <div className="hero-vignette absolute inset-0" />
+                <div className="hero-mesh absolute inset-0" />
+
+                <div className="hero-glow hero-glow-1" />
+                <div className="hero-glow hero-glow-2" />
+                <div className="hero-glow hero-glow-3" />
+                <div className="hero-shine" />
 
                 <div className="relative z-10 mx-auto grid w-full max-w-7xl items-center gap-12 px-6 py-16 lg:grid-cols-[1.08fr_0.92fr] lg:px-12">
                     <div className="text-center lg:text-left">
@@ -474,7 +477,9 @@ function Home() {
                         className="hidden lg:block"
                     >
                         <div className="relative mx-auto max-w-[455px] rounded-[34px] border border-white/10 bg-white/10 p-4 shadow-[0_28px_80px_rgba(0,0,0,0.2)] backdrop-blur-xl">
-                            <div className="rounded-[28px] bg-gradient-to-br from-[#114f3d] via-[#0b4d3b] to-[#072e24] p-7 text-white">
+                            <div className="pointer-events-none absolute inset-0 rounded-[34px] bg-gradient-to-br from-white/10 via-transparent to-yellow-300/5" />
+
+                            <div className="relative rounded-[28px] bg-gradient-to-br from-[#114f3d] via-[#0b4d3b] to-[#072e24] p-7 text-white">
                                 <div className="mb-7 flex items-center justify-between">
                                     <div>
                                         <p className="text-[11px] uppercase tracking-[0.34em] text-white/60">
