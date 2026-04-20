@@ -19,28 +19,28 @@ const allowedOrigins = [
     "https://ebitscatering.vercel.app",
 ];
 
-app.use(
-    cors({
-        origin: function (origin, callback) {
-            if (!origin) {
-                return callback(null, true);
-            }
+const corsOptions = {
+    origin: function (origin, callback) {
+        if (!origin) {
+            return callback(null, true);
+        }
 
-            if (allowedOrigins.includes(origin)) {
-                return callback(null, true);
-            }
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
 
-            return callback(new Error(`Not allowed by CORS: ${origin}`));
-        },
-        credentials: true,
-        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        allowedHeaders: ["Content-Type", "Authorization"],
-    })
-);
+        return callback(null, false);
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+};
 
-// Set Cross-Origin-Opener-Policy header
+app.use(cors(corsOptions));
+app.options(/.*/, cors(corsOptions));
+
 app.use((req, res, next) => {
-    res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+    res.setHeader("Cross-Origin-Opener-Policy", "unsafe-none");
     next();
 });
 
