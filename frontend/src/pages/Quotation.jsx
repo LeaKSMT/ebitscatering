@@ -556,17 +556,17 @@ function Quotation({ mode = "public" }) {
             {
                 icon: CalendarDays,
                 label: "Event Schedule",
-                value: formData.preferredDate ? "Date selected" : "Set your target date",
+                value: formData.preferredDate ? "Date selected" : "No date set",
             },
             {
                 icon: Users,
-                label: "Guest Planning",
-                value: guestCount > 0 ? `${guestCount} guest(s)` : "Add your guest count",
+                label: "Guest Count",
+                value: guestCount > 0 ? `${guestCount} guest(s)` : "No guests added",
             },
             {
                 icon: Wallet,
-                label: "Live Estimate",
-                value: estimatedTotal > 0 ? formatCurrency(estimatedTotal) : "Auto-calculated",
+                label: "Total Estimate",
+                value: estimatedTotal > 0 ? formatCurrency(estimatedTotal) : "Not calculated",
             },
         ];
     }, [formData.preferredDate, guestCount, estimatedTotal]);
