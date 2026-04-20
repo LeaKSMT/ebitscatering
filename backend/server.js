@@ -10,36 +10,8 @@ app.set("trust proxy", true);
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 const { httpLogger } = require("./utils/logger");
 
-const allowedOrigins = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "https://ebitscatering.vercel.app",
-];
-
-if (process.env.FRONTEND_URL) {
-    allowedOrigins.push(process.env.FRONTEND_URL.trim());
-}
-
 const corsOptions = {
-    origin: (origin, callback) => {
-        if (!origin) {
-            return callback(null, true);
-        }
-
-        const normalizedOrigin = origin.trim();
-        const isAllowedExact = allowedOrigins.includes(normalizedOrigin);
-        const isVercelDomain = /^https:\/\/.*\.vercel\.app$/.test(normalizedOrigin);
-        const isLocalhost =
-            normalizedOrigin.startsWith("http://localhost:") ||
-            normalizedOrigin.startsWith("http://127.0.0.1:");
-
-        if (isAllowedExact || isVercelDomain || isLocalhost) {
-            return callback(null, true);
-        }
-
-        console.log("CORS blocked for origin:", normalizedOrigin);
-        return callback(new Error("Not allowed by CORS"));
-    },
+    origin: true,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
