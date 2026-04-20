@@ -12,29 +12,14 @@ app.set("trust proxy", 1);
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 const { httpLogger } = require("./utils/logger");
 
-// Comprehensive CORS configuration
+// Simple wildcard CORS for all origins
 app.use((req, res, next) => {
-    const allowedOrigins = [
-        "https://ebitscatering.vercel.app",
-        "https://ebitscatering-production.up.railway.app",
-        "http://localhost:5173",
-        "http://localhost:3000"
-    ];
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    res.header("Access-Control-Allow-Credentials", "true");
 
-    const requestOrigin = req.headers.origin;
-
-    // Set CORS headers for all requests
-    if (allowedOrigins.includes(requestOrigin) || !requestOrigin) {
-        res.setHeader("Access-Control-Allow-Origin", requestOrigin || "*");
-        res.setHeader("Vary", "Origin");
-        res.setHeader("Access-Control-Allow-Credentials", "true");
-        res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-        res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-    }
-
-    console.log(
-        `[CORS] ${req.method} ${req.originalUrl} | origin: ${requestOrigin || "none"}`
-    );
+    console.log(`[CORS] ${req.method} ${req.originalUrl} | origin: ${req.headers.origin || "none"}`);
 
     if (req.method === "OPTIONS") {
         return res.sendStatus(204);
