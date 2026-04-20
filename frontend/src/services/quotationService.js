@@ -2,12 +2,11 @@ function getApiBaseUrl() {
   const envUrl = import.meta.env.VITE_API_URL?.trim();
 
   if (!envUrl) {
-    console.warn("VITE_API_URL is missing. Using localhost fallback.");
+    console.warn("VITE_API_URL is missing. Using Railway fallback.");
     return "https://ebitscatering-production.up.railway.app/api";
   }
 
   const cleaned = envUrl.replace(/\/+$/, "");
-
   return cleaned.endsWith("/api") ? cleaned : `${cleaned}/api`;
 }
 
@@ -15,8 +14,18 @@ const API_BASE_URL = getApiBaseUrl();
 
 console.log("Quotation API Base URL:", API_BASE_URL);
 
+function getStoredToken() {
+  return (
+    localStorage.getItem("token") ||
+    localStorage.getItem("clientToken") ||
+    localStorage.getItem("authToken") ||
+    localStorage.getItem("adminToken") ||
+    ""
+  );
+}
+
 function getAuthHeaders() {
-  const token = localStorage.getItem("token");
+  const token = getStoredToken();
 
   return token
     ? {
@@ -45,6 +54,7 @@ export const quotationService = {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ...getAuthHeaders(),
       },
       body: JSON.stringify(payload),
     });

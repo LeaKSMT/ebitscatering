@@ -1,11 +1,13 @@
 function getApiBaseUrl() {
   const envUrl = import.meta.env.VITE_API_URL?.trim();
 
-  if (envUrl) {
-    return envUrl.replace(/\/+$/, "");
+  if (!envUrl) {
+    console.warn("VITE_API_URL is missing. Using Railway fallback.");
+    return "https://ebitscatering-production.up.railway.app/api";
   }
 
-  return "https://ebitscatering-production.up.railway.app/api";
+  const cleaned = envUrl.replace(/\/+$/, "");
+  return cleaned.endsWith("/api") ? cleaned : `${cleaned}/api`;
 }
 
 const API_BASE_URL = getApiBaseUrl();

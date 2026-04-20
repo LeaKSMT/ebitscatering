@@ -17,21 +17,27 @@ const allowedOrigins = [
 ];
 
 if (process.env.FRONTEND_URL) {
-    allowedOrigins.push(process.env.FRONTEND_URL);
+    allowedOrigins.push(process.env.FRONTEND_URL.trim());
 }
 
 const corsOptions = {
     origin: (origin, callback) => {
-        if (!origin) return callback(null, true);
-
-        const isAllowedExact = allowedOrigins.includes(origin);
-        const isVercelDomain = /^https:\/\/.*\.vercel\.app$/.test(origin);
-
-        if (isAllowedExact || isVercelDomain) {
+        if (!origin) {
             return callback(null, true);
         }
 
-        console.log("CORS blocked for origin:", origin);
+        const normalizedOrigin = origin.trim();
+        const isAllowedExact = allowedOrigins.includes(normalizedOrigin);
+        const isVercelDomain = /^https:\/\/.*\.vercel\.app$/.test(normalizedOrigin);
+        const isLocalhost =
+            normalizedOrigin.startsWith("http://localhost:") ||
+            normalizedOrigin.startsWith("http://127.0.0.1:");
+
+        if (isAllowedExact || isVercelDomain || isLocalhost) {
+            return callback(null, true);
+        }
+
+        console.log("CORS blocked for origin:", normalizedOrigin);
         return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
@@ -42,7 +48,7 @@ const corsOptions = {
 
 app.use(compression());
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
+app.options(/.*/, cors(corsOptions));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
