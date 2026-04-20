@@ -63,6 +63,42 @@ function normalizeStatus(status = "") {
     return String(status || "").trim().toLowerCase();
 }
 
+function isApprovedLikeStatus(status = "") {
+    return ["approved", "confirmed", "paid", "upcoming", "ongoing"].includes(
+        normalizeStatus(status)
+    );
+}
+
+function getAllLocalStorageArraysByPrefixes(prefixes = []) {
+    const collected = [];
+
+    try {
+        for (let i = 0; i < localStorage.length; i += 1) {
+            const key = localStorage.key(i);
+            if (!key) continue;
+
+            const matched = prefixes.some(
+                (prefix) => key === prefix || key.startsWith(`${prefix}_`)
+            );
+
+            if (!matched) continue;
+
+            try {
+                const parsed = JSON.parse(localStorage.getItem(key) || "[]");
+                if (Array.isArray(parsed)) {
+                    collected.push(...parsed);
+                }
+            } catch {
+                continue;
+            }
+        }
+    } catch {
+        return [];
+    }
+
+    return collected;
+}
+
 function normalizeBookingRecord(item, index = 0) {
     if (!item || typeof item !== "object") return null;
 
@@ -71,6 +107,7 @@ function normalizeBookingRecord(item, index = 0) {
         item.booking_id ||
         item.id ||
         item.quotationId ||
+        item.quotation_id ||
         `booking_${index + 1}`;
 
     const totalAmount = Number(
@@ -78,6 +115,8 @@ function normalizeBookingRecord(item, index = 0) {
         item.total_price ??
         item.estimatedTotal ??
         item.estimated_total ??
+        item.packagePrice ??
+        item.package_price ??
         0
     );
 
@@ -90,14 +129,20 @@ function normalizeBookingRecord(item, index = 0) {
             item.clientName ||
             item.client_name ||
             item.owner_name ||
+            item.name ||
             "Client",
-        eventType: item.eventType || item.event_type || "Event",
+        eventType:
+            item.eventType ||
+            item.event_type ||
+            item.type ||
+            "Event",
         totalAmount,
         date:
             item.date ||
             item.eventDate ||
             item.event_date ||
             item.preferred_date ||
+            item.preferredDate ||
             "",
         status:
             item.status ||
@@ -108,7 +153,7 @@ function normalizeBookingRecord(item, index = 0) {
 }
 
 function getFallbackBookings() {
-    const possibleKeys = [
+    const directBookingKeys = [
         "adminManualBookings",
         "clientBookings",
         "bookings",
@@ -116,39 +161,69 @@ function getFallbackBookings() {
         "approvedBookings",
     ];
 
-    const collected = possibleKeys.flatMap((key) => safeParse(key));
+    const directQuotationKeys = [
+        "clientQuotations",
+        "quotations",
+        "adminQuotations",
+    ];
 
-    const approvedQuotations = safeParse("clientQuotations")
-        .filter((item) =>
-            ["approved", "confirmed", "paid", "upcoming", "ongoing"].includes(
-                normalizeStatus(item.status)
-            )
-        )
+    const directBookings = directBookingKeys.flatMap((key) => safeParse(key));
+    const scopedBookings = getAllLocalStorageArraysByPrefixes([
+        "clientBookings",
+        "adminBookings",
+        "approvedBookings",
+        "bookings",
+    ]);
+
+    const directQuotations = directQuotationKeys.flatMap((key) => safeParse(key));
+    const scopedQuotations = getAllLocalStorageArraysByPrefixes([
+        "clientQuotations",
+        "adminQuotations",
+        "quotations",
+    ]);
+
+    const approvedQuotations = [...directQuotations, ...scopedQuotations]
+        .filter((item) => isApprovedLikeStatus(item.status))
         .map((item, index) =>
             normalizeBookingRecord(
                 {
+                    id:
+                        item.id ||
+                        item.quotationId ||
+                        item.quotation_id ||
+                        item.bookingId ||
+                        `Q${index + 1}`,
                     bookingId:
                         item.bookingId ||
                         item.quotationId ||
                         item.quotation_id ||
                         item.id ||
-                        `Q-${index + 1}`,
+                        `Q${index + 1}`,
                     fullName:
                         item.fullName ||
                         item.full_name ||
                         item.clientName ||
-                        item.owner_name,
-                    eventType: item.eventType || item.event_type,
+                        item.client_name ||
+                        item.owner_name ||
+                        item.name,
+                    eventType:
+                        item.eventType ||
+                        item.event_type ||
+                        item.type,
                     totalAmount:
                         item.totalAmount ||
                         item.total_price ||
                         item.estimatedTotal ||
-                        item.estimated_total,
+                        item.estimated_total ||
+                        item.packagePrice ||
+                        item.package_price ||
+                        0,
                     date:
                         item.date ||
                         item.eventDate ||
                         item.event_date ||
-                        item.preferred_date,
+                        item.preferred_date ||
+                        item.preferredDate,
                     status: item.status,
                 },
                 index
@@ -156,23 +231,21 @@ function getFallbackBookings() {
         )
         .filter(Boolean);
 
-    const merged = [...collected, ...approvedQuotations]
+    const merged = [...directBookings, ...scopedBookings, ...approvedQuotations]
         .map((item, index) => normalizeBookingRecord(item, index))
         .filter(Boolean);
 
     const map = new Map();
 
     merged.forEach((item) => {
-        const key = item.bookingId;
+        const key = String(item.bookingId || item.id);
         if (!map.has(key)) {
             map.set(key, item);
         }
     });
 
     return Array.from(map.values()).filter((item) =>
-        ["approved", "confirmed", "paid", "upcoming", "ongoing"].includes(
-            normalizeStatus(item.status)
-        )
+        isApprovedLikeStatus(item.status)
     );
 }
 
@@ -206,27 +279,41 @@ function AdminFinancialManagement() {
     }, []);
 
     const bookings = useMemo(() => {
-        const primary = (getAllBookings() || []).map((item, index) =>
-            normalizeBookingRecord(item, index)
-        );
+        const primary = (getAllBookings() || [])
+            .map((item, index) => normalizeBookingRecord(item, index))
+            .filter(Boolean);
 
         const fallback = getFallbackBookings();
 
         const map = new Map();
 
-        [...primary, ...fallback]
-            .filter(Boolean)
-            .forEach((item) => {
-                const key = String(item.bookingId || item.id);
-                if (!map.has(key)) {
-                    map.set(key, item);
-                }
-            });
+        [...primary, ...fallback].forEach((item) => {
+            const key = String(item.bookingId || item.id);
+            const existing = map.get(key);
+
+            if (!existing) {
+                map.set(key, item);
+                return;
+            }
+
+            const existingApproved = isApprovedLikeStatus(existing.status);
+            const currentApproved = isApprovedLikeStatus(item.status);
+
+            if (!existingApproved && currentApproved) {
+                map.set(key, item);
+                return;
+            }
+
+            const existingAmount = Number(existing.totalAmount || 0);
+            const currentAmount = Number(item.totalAmount || 0);
+
+            if (currentAmount > existingAmount) {
+                map.set(key, item);
+            }
+        });
 
         return Array.from(map.values()).filter((item) =>
-            ["approved", "confirmed", "paid", "upcoming", "ongoing"].includes(
-                normalizeStatus(item.status)
-            )
+            isApprovedLikeStatus(item.status)
         );
     }, [refreshKey]);
 
@@ -248,7 +335,8 @@ function AdminFinancialManagement() {
 
             const revenue = Number(booking.totalAmount || 0);
             const profit = revenue - totalExpenses;
-            const margin = revenue > 0 ? ((profit / revenue) * 100).toFixed(1) : "0.0";
+            const margin =
+                revenue > 0 ? ((profit / revenue) * 100).toFixed(1) : "0.0";
 
             return {
                 ...booking,
@@ -288,7 +376,11 @@ function AdminFinancialManagement() {
         };
     }, [financialRows, payments, expenses]);
 
-    const monthlyRows = useMemo(() => getMonthlyFinancialRows(), [expenses, bookings]);
+    const monthlyRows = useMemo(
+        () => getMonthlyFinancialRows(),
+        [expenses, bookings]
+    );
+
     const demandForecast = useMemo(() => getDemandForecast(), [bookings]);
 
     const handleExpenseChange = (e) => {
@@ -420,7 +512,12 @@ function AdminFinancialManagement() {
                         />
                         <motion.div
                             animate={{ scale: [1, 1.1, 1], opacity: [0.1, 0.16, 0.1] }}
-                            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
+                            transition={{
+                                duration: 8,
+                                repeat: Infinity,
+                                ease: "easeInOut",
+                                delay: 0.4,
+                            }}
                             className="absolute bottom-[-30px] left-[-20px] h-28 w-28 rounded-full bg-white/10 blur-3xl"
                         />
                     </div>
@@ -450,7 +547,8 @@ function AdminFinancialManagement() {
                             <HeaderMiniCard
                                 icon={FileSpreadsheet}
                                 label="Records"
-                                value={`${financialRows.length} Event${financialRows.length === 1 ? "" : "s"}`}
+                                value={`${financialRows.length} Event${financialRows.length === 1 ? "" : "s"
+                                    }`}
                             />
                         </div>
                     </div>
@@ -625,7 +723,9 @@ function AdminFinancialManagement() {
                                     required
                                 >
                                     <option value="">
-                                        {bookings.length === 0 ? "No approved bookings found" : "Select booking"}
+                                        {bookings.length === 0
+                                            ? "No approved bookings found"
+                                            : "Select booking"}
                                     </option>
                                     {bookings.map((booking) => (
                                         <option key={booking.id} value={booking.bookingId}>

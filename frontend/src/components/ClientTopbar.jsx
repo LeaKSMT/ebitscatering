@@ -417,12 +417,14 @@ function ClientTopbar() {
                                         setShowProfileDropdown((prev) => !prev);
                                         setShowNotifications(false);
                                     }}
-                                    className="flex h-[50px] max-w-[210px] items-center gap-2 rounded-2xl border border-white/10 bg-white/95 px-4 py-2.5 text-sm font-bold text-[#0b5a43] shadow-[0_14px_30px_rgba(0,0,0,0.08)]"
+                                    className={profileInitialClass}
                                 >
                                     <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[linear-gradient(135deg,#0b5a43_0%,#0f6d51_100%)] text-xs font-extrabold text-white">
                                         {String(clientUser?.name || "C").charAt(0).toUpperCase()}
                                     </div>
-                                    <span className="truncate">{clientUser?.name || "Client"}</span>
+                                    <span className={`truncate ${isDark ? "text-[#98efcc]" : "text-[#0b5a43]"}`}>
+                                        {clientUser?.name || "Client"}
+                                    </span>
                                     <ChevronRight
                                         size={15}
                                         className={`shrink-0 transition ${showProfileDropdown ? "rotate-90" : ""
@@ -437,7 +439,7 @@ function ClientTopbar() {
                                             animate={{ opacity: 1, y: 0, scale: 1 }}
                                             exit={{ opacity: 0, y: 8, scale: 0.98 }}
                                             transition={{ duration: 0.2 }}
-                                            className="absolute right-0 top-[calc(100%+12px)] z-[80] w-[280px] overflow-hidden rounded-[28px] border border-[#dfe8e4] bg-white text-slate-800 shadow-[0_30px_60px_rgba(0,0,0,0.18)]"
+                                            className={dropdownClass}
                                         >
                                             <div className="bg-[linear-gradient(135deg,#0b5a43_0%,#0f6d51_100%)] px-5 py-5 text-white">
                                                 <div className="flex items-center gap-3">
@@ -461,8 +463,7 @@ function ClientTopbar() {
                                                         setShowProfileDropdown(false);
                                                         navigate("/client/dashboard");
                                                     }}
-                                                    className="flex w-full items-center gap-3 rounded-[20px] px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-[#f7fbf9]"
-                                                >
+                                                    className={dropdownItemClass}                                                >
                                                     <User size={17} className="text-[#0d5c46]" />
                                                     <span>Profile Overview</span>
                                                 </button>
@@ -472,7 +473,7 @@ function ClientTopbar() {
                                                         toggleTheme();
                                                         setShowProfileDropdown(false);
                                                     }}
-                                                    className="mt-1 flex w-full items-center gap-3 rounded-[20px] px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-[#f7fbf9]"
+                                                    className={dropdownItemClass}
                                                 >
                                                     {theme === "light" ? (
                                                         <Moon size={17} className="text-[#0d5c46]" />
@@ -555,7 +556,7 @@ function ClientTopbar() {
                                     </button>
                                 </div>
 
-                                <div className="relative mt-5 rounded-[24px] border border-white/10 bg-white/95 px-4 py-4 text-[#0b5a43] shadow-[0_14px_30px_rgba(0,0,0,0.12)]">
+                                <div className={mobileSignedInCardClass}>
                                     <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#0b5a43]/60">
                                         Signed in as
                                     </p>
