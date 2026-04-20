@@ -14,26 +14,6 @@ const API_BASE_URL = getApiBaseUrl();
 
 console.log("Quotation API Base URL:", API_BASE_URL);
 
-function getStoredToken() {
-  return (
-    localStorage.getItem("token") ||
-    localStorage.getItem("clientToken") ||
-    localStorage.getItem("authToken") ||
-    localStorage.getItem("adminToken") ||
-    ""
-  );
-}
-
-function getAuthHeaders() {
-  const token = getStoredToken();
-
-  return token
-    ? {
-      Authorization: `Bearer ${token}`,
-    }
-    : {};
-}
-
 async function handleResponse(response) {
   const data = await response.json().catch(() => ({}));
 
@@ -54,8 +34,8 @@ export const quotationService = {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...getAuthHeaders(),
       },
+      credentials: "include",
       body: JSON.stringify(payload),
     });
 
@@ -65,10 +45,7 @@ export const quotationService = {
   async getQuotations() {
     const response = await fetch(`${API_BASE_URL}/quotations`, {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        ...getAuthHeaders(),
-      },
+      credentials: "include",
     });
 
     return handleResponse(response);
@@ -77,10 +54,7 @@ export const quotationService = {
   async getQuotationById(id) {
     const response = await fetch(`${API_BASE_URL}/quotations/${id}`, {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        ...getAuthHeaders(),
-      },
+      credentials: "include",
     });
 
     return handleResponse(response);
@@ -91,8 +65,8 @@ export const quotationService = {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        ...getAuthHeaders(),
       },
+      credentials: "include",
       body: JSON.stringify({ status }),
     });
 
@@ -102,10 +76,7 @@ export const quotationService = {
   async deleteQuotation(id) {
     const response = await fetch(`${API_BASE_URL}/quotations/${id}`, {
       method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        ...getAuthHeaders(),
-      },
+      credentials: "include",
     });
 
     return handleResponse(response);

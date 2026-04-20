@@ -1,26 +1,63 @@
 const express = require("express");
 const cors = require("cors");
 const compression = require("compression");
+const cookieParser = require("cookie-parser");
 require("dotenv").config();
 
 const app = express();
 
-console.log("🔥 CORS FIX VERSION LOADED");
+console.log("🔥 COOKIE AUTH VERSION LOADED");
 
 app.set("trust proxy", true);
 
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 const { httpLogger } = require("./utils/logger");
 
+const allowedOrigins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://ebitscatering.vercel.app",
+];
+
+if (process.env.FRONTEND_URL) {
+    allowedOrigins.push(process.env.FRONTEND_URL.trim());
+}
+
 app.use(compression());
+app.use(cookieParser());
 
-app.use(cors({
-    origin: "*",
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-}));
+app.use(
+    cors({
+        origin(origin, callback) {
+            if (!origin) return callback(null, true);
 
-app.options("*", cors());
+            if (allowedOrigins.includes(origin)) {
+                return callback(null, true);
+            }
+
+            return callback(new Error(`CORS blocked for origin: ${origin}`));
+        },
+        credentials: true,
+        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allowedHeaders: ["Content-Type", "Authorization"],
+    })
+);
+
+app.options(
+    /.*/,
+    cors({
+        origin(origin, callback) {
+            if (!origin) return callback(null, true);
+
+            if (allowedOrigins.includes(origin)) {
+                return callback(null, true);
+            }
+
+            return callback(new Error(`CORS blocked for origin: ${origin}`));
+        },
+        credentials: true,
+    })
+);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

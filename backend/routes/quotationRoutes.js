@@ -1,11 +1,10 @@
 const express = require("express");
 const router = express.Router();
+
 const quotationController = require("../controllers/quotationController");
 const { verifyToken } = require("../middleware/authMiddleware");
 
-
 router.post("/", quotationController.createQuotation);
-
 
 router.get("/", verifyToken, quotationController.getQuotations);
 router.get("/:id", verifyToken, quotationController.getQuotationById);

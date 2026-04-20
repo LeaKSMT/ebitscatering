@@ -15,14 +15,40 @@ function shouldCreateBooking(status) {
     );
 }
 
+function isAdminUser(req) {
+    return normalizeStatus(req.user?.role) === "admin";
+}
+
+function getUserEmail(req) {
+    return String(req.user?.email || "").trim().toLowerCase();
+}
+
 exports.getQuotations = (req, res) => {
-    const query = `
+    const userEmail = getUserEmail(req);
+
+    if (!userEmail) {
+        return res.status(401).json({
+            message: "Unauthorized user",
+        });
+    }
+
+    let query = `
         SELECT *
         FROM quotations
-        ORDER BY id DESC
     `;
+    let values = [];
 
-    db.query(query, (err, results) => {
+    if (!isAdminUser(req)) {
+        query += `
+            WHERE LOWER(COALESCE(owner_email, '')) = ?
+               OR LOWER(COALESCE(email, '')) = ?
+        `;
+        values = [userEmail, userEmail];
+    }
+
+    query += ` ORDER BY id DESC`;
+
+    db.query(query, values, (err, results) => {
         if (err) {
             console.error("Get quotations error:", err);
             return res.status(500).json({
@@ -37,26 +63,43 @@ exports.getQuotations = (req, res) => {
 
 exports.getQuotationById = (req, res) => {
     const { id } = req.params;
+    const userEmail = getUserEmail(req);
+    const admin = isAdminUser(req);
 
-    db.query(
-        "SELECT * FROM quotations WHERE id = ? LIMIT 1",
-        [id],
-        (err, results) => {
-            if (err) {
-                console.error("Get quotation by id error:", err);
-                return res.status(500).json({
-                    message: "Failed to fetch quotation",
-                    error: err.message,
-                });
-            }
+    let query = `
+        SELECT *
+        FROM quotations
+        WHERE id = ?
+    `;
+    let values = [id];
 
-            if (!results || results.length === 0) {
-                return res.status(404).json({ message: "Quotation not found" });
-            }
+    if (!admin) {
+        query += `
+          AND (
+                LOWER(COALESCE(owner_email, '')) = ?
+             OR LOWER(COALESCE(email, '')) = ?
+          )
+        `;
+        values.push(userEmail, userEmail);
+    }
 
-            return res.status(200).json(results[0]);
+    query += ` LIMIT 1`;
+
+    db.query(query, values, (err, results) => {
+        if (err) {
+            console.error("Get quotation by id error:", err);
+            return res.status(500).json({
+                message: "Failed to fetch quotation",
+                error: err.message,
+            });
         }
-    );
+
+        if (!results || results.length === 0) {
+            return res.status(404).json({ message: "Quotation not found" });
+        }
+
+        return res.status(200).json(results[0]);
+    });
 };
 
 exports.createQuotation = (req, res) => {
@@ -96,6 +139,11 @@ exports.createQuotation = (req, res) => {
         });
     }
 
+    const normalizedEmail = String(email || "").trim().toLowerCase();
+    const normalizedOwnerEmail = String(owner_email || email || "")
+        .trim()
+        .toLowerCase();
+
     const insertQuery = `
         INSERT INTO quotations (
             quotation_id,
@@ -130,10 +178,10 @@ exports.createQuotation = (req, res) => {
 
     const values = [
         quotation_id || `Q${Date.now()}`,
-        owner_email || email || null,
+        normalizedOwnerEmail || null,
         owner_name || full_name || null,
         full_name,
-        email,
+        normalizedEmail,
         contact_number || null,
         event_type,
         preferred_date,
@@ -177,202 +225,233 @@ exports.createQuotation = (req, res) => {
 exports.updateQuotationStatus = (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
+    const userEmail = getUserEmail(req);
+    const admin = isAdminUser(req);
 
     if (!status) {
         return res.status(400).json({ message: "status is required" });
     }
 
-    db.query(
-        "SELECT * FROM quotations WHERE id = ? LIMIT 1",
-        [id],
-        (fetchErr, quotationResults) => {
-            if (fetchErr) {
-                console.error("Fetch quotation before status update error:", fetchErr);
-                return res.status(500).json({
-                    message: "Failed to update quotation status",
-                    error: fetchErr.message,
-                });
-            }
+    let fetchQuery = `
+        SELECT * FROM quotations
+        WHERE id = ?
+    `;
+    let fetchValues = [id];
 
-            if (!quotationResults || quotationResults.length === 0) {
-                return res.status(404).json({ message: "Quotation not found" });
-            }
+    if (!admin) {
+        fetchQuery += `
+          AND (
+                LOWER(COALESCE(owner_email, '')) = ?
+             OR LOWER(COALESCE(email, '')) = ?
+          )
+        `;
+        fetchValues.push(userEmail, userEmail);
+    }
 
-            const quotation = quotationResults[0];
+    fetchQuery += ` LIMIT 1`;
 
-            db.query(
-                `
-                    UPDATE quotations
-                    SET status = ?
-                    WHERE id = ?
-                `,
-                [status, id],
-                (updateErr, updateResult) => {
-                    if (updateErr) {
-                        console.error("Update quotation status error:", updateErr);
-                        return res.status(500).json({
-                            message: "Failed to update quotation status",
-                            error: updateErr.message,
-                        });
-                    }
+    db.query(fetchQuery, fetchValues, (fetchErr, quotationResults) => {
+        if (fetchErr) {
+            console.error("Fetch quotation before status update error:", fetchErr);
+            return res.status(500).json({
+                message: "Failed to update quotation status",
+                error: fetchErr.message,
+            });
+        }
 
-                    if (!updateResult || updateResult.affectedRows === 0) {
-                        return res.status(404).json({ message: "Quotation not found" });
-                    }
+        if (!quotationResults || quotationResults.length === 0) {
+            return res.status(404).json({ message: "Quotation not found" });
+        }
 
-                    if (!shouldCreateBooking(status)) {
-                        return res.status(200).json({
-                            message: "Quotation status updated successfully",
-                        });
-                    }
+        const quotation = quotationResults[0];
 
-                    const bookingLookupQuery = `
-                        SELECT id
-                        FROM bookings
-                        WHERE client_email = ?
-                          AND event_date = ?
-                          AND venue = ?
-                          AND package_name = ?
-                          AND event_type = ?
-                        LIMIT 1
-                    `;
+        db.query(
+            `
+                UPDATE quotations
+                SET status = ?
+                WHERE id = ?
+            `,
+            [status, id],
+            (updateErr, updateResult) => {
+                if (updateErr) {
+                    console.error("Update quotation status error:", updateErr);
+                    return res.status(500).json({
+                        message: "Failed to update quotation status",
+                        error: updateErr.message,
+                    });
+                }
 
-                    const bookingLookupValues = [
-                        quotation.email || quotation.owner_email || "",
-                        quotation.preferred_date,
-                        quotation.venue || "",
-                        quotation.package_type || "",
-                        quotation.event_type || "",
-                    ];
+                if (!updateResult || updateResult.affectedRows === 0) {
+                    return res.status(404).json({ message: "Quotation not found" });
+                }
 
-                    db.query(
-                        bookingLookupQuery,
-                        bookingLookupValues,
-                        (bookingCheckErr, bookingResults) => {
-                            if (bookingCheckErr) {
-                                console.error(
-                                    "Check existing booking error:",
-                                    bookingCheckErr
-                                );
-                                return res.status(500).json({
-                                    message:
-                                        "Quotation status updated but failed to sync booking",
-                                    error: bookingCheckErr.message,
-                                });
+                if (!shouldCreateBooking(status)) {
+                    return res.status(200).json({
+                        message: "Quotation status updated successfully",
+                    });
+                }
+
+                const bookingLookupQuery = `
+                    SELECT id
+                    FROM bookings
+                    WHERE client_email = ?
+                      AND event_date = ?
+                      AND venue = ?
+                      AND package_name = ?
+                      AND event_type = ?
+                    LIMIT 1
+                `;
+
+                const bookingLookupValues = [
+                    quotation.email || quotation.owner_email || "",
+                    quotation.preferred_date,
+                    quotation.venue || "",
+                    quotation.package_type || "",
+                    quotation.event_type || "",
+                ];
+
+                db.query(
+                    bookingLookupQuery,
+                    bookingLookupValues,
+                    (bookingCheckErr, bookingResults) => {
+                        if (bookingCheckErr) {
+                            console.error(
+                                "Check existing booking error:",
+                                bookingCheckErr
+                            );
+                            return res.status(500).json({
+                                message:
+                                    "Quotation status updated but failed to sync booking",
+                                error: bookingCheckErr.message,
+                            });
+                        }
+
+                        if (bookingResults && bookingResults.length > 0) {
+                            return res.status(200).json({
+                                message: "Quotation status updated successfully",
+                                bookingSynced: true,
+                                bookingCreated: false,
+                            });
+                        }
+
+                        const notesParts = [];
+
+                        if (quotation.classic_menu) {
+                            notesParts.push(`Classic Menu: ${quotation.classic_menu}`);
+                        }
+
+                        try {
+                            const parsedAddOns = JSON.parse(quotation.add_ons || "[]");
+                            if (Array.isArray(parsedAddOns) && parsedAddOns.length > 0) {
+                                notesParts.push(`Add-ons: ${parsedAddOns.join(", ")}`);
                             }
+                        } catch {
+                            if (quotation.add_ons) {
+                                notesParts.push(`Add-ons: ${quotation.add_ons}`);
+                            }
+                        }
 
-                            if (bookingResults && bookingResults.length > 0) {
+                        if (quotation.theme_preference) {
+                            notesParts.push(
+                                `Theme Preference: ${quotation.theme_preference}`
+                            );
+                        }
+
+                        if (quotation.special_requests) {
+                            notesParts.push(
+                                `Special Requests: ${quotation.special_requests}`
+                            );
+                        }
+
+                        if (quotation.quotation_id) {
+                            notesParts.push(`Quotation ID: ${quotation.quotation_id}`);
+                        }
+
+                        const bookingInsertQuery = `
+                            INSERT INTO bookings
+                            (
+                                client_name,
+                                client_email,
+                                contact_number,
+                                event_type,
+                                package_name,
+                                event_date,
+                                event_time,
+                                venue,
+                                guests,
+                                total_price,
+                                payment_status,
+                                booking_status,
+                                notes
+                            )
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        `;
+
+                        const bookingInsertValues = [
+                            quotation.full_name || quotation.owner_name || "Client",
+                            quotation.email || quotation.owner_email || null,
+                            quotation.contact_number || null,
+                            quotation.event_type || null,
+                            quotation.package_type || null,
+                            quotation.preferred_date,
+                            quotation.event_time || null,
+                            quotation.venue,
+                            Number(quotation.guests || 0),
+                            Number(quotation.estimated_total || 0),
+                            normalizeStatus(status) === "paid" ? "paid" : "pending",
+                            status,
+                            notesParts.join(" | ") || null,
+                        ];
+
+                        db.query(
+                            bookingInsertQuery,
+                            bookingInsertValues,
+                            (bookingInsertErr) => {
+                                if (bookingInsertErr) {
+                                    console.error(
+                                        "Create booking from quotation error:",
+                                        bookingInsertErr
+                                    );
+                                    return res.status(500).json({
+                                        message:
+                                            "Quotation status updated but failed to create booking",
+                                        error: bookingInsertErr.message,
+                                    });
+                                }
+
                                 return res.status(200).json({
                                     message: "Quotation status updated successfully",
                                     bookingSynced: true,
-                                    bookingCreated: false,
+                                    bookingCreated: true,
                                 });
                             }
-
-                            const notesParts = [];
-
-                            if (quotation.classic_menu) {
-                                notesParts.push(`Classic Menu: ${quotation.classic_menu}`);
-                            }
-
-                            try {
-                                const parsedAddOns = JSON.parse(quotation.add_ons || "[]");
-                                if (Array.isArray(parsedAddOns) && parsedAddOns.length > 0) {
-                                    notesParts.push(`Add-ons: ${parsedAddOns.join(", ")}`);
-                                }
-                            } catch {
-                                if (quotation.add_ons) {
-                                    notesParts.push(`Add-ons: ${quotation.add_ons}`);
-                                }
-                            }
-
-                            if (quotation.theme_preference) {
-                                notesParts.push(
-                                    `Theme Preference: ${quotation.theme_preference}`
-                                );
-                            }
-
-                            if (quotation.special_requests) {
-                                notesParts.push(
-                                    `Special Requests: ${quotation.special_requests}`
-                                );
-                            }
-
-                            if (quotation.quotation_id) {
-                                notesParts.push(`Quotation ID: ${quotation.quotation_id}`);
-                            }
-
-                            const bookingInsertQuery = `
-                                INSERT INTO bookings
-                                (
-                                    client_name,
-                                    client_email,
-                                    contact_number,
-                                    event_type,
-                                    package_name,
-                                    event_date,
-                                    event_time,
-                                    venue,
-                                    guests,
-                                    total_price,
-                                    payment_status,
-                                    booking_status,
-                                    notes
-                                )
-                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                            `;
-
-                            const bookingInsertValues = [
-                                quotation.full_name || quotation.owner_name || "Client",
-                                quotation.email || quotation.owner_email || null,
-                                quotation.contact_number || null,
-                                quotation.event_type || null,
-                                quotation.package_type || null,
-                                quotation.preferred_date,
-                                quotation.event_time || null,
-                                quotation.venue,
-                                Number(quotation.guests || 0),
-                                Number(quotation.estimated_total || 0),
-                                normalizeStatus(status) === "paid" ? "paid" : "pending",
-                                status,
-                                notesParts.join(" | ") || null,
-                            ];
-
-                            db.query(
-                                bookingInsertQuery,
-                                bookingInsertValues,
-                                (bookingInsertErr) => {
-                                    if (bookingInsertErr) {
-                                        console.error(
-                                            "Create booking from quotation error:",
-                                            bookingInsertErr
-                                        );
-                                        return res.status(500).json({
-                                            message:
-                                                "Quotation status updated but failed to create booking",
-                                            error: bookingInsertErr.message,
-                                        });
-                                    }
-
-                                    return res.status(200).json({
-                                        message: "Quotation status updated successfully",
-                                        bookingSynced: true,
-                                        bookingCreated: true,
-                                    });
-                                }
-                            );
-                        }
-                    );
-                }
-            );
-        }
-    );
+                        );
+                    }
+                );
+            }
+        );
+    });
 };
 
 exports.deleteQuotation = (req, res) => {
     const { id } = req.params;
+    const userEmail = getUserEmail(req);
+    const admin = isAdminUser(req);
 
-    db.query("DELETE FROM quotations WHERE id = ?", [id], (err, result) => {
+    let deleteQuery = `DELETE FROM quotations WHERE id = ?`;
+    let deleteValues = [id];
+
+    if (!admin) {
+        deleteQuery += `
+          AND (
+                LOWER(COALESCE(owner_email, '')) = ?
+             OR LOWER(COALESCE(email, '')) = ?
+          )
+        `;
+        deleteValues.push(userEmail, userEmail);
+    }
+
+    db.query(deleteQuery, deleteValues, (err, result) => {
         if (err) {
             console.error("Delete quotation error:", err);
             return res.status(500).json({

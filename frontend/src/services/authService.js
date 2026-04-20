@@ -29,6 +29,7 @@ export const authService = {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
       body: JSON.stringify({ email, password }),
     });
 
@@ -41,12 +42,31 @@ export const authService = {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
       body: JSON.stringify({
         name,
         email,
         password,
         contactNumber,
       }),
+    });
+
+    return handleResponse(response);
+  },
+
+  async logout() {
+    const response = await fetch(`${API_BASE_URL}/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+    });
+
+    return handleResponse(response);
+  },
+
+  async me() {
+    const response = await fetch(`${API_BASE_URL}/auth/me`, {
+      method: "GET",
+      credentials: "include",
     });
 
     return handleResponse(response);
