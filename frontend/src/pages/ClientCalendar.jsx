@@ -9,7 +9,6 @@ import {
     Clock3,
     Sparkles,
 } from "lucide-react";
-import { bookingService } from "../services/bookingService";
 
 function getClientUser() {
     try {
@@ -43,6 +42,30 @@ function getCurrentClientName() {
     );
 }
 
+function getStoredToken() {
+    return (
+        localStorage.getItem("token") ||
+        localStorage.getItem("clientToken") ||
+        localStorage.getItem("authToken") ||
+        localStorage.getItem("adminToken") ||
+        ""
+    );
+}
+
+function getApiBaseUrl() {
+    const envUrl = import.meta.env.VITE_API_URL?.trim();
+
+    if (!envUrl) {
+        console.warn("VITE_API_URL is missing. Using localhost fallback.");
+        return "http://localhost:5000/api";
+    }
+
+    const cleaned = envUrl.replace(/\/+$/, "");
+    return cleaned.endsWith("/api") ? cleaned : `${cleaned}/api`;
+}
+
+const API_BASE_URL = getApiBaseUrl();
+
 function formatCurrency(value) {
     return `₱${Number(value || 0).toLocaleString()}`;
 }
@@ -56,6 +79,18 @@ function formatDate(dateStr) {
         year: "numeric",
         month: "long",
         day: "numeric",
+    });
+}
+
+function formatTime(timeStr) {
+    if (!timeStr) return "Not specified";
+
+    const parsed = new Date(`2000-01-01T${timeStr}`);
+    if (Number.isNaN(parsed.getTime())) return timeStr;
+
+    return parsed.toLocaleTimeString("en-PH", {
+        hour: "numeric",
+        minute: "2-digit",
     });
 }
 
@@ -84,24 +119,17 @@ function normalizeBooking(item) {
 
     return {
         id: item.id || `booking_${Math.random().toString(36).slice(2, 9)}`,
-        email: item.client_email || item.email || item.clientEmail || "",
-        clientName: item.client_name || item.clientName || item.fullName || item.name || "",
-        date: item.event_date || item.date || item.preferredDate || item.eventDate || "",
-        time: item.event_time || item.time || item.eventTime || "",
-        venue: item.venue || item.location || "",
-        guests: Number(item.guests || item.pax || 0),
-        packageName: item.package_name || item.packageName || item.packageType || item.package || "",
-        classicMenu: item.classic_menu || item.classicMenu || item.notes || "",
-        totalAmount:
-            Number(
-                item.total_price ||
-                item.totalAmount ||
-                item.estimatedTotal ||
-                item.packagePrice ||
-                0
-            ) || 0,
-        status: item.booking_status || item.status || "Booked",
-        eventType: item.event_type || item.eventType || "Event Booking",
+        email: item.client_email || "",
+        clientName: item.client_name || "",
+        date: item.event_date || "",
+        time: item.event_time || "",
+        venue: item.venue || "",
+        guests: Number(item.guests || 0),
+        packageName: item.package_name || "",
+        classicMenu: item.notes || "",
+        totalAmount: Number(item.total_price || 0),
+        status: item.booking_status || "Pending",
+        eventType: item.event_type || "Event Booking",
     };
 }
 
@@ -130,41 +158,45 @@ export default function ClientCalendar() {
                 setLoading(true);
                 setError("");
 
-                const response = await bookingService.getAllBookings();
-                const allBookings = Array.isArray(response)
-                    ? response
-                    : Array.isArray(response?.bookings)
-                        ? response.bookings
-                        : [];
+                const token = getStoredToken();
 
-                const normalized = allBookings
-                    .map(normalizeBooking)
-                    .filter(Boolean)
+                if (!token) {
+                    throw new Error("No token found. Please log in again.");
+                }
+
+                const res = await fetch(`${API_BASE_URL}/bookings`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+
+                const data = await res.json().catch(() => []);
+
+                if (!res.ok) {
+                    throw new Error(data?.message || "Failed to fetch bookings.");
+                }
+
+                const normalized = Array.isArray(data)
+                    ? data.map(normalizeBooking).filter(Boolean)
+                    : [];
+
+                const filtered = normalized
                     .filter((item) => {
                         const itemEmail = String(item.email || "").toLowerCase().trim();
                         const itemName = String(item.clientName || "")
                             .toLowerCase()
                             .trim();
-                        const status = String(item.status || "").toLowerCase();
 
-                        const belongsToCurrentUser =
+                        return (
                             (email && itemEmail === email) ||
-                            (clientName && itemName === clientName);
-
-                        const allowedStatus =
-                            status === "confirmed" ||
-                            status === "approved" ||
-                            status === "ongoing" ||
-                            status === "upcoming" ||
-                            status === "paid" ||
-                            status === "pending" ||
-                            status === "";
-
-                        return belongsToCurrentUser && allowedStatus;
+                            (clientName && itemName === clientName)
+                        );
                     })
                     .sort((a, b) => new Date(a.date) - new Date(b.date));
 
-                setBookings(normalized);
+                setBookings(filtered);
             } catch (err) {
                 console.error("Fetch client calendar bookings error:", err);
                 setError(err.message || "Failed to load calendar bookings.");
@@ -173,6 +205,13 @@ export default function ClientCalendar() {
                 setLoading(false);
             }
         };
+
+        if (!email && !clientName) {
+            setBookings([]);
+            setLoading(false);
+            setError("No client session found.");
+            return;
+        }
 
         fetchBookings();
     }, [email, clientName]);
@@ -185,9 +224,7 @@ export default function ClientCalendar() {
     const daysInMonth = new Date(year, month + 1, 0).getDate();
 
     const calendarDays = [];
-    for (let i = 0; i < startingDay; i++) {
-        calendarDays.push(null);
-    }
+    for (let i = 0; i < startingDay; i++) calendarDays.push(null);
     for (let day = 1; day <= daysInMonth; day++) {
         calendarDays.push(new Date(year, month, day));
     }
@@ -363,12 +400,12 @@ export default function ClientCalendar() {
                                             key={index}
                                             onClick={() => setSelectedDate(date)}
                                             className={`relative h-16 rounded-2xl border text-sm font-bold transition sm:h-20 md:h-24 md:text-lg ${selected
-                                                    ? "border-[#0d5c46] ring-2 ring-[#0d5c46] bg-[#eef9f5] text-[#0d5c46]"
-                                                    : booked
-                                                        ? "border-[#d4af37] bg-[#fff4cc] text-[#8a6b00] shadow-sm"
-                                                        : todayMatch
-                                                            ? "border-[#0d5c46] bg-[#eef9f5] text-[#0d5c46]"
-                                                            : "border-gray-100 bg-[#f6f7f9] text-[#143c2f]"
+                                                ? "border-[#0d5c46] ring-2 ring-[#0d5c46] bg-[#eef9f5] text-[#0d5c46]"
+                                                : booked
+                                                    ? "border-[#d4af37] bg-[#fff4cc] text-[#8a6b00] shadow-sm"
+                                                    : todayMatch
+                                                        ? "border-[#0d5c46] bg-[#eef9f5] text-[#0d5c46]"
+                                                        : "border-gray-100 bg-[#f6f7f9] text-[#143c2f]"
                                                 }`}
                                         >
                                             <span>{date.getDate()}</span>
@@ -514,7 +551,7 @@ export default function ClientCalendar() {
                                                     <Clock3 size={16} className="text-[#0d5c46]" />
                                                     <span>
                                                         <span className="font-semibold">Time:</span>{" "}
-                                                        {booking.time || "Not specified"}
+                                                        {formatTime(booking.time)}
                                                     </span>
                                                 </div>
 
