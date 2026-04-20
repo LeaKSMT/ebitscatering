@@ -490,6 +490,24 @@ function Packages() {
         []
     );
 
+    const highlights = useMemo(
+        () => [
+            {
+                icon: <Crown className="h-5 w-5 text-[#f2bf2f]" />,
+                label: "Elegant Styling",
+            },
+            {
+                icon: <ShieldCheck className="h-5 w-5 text-[#f2bf2f]" />,
+                label: "Trusted Service",
+            },
+            {
+                icon: <HeartHandshake className="h-5 w-5 text-[#f2bf2f]" />,
+                label: "Memorable Experience",
+            },
+        ],
+        []
+    );
+
     const handleGetQuotation = (selectedPackage) => {
         const isClientLoggedIn = localStorage.getItem("isClientLoggedIn") === "true";
         const clientUser = JSON.parse(localStorage.getItem("clientUser") || "null");
@@ -581,43 +599,54 @@ function Packages() {
                 </AnimatePresence>
             </header>
 
-            <section className="relative isolate overflow-hidden bg-[linear-gradient(135deg,#08392d_0%,#0b4d3b_45%,#10624a_100%)] px-5 pb-16 pt-14 md:px-10 md:pb-20 md:pt-20 lg:px-20">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(242,191,47,0.18),transparent_25%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.08),transparent_22%)]" />
-                <div className="absolute inset-0 opacity-[0.07] [background-image:linear-gradient(rgba(255,255,255,0.55)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.55)_1px,transparent_1px)] [background-size:36px_36px]" />
+            <section className="relative isolate overflow-hidden bg-[linear-gradient(135deg,#072f25_0%,#0b4d3b_45%,#10624a_100%)] px-5 pb-18 pt-14 md:px-10 md:pb-24 md:pt-20 lg:px-20">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(242,191,47,0.16),transparent_24%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.07),transparent_20%)]" />
+                <div className="absolute inset-0 opacity-[0.06] [background-image:linear-gradient(rgba(255,255,255,0.55)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.55)_1px,transparent_1px)] [background-size:34px_34px]" />
+                <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.02),transparent,rgba(0,0,0,0.08))]" />
 
-                <FloatingOrb className="absolute left-[5%] top-[14%] h-32 w-32 rounded-full bg-[#f2bf2f]/12 blur-3xl" />
-                <FloatingOrb className="absolute right-[8%] top-[12%] h-40 w-40 rounded-full bg-white/8 blur-3xl" delay={1} duration={10} />
-                <FloatingOrb className="absolute bottom-[8%] left-[38%] h-36 w-36 rounded-full bg-[#f2bf2f]/10 blur-3xl" delay={0.7} duration={9} />
+                <FloatingOrb className="absolute left-[4%] top-[14%] h-36 w-36 rounded-full bg-[#f2bf2f]/10 blur-3xl" />
+                <FloatingOrb
+                    className="absolute right-[8%] top-[10%] h-44 w-44 rounded-full bg-white/8 blur-3xl"
+                    delay={1}
+                    duration={10}
+                />
+                <FloatingOrb
+                    className="absolute bottom-[10%] left-[38%] h-36 w-36 rounded-full bg-[#f2bf2f]/10 blur-3xl"
+                    delay={0.7}
+                    duration={9}
+                />
 
                 <div className="relative z-10 mx-auto max-w-7xl">
-                    <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_.9fr]">
+                    <div className="grid items-center gap-10 lg:grid-cols-[1.08fr_.92fr]">
                         <motion.div
                             initial="hidden"
                             animate="visible"
                             variants={fadeUp}
                             className="text-white"
                         >
-                            <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs text-white/90 backdrop-blur-sm md:text-sm">
+                            <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs text-white/90 shadow-[0_8px_20px_rgba(0,0,0,0.14)] backdrop-blur-sm md:text-sm">
                                 <Sparkles size={14} className="text-[#f2bf2f]" />
                                 Premium packages crafted for once-in-a-lifetime moments
                             </div>
 
-                            <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.38em] text-white/65 md:text-xs">
+                            <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.4em] text-white/60 md:text-xs">
                                 Ebit&apos;s Catering Collection
                             </p>
 
-                            <h2 className="mt-4 max-w-4xl text-[36px] font-black leading-[1.02] sm:text-[50px] md:text-[64px]">
+                            <h2 className="mt-4 max-w-4xl text-[38px] font-black leading-[0.98] sm:text-[52px] md:text-[68px]">
                                 Luxury Event
-                                <span className="block text-[#f2bf2f]">Packages That Impress</span>
+                                <span className="mt-1 block bg-gradient-to-r from-[#f8d35a] via-[#f2bf2f] to-[#d4a514] bg-clip-text text-transparent">
+                                    Packages That Impress
+                                </span>
                             </h2>
 
                             <p className="mt-6 max-w-2xl text-[15px] leading-8 text-white/82 md:text-[17px]">
                                 Discover beautifully curated wedding and debut packages with
-                                premium setup, stylish inclusions, optional add-ons, and an
-                                elegant presentation designed to match your best pages.
+                                premium styling, elegant inclusions, optional add-ons, and a
+                                polished presentation that feels aligned with your best pages.
                             </p>
 
-                            <div className="mt-8 flex flex-wrap gap-4">
+                            <div className="mt-9">
                                 <button
                                     onClick={() =>
                                         handleGetQuotation({
@@ -625,44 +654,28 @@ function Packages() {
                                             title: "General Package Inquiry",
                                         })
                                     }
-                                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#f2bf2f] px-6 py-3.5 font-bold text-[#0b4d3b] shadow-[0_16px_34px_rgba(0,0,0,0.22)] transition hover:-translate-y-0.5 hover:bg-[#f7c93c]"
+                                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#f2bf2f] px-7 py-4 font-bold text-[#0b4d3b] shadow-[0_18px_36px_rgba(0,0,0,0.22)] transition hover:-translate-y-0.5 hover:bg-[#f7c93c]"
                                 >
                                     Request Quotation
                                     <ChevronRight size={18} />
                                 </button>
-
-                                <Link
-                                    to="/login"
-                                    className="inline-flex items-center justify-center rounded-2xl border border-white/15 bg-white/10 px-6 py-3.5 font-semibold text-white backdrop-blur-sm transition hover:bg-white/15"
-                                >
-                                    Book Your Event
-                                </Link>
                             </div>
 
                             <div className="mt-10 grid gap-4 sm:grid-cols-3">
-                                {[
-                                    {
-                                        icon: <Crown className="h-5 w-5 text-[#f2bf2f]" />,
-                                        label: "Elegant Styling",
-                                    },
-                                    {
-                                        icon: <ShieldCheck className="h-5 w-5 text-[#f2bf2f]" />,
-                                        label: "Trusted Service",
-                                    },
-                                    {
-                                        icon: <HeartHandshake className="h-5 w-5 text-[#f2bf2f]" />,
-                                        label: "Memorable Experience",
-                                    },
-                                ].map((item) => (
-                                    <div
+                                {highlights.map((item, index) => (
+                                    <motion.div
                                         key={item.label}
-                                        className="rounded-[24px] border border-white/12 bg-white/10 px-5 py-4 backdrop-blur-lg"
+                                        custom={index}
+                                        variants={fadeUp}
+                                        initial="hidden"
+                                        animate="visible"
+                                        className="rounded-[24px] border border-white/12 bg-white/10 px-5 py-4 shadow-[0_10px_24px_rgba(0,0,0,0.12)] backdrop-blur-lg"
                                     >
                                         <div className="mb-3">{item.icon}</div>
                                         <p className="text-sm font-semibold text-white/90">
                                             {item.label}
                                         </p>
-                                    </div>
+                                    </motion.div>
                                 ))}
                             </div>
                         </motion.div>
@@ -673,25 +686,25 @@ function Packages() {
                             variants={softScale}
                             className="relative"
                         >
-                            <div className="absolute -left-6 -top-6 h-28 w-28 rounded-full bg-[#f2bf2f]/20 blur-3xl" />
-                            <div className="absolute -bottom-6 -right-6 h-28 w-28 rounded-full bg-white/15 blur-3xl" />
+                            <div className="absolute -left-8 -top-8 h-32 w-32 rounded-full bg-[#f2bf2f]/16 blur-3xl" />
+                            <div className="absolute -bottom-8 -right-8 h-32 w-32 rounded-full bg-white/12 blur-3xl" />
 
-                            <div className="relative rounded-[34px] border border-white/12 bg-white/10 p-4 shadow-[0_24px_60px_rgba(0,0,0,0.28)] backdrop-blur-2xl">
-                                <div className="rounded-[28px] border border-white/12 bg-[linear-gradient(180deg,rgba(255,255,255,0.15),rgba(255,255,255,0.08))] p-5 md:p-6">
+                            <div className="relative rounded-[36px] border border-white/12 bg-white/10 p-4 shadow-[0_30px_70px_rgba(0,0,0,0.28)] backdrop-blur-2xl">
+                                <div className="rounded-[30px] border border-white/12 bg-[linear-gradient(180deg,rgba(255,255,255,0.16),rgba(255,255,255,0.08))] p-5 md:p-6">
                                     <div className="flex items-center justify-between gap-4">
                                         <div>
                                             <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/65">
                                                 Featured Collection
                                             </p>
-                                            <h3 className="mt-3 text-[26px] font-black text-white md:text-[32px]">
+                                            <h3 className="mt-3 text-[28px] font-black leading-tight text-white md:text-[34px]">
                                                 Signature
-                                                <span className="block text-[#f2bf2f]">
+                                                <span className="mt-1 block text-[#f2bf2f]">
                                                     Celebration Packages
                                                 </span>
                                             </h3>
                                         </div>
 
-                                        <div className="rounded-2xl bg-[#f2bf2f]/16 p-3">
+                                        <div className="rounded-2xl border border-[#f2bf2f]/20 bg-[#f2bf2f]/14 p-3 shadow-[0_10px_24px_rgba(242,191,47,0.12)]">
                                             <Gem className="h-7 w-7 text-[#f2bf2f]" />
                                         </div>
                                     </div>
@@ -705,7 +718,7 @@ function Packages() {
                                                 initial="hidden"
                                                 animate="visible"
                                                 className={`rounded-[24px] border px-5 py-5 ${index === 0 || index === 3
-                                                        ? "border-[#f2bf2f]/25 bg-[#fff9e6]/95 text-[#0b4d3b]"
+                                                        ? "border-[#f2bf2f]/25 bg-[#fff9e6]/95 text-[#0b4d3b] shadow-[0_10px_20px_rgba(242,191,47,0.06)]"
                                                         : "border-white/12 bg-white/12 text-white"
                                                     }`}
                                             >
@@ -718,7 +731,7 @@ function Packages() {
                                                     {item.label}
                                                 </p>
                                                 <p
-                                                    className={`mt-2 text-[22px] font-black md:text-[26px] ${index === 0 || index === 3
+                                                    className={`mt-2 text-[22px] font-black leading-tight md:text-[26px] ${index === 0 || index === 3
                                                             ? "text-[#0b4d3b]"
                                                             : "text-[#f2bf2f]"
                                                         }`}
@@ -729,7 +742,7 @@ function Packages() {
                                         ))}
                                     </div>
 
-                                    <div className="mt-5 rounded-[24px] border border-white/12 bg-[#082f25]/40 p-5">
+                                    <div className="mt-5 rounded-[24px] border border-white/12 bg-[#082f25]/45 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
                                         <div className="flex items-center gap-3">
                                             <div className="rounded-2xl bg-[#f2bf2f]/15 p-3">
                                                 <Star className="h-5 w-5 text-[#f2bf2f]" />
@@ -738,9 +751,9 @@ function Packages() {
                                                 <p className="text-sm font-semibold text-white">
                                                     Designed for presentation-ready impact
                                                 </p>
-                                                <p className="mt-1 text-sm text-white/70">
-                                                    Cleaner hierarchy, richer depth, and more premium
-                                                    motion.
+                                                <p className="mt-1 text-sm leading-6 text-white/70">
+                                                    Cleaner hierarchy, richer depth, premium motion,
+                                                    and a more luxurious visual balance.
                                                 </p>
                                             </div>
                                         </div>

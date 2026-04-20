@@ -30,6 +30,24 @@ async function handleResponse(response) {
   return data;
 }
 
+function saveClientAuth(data) {
+  if (data?.token) {
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("clientToken", data.token);
+    localStorage.setItem("authToken", data.token);
+  }
+
+  if (data?.user) {
+    localStorage.setItem("user", JSON.stringify(data.user));
+    localStorage.setItem("clientUser", JSON.stringify(data.user));
+    localStorage.setItem("currentClientEmail", data.user.email || "");
+    localStorage.setItem("clientEmail", data.user.email || "");
+    localStorage.setItem("currentClientName", data.user.name || "");
+    localStorage.setItem("clientName", data.user.name || "");
+    localStorage.setItem("isClientLoggedIn", "true");
+  }
+}
+
 export const authService = {
   async login(email, password) {
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
@@ -43,24 +61,42 @@ export const authService = {
 
     const data = await handleResponse(response);
 
-    if (data?.token) {
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("clientToken", data.token);
-    }
-
-    if (data?.user) {
-      localStorage.setItem("user", JSON.stringify(data.user));
-      localStorage.setItem("clientUser", JSON.stringify(data.user));
-      localStorage.setItem("currentClientEmail", data.user.email || "");
-      localStorage.setItem("clientEmail", data.user.email || "");
-      localStorage.setItem("currentClientName", data.user.name || "");
-      localStorage.setItem("clientName", data.user.name || "");
-    }
-
     if (data?.user?.role === "admin") {
+      if (data?.token) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("adminToken", data.token);
+        localStorage.setItem("authToken", data.token);
+      }
+
+      if (data?.user) {
+        localStorage.setItem("user", JSON.stringify(data.user));
+        localStorage.setItem("adminUser", JSON.stringify(data.user));
+      }
+
       localStorage.setItem("adminAuth", "true");
+      return data;
     }
 
+    saveClientAuth(data);
+    return data;
+  },
+
+  async googleLogin({ email, name, photo }) {
+    const response = await fetch(`${API_BASE_URL}/auth/google`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        email: String(email || "").trim().toLowerCase(),
+        name: String(name || "").trim(),
+        photo: photo || "",
+      }),
+    });
+
+    const data = await handleResponse(response);
+    saveClientAuth(data);
     return data;
   },
 
@@ -97,13 +133,17 @@ export const authService = {
 
     localStorage.removeItem("token");
     localStorage.removeItem("clientToken");
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("adminToken");
     localStorage.removeItem("user");
     localStorage.removeItem("clientUser");
+    localStorage.removeItem("adminUser");
     localStorage.removeItem("currentClientEmail");
     localStorage.removeItem("clientEmail");
     localStorage.removeItem("currentClientName");
     localStorage.removeItem("clientName");
     localStorage.removeItem("adminAuth");
+    localStorage.removeItem("isClientLoggedIn");
 
     return data;
   },
