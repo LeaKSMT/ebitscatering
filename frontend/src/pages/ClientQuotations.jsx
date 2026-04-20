@@ -45,21 +45,11 @@ function getCurrentClientName() {
     );
 }
 
-function getStoredToken() {
-    return (
-        localStorage.getItem("token") ||
-        localStorage.getItem("clientToken") ||
-        localStorage.getItem("authToken") ||
-        localStorage.getItem("adminToken") ||
-        ""
-    );
-}
-
 function getApiBaseUrl() {
     const envUrl = import.meta.env.VITE_API_URL?.trim();
 
     if (!envUrl) {
-        console.warn("VITE_API_URL is missing. Using localhost fallback.");
+        console.warn("VITE_API_URL is missing. Using Railway fallback.");
         return "https://ebitscatering-production.up.railway.app/api";
     }
 
@@ -231,17 +221,11 @@ function ClientQuotations() {
                 setLoading(true);
                 setError("");
 
-                const token = getStoredToken();
-
-                if (!token) {
-                    throw new Error("No token found. Please log in again.");
-                }
-
                 const res = await fetch(`${API_BASE_URL}/quotations`, {
                     method: "GET",
+                    credentials: "include",
                     headers: {
                         "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
                     },
                 });
 
@@ -275,6 +259,7 @@ function ClientQuotations() {
             } catch (err) {
                 console.error("Fetch client quotations error:", err);
                 setError(err.message || "Failed to load quotations.");
+                setQuotations([]);
             } finally {
                 setLoading(false);
             }
@@ -301,9 +286,7 @@ function ClientQuotations() {
             )
         ).length;
         const rejected = quotations.filter((item) =>
-            ["rejected", "declined"].includes(
-                (item.status || "").toLowerCase()
-            )
+            ["rejected", "declined"].includes((item.status || "").toLowerCase())
         ).length;
 
         return { total, pending, approved, rejected };

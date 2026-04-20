@@ -42,21 +42,11 @@ function getCurrentClientName() {
     );
 }
 
-function getStoredToken() {
-    return (
-        localStorage.getItem("token") ||
-        localStorage.getItem("clientToken") ||
-        localStorage.getItem("authToken") ||
-        localStorage.getItem("adminToken") ||
-        ""
-    );
-}
-
 function getApiBaseUrl() {
     const envUrl = import.meta.env.VITE_API_URL?.trim();
 
     if (!envUrl) {
-        console.warn("VITE_API_URL is missing. Using localhost fallback.");
+        console.warn("VITE_API_URL is missing. Using Railway fallback.");
         return "https://ebitscatering-production.up.railway.app/api";
     }
 
@@ -158,17 +148,11 @@ export default function ClientCalendar() {
                 setLoading(true);
                 setError("");
 
-                const token = getStoredToken();
-
-                if (!token) {
-                    throw new Error("No token found. Please log in again.");
-                }
-
                 const res = await fetch(`${API_BASE_URL}/bookings`, {
                     method: "GET",
+                    credentials: "include",
                     headers: {
                         "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
                     },
                 });
 
@@ -400,12 +384,12 @@ export default function ClientCalendar() {
                                             key={index}
                                             onClick={() => setSelectedDate(date)}
                                             className={`relative h-16 rounded-2xl border text-sm font-bold transition sm:h-20 md:h-24 md:text-lg ${selected
-                                                ? "border-[#0d5c46] ring-2 ring-[#0d5c46] bg-[#eef9f5] text-[#0d5c46]"
-                                                : booked
-                                                    ? "border-[#d4af37] bg-[#fff4cc] text-[#8a6b00] shadow-sm"
-                                                    : todayMatch
-                                                        ? "border-[#0d5c46] bg-[#eef9f5] text-[#0d5c46]"
-                                                        : "border-gray-100 bg-[#f6f7f9] text-[#143c2f]"
+                                                    ? "border-[#0d5c46] ring-2 ring-[#0d5c46] bg-[#eef9f5] text-[#0d5c46]"
+                                                    : booked
+                                                        ? "border-[#d4af37] bg-[#fff4cc] text-[#8a6b00] shadow-sm"
+                                                        : todayMatch
+                                                            ? "border-[#0d5c46] bg-[#eef9f5] text-[#0d5c46]"
+                                                            : "border-gray-100 bg-[#f6f7f9] text-[#143c2f]"
                                                 }`}
                                         >
                                             <span>{date.getDate()}</span>
