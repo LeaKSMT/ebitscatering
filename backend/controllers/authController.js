@@ -45,6 +45,7 @@ exports.register = async (req, res) => {
                 return res.status(500).json({
                     success: false,
                     message: "Database error",
+                    error: checkErr.message,
                 });
             }
 
@@ -89,6 +90,7 @@ exports.register = async (req, res) => {
                 return res.status(500).json({
                     success: false,
                     message: "Server error",
+                    error: error.message,
                 });
             }
         }
@@ -117,6 +119,7 @@ exports.login = (req, res) => {
                 return res.status(500).json({
                     success: false,
                     message: "Server error",
+                    error: err.message,
                 });
             }
 
@@ -169,6 +172,7 @@ exports.login = (req, res) => {
                 return res.status(500).json({
                     success: false,
                     message: "Server error",
+                    error: error.message,
                 });
             }
         }
@@ -190,86 +194,102 @@ exports.logout = (req, res) => {
 };
 
 exports.googleAuth = (req, res) => {
-    const { email, name, photo, provider = "google" } = req.body;
+    try {
+        const email = (req.body.email || "").trim().toLowerCase();
+        const name = (req.body.name || "").trim();
+        const photo = req.body.photo || "";
+        const provider = (req.body.provider || "google").trim();
 
-    if (!email || !name) {
-        return res.status(400).json({
-            success: false,
-            message: "Email and name are required.",
+        console.log("GOOGLE AUTH REQUEST:", {
+            email,
+            name,
+            provider,
         });
-    }
 
-    const normalizedEmail = email.trim().toLowerCase();
+        if (!email || !name) {
+            return res.status(400).json({
+                success: false,
+                message: "Email and name are required.",
+            });
+        }
 
-    db.query(
-        "SELECT * FROM users WHERE LOWER(email) = ? LIMIT 1",
-        [normalizedEmail],
-        (err, results) => {
-            if (err) {
-                console.error("Google auth check error:", err);
-                return res.status(500).json({
-                    success: false,
-                    message: "Database error",
-                });
-            }
+        db.query(
+            "SELECT * FROM users WHERE LOWER(email) = ? LIMIT 1",
+            [email],
+            (err, results) => {
+                if (err) {
+                    console.error("Google auth check error:", err);
+                    return res.status(500).json({
+                        success: false,
+                        message: "Database error",
+                        error: err.message,
+                    });
+                }
 
-            // If user doesn't exist, create them
-            if (!results || results.length === 0) {
-                db.query(
-                    "INSERT INTO users (name, email, role, provider, photo) VALUES (?, ?, ?, ?, ?)",
-                    [name, normalizedEmail, "client", provider, photo || ""],
-                    (insertErr, insertResult) => {
-                        if (insertErr) {
-                            console.error("Google auth insert error:", insertErr);
-                            return res.status(500).json({
-                                success: false,
-                                message: "Failed to create user",
+                if (!results || results.length === 0) {
+                    db.query(
+                        "INSERT INTO users (name, email, role, provider, photo) VALUES (?, ?, ?, ?, ?)",
+                        [name, email, "client", provider, photo],
+                        (insertErr, insertResult) => {
+                            if (insertErr) {
+                                console.error("Google auth insert error:", insertErr);
+                                return res.status(500).json({
+                                    success: false,
+                                    message: "Failed to create user",
+                                    error: insertErr.message,
+                                });
+                            }
+
+                            const newUser = {
+                                id: insertResult.insertId,
+                                name,
+                                email,
+                                role: "client",
+                                provider,
+                                photo,
+                            };
+
+                            const token = signToken(newUser);
+
+                            res.cookie("token", token, cookieOptions);
+
+                            return res.status(200).json({
+                                success: true,
+                                message: "Google authentication successful",
+                                token,
+                                user: newUser,
                             });
                         }
+                    );
+                } else {
+                    const user = results[0];
+                    const token = signToken(user);
 
-                        const newUser = {
-                            id: insertResult.insertId,
-                            name,
-                            email: normalizedEmail,
-                            role: "client",
-                            provider,
-                            photo: photo || "",
-                        };
+                    res.cookie("token", token, cookieOptions);
 
-                        const token = signToken(newUser);
-
-                        res.cookie("token", token, cookieOptions);
-
-                        return res.status(200).json({
-                            success: true,
-                            message: "Google authentication successful",
-                            token,
-                            user: newUser,
-                        });
-                    }
-                );
-            } else {
-                // User exists, log them in
-                const user = results[0];
-                const token = signToken(user);
-
-                res.cookie("token", token, cookieOptions);
-
-                return res.status(200).json({
-                    success: true,
-                    message: "Google authentication successful",
-                    token,
-                    user: {
-                        id: user.id,
-                        name: user.name,
-                        email: user.email,
-                        role: user.role,
-                        photo: user.photo || "",
-                    },
-                });
+                    return res.status(200).json({
+                        success: true,
+                        message: "Google authentication successful",
+                        token,
+                        user: {
+                            id: user.id,
+                            name: user.name,
+                            email: user.email,
+                            role: user.role,
+                            photo: user.photo || "",
+                        },
+                    });
+                }
             }
-        }
-    );
+        );
+    } catch (error) {
+        console.error("Google auth fatal error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Server error",
+            error: error.message,
+        });
+    }
 };
 
 exports.me = (req, res) => {
@@ -282,6 +302,7 @@ exports.me = (req, res) => {
                 return res.status(500).json({
                     success: false,
                     message: "Server error",
+                    error: err.message,
                 });
             }
 

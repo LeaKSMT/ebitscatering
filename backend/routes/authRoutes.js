@@ -11,6 +11,12 @@ const {
 
 const { verifyToken } = require("../middleware/authMiddleware");
 
+router.options("/register", (req, res) => res.sendStatus(204));
+router.options("/login", (req, res) => res.sendStatus(204));
+router.options("/google", (req, res) => res.sendStatus(204));
+router.options("/logout", (req, res) => res.sendStatus(204));
+router.options("/me", (req, res) => res.sendStatus(204));
+
 router.post("/register", register);
 router.post("/login", login);
 router.post("/google", googleAuth);
