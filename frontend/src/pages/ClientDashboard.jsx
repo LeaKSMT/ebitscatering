@@ -348,7 +348,6 @@ function ClientDashboard() {
         overviewIconWrap = "bg-[#fff3c8] text-[#8f6a0f]";
         nextStepText =
             "Your account is progressing well. You are close to completing your full catering transaction.";
-        heroAccent = "You are now in the advanced stage of your booking journey.";
     } else if (portalProgress >= 30) {
         overviewTitle = "In progress";
         overviewLabel = "Client journey";
@@ -489,18 +488,7 @@ function ClientDashboard() {
                                     {heroAccent}
                                 </div>
 
-                                <div className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-black/10 px-4 py-2.5 text-sm font-semibold text-white/80 backdrop-blur">
-                                    <Star size={15} className="text-[#f5c94a]" />
-                                    Defense-ready premium workspace
-                                </div>
 
-                                <Link
-                                    to="/client/quotations"
-                                    className="inline-flex items-center gap-2 rounded-2xl bg-white/95 px-4 py-2.5 text-sm font-bold text-[#0d5c46] shadow-[0_10px_25px_rgba(0,0,0,0.12)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(0,0,0,0.16)]"
-                                >
-                                    Open Records
-                                    <ChevronRight size={16} />
-                                </Link>
                             </div>
                         </div>
 
