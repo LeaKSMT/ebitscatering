@@ -749,11 +749,6 @@ function Quotation({ mode = "public" }) {
                                         and fully aligned with the Ebit’s Catering brand.
                                     </p>
 
-                                    <div className="mt-6 flex flex-wrap gap-3">
-                                        <HeroPill icon={Crown} text="High-end event planning" />
-                                        <HeroPill icon={UtensilsCrossed} text="Curated catering options" />
-                                        <HeroPill icon={ShieldCheck} text="Professional quotation flow" />
-                                    </div>
                                 </div>
 
                                 <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
