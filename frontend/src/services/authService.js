@@ -30,6 +30,22 @@ async function handleResponse(response) {
   return data;
 }
 
+function clearStoredAuth() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("clientToken");
+  localStorage.removeItem("authToken");
+  localStorage.removeItem("adminToken");
+  localStorage.removeItem("user");
+  localStorage.removeItem("clientUser");
+  localStorage.removeItem("adminUser");
+  localStorage.removeItem("currentClientEmail");
+  localStorage.removeItem("clientEmail");
+  localStorage.removeItem("currentClientName");
+  localStorage.removeItem("clientName");
+  localStorage.removeItem("adminAuth");
+  localStorage.removeItem("isClientLoggedIn");
+}
+
 function saveClientAuth(data) {
   if (data?.token) {
     localStorage.setItem("token", data.token);
@@ -48,6 +64,20 @@ function saveClientAuth(data) {
   }
 }
 
+function saveAdminAuth(data) {
+  if (data?.token) {
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("adminToken", data.token);
+    localStorage.setItem("authToken", data.token);
+  }
+
+  if (data?.user) {
+    localStorage.setItem("user", JSON.stringify(data.user));
+    localStorage.setItem("adminUser", JSON.stringify(data.user));
+    localStorage.setItem("adminAuth", "true");
+  }
+}
+
 export const authService = {
   async login(email, password) {
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
@@ -61,19 +91,10 @@ export const authService = {
 
     const data = await handleResponse(response);
 
+    clearStoredAuth();
+
     if (data?.user?.role === "admin") {
-      if (data?.token) {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("adminToken", data.token);
-        localStorage.setItem("authToken", data.token);
-      }
-
-      if (data?.user) {
-        localStorage.setItem("user", JSON.stringify(data.user));
-        localStorage.setItem("adminUser", JSON.stringify(data.user));
-      }
-
-      localStorage.setItem("adminAuth", "true");
+      saveAdminAuth(data);
       return data;
     }
 
@@ -96,7 +117,10 @@ export const authService = {
     });
 
     const data = await handleResponse(response);
+
+    clearStoredAuth();
     saveClientAuth(data);
+
     return data;
   },
 
@@ -130,20 +154,7 @@ export const authService = {
     });
 
     const data = await handleResponse(response);
-
-    localStorage.removeItem("token");
-    localStorage.removeItem("clientToken");
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("adminToken");
-    localStorage.removeItem("user");
-    localStorage.removeItem("clientUser");
-    localStorage.removeItem("adminUser");
-    localStorage.removeItem("currentClientEmail");
-    localStorage.removeItem("clientEmail");
-    localStorage.removeItem("currentClientName");
-    localStorage.removeItem("clientName");
-    localStorage.removeItem("adminAuth");
-    localStorage.removeItem("isClientLoggedIn");
+    clearStoredAuth();
 
     return data;
   },

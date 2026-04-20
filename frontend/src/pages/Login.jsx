@@ -48,7 +48,7 @@ function Login() {
         localStorage.removeItem("adminToken");
     };
 
-    const saveClientSession = ({ id = null, name, email, photo = "" }) => {
+    const saveClientSession = ({ id = null, name, email, photo = "", token = "" }) => {
         const safeEmail = email?.trim().toLowerCase() || "";
         const finalName = name?.trim() || safeEmail.split("@")[0] || "Client";
 
@@ -68,9 +68,15 @@ function Login() {
         localStorage.setItem("currentClientName", finalName);
         localStorage.setItem("currentClientEmail", safeEmail);
         localStorage.setItem("isClientLoggedIn", "true");
+
+        if (token) {
+            localStorage.setItem("token", token);
+            localStorage.setItem("clientToken", token);
+            localStorage.setItem("authToken", token);
+        }
     };
 
-    const saveAdminSession = ({ id = null, name, email, photo = "" }) => {
+    const saveAdminSession = ({ id = null, name, email, photo = "", token = "" }) => {
         const safeEmail = email?.trim().toLowerCase() || "";
         const finalName = name?.trim() || safeEmail.split("@")[0] || "Admin";
 
@@ -86,6 +92,12 @@ function Login() {
         localStorage.setItem("user", JSON.stringify(userData));
         localStorage.setItem("adminUser", JSON.stringify(userData));
         localStorage.setItem("adminAuth", "true");
+
+        if (token) {
+            localStorage.setItem("token", token);
+            localStorage.setItem("adminToken", token);
+            localStorage.setItem("authToken", token);
+        }
     };
 
     const showErrorPopup = (message) => {
@@ -137,7 +149,10 @@ function Login() {
                 });
 
                 if (data.user.role === "admin") {
-                    saveAdminSession(data.user);
+                    saveAdminSession({
+                        ...data.user,
+                        token: data.token || "",
+                    });
                     setTimeout(() => navigate(getRedirectAfterLogin("admin")), 1000);
                     return;
                 }
@@ -146,7 +161,8 @@ function Login() {
                     id: data.user.id || null,
                     name: data.user.name || "",
                     email: data.user.email,
-                    photo: "",
+                    photo: data.user.photo || "",
+                    token: data.token || "",
                 });
 
                 setTimeout(() => navigate(getRedirectAfterLogin("client")), 1000);
@@ -163,14 +179,27 @@ function Login() {
 
     const handleGoogleLogin = async () => {
         try {
+            setIsLoading(true);
+
             const result = await signInWithPopup(auth, googleProvider);
-            const user = result.user;
+            const googleUser = result.user;
+
+            const data = await authService.googleLogin({
+                email: googleUser.email,
+                name: googleUser.displayName,
+                photo: googleUser.photoURL,
+            });
+
+            if (!data?.user) {
+                throw new Error("Google login failed.");
+            }
 
             saveClientSession({
-                id: null,
-                name: user.displayName,
-                email: user.email,
-                photo: user.photoURL,
+                id: data.user.id || null,
+                name: data.user.name || googleUser.displayName || "",
+                email: data.user.email || googleUser.email || "",
+                photo: data.user.photo || googleUser.photoURL || "",
+                token: data.token || "",
             });
 
             Swal.fire({
@@ -187,9 +216,12 @@ function Login() {
                 },
             });
 
-            setTimeout(() => navigate("/client/dashboard"), 1000);
-        } catch {
-            showErrorPopup("Google login failed.");
+            setTimeout(() => navigate(getRedirectAfterLogin("client")), 1000);
+        } catch (err) {
+            console.error("Google login error:", err);
+            showErrorPopup(err.message || "Google login failed.");
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -420,7 +452,8 @@ function Login() {
                                 whileTap={{ scale: 0.98 }}
                                 type="button"
                                 onClick={handleGoogleLogin}
-                                className="w-full rounded-2xl border border-gray-300 bg-white py-3.5 px-4 font-medium text-gray-700 flex items-center justify-center gap-3 hover:border-[#d4af37] hover:shadow-sm transition"
+                                disabled={isLoading}
+                                className="w-full rounded-2xl border border-gray-300 bg-white py-3.5 px-4 font-medium text-gray-700 flex items-center justify-center gap-3 hover:border-[#d4af37] hover:shadow-sm transition disabled:opacity-70"
                             >
                                 <svg className="w-5 h-5" viewBox="0 0 48 48" aria-hidden="true">
                                     <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303C33.659 32.657 29.219 36 24 36c-6.627 0-12-5.373-12-12S17.373 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.278 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917Z" />
