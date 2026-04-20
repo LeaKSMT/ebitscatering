@@ -12,22 +12,24 @@ app.set("trust proxy", 1);
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 const { httpLogger } = require("./utils/logger");
 
+// Comprehensive CORS configuration
 app.use((req, res, next) => {
-    const allowedOrigin = "https://ebitscatering.vercel.app";
-    const requestOrigin = req.headers.origin || "";
+    const allowedOrigins = [
+        "https://ebitscatering.vercel.app",
+        "https://ebitscatering-production.up.railway.app",
+        "http://localhost:5173",
+        "http://localhost:3000"
+    ];
 
-    if (requestOrigin === allowedOrigin) {
-        res.setHeader("Access-Control-Allow-Origin", allowedOrigin);
+    const requestOrigin = req.headers.origin;
+
+    // Set CORS headers for all requests
+    if (allowedOrigins.includes(requestOrigin) || !requestOrigin) {
+        res.setHeader("Access-Control-Allow-Origin", requestOrigin || "*");
         res.setHeader("Vary", "Origin");
         res.setHeader("Access-Control-Allow-Credentials", "true");
-        res.setHeader(
-            "Access-Control-Allow-Methods",
-            "GET,POST,PUT,DELETE,OPTIONS"
-        );
-        res.setHeader(
-            "Access-Control-Allow-Headers",
-            "Content-Type, Authorization"
-        );
+        res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
     }
 
     console.log(
