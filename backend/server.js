@@ -5,22 +5,22 @@ require("dotenv").config();
 
 const app = express();
 
+console.log("🔥 CORS FIX VERSION LOADED");
+
 app.set("trust proxy", true);
 
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 const { httpLogger } = require("./utils/logger");
 
-const corsOptions = {
-    origin: true,
-    credentials: true,
+app.use(compression());
+
+app.use(cors({
+    origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-    optionsSuccessStatus: 200,
-};
+}));
 
-app.use(compression());
-app.use(cors(corsOptions));
-app.options(/.*/, cors(corsOptions));
+app.options("*", cors());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
