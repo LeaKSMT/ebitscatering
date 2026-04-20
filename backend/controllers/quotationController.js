@@ -130,6 +130,14 @@ exports.createQuotation = (req, res) => {
         excess_cost,
         package_inclusions,
         status,
+        assigned_staff,
+        payments,
+        expenses,
+        inquiries,
+        event_outcome,
+        evaluation_notes,
+        client_satisfaction,
+        staff_performance,
     } = req.body;
 
     if (!full_name || !email || !event_type || !preferred_date || !venue) {
@@ -171,9 +179,17 @@ exports.createQuotation = (req, res) => {
             excess_guests,
             excess_cost,
             package_inclusions,
-            status
+            status,
+            assigned_staff,
+            payments,
+            expenses,
+            inquiries,
+            event_outcome,
+            evaluation_notes,
+            client_satisfaction,
+            staff_performance
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const values = [
@@ -203,6 +219,14 @@ exports.createQuotation = (req, res) => {
         Number(excess_cost || 0),
         JSON.stringify(Array.isArray(package_inclusions) ? package_inclusions : []),
         status || "Pending",
+        JSON.stringify(Array.isArray(assigned_staff) ? assigned_staff : []),
+        JSON.stringify(Array.isArray(payments) ? payments : []),
+        JSON.stringify(Array.isArray(expenses) ? expenses : []),
+        JSON.stringify(Array.isArray(inquiries) ? inquiries : []),
+        event_outcome || null,
+        evaluation_notes || null,
+        client_satisfaction || null,
+        staff_performance || null,
     ];
 
     db.query(insertQuery, values, (err, result) => {
@@ -218,6 +242,233 @@ exports.createQuotation = (req, res) => {
             message: "Quotation created successfully",
             id: result.insertId,
             insertId: result.insertId,
+        });
+    });
+};
+
+exports.updateQuotation = (req, res) => {
+    const { id } = req.params;
+    const userEmail = getUserEmail(req);
+    const admin = isAdminUser(req);
+
+    let fetchQuery = `
+        SELECT * FROM quotations
+        WHERE id = ?
+    `;
+    const fetchValues = [id];
+
+    if (!admin) {
+        fetchQuery += `
+            AND (
+                LOWER(COALESCE(owner_email, '')) = ?
+                OR LOWER(COALESCE(email, '')) = ?
+            )
+        `;
+        fetchValues.push(userEmail, userEmail);
+    }
+
+    fetchQuery += ` LIMIT 1`;
+
+    db.query(fetchQuery, fetchValues, (fetchErr, results) => {
+        if (fetchErr) {
+            console.error("Fetch quotation before update error:", fetchErr);
+            return res.status(500).json({
+                message: "Failed to update quotation",
+                error: fetchErr.message,
+            });
+        }
+
+        if (!results || results.length === 0) {
+            return res.status(404).json({ message: "Quotation not found" });
+        }
+
+        const current = results[0];
+        const body = req.body || {};
+
+        const nextOwnerEmail = String(
+            body.ownerEmail ||
+            body.owner_email ||
+            current.owner_email ||
+            current.email ||
+            ""
+        )
+            .trim()
+            .toLowerCase();
+
+        const nextEmail = String(
+            body.email || current.email || nextOwnerEmail || ""
+        )
+            .trim()
+            .toLowerCase();
+
+        const assignedStaff =
+            body.assignedStaff ??
+            body.assigned_staff ??
+            (() => {
+                try {
+                    return JSON.parse(current.assigned_staff || "[]");
+                } catch {
+                    return [];
+                }
+            })();
+
+        const payments =
+            body.payments ??
+            (() => {
+                try {
+                    return JSON.parse(current.payments || "[]");
+                } catch {
+                    return [];
+                }
+            })();
+
+        const expenses =
+            body.expenses ??
+            (() => {
+                try {
+                    return JSON.parse(current.expenses || "[]");
+                } catch {
+                    return [];
+                }
+            })();
+
+        const inquiries =
+            body.inquiries ??
+            (() => {
+                try {
+                    return JSON.parse(current.inquiries || "[]");
+                } catch {
+                    return [];
+                }
+            })();
+
+        const addOns =
+            body.addOns ??
+            body.add_ons ??
+            (() => {
+                try {
+                    return JSON.parse(current.add_ons || "[]");
+                } catch {
+                    return [];
+                }
+            })();
+
+        const packageInclusions =
+            body.packageInclusions ??
+            body.package_inclusions ??
+            (() => {
+                try {
+                    return JSON.parse(current.package_inclusions || "[]");
+                } catch {
+                    return [];
+                }
+            })();
+
+        const updateQuery = `
+            UPDATE quotations
+            SET
+                owner_email = ?,
+                owner_name = ?,
+                full_name = ?,
+                email = ?,
+                contact_number = ?,
+                event_type = ?,
+                preferred_date = ?,
+                event_time = ?,
+                venue = ?,
+                guests = ?,
+                package_type = ?,
+                classic_menu = ?,
+                add_ons = ?,
+                theme_preference = ?,
+                special_requests = ?,
+                package_price = ?,
+                add_ons_total = ?,
+                estimated_total = ?,
+                included_pax = ?,
+                pricing_type = ?,
+                rate_per_pax = ?,
+                excess_guests = ?,
+                excess_cost = ?,
+                package_inclusions = ?,
+                status = ?,
+                assigned_staff = ?,
+                payments = ?,
+                expenses = ?,
+                inquiries = ?,
+                event_outcome = ?,
+                evaluation_notes = ?,
+                client_satisfaction = ?,
+                staff_performance = ?
+            WHERE id = ?
+        `;
+
+        const updateValues = [
+            nextOwnerEmail || null,
+            body.ownerName || body.owner_name || current.owner_name || body.fullName || body.full_name || current.full_name || null,
+            body.fullName || body.full_name || current.full_name,
+            nextEmail || null,
+            body.contactNumber || body.contact_number || current.contact_number || null,
+            body.eventType || body.event_type || current.event_type || null,
+            body.preferredDate || body.preferred_date || body.eventDate || current.preferred_date || null,
+            body.eventTime || body.event_time || current.event_time || null,
+            body.venue || current.venue || null,
+            Number(
+                body.guests ??
+                body.guestCount ??
+                current.guests ??
+                0
+            ),
+            body.packageType || body.package_type || current.package_type || null,
+            body.classicMenu || body.classic_menu || current.classic_menu || null,
+            JSON.stringify(Array.isArray(addOns) ? addOns : []),
+            body.themePreference || body.theme_preference || current.theme_preference || null,
+            body.specialRequests || body.special_requests || current.special_requests || null,
+            Number(body.packagePrice ?? body.package_price ?? current.package_price ?? 0),
+            Number(body.addOnsTotal ?? body.add_ons_total ?? current.add_ons_total ?? 0),
+            Number(body.estimatedTotal ?? body.estimated_total ?? body.totalAmount ?? current.estimated_total ?? 0),
+            body.includedPax != null
+                ? Number(body.includedPax)
+                : current.included_pax != null
+                    ? Number(current.included_pax)
+                    : null,
+            body.pricingType || body.pricing_type || current.pricing_type || "fixed",
+            body.ratePerPax != null
+                ? Number(body.ratePerPax)
+                : current.rate_per_pax != null
+                    ? Number(current.rate_per_pax)
+                    : null,
+            Number(body.excessGuests ?? body.excess_guests ?? current.excess_guests ?? 0),
+            Number(body.excessCost ?? body.excess_cost ?? current.excess_cost ?? 0),
+            JSON.stringify(Array.isArray(packageInclusions) ? packageInclusions : []),
+            body.status || current.status || "Pending",
+            JSON.stringify(Array.isArray(assignedStaff) ? assignedStaff : []),
+            JSON.stringify(Array.isArray(payments) ? payments : []),
+            JSON.stringify(Array.isArray(expenses) ? expenses : []),
+            JSON.stringify(Array.isArray(inquiries) ? inquiries : []),
+            body.eventOutcome || body.event_outcome || current.event_outcome || null,
+            body.evaluationNotes || body.evaluation_notes || current.evaluation_notes || null,
+            body.clientSatisfaction || body.client_satisfaction || current.client_satisfaction || null,
+            body.staffPerformance || body.staff_performance || current.staff_performance || null,
+            id,
+        ];
+
+        db.query(updateQuery, updateValues, (updateErr, updateResult) => {
+            if (updateErr) {
+                console.error("Update quotation error:", updateErr);
+                return res.status(500).json({
+                    message: "Failed to update quotation",
+                    error: updateErr.message,
+                });
+            }
+
+            if (!updateResult || updateResult.affectedRows === 0) {
+                return res.status(404).json({ message: "Quotation not found" });
+            }
+
+            return res.status(200).json({
+                message: "Quotation updated successfully",
+            });
         });
     });
 };

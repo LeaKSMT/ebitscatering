@@ -112,21 +112,6 @@ export const quotationService = {
     return handleResponse(response);
   },
 
-  async updateStatus(id, status, extraPayload = {}) {
-    if (
-      extraPayload &&
-      typeof extraPayload === "object" &&
-      Object.keys(extraPayload).length > 0
-    ) {
-      return this.updateQuotation(id, {
-        ...extraPayload,
-        status,
-      });
-    }
-
-    return this.updateQuotationStatus(id, status);
-  },
-
   async deleteQuotation(id) {
     const response = await fetch(`${API_BASE_URL}/quotations/${id}`, {
       method: "DELETE",
