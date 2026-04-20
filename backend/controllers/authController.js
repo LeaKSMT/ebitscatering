@@ -189,6 +189,89 @@ exports.logout = (req, res) => {
     });
 };
 
+exports.googleAuth = (req, res) => {
+    const { email, name, photo, provider = "google" } = req.body;
+
+    if (!email || !name) {
+        return res.status(400).json({
+            success: false,
+            message: "Email and name are required.",
+        });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    db.query(
+        "SELECT * FROM users WHERE LOWER(email) = ? LIMIT 1",
+        [normalizedEmail],
+        (err, results) => {
+            if (err) {
+                console.error("Google auth check error:", err);
+                return res.status(500).json({
+                    success: false,
+                    message: "Database error",
+                });
+            }
+
+            // If user doesn't exist, create them
+            if (!results || results.length === 0) {
+                db.query(
+                    "INSERT INTO users (name, email, role, provider, photo) VALUES (?, ?, ?, ?, ?)",
+                    [name, normalizedEmail, "client", provider, photo || ""],
+                    (insertErr, insertResult) => {
+                        if (insertErr) {
+                            console.error("Google auth insert error:", insertErr);
+                            return res.status(500).json({
+                                success: false,
+                                message: "Failed to create user",
+                            });
+                        }
+
+                        const newUser = {
+                            id: insertResult.insertId,
+                            name,
+                            email: normalizedEmail,
+                            role: "client",
+                            provider,
+                            photo: photo || "",
+                        };
+
+                        const token = signToken(newUser);
+
+                        res.cookie("token", token, cookieOptions);
+
+                        return res.status(200).json({
+                            success: true,
+                            message: "Google authentication successful",
+                            token,
+                            user: newUser,
+                        });
+                    }
+                );
+            } else {
+                // User exists, log them in
+                const user = results[0];
+                const token = signToken(user);
+
+                res.cookie("token", token, cookieOptions);
+
+                return res.status(200).json({
+                    success: true,
+                    message: "Google authentication successful",
+                    token,
+                    user: {
+                        id: user.id,
+                        name: user.name,
+                        email: user.email,
+                        role: user.role,
+                        photo: user.photo || "",
+                    },
+                });
+            }
+        }
+    );
+};
+
 exports.me = (req, res) => {
     db.query(
         "SELECT id, name, email, role, created_at FROM users WHERE id = ? LIMIT 1",

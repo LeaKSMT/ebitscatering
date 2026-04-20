@@ -4,7 +4,9 @@ CREATE TABLE users (
   email VARCHAR(255) NOT NULL UNIQUE,
   role VARCHAR(50) NOT NULL DEFAULT 'user',
   email_verified_at TIMESTAMP NULL DEFAULT NULL,
-  password VARCHAR(255) NOT NULL,
+  password VARCHAR(255) NULL,
+  provider VARCHAR(50) DEFAULT 'local',
+  photo VARCHAR(500) NULL,
   remember_token VARCHAR(100) NULL,
   created_at TIMESTAMP NULL DEFAULT NULL,
   updated_at TIMESTAMP NULL DEFAULT NULL

@@ -85,14 +85,42 @@ function ClientLogin() {
             const result = await signInWithPopup(auth, googleProvider);
             const user = result.user;
 
+            // Call backend to authenticate/register the Google user
+            const response = await fetch(`${import.meta.env.VITE_API_URL || "https://ebitscatering-production.up.railway.app/api"}/auth/google`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+                body: JSON.stringify({
+                    email: user.email,
+                    name: user.displayName,
+                    photo: user.photoURL,
+                    provider: "google"
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || "Google authentication failed");
+            }
+
+            // Save user data to localStorage
             saveClientSession({
-                name: user.displayName || "",
-                email: user.email || "",
-                role: "client",
+                name: data.user.name,
+                email: data.user.email,
+                role: data.user.role,
                 provider: "google",
-                photo: user.photoURL || "",
+                photo: data.user.photo || "",
                 contactNumber: "",
             });
+
+            // Save token
+            if (data.token) {
+                localStorage.setItem("token", data.token);
+                localStorage.setItem("clientToken", data.token);
+            }
 
             setSuccess("Google sign-in successful. Redirecting...");
 
