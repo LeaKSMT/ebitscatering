@@ -1,5 +1,27 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+    ArrowRight,
+    BadgeCheck,
+    CalendarDays,
+    Check,
+    CheckCircle2,
+    ChevronRight,
+    Clock3,
+    Crown,
+    Mail,
+    MapPin,
+    PartyPopper,
+    Phone,
+    ShieldCheck,
+    Sparkles,
+    Stars,
+    Users,
+    UtensilsCrossed,
+    Wallet,
+    X,
+} from "lucide-react";
 import { quotationService } from "../services/quotationService.js";
 
 function getCurrentClient() {
@@ -344,6 +366,47 @@ function formatCurrency(value) {
     return `₱${Number(value || 0).toLocaleString()}`;
 }
 
+const containerVariants = {
+    hidden: {},
+    show: {
+        transition: {
+            staggerChildren: 0.08,
+            delayChildren: 0.04,
+        },
+    },
+};
+
+const fadeUp = {
+    hidden: { opacity: 0, y: 28, filter: "blur(10px)" },
+    show: {
+        opacity: 1,
+        y: 0,
+        filter: "blur(0px)",
+        transition: {
+            duration: 0.58,
+            ease: [0.22, 1, 0.36, 1],
+        },
+    },
+};
+
+const softReveal = {
+    hidden: { opacity: 0, y: 18, scale: 0.985 },
+    show: {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        transition: {
+            duration: 0.42,
+            ease: [0.22, 1, 0.36, 1],
+        },
+    },
+};
+
+const inputClass =
+    "w-full rounded-2xl border border-[#d7e1dc] bg-white/95 px-4 py-3.5 text-[15px] text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#d4af37] focus:ring-4 focus:ring-[#d4af37]/15";
+const textareaClass =
+    "w-full rounded-2xl border border-[#d7e1dc] bg-white/95 px-4 py-3.5 text-[15px] text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#d4af37] focus:ring-4 focus:ring-[#d4af37]/15 resize-none";
+
 function Quotation({ mode = "public" }) {
     const navigate = useNavigate();
     const isClientMode = mode === "client";
@@ -378,8 +441,7 @@ function Quotation({ mode = "public" }) {
             eventType: savedPackage.eventType || prev.eventType,
             packageType: savedPackage.title || savedPackage.name || prev.packageType,
             guests:
-                savedPackage.includedPax ||
-                    savedPackage.pax?.includes("100")
+                savedPackage.includedPax || savedPackage.pax?.includes("100")
                     ? "100"
                     : prev.guests,
         }));
@@ -465,6 +527,49 @@ function Quotation({ mode = "public" }) {
 
         return `${selectedPackage.includedPax} pax included`;
     }, [selectedPackage, guestCount, excessGuests]);
+
+    const selectedAddOnObjects = useMemo(() => {
+        return addOns.filter((item) => formData.addOns.includes(item.name));
+    }, [formData.addOns]);
+
+    const completionStats = useMemo(() => {
+        const fields = [
+            formData.fullName,
+            formData.contactNumber,
+            formData.email,
+            formData.eventType,
+            formData.preferredDate,
+            formData.venue,
+            formData.guests,
+            formData.packageType,
+        ];
+
+        const filled = fields.filter((value) => String(value || "").trim() !== "").length;
+        const total = fields.length;
+        const percent = Math.round((filled / total) * 100);
+
+        return { filled, total, percent };
+    }, [formData]);
+
+    const heroCards = useMemo(() => {
+        return [
+            {
+                icon: CalendarDays,
+                label: "Event Schedule",
+                value: formData.preferredDate ? "Date selected" : "Set your target date",
+            },
+            {
+                icon: Users,
+                label: "Guest Planning",
+                value: guestCount > 0 ? `${guestCount} guest(s)` : "Add your guest count",
+            },
+            {
+                icon: Wallet,
+                label: "Live Estimate",
+                value: estimatedTotal > 0 ? formatCurrency(estimatedTotal) : "Auto-calculated",
+            },
+        ];
+    }, [formData.preferredDate, guestCount, estimatedTotal]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -580,585 +685,1006 @@ function Quotation({ mode = "public" }) {
     };
 
     return (
-        <div className="min-h-screen bg-[#f6f1e7]">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-12">
-                <div className="text-center mb-10">
-                    <p className="uppercase tracking-[0.35em] text-[11px] text-[#b99117] font-semibold">
-                        Ebit&apos;s Catering
-                    </p>
-                    <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#0f4d3c] mt-3">
-                        Get a <span className="text-[#d4af37]">Quotation</span>
-                    </h1>
-                    <p className="text-gray-600 mt-4 max-w-2xl mx-auto leading-7">
-                        Fill out the form below and send us your event details so we can prepare
-                        the most suitable catering offer for you.
-                    </p>
+        <div className="min-h-screen bg-[linear-gradient(180deg,#f4f7f4_0%,#eef3f0_36%,#f8f2e7_100%)]">
+            <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                animate="show"
+                className="relative overflow-hidden"
+            >
+                <div className="pointer-events-none absolute inset-0 overflow-hidden">
+                    <motion.div
+                        animate={{ scale: [1, 1.08, 1], opacity: [0.22, 0.35, 0.22] }}
+                        transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+                        className="absolute left-[-90px] top-24 h-80 w-80 rounded-full bg-[#0f6b52]/10 blur-3xl"
+                    />
+                    <motion.div
+                        animate={{ scale: [1, 1.12, 1], opacity: [0.18, 0.3, 0.18] }}
+                        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 0.7 }}
+                        className="absolute right-[-110px] top-32 h-[26rem] w-[26rem] rounded-full bg-[#d4af37]/12 blur-3xl"
+                    />
+                    <motion.div
+                        animate={{ y: [0, -12, 0], opacity: [0.15, 0.22, 0.15] }}
+                        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
+                        className="absolute bottom-10 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-[#0f4d3c]/8 blur-3xl"
+                    />
                 </div>
 
-                <div className="grid lg:grid-cols-[0.95fr_1.25fr] gap-8 items-start">
-                    <div className="bg-gradient-to-br from-[#0b5a43] via-[#0c6048] to-[#094534] text-white rounded-[28px] p-7 sm:p-8 shadow-[0_18px_45px_rgba(11,90,67,0.18)] border border-white/10">
-                        <div className="flex items-center gap-3 mb-5">
-                            <div className="h-11 w-11 rounded-2xl bg-[#d4af37] text-[#0f4d3c] flex items-center justify-center text-xl font-extrabold shadow-md">
-                                ✦
+                <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:py-12">
+                    <motion.section
+                        variants={fadeUp}
+                        className="overflow-hidden rounded-[34px] border border-[#dce7e2] bg-white shadow-[0_24px_70px_rgba(14,61,47,0.1)]"
+                    >
+                        <div className="relative overflow-hidden bg-[linear-gradient(135deg,#07382d_0%,#0c4d3d_26%,#0f6b52_68%,#18a06c_100%)] px-6 py-8 text-white md:px-8 md:py-10 lg:px-10 lg:py-11">
+                            <div className="pointer-events-none absolute inset-0">
+                                <motion.div
+                                    animate={{ scale: [1, 1.08, 1], opacity: [0.12, 0.22, 0.12] }}
+                                    transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+                                    className="absolute -right-14 -top-10 h-56 w-56 rounded-full bg-[#f5c94a]/25 blur-3xl"
+                                />
+                                <motion.div
+                                    animate={{ scale: [1, 1.1, 1], opacity: [0.08, 0.16, 0.08] }}
+                                    transition={{ duration: 8.5, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
+                                    className="absolute -left-10 bottom-[-30px] h-40 w-40 rounded-full bg-white/10 blur-3xl"
+                                />
+                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.08),transparent_34%)]" />
                             </div>
-                            <div>
-                                <p className="text-xs uppercase tracking-[0.2em] text-white/70">
-                                    Event Planning
-                                </p>
-                                <h2 className="text-2xl sm:text-3xl font-extrabold">
-                                    Plan your event with us
-                                </h2>
+
+                            <div className="relative grid gap-8 lg:grid-cols-[1.18fr_0.82fr] lg:items-end">
+                                <div>
+                                    <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.24em] text-white/80 backdrop-blur-md">
+                                        <Sparkles size={13} />
+                                        Luxury Event Quotation
+                                    </div>
+
+                                    <h1 className="mt-5 max-w-4xl text-3xl font-extrabold leading-tight md:text-5xl">
+                                        Build your{" "}
+                                        <span className="text-[#f5c94a]">dream event</span>{" "}
+                                        quotation with a premium experience
+                                    </h1>
+
+                                    <p className="mt-4 max-w-3xl text-sm leading-7 text-white/85 md:text-[15px]">
+                                        Choose your package, customize your setup, and submit a
+                                        polished quotation request that feels elegant, premium,
+                                        and fully aligned with the Ebit’s Catering brand.
+                                    </p>
+
+                                    <div className="mt-6 flex flex-wrap gap-3">
+                                        <HeroPill icon={Crown} text="High-end event planning" />
+                                        <HeroPill icon={UtensilsCrossed} text="Curated catering options" />
+                                        <HeroPill icon={ShieldCheck} text="Professional quotation flow" />
+                                    </div>
+                                </div>
+
+                                <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+                                    {heroCards.map((item) => (
+                                        <MiniHeroCard
+                                            key={item.label}
+                                            icon={item.icon}
+                                            label={item.label}
+                                            value={item.value}
+                                        />
+                                    ))}
+                                </div>
                             </div>
                         </div>
 
-                        <p className="text-white/90 leading-8 mb-6">
-                            Select your actual package, preferred classic menu, and add-ons so
-                            we can prepare a more accurate quotation for your event.
-                        </p>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-7">
-                            {[
-                                "Weddings",
-                                "Debuts",
-                                "Birthdays",
-                                "Anniversaries",
-                                "Baptismal celebrations",
-                            ].map((item) => (
-                                <div
-                                    key={item}
-                                    className="rounded-2xl bg-white/10 border border-white/10 px-4 py-3 text-sm font-medium"
-                                >
-                                    {item}
-                                </div>
-                            ))}
+                        <div className="grid gap-4 border-t border-white/5 bg-[linear-gradient(180deg,#fbfdfc_0%,#f7faf8_100%)] px-6 py-5 md:grid-cols-3 md:px-8 lg:px-10">
+                            <TopInfoCard
+                                icon={Stars}
+                                title="Elegant Experience"
+                                subtitle="Crafted to feel refined and premium"
+                            />
+                            <TopInfoCard
+                                icon={BadgeCheck}
+                                title="Live Cost Breakdown"
+                                subtitle="Package, add-ons, and totals update instantly"
+                            />
+                            <TopInfoCard
+                                icon={PartyPopper}
+                                title="Defense-Ready Design"
+                                subtitle="Modern visual hierarchy aligned with your system"
+                            />
                         </div>
+                    </motion.section>
 
-                        <div className="bg-white/10 rounded-[22px] p-5 border border-white/10 mb-6">
-                            <h3 className="text-xl font-bold text-[#f5c94a] mb-3">
-                                Contact Information
-                            </h3>
-                            <div className="space-y-1.5 text-white/90 leading-7">
-                                <p>Phone: 0917 679 0643</p>
-                                <p>Facebook: facebook.com/ebitscateringandservices</p>
-                                <p>Location: Dasmariñas City, Cavite</p>
+                    <div className="mt-8 grid gap-8 xl:grid-cols-[0.97fr_1.23fr]">
+                        <motion.aside variants={softReveal} className="space-y-6">
+                            <div className="overflow-hidden rounded-[32px] border border-[#dce7e2] bg-[linear-gradient(180deg,#0d5b44_0%,#0a4a39_100%)] p-6 text-white shadow-[0_22px_55px_rgba(11,90,67,0.2)] sm:p-7">
+                                <div className="flex items-start gap-4">
+                                    <motion.div
+                                        animate={{ rotate: [0, -6, 0], scale: [1, 1.04, 1] }}
+                                        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                                        className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[20px] bg-[#f5c94a] text-[#0b4a3a] shadow-lg"
+                                    >
+                                        <Sparkles size={24} />
+                                    </motion.div>
+
+                                    <div>
+                                        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/70">
+                                            Event Planning Suite
+                                        </p>
+                                        <h2 className="mt-2 text-2xl font-extrabold sm:text-3xl">
+                                            Design your event with confidence
+                                        </h2>
+                                        <p className="mt-3 text-sm leading-7 text-white/85">
+                                            Select the right event type, match it with the best
+                                            package, and let the system prepare a live estimate
+                                            for your celebration.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                                    {[
+                                        "Weddings",
+                                        "Debuts",
+                                        "Birthdays",
+                                        "Anniversaries",
+                                        "Baptismal celebrations",
+                                    ].map((item, index) => (
+                                        <motion.div
+                                            key={item}
+                                            initial={{ opacity: 0, y: 8 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.28, delay: index * 0.04 }}
+                                            whileHover={{ y: -2 }}
+                                            className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm font-medium backdrop-blur-sm"
+                                        >
+                                            {item}
+                                        </motion.div>
+                                    ))}
+                                </div>
+
+                                <div className="mt-6 rounded-[24px] border border-white/10 bg-white/10 p-5 backdrop-blur-sm">
+                                    <h3 className="text-lg font-extrabold text-[#f5c94a]">
+                                        Contact Information
+                                    </h3>
+                                    <div className="mt-4 space-y-3 text-sm text-white/90">
+                                        <ContactRow icon={Phone} text="0917 679 0643" />
+                                        <ContactRow
+                                            icon={Mail}
+                                            text="facebook.com/ebitscateringandservices"
+                                        />
+                                        <ContactRow
+                                            icon={MapPin}
+                                            text="Dasmariñas City, Cavite"
+                                        />
+                                    </div>
+                                </div>
                             </div>
-                        </div>
 
-                        <div className="bg-[#fff9ea] text-[#0f4d3c] rounded-[22px] p-5 border-2 border-[#efd67a] shadow-inner">
-                            <div className="flex items-center justify-between gap-3 mb-4">
-                                <h3 className="text-xl font-extrabold">Estimated Summary</h3>
-                                <span className="text-xs font-semibold bg-[#d4af37]/20 text-[#a47b00] px-3 py-1 rounded-full">
-                                    Live Preview
-                                </span>
-                            </div>
-
-                            <div className="space-y-3 text-sm">
-                                <div className="flex items-start justify-between gap-4">
-                                    <span className="text-gray-600">Selected Package</span>
-                                    <span className="font-semibold text-right max-w-[190px]">
-                                        {formData.packageType || "Not selected"}
-                                    </span>
-                                </div>
-
-                                <div className="flex items-start justify-between gap-4">
-                                    <span className="text-gray-600">Package Coverage</span>
-                                    <span className="font-semibold text-right max-w-[190px]">
-                                        {packageCoverageText}
-                                    </span>
-                                </div>
-
-                                <div className="flex items-start justify-between gap-4">
-                                    <span className="text-gray-600">Classic Menu</span>
-                                    <span className="font-semibold text-right max-w-[190px]">
-                                        {formData.classicMenu || "Not selected"}
-                                    </span>
-                                </div>
-
-                                <div className="flex items-center justify-between gap-4">
-                                    <span className="text-gray-600">Package Price</span>
-                                    <span className="font-semibold">
-                                        {packagePrice ? formatCurrency(packagePrice) : "—"}
-                                    </span>
-                                </div>
-
-                                {!isPerPaxPackage && excessGuests > 0 && (
-                                    <>
-                                        <div className="flex items-center justify-between gap-4">
-                                            <span className="text-gray-600">Excess Guests</span>
-                                            <span className="font-semibold">{excessGuests}</span>
+                            <motion.div
+                                variants={softReveal}
+                                className="overflow-hidden rounded-[32px] border border-[#ead48d] bg-[linear-gradient(180deg,#fffdf7_0%,#fff7e5_100%)] shadow-[0_18px_42px_rgba(212,175,55,0.14)]"
+                            >
+                                <div className="border-b border-[#ecd88d] px-6 py-5">
+                                    <div className="flex items-center justify-between gap-4">
+                                        <div>
+                                            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#b99117]">
+                                                Live Preview
+                                            </p>
+                                            <h3 className="mt-1 text-2xl font-extrabold text-[#0f4d3c]">
+                                                Estimated Summary
+                                            </h3>
                                         </div>
 
+                                        <div className="rounded-full bg-[#d4af37]/15 px-3 py-1 text-xs font-bold text-[#9b7400]">
+                                            Real Time
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4 px-6 py-6 text-sm">
+                                    <SummaryRow
+                                        label="Selected Package"
+                                        value={formData.packageType || "Not selected"}
+                                        multiLine
+                                    />
+                                    <SummaryRow
+                                        label="Package Coverage"
+                                        value={packageCoverageText}
+                                        multiLine
+                                    />
+                                    <SummaryRow
+                                        label="Classic Menu"
+                                        value={formData.classicMenu || "Not selected"}
+                                    />
+                                    <SummaryRow
+                                        label="Package Price"
+                                        value={packagePrice ? formatCurrency(packagePrice) : "—"}
+                                    />
+
+                                    {!isPerPaxPackage && excessGuests > 0 && (
+                                        <>
+                                            <SummaryRow
+                                                label="Excess Guests"
+                                                value={String(excessGuests)}
+                                            />
+                                            <SummaryRow
+                                                label="Excess Cost"
+                                                value={formatCurrency(excessCost)}
+                                            />
+                                        </>
+                                    )}
+
+                                    <SummaryRow
+                                        label="Add-ons Total"
+                                        value={addOnsTotal ? formatCurrency(addOnsTotal) : "₱0"}
+                                    />
+
+                                    <div className="rounded-[24px] border border-[#ecd88d] bg-white/75 px-4 py-4 shadow-sm">
                                         <div className="flex items-center justify-between gap-4">
-                                            <span className="text-gray-600">Excess Cost</span>
-                                            <span className="font-semibold">
-                                                {formatCurrency(excessCost)}
+                                            <span className="text-base font-bold text-[#0f4d3c]">
+                                                Estimated Total
+                                            </span>
+                                            <span className="text-2xl font-extrabold text-[#b99117]">
+                                                {estimatedTotal ? formatCurrency(estimatedTotal) : "—"}
                                             </span>
                                         </div>
-                                    </>
+                                    </div>
+                                </div>
+                            </motion.div>
+
+                            <motion.div
+                                variants={softReveal}
+                                className="rounded-[32px] border border-[#dce7e2] bg-white p-6 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#edf8f3] text-[#0f4d3c]">
+                                        <BadgeCheck size={22} />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#b99117]">
+                                            Submission Progress
+                                        </p>
+                                        <h3 className="mt-1 text-xl font-extrabold text-[#0f4d3c]">
+                                            Form Completion
+                                        </h3>
+                                    </div>
+                                </div>
+
+                                <div className="mt-5">
+                                    <div className="mb-2 flex items-center justify-between gap-3 text-sm">
+                                        <span className="font-semibold text-[#0f4d3c]">
+                                            {completionStats.filled} of {completionStats.total} key fields completed
+                                        </span>
+                                        <span className="font-bold text-[#b99117]">
+                                            {completionStats.percent}%
+                                        </span>
+                                    </div>
+
+                                    <div className="h-3 overflow-hidden rounded-full bg-[#edf2ef]">
+                                        <motion.div
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${completionStats.percent}%` }}
+                                            transition={{
+                                                duration: 0.7,
+                                                ease: [0.22, 1, 0.36, 1],
+                                            }}
+                                            className="h-full rounded-full bg-[linear-gradient(90deg,#0f4d3c_0%,#22b67f_55%,#d4af37_100%)]"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="mt-5 grid gap-3">
+                                    <ProgressTag active={!!formData.eventType} label="Event type selected" />
+                                    <ProgressTag active={!!formData.packageType} label="Package selected" />
+                                    <ProgressTag active={guestCount > 0} label="Guest count added" />
+                                    <ProgressTag active={!!formData.preferredDate} label="Preferred date chosen" />
+                                </div>
+                            </motion.div>
+
+                            <AnimatePresence mode="wait">
+                                {selectedPackage?.features?.length > 0 && (
+                                    <motion.div
+                                        key={selectedPackage.id}
+                                        initial={{ opacity: 0, y: 16 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: 10 }}
+                                        transition={{ duration: 0.3 }}
+                                        className="rounded-[32px] border border-[#dce7e2] bg-white p-6 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#edf8f3] text-[#0f4d3c]">
+                                                <CheckCircle2 size={22} />
+                                            </div>
+                                            <div>
+                                                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#b99117]">
+                                                    Selected Package
+                                                </p>
+                                                <h3 className="mt-1 text-2xl font-extrabold text-[#0f4d3c]">
+                                                    Package Inclusions
+                                                </h3>
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-5 grid gap-3">
+                                            {selectedPackage.features.map((item, index) => (
+                                                <motion.div
+                                                    key={`${item}-${index}`}
+                                                    initial={{ opacity: 0, x: -10 }}
+                                                    animate={{ opacity: 1, x: 0 }}
+                                                    transition={{ duration: 0.24, delay: index * 0.02 }}
+                                                    className="flex items-start gap-3 rounded-2xl border border-[#edf2ef] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] px-4 py-3 shadow-sm"
+                                                >
+                                                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#0f4d3c] text-white">
+                                                        <Check size={14} />
+                                                    </span>
+                                                    <span className="text-sm font-medium leading-6 text-slate-700">
+                                                        {item}
+                                                    </span>
+                                                </motion.div>
+                                            ))}
+                                        </div>
+                                    </motion.div>
                                 )}
+                            </AnimatePresence>
+                        </motion.aside>
 
-                                <div className="flex items-center justify-between gap-4">
-                                    <span className="text-gray-600">Add-ons Total</span>
-                                    <span className="font-semibold">
-                                        {addOnsTotal ? formatCurrency(addOnsTotal) : "₱0"}
-                                    </span>
+                        <motion.section
+                            variants={softReveal}
+                            className="overflow-hidden rounded-[34px] border border-[#dce7e2] bg-white shadow-[0_24px_70px_rgba(14,61,47,0.09)]"
+                        >
+                            <div className="border-b border-[#edf2ef] bg-[linear-gradient(90deg,#f8fbf9_0%,#fff8ea_100%)] px-6 py-6 sm:px-8">
+                                <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                                    <div>
+                                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#b99117]">
+                                            Request Details
+                                        </p>
+                                        <h2 className="mt-2 text-2xl font-extrabold text-[#0f4d3c] sm:text-3xl">
+                                            Premium Quotation Workspace
+                                        </h2>
+                                        <p className="mt-2 text-sm leading-7 text-slate-500">
+                                            Fill out your event information below and submit a clean,
+                                            professional request ready for review.
+                                        </p>
+                                    </div>
+
+                                    <div className="inline-flex items-center gap-2 self-start rounded-full border border-[#e6d69d] bg-white px-4 py-2 text-sm font-medium text-[#0f4d3c] shadow-sm">
+                                        <span className="h-2.5 w-2.5 rounded-full bg-[#0f8a61]" />
+                                        Ready to submit
+                                    </div>
                                 </div>
-
-                                <div className="border-t border-[#e8cf7a] pt-4 flex items-center justify-between gap-4">
-                                    <span className="font-bold text-base">Estimated Total</span>
-                                    <span className="font-extrabold text-xl text-[#b99117]">
-                                        {estimatedTotal ? formatCurrency(estimatedTotal) : "—"}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {selectedPackage?.features?.length > 0 && (
-                            <div className="mt-6 bg-white/10 rounded-[22px] p-5 border border-white/10">
-                                <h3 className="text-xl font-bold text-[#f5c94a] mb-3">
-                                    Package Inclusions
-                                </h3>
-                                <ul className="space-y-2 text-sm text-white/90">
-                                    {selectedPackage.features.map((item, index) => (
-                                        <li key={index} className="flex items-start gap-3">
-                                            <span className="mt-1.5 h-2 w-2 rounded-full bg-[#f5c94a] shrink-0" />
-                                            <span>{item}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="bg-white rounded-[28px] p-7 sm:p-8 shadow-[0_18px_45px_rgba(0,0,0,0.06)] border border-gray-100">
-                        <div className="flex items-center justify-between gap-4 mb-8">
-                            <div>
-                                <p className="text-xs uppercase tracking-[0.25em] text-[#b99117] font-semibold mb-2">
-                                    Request Details
-                                </p>
-                                <h2 className="text-2xl sm:text-3xl font-extrabold text-[#0f4d3c]">
-                                    Quotation Request Form
-                                </h2>
                             </div>
 
-                            <div className="hidden md:flex items-center gap-2 rounded-full bg-[#f8f3e4] px-4 py-2 border border-[#ecd88d]">
-                                <span className="h-2.5 w-2.5 rounded-full bg-[#0f8a61]" />
-                                <span className="text-sm font-medium text-[#0f4d3c]">
-                                    Ready to submit
-                                </span>
-                            </div>
-                        </div>
+                            <form onSubmit={handleSubmit} className="p-6 sm:p-8">
+                                <div className="grid gap-5 md:grid-cols-2">
+                                    <Field
+                                        label="Full Name"
+                                        required
+                                        filled={!!formData.fullName}
+                                    >
+                                        <input
+                                            type="text"
+                                            name="fullName"
+                                            value={formData.fullName}
+                                            onChange={handleChange}
+                                            placeholder="Enter your full name"
+                                            className={inputClass}
+                                            required
+                                        />
+                                    </Field>
 
-                        <form onSubmit={handleSubmit} className="grid md:grid-cols-2 gap-5">
-                            <div>
-                                <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
-                                    Full Name
-                                </label>
-                                <input
-                                    type="text"
-                                    name="fullName"
-                                    value={formData.fullName}
-                                    onChange={handleChange}
-                                    placeholder="Enter your full name"
-                                    className="w-full rounded-2xl border border-gray-300 px-4 py-3.5 outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition"
-                                    required
-                                />
-                            </div>
+                                    <Field
+                                        label="Contact Number"
+                                        required
+                                        filled={!!formData.contactNumber}
+                                    >
+                                        <input
+                                            type="text"
+                                            name="contactNumber"
+                                            value={formData.contactNumber}
+                                            onChange={handleChange}
+                                            placeholder="Enter your contact number"
+                                            className={inputClass}
+                                            required
+                                        />
+                                    </Field>
 
-                            <div>
-                                <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
-                                    Contact Number
-                                </label>
-                                <input
-                                    type="text"
-                                    name="contactNumber"
-                                    value={formData.contactNumber}
-                                    onChange={handleChange}
-                                    placeholder="Enter your contact number"
-                                    className="w-full rounded-2xl border border-gray-300 px-4 py-3.5 outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition"
-                                    required
-                                />
-                            </div>
+                                    <Field
+                                        label="Email Address"
+                                        required
+                                        filled={!!formData.email}
+                                    >
+                                        <input
+                                            type="email"
+                                            name="email"
+                                            value={formData.email}
+                                            onChange={handleChange}
+                                            placeholder="Enter your email address"
+                                            className={inputClass}
+                                            required
+                                        />
+                                    </Field>
 
-                            <div>
-                                <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
-                                    Email Address
-                                </label>
-                                <input
-                                    type="email"
-                                    name="email"
-                                    value={formData.email}
-                                    onChange={handleChange}
-                                    placeholder="Enter your email address"
-                                    className="w-full rounded-2xl border border-gray-300 px-4 py-3.5 outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition"
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
-                                    Event Type
-                                </label>
-                                <select
-                                    name="eventType"
-                                    value={formData.eventType}
-                                    onChange={handleChange}
-                                    className="w-full rounded-2xl border border-gray-300 px-4 py-3.5 outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition"
-                                    required
-                                >
-                                    <option value="">Select event type</option>
-                                    <option value="Wedding">Wedding</option>
-                                    <option value="Debut">Debut</option>
-                                    <option value="Birthday">Birthday</option>
-                                    <option value="Anniversary">Anniversary</option>
-                                    <option value="Baptismal">Baptismal</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
-                                    Preferred Date
-                                </label>
-                                <input
-                                    type="date"
-                                    name="preferredDate"
-                                    value={formData.preferredDate}
-                                    onChange={handleChange}
-                                    className="w-full rounded-2xl border border-gray-300 px-4 py-3.5 outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition"
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
-                                    Event Time
-                                </label>
-                                <input
-                                    type="time"
-                                    name="eventTime"
-                                    value={formData.eventTime}
-                                    onChange={handleChange}
-                                    className="w-full rounded-2xl border border-gray-300 px-4 py-3.5 outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
-                                    Venue / Location
-                                </label>
-                                <input
-                                    type="text"
-                                    name="venue"
-                                    value={formData.venue}
-                                    onChange={handleChange}
-                                    placeholder="Enter venue or event location"
-                                    className="w-full rounded-2xl border border-gray-300 px-4 py-3.5 outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition"
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
-                                    Number of Guests
-                                </label>
-                                <input
-                                    type="number"
-                                    name="guests"
-                                    value={formData.guests}
-                                    onChange={handleChange}
-                                    placeholder="Enter number of guests"
-                                    className="w-full rounded-2xl border border-gray-300 px-4 py-3.5 outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition"
-                                    required
-                                    min="1"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
-                                    Preferred Package
-                                </label>
-                                <select
-                                    name="packageType"
-                                    value={formData.packageType}
-                                    onChange={handleChange}
-                                    className="w-full rounded-2xl border border-gray-300 px-4 py-3.5 outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition"
-                                    required
-                                    disabled={!formData.eventType}
-                                >
-                                    <option value="">
-                                        {formData.eventType ? "Select package" : "Select event type first"}
-                                    </option>
-
-                                    {availablePackages.map((pkg, index) => (
-                                        <option
-                                            key={`${pkg.eventType}-${pkg.name}-${index}`}
-                                            value={pkg.name}
+                                    <Field
+                                        label="Event Type"
+                                        required
+                                        filled={!!formData.eventType}
+                                    >
+                                        <select
+                                            name="eventType"
+                                            value={formData.eventType}
+                                            onChange={handleChange}
+                                            className={inputClass}
+                                            required
                                         >
-                                            {pkg.pricingType === "perPax"
-                                                ? `${pkg.name} (₱${pkg.ratePerPax}/pax)`
-                                                : `${pkg.name} (${formatCurrency(pkg.price)} • ${pkg.includedPax} pax included)`}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
+                                            <option value="">Select event type</option>
+                                            <option value="Wedding">Wedding</option>
+                                            <option value="Debut">Debut</option>
+                                            <option value="Birthday">Birthday</option>
+                                            <option value="Anniversary">Anniversary</option>
+                                            <option value="Baptismal">Baptismal</option>
+                                        </select>
+                                    </Field>
 
-                            <div>
-                                <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
-                                    Classic Menu
-                                </label>
-                                <select
-                                    name="classicMenu"
-                                    value={formData.classicMenu}
-                                    onChange={handleChange}
-                                    className="w-full rounded-2xl border border-gray-300 px-4 py-3.5 outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition"
-                                >
-                                    <option value="">Select classic menu</option>
-                                    {classicMenus.map((menu) => (
-                                        <option key={menu} value={menu}>
-                                            {menu}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
+                                    <Field
+                                        label="Preferred Date"
+                                        required
+                                        filled={!!formData.preferredDate}
+                                    >
+                                        <input
+                                            type="date"
+                                            name="preferredDate"
+                                            value={formData.preferredDate}
+                                            onChange={handleChange}
+                                            className={inputClass}
+                                            required
+                                        />
+                                    </Field>
 
-                            <div className="md:col-span-2">
-                                <label className="block text-sm font-semibold text-[#0f4d3c] mb-3">
-                                    Add-ons
-                                </label>
+                                    <Field
+                                        label="Event Time"
+                                        filled={!!formData.eventTime}
+                                    >
+                                        <input
+                                            type="time"
+                                            name="eventTime"
+                                            value={formData.eventTime}
+                                            onChange={handleChange}
+                                            className={inputClass}
+                                        />
+                                    </Field>
 
-                                <div className="grid sm:grid-cols-2 gap-3">
-                                    {addOns.map((item) => {
-                                        const checked = formData.addOns.includes(item.name);
+                                    <Field
+                                        label="Venue / Location"
+                                        required
+                                        filled={!!formData.venue}
+                                    >
+                                        <input
+                                            type="text"
+                                            name="venue"
+                                            value={formData.venue}
+                                            onChange={handleChange}
+                                            placeholder="Enter venue or event location"
+                                            className={inputClass}
+                                            required
+                                        />
+                                    </Field>
 
-                                        return (
-                                            <label
-                                                key={item.name}
-                                                className={`flex items-center justify-between gap-3 rounded-2xl border px-4 py-3.5 cursor-pointer transition ${checked
-                                                        ? "border-[#d4af37] bg-[#fff8e6] shadow-sm"
-                                                        : "border-gray-200 bg-white hover:border-[#d4af37]"
-                                                    }`}
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={checked}
-                                                        onChange={() => handleAddonChange(item.name)}
-                                                        className="accent-[#0f4d3c]"
-                                                    />
-                                                    <span className="font-medium text-[#0f4d3c]">
-                                                        {item.name}
+                                    <Field
+                                        label="Number of Guests"
+                                        required
+                                        filled={!!formData.guests}
+                                    >
+                                        <input
+                                            type="number"
+                                            name="guests"
+                                            value={formData.guests}
+                                            onChange={handleChange}
+                                            placeholder="Enter number of guests"
+                                            className={inputClass}
+                                            min="1"
+                                            required
+                                        />
+                                    </Field>
+
+                                    <Field
+                                        label="Preferred Package"
+                                        required
+                                        filled={!!formData.packageType}
+                                    >
+                                        <select
+                                            name="packageType"
+                                            value={formData.packageType}
+                                            onChange={handleChange}
+                                            className={inputClass}
+                                            required
+                                            disabled={!formData.eventType}
+                                        >
+                                            <option value="">
+                                                {formData.eventType
+                                                    ? "Select package"
+                                                    : "Select event type first"}
+                                            </option>
+
+                                            {availablePackages.map((pkg, index) => (
+                                                <option
+                                                    key={`${pkg.eventType}-${pkg.name}-${index}`}
+                                                    value={pkg.name}
+                                                >
+                                                    {pkg.pricingType === "perPax"
+                                                        ? `${pkg.name} (₱${pkg.ratePerPax}/pax)`
+                                                        : `${pkg.name} (${formatCurrency(pkg.price)} • ${pkg.includedPax} pax included)`}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </Field>
+
+                                    <Field
+                                        label="Classic Menu"
+                                        filled={!!formData.classicMenu}
+                                    >
+                                        <select
+                                            name="classicMenu"
+                                            value={formData.classicMenu}
+                                            onChange={handleChange}
+                                            className={inputClass}
+                                        >
+                                            <option value="">Select classic menu</option>
+                                            {classicMenus.map((menu) => (
+                                                <option key={menu} value={menu}>
+                                                    {menu}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </Field>
+
+                                    <div className="md:col-span-2">
+                                        <Field
+                                            label="Add-ons"
+                                            filled={formData.addOns.length > 0}
+                                            caption={
+                                                formData.addOns.length > 0
+                                                    ? `${formData.addOns.length} selected`
+                                                    : ""
+                                            }
+                                        >
+                                            <div className="grid gap-3 sm:grid-cols-2">
+                                                {addOns.map((item, index) => {
+                                                    const checked = formData.addOns.includes(item.name);
+
+                                                    return (
+                                                        <motion.label
+                                                            key={item.name}
+                                                            initial={{ opacity: 0, y: 8 }}
+                                                            animate={{ opacity: 1, y: 0 }}
+                                                            transition={{ duration: 0.24, delay: index * 0.02 }}
+                                                            whileHover={{ y: -2 }}
+                                                            className={`flex cursor-pointer items-center justify-between gap-3 rounded-2xl border px-4 py-3.5 shadow-sm transition ${checked
+                                                                ? "border-[#d4af37] bg-[linear-gradient(180deg,#fffaf0_0%,#fff4d8_100%)]"
+                                                                : "border-[#e4ebe7] bg-white hover:border-[#d4af37]"
+                                                                }`}
+                                                        >
+                                                            <div className="flex items-center gap-3">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={checked}
+                                                                    onChange={() => handleAddonChange(item.name)}
+                                                                    className="accent-[#0f4d3c]"
+                                                                />
+                                                                <span className="font-medium text-[#0f4d3c]">
+                                                                    {item.name}
+                                                                </span>
+                                                            </div>
+
+                                                            <span className="font-bold text-[#b99117]">
+                                                                {formatCurrency(item.price)}
+                                                            </span>
+                                                        </motion.label>
+                                                    );
+                                                })}
+                                            </div>
+                                        </Field>
+                                    </div>
+
+                                    <div className="md:col-span-2">
+                                        <Field
+                                            label="Theme / Style Preference"
+                                            filled={!!formData.themePreference}
+                                        >
+                                            <input
+                                                type="text"
+                                                name="themePreference"
+                                                value={formData.themePreference}
+                                                onChange={handleChange}
+                                                placeholder="Enter preferred motif, theme, or style"
+                                                className={inputClass}
+                                            />
+                                        </Field>
+                                    </div>
+
+                                    <div className="md:col-span-2">
+                                        <Field
+                                            label="Special Requests"
+                                            filled={!!formData.specialRequests}
+                                        >
+                                            <textarea
+                                                name="specialRequests"
+                                                value={formData.specialRequests}
+                                                onChange={handleChange}
+                                                rows="5"
+                                                placeholder="Add your preferred menu, setup, add-ons, or other requests"
+                                                className={textareaClass}
+                                            />
+                                        </Field>
+                                    </div>
+                                </div>
+
+                                <AnimatePresence>
+                                    {(selectedAddOnObjects.length > 0 || formData.themePreference || formData.specialRequests) && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 12 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: 8 }}
+                                            className="mt-6 rounded-[28px] border border-[#e8efeb] bg-[linear-gradient(180deg,#fbfdfc_0%,#f7faf8_100%)] p-5"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#edf8f3] text-[#0f4d3c]">
+                                                    <Sparkles size={20} />
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#b99117]">
+                                                        Smart Preview
+                                                    </p>
+                                                    <h3 className="mt-1 text-lg font-extrabold text-[#0f4d3c]">
+                                                        Your current custom selections
+                                                    </h3>
+                                                </div>
+                                            </div>
+
+                                            <div className="mt-4 grid gap-4 md:grid-cols-2">
+                                                <div className="rounded-2xl border border-[#e3ebe7] bg-white p-4">
+                                                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+                                                        Selected Add-ons
+                                                    </p>
+                                                    <div className="mt-3 flex flex-wrap gap-2">
+                                                        {selectedAddOnObjects.length > 0 ? (
+                                                            selectedAddOnObjects.map((item) => (
+                                                                <span
+                                                                    key={item.name}
+                                                                    className="rounded-full bg-[#fff8e6] px-3 py-1 text-sm font-semibold text-[#0f4d3c] border border-[#ecd88d]"
+                                                                >
+                                                                    {item.name}
+                                                                </span>
+                                                            ))
+                                                        ) : (
+                                                            <span className="text-sm text-slate-500">
+                                                                No add-ons selected yet
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                <div className="rounded-2xl border border-[#e3ebe7] bg-white p-4">
+                                                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+                                                        Extra Preferences
+                                                    </p>
+                                                    <div className="mt-3 space-y-2 text-sm text-slate-600">
+                                                        <p>
+                                                            <span className="font-semibold text-[#0f4d3c]">
+                                                                Theme:
+                                                            </span>{" "}
+                                                            {formData.themePreference || "Not specified"}
+                                                        </p>
+                                                        <p>
+                                                            <span className="font-semibold text-[#0f4d3c]">
+                                                                Special Requests:
+                                                            </span>{" "}
+                                                            {formData.specialRequests || "None"}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+
+                                <div className="mt-8 flex flex-col gap-4 border-t border-[#edf2ef] pt-6 sm:flex-row">
+                                    <motion.button
+                                        whileTap={{ scale: 0.985 }}
+                                        type="submit"
+                                        disabled={isSubmitting}
+                                        className={`inline-flex flex-1 items-center justify-center gap-2 rounded-2xl py-3.5 font-bold text-white shadow-[0_12px_30px_rgba(15,77,60,0.18)] transition ${isSubmitting
+                                            ? "cursor-not-allowed bg-[#0f4d3c]/70"
+                                            : "bg-[linear-gradient(135deg,#0f4d3c_0%,#126650_100%)] hover:-translate-y-0.5"
+                                            }`}
+                                    >
+                                        {isSubmitting ? "Submitting..." : "Submit Request"}
+                                        {!isSubmitting && <ArrowRight size={18} />}
+                                    </motion.button>
+
+                                    {isClientMode ? (
+                                        <Link
+                                            to="/client/dashboard"
+                                            className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#e1b93e_0%,#d4af37_100%)] py-3.5 text-center font-bold text-[#0b4a3a] shadow-sm transition hover:-translate-y-0.5 hover:brightness-95"
+                                        >
+                                            Back to Dashboard
+                                            <ChevronRight size={18} />
+                                        </Link>
+                                    ) : (
+                                        <Link
+                                            to="/"
+                                            className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#e1b93e_0%,#d4af37_100%)] py-3.5 text-center font-bold text-[#0b4a3a] shadow-sm transition hover:-translate-y-0.5 hover:brightness-95"
+                                        >
+                                            Back to Home
+                                            <ChevronRight size={18} />
+                                        </Link>
+                                    )}
+                                </div>
+                            </form>
+                        </motion.section>
+                    </div>
+                </div>
+
+                <AnimatePresence>
+                    {showSuccessModal && submittedQuotation && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 z-50 flex items-center justify-center bg-[#06261d]/50 px-4 py-6 backdrop-blur-[4px]"
+                        >
+                            <motion.div
+                                initial={{ opacity: 0, y: 24, scale: 0.94 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: 18, scale: 0.96 }}
+                                transition={{ type: "spring", stiffness: 260, damping: 22 }}
+                                className="w-full max-w-3xl overflow-hidden rounded-[34px] border border-[#ead48d] bg-white shadow-[0_35px_90px_rgba(0,0,0,0.24)]"
+                            >
+                                <div className="relative bg-[linear-gradient(135deg,#0b5a43_0%,#0e6a4f_46%,#0f4d3c_100%)] px-7 py-7 text-white sm:px-8">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowSuccessModal(false)}
+                                        className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20"
+                                    >
+                                        <X size={18} />
+                                    </button>
+
+                                    <div className="flex items-start gap-4 pr-10">
+                                        <motion.div
+                                            initial={{ scale: 0.9, rotate: -8 }}
+                                            animate={{ scale: 1, rotate: 0 }}
+                                            transition={{ type: "spring", stiffness: 250, damping: 16 }}
+                                            className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[22px] bg-[#f5c94a] text-[#0b4a3a] shadow-lg"
+                                        >
+                                            <CheckCircle2 size={32} />
+                                        </motion.div>
+
+                                        <div>
+                                            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/75">
+                                                Request Confirmed
+                                            </p>
+                                            <h3 className="mt-2 text-2xl font-extrabold leading-tight sm:text-3xl">
+                                                Your quotation has been submitted successfully
+                                            </h3>
+                                            <p className="mt-3 max-w-2xl text-sm leading-7 text-white/80">
+                                                Thank you for choosing Ebit&apos;s Catering.
+                                                Your quotation request is now recorded and ready
+                                                for admin review.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="p-7 sm:p-8">
+                                    <div className="grid gap-5 md:grid-cols-[1.12fr_0.88fr]">
+                                        <div className="rounded-[28px] border border-[#ead48d] bg-[linear-gradient(180deg,#fffdf7_0%,#fff6dd_100%)] p-5">
+                                            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#b99117]">
+                                                Quotation Details
+                                            </p>
+
+                                            <div className="mt-4 space-y-3 text-sm">
+                                                <SummaryRow label="Quotation ID" value={submittedQuotation.quotationId} />
+                                                <SummaryRow
+                                                    label="Client Name"
+                                                    value={submittedQuotation.fullName}
+                                                    multiLine
+                                                />
+                                                <SummaryRow
+                                                    label="Event Type"
+                                                    value={submittedQuotation.eventType}
+                                                />
+
+                                                <div className="flex items-center justify-between gap-4">
+                                                    <span className="text-gray-500">Status</span>
+                                                    <span className="inline-flex items-center rounded-full bg-[#fff1c4] px-3 py-1 text-xs font-bold text-[#9b7400]">
+                                                        {submittedQuotation.status}
                                                     </span>
                                                 </div>
 
-                                                <span className="text-[#b99117] font-bold">
-                                                    {formatCurrency(item.price)}
-                                                </span>
-                                            </label>
-                                        );
-                                    })}
+                                                <div className="rounded-[24px] border border-[#ecd88d] bg-white/70 px-4 py-4 shadow-sm">
+                                                    <div className="flex items-center justify-between gap-4">
+                                                        <span className="font-semibold text-[#0f4d3c]">
+                                                            Estimated Total
+                                                        </span>
+                                                        <span className="text-xl font-extrabold text-[#0f4d3c]">
+                                                            {formatCurrency(submittedQuotation.estimatedTotal)}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="rounded-[28px] border border-[#dfe7e3] bg-[#f8fbfa] p-5">
+                                            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#0f8a61]">
+                                                What happens next?
+                                            </p>
+
+                                            <div className="mt-4 space-y-4">
+                                                <StepItem
+                                                    number="1"
+                                                    numberClass="bg-[#0f4d3c] text-white"
+                                                    text="The admin will review your selected package, date, guest count, and add-ons."
+                                                />
+                                                <StepItem
+                                                    number="2"
+                                                    numberClass="bg-[#d4af37] text-[#0f4d3c]"
+                                                    text="Your quotation status will appear in your client quotations page once updated."
+                                                />
+                                                <StepItem
+                                                    number="3"
+                                                    numberClass="border border-[#bcd7cb] bg-[#e8f3ef] text-[#0f4d3c]"
+                                                    text="You may proceed to your portal to monitor the request and wait for confirmation."
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-7 grid gap-4 sm:grid-cols-2">
+                                        <motion.button
+                                            whileTap={{ scale: 0.985 }}
+                                            type="button"
+                                            onClick={handleViewMyQuotations}
+                                            className="w-full rounded-2xl bg-[linear-gradient(135deg,#0f4d3c_0%,#126650_100%)] py-3.5 font-bold text-white shadow-[0_12px_30px_rgba(15,77,60,0.18)] transition hover:brightness-95"
+                                        >
+                                            View My Quotations
+                                        </motion.button>
+
+                                        <motion.button
+                                            whileTap={{ scale: 0.985 }}
+                                            type="button"
+                                            onClick={handleBackAfterSubmit}
+                                            className="w-full rounded-2xl bg-[linear-gradient(135deg,#e1b93e_0%,#d4af37_100%)] py-3.5 font-bold text-[#0b4a3a] shadow-sm transition hover:brightness-95"
+                                        >
+                                            {isClientMode ? "Back to Dashboard" : "Back to Home"}
+                                        </motion.button>
+                                    </div>
                                 </div>
-                            </div>
+                            </motion.div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </motion.div>
+        </div>
+    );
+}
 
-                            <div className="md:col-span-2">
-                                <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
-                                    Theme / Style Preference
-                                </label>
-                                <input
-                                    type="text"
-                                    name="themePreference"
-                                    value={formData.themePreference}
-                                    onChange={handleChange}
-                                    placeholder="Enter preferred motif, theme, or style"
-                                    className="w-full rounded-2xl border border-gray-300 px-4 py-3.5 outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition"
-                                />
-                            </div>
+function HeroPill({ icon: Icon, text }) {
+    return (
+        <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm font-medium text-white/90 backdrop-blur-sm">
+            <Icon size={15} />
+            {text}
+        </div>
+    );
+}
 
-                            <div className="md:col-span-2">
-                                <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
-                                    Special Requests
-                                </label>
-                                <textarea
-                                    name="specialRequests"
-                                    value={formData.specialRequests}
-                                    onChange={handleChange}
-                                    rows="5"
-                                    placeholder="Add your preferred menu, setup, add-ons, or other requests"
-                                    className="w-full rounded-2xl border border-gray-300 px-4 py-3.5 outline-none focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 transition resize-none"
-                                />
-                            </div>
-
-                            <div className="md:col-span-2 flex flex-col sm:flex-row gap-4 pt-2">
-                                <button
-                                    type="submit"
-                                    disabled={isSubmitting}
-                                    className={`flex-1 rounded-2xl py-3.5 font-bold text-white transition shadow-md ${isSubmitting
-                                            ? "cursor-not-allowed bg-[#0f4d3c]/70"
-                                            : "bg-[#0f4d3c] hover:bg-[#0c3f31]"
-                                        }`}
-                                >
-                                    {isSubmitting ? "Submitting..." : "Submit Request"}
-                                </button>
-
-                                {isClientMode ? (
-                                    <Link
-                                        to="/client/dashboard"
-                                        className="flex-1 bg-[#d4af37] text-[#0b4a3a] py-3.5 rounded-2xl font-bold text-center hover:bg-[#c79f23] transition shadow-sm"
-                                    >
-                                        Back to Dashboard
-                                    </Link>
-                                ) : (
-                                    <Link
-                                        to="/"
-                                        className="flex-1 bg-[#d4af37] text-[#0b4a3a] py-3.5 rounded-2xl font-bold text-center hover:bg-[#c79f23] transition shadow-sm"
-                                    >
-                                        Back to Home
-                                    </Link>
-                                )}
-                            </div>
-                        </form>
-                    </div>
+function MiniHeroCard({ icon: Icon, label, value }) {
+    return (
+        <motion.div
+            whileHover={{ y: -3 }}
+            transition={{ type: "spring", stiffness: 220, damping: 18 }}
+            className="rounded-[22px] border border-white/10 bg-white/10 p-4 backdrop-blur-md"
+        >
+            <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-white">
+                    <Icon size={20} />
+                </div>
+                <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">
+                        {label}
+                    </p>
+                    <p className="mt-1 text-sm font-bold text-white">{value}</p>
                 </div>
             </div>
+        </motion.div>
+    );
+}
 
-            {showSuccessModal && submittedQuotation && (
-                <div className="fixed inset-0 z-50 bg-[#06261d]/45 backdrop-blur-[3px] flex items-center justify-center px-4 py-6">
-                    <div className="w-full max-w-2xl rounded-[30px] overflow-hidden bg-white shadow-[0_30px_80px_rgba(0,0,0,0.22)] border border-[#ead48d] animate-[fadeIn_.2s_ease-out]">
-                        <div className="relative bg-gradient-to-r from-[#0b5a43] via-[#0e6a4f] to-[#0f4d3c] px-7 sm:px-8 py-7 text-white">
-                            <button
-                                type="button"
-                                onClick={() => setShowSuccessModal(false)}
-                                className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 transition text-xl font-semibold"
-                            >
-                                ×
-                            </button>
-
-                            <div className="flex items-start gap-4 pr-10">
-                                <div className="w-16 h-16 rounded-[20px] bg-[#f5c94a] text-[#0b4a3a] flex items-center justify-center text-3xl font-extrabold shadow-lg">
-                                    ✓
-                                </div>
-
-                                <div>
-                                    <p className="uppercase tracking-[0.28em] text-[11px] text-white/75 mb-1">
-                                        Request Confirmed
-                                    </p>
-                                    <h3 className="text-2xl sm:text-3xl font-extrabold leading-tight">
-                                        Your quotation has been submitted successfully
-                                    </h3>
-                                    <p className="text-white/80 mt-2 leading-7 max-w-xl">
-                                        Thank you for choosing Ebit&apos;s Catering. Your request is now
-                                        recorded and ready for review by the admin.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="p-7 sm:p-8">
-                            <div className="grid md:grid-cols-[1.2fr_0.8fr] gap-5">
-                                <div className="rounded-[24px] border border-[#ead48d] bg-[#fff9eb] p-5">
-                                    <p className="text-xs uppercase tracking-[0.22em] text-[#b99117] font-semibold mb-3">
-                                        Quotation Details
-                                    </p>
-
-                                    <div className="space-y-3 text-sm">
-                                        <div className="flex items-center justify-between gap-4">
-                                            <span className="text-gray-500">Quotation ID</span>
-                                            <span className="font-bold text-[#0f4d3c] text-base">
-                                                {submittedQuotation.quotationId}
-                                            </span>
-                                        </div>
-
-                                        <div className="flex items-center justify-between gap-4">
-                                            <span className="text-gray-500">Client Name</span>
-                                            <span className="font-semibold text-[#0f4d3c] text-right">
-                                                {submittedQuotation.fullName}
-                                            </span>
-                                        </div>
-
-                                        <div className="flex items-center justify-between gap-4">
-                                            <span className="text-gray-500">Event Type</span>
-                                            <span className="font-semibold text-[#0f4d3c]">
-                                                {submittedQuotation.eventType}
-                                            </span>
-                                        </div>
-
-                                        <div className="flex items-center justify-between gap-4">
-                                            <span className="text-gray-500">Status</span>
-                                            <span className="inline-flex items-center rounded-full bg-[#fff1c4] text-[#9b7400] px-3 py-1 text-xs font-bold">
-                                                {submittedQuotation.status}
-                                            </span>
-                                        </div>
-
-                                        <div className="border-t border-[#edd98e] pt-3 flex items-center justify-between gap-4">
-                                            <span className="font-semibold text-[#0f4d3c]">
-                                                Estimated Total
-                                            </span>
-                                            <span className="font-extrabold text-xl text-[#0f4d3c]">
-                                                {formatCurrency(submittedQuotation.estimatedTotal)}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="rounded-[24px] border border-[#dfe7e3] bg-[#f8fbfa] p-5">
-                                    <p className="text-xs uppercase tracking-[0.22em] text-[#0f8a61] font-semibold mb-3">
-                                        What happens next?
-                                    </p>
-
-                                    <div className="space-y-3">
-                                        <div className="flex gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-[#0f4d3c] text-white flex items-center justify-center text-sm font-bold shrink-0">
-                                                1
-                                            </div>
-                                            <p className="text-sm text-gray-600 leading-6">
-                                                The admin will review your selected package, date,
-                                                guest count, and add-ons.
-                                            </p>
-                                        </div>
-
-                                        <div className="flex gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-[#d4af37] text-[#0f4d3c] flex items-center justify-center text-sm font-bold shrink-0">
-                                                2
-                                            </div>
-                                            <p className="text-sm text-gray-600 leading-6">
-                                                Your quotation status will appear in your client
-                                                quotations page once updated.
-                                            </p>
-                                        </div>
-
-                                        <div className="flex gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-[#e8f3ef] text-[#0f4d3c] border border-[#bcd7cb] flex items-center justify-center text-sm font-bold shrink-0">
-                                                3
-                                            </div>
-                                            <p className="text-sm text-gray-600 leading-6">
-                                                You may proceed to your portal to monitor the
-                                                request and wait for confirmation.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="grid sm:grid-cols-2 gap-4 mt-7">
-                                <button
-                                    type="button"
-                                    onClick={handleViewMyQuotations}
-                                    className="w-full bg-[#0f4d3c] text-white py-3.5 rounded-2xl font-bold hover:bg-[#0c3f31] transition shadow-md"
-                                >
-                                    View My Quotations
-                                </button>
-
-                                <button
-                                    type="button"
-                                    onClick={handleBackAfterSubmit}
-                                    className="w-full bg-[#d4af37] text-[#0b4a3a] py-3.5 rounded-2xl font-bold hover:bg-[#c79f23] transition shadow-sm"
-                                >
-                                    {isClientMode ? "Back to Dashboard" : "Back to Home"}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+function TopInfoCard({ icon: Icon, title, subtitle }) {
+    return (
+        <motion.div
+            whileHover={{ y: -3 }}
+            transition={{ type: "spring", stiffness: 220, damping: 18 }}
+            className="rounded-[22px] border border-[#e3ebe7] bg-white p-4 shadow-sm"
+        >
+            <div className="flex items-start gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#edf8f3_0%,#dff1e8_100%)] text-[#0f4d3c]">
+                    <Icon size={20} />
                 </div>
-            )}
+                <div>
+                    <p className="text-sm font-bold text-[#0f4d3c]">{title}</p>
+                    <p className="mt-1 text-xs leading-5 text-slate-500">{subtitle}</p>
+                </div>
+            </div>
+        </motion.div>
+    );
+}
+
+function ContactRow({ icon: Icon, text }) {
+    return (
+        <div className="flex items-start gap-3">
+            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/10">
+                <Icon size={15} />
+            </div>
+            <span className="leading-6">{text}</span>
+        </div>
+    );
+}
+
+function Field({ label, required, filled, caption, children }) {
+    return (
+        <div>
+            <div className="mb-2 flex items-center justify-between gap-3">
+                <label className="block text-sm font-semibold text-[#0f4d3c]">
+                    {label} {required ? <span className="text-red-500">*</span> : null}
+                </label>
+
+                {caption ? (
+                    <span className="hidden rounded-full bg-[#eef8f4] px-2.5 py-1 text-[11px] font-semibold text-[#0f6b52] sm:inline-flex">
+                        {caption}
+                    </span>
+                ) : filled ? (
+                    <span className="hidden rounded-full bg-[#eef8f4] px-2.5 py-1 text-[11px] font-semibold text-[#0f6b52] sm:inline-flex">
+                        Filled
+                    </span>
+                ) : null}
+            </div>
+            {children}
+        </div>
+    );
+}
+
+function ProgressTag({ active, label }) {
+    return (
+        <div
+            className={`flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm ${active
+                ? "border-[#cfe4d9] bg-[#f3fbf7] text-[#0f4d3c]"
+                : "border-[#e9efec] bg-[#fafcfa] text-slate-500"
+                }`}
+        >
+            <span
+                className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${active ? "bg-[#0f4d3c] text-white" : "bg-[#edf2ef] text-slate-400"
+                    }`}
+            >
+                {active ? <Check size={14} /> : "•"}
+            </span>
+            <span className="font-medium">{label}</span>
+        </div>
+    );
+}
+
+function SummaryRow({ label, value, multiLine = false }) {
+    return (
+        <div className={`flex ${multiLine ? "items-start" : "items-center"} justify-between gap-4`}>
+            <span className="text-gray-500">{label}</span>
+            <span className={`font-semibold text-[#0f4d3c] ${multiLine ? "max-w-[220px] text-right" : ""}`}>
+                {value}
+            </span>
+        </div>
+    );
+}
+
+function StepItem({ number, numberClass, text }) {
+    return (
+        <div className="flex gap-3">
+            <div
+                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${numberClass}`}
+            >
+                {number}
+            </div>
+            <p className="text-sm leading-6 text-gray-600">{text}</p>
         </div>
     );
 }
