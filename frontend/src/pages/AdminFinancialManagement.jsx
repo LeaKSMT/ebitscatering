@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     getAllBookings,
@@ -50,6 +50,132 @@ const fadeUp = {
     },
 };
 
+function safeParse(key) {
+    try {
+        const value = localStorage.getItem(key);
+        return value ? JSON.parse(value) : [];
+    } catch {
+        return [];
+    }
+}
+
+function normalizeStatus(status = "") {
+    return String(status || "").trim().toLowerCase();
+}
+
+function normalizeBookingRecord(item, index = 0) {
+    if (!item || typeof item !== "object") return null;
+
+    const bookingId =
+        item.bookingId ||
+        item.booking_id ||
+        item.id ||
+        item.quotationId ||
+        `booking_${index + 1}`;
+
+    const totalAmount = Number(
+        item.totalAmount ??
+        item.total_price ??
+        item.estimatedTotal ??
+        item.estimated_total ??
+        0
+    );
+
+    return {
+        id: item.id || bookingId,
+        bookingId: String(bookingId),
+        fullName:
+            item.fullName ||
+            item.full_name ||
+            item.clientName ||
+            item.client_name ||
+            item.owner_name ||
+            "Client",
+        eventType: item.eventType || item.event_type || "Event",
+        totalAmount,
+        date:
+            item.date ||
+            item.eventDate ||
+            item.event_date ||
+            item.preferred_date ||
+            "",
+        status:
+            item.status ||
+            item.booking_status ||
+            item.paymentStatus ||
+            "Pending",
+    };
+}
+
+function getFallbackBookings() {
+    const possibleKeys = [
+        "adminManualBookings",
+        "clientBookings",
+        "bookings",
+        "adminBookings",
+        "approvedBookings",
+    ];
+
+    const collected = possibleKeys.flatMap((key) => safeParse(key));
+
+    const approvedQuotations = safeParse("clientQuotations")
+        .filter((item) =>
+            ["approved", "confirmed", "paid", "upcoming", "ongoing"].includes(
+                normalizeStatus(item.status)
+            )
+        )
+        .map((item, index) =>
+            normalizeBookingRecord(
+                {
+                    bookingId:
+                        item.bookingId ||
+                        item.quotationId ||
+                        item.quotation_id ||
+                        item.id ||
+                        `Q-${index + 1}`,
+                    fullName:
+                        item.fullName ||
+                        item.full_name ||
+                        item.clientName ||
+                        item.owner_name,
+                    eventType: item.eventType || item.event_type,
+                    totalAmount:
+                        item.totalAmount ||
+                        item.total_price ||
+                        item.estimatedTotal ||
+                        item.estimated_total,
+                    date:
+                        item.date ||
+                        item.eventDate ||
+                        item.event_date ||
+                        item.preferred_date,
+                    status: item.status,
+                },
+                index
+            )
+        )
+        .filter(Boolean);
+
+    const merged = [...collected, ...approvedQuotations]
+        .map((item, index) => normalizeBookingRecord(item, index))
+        .filter(Boolean);
+
+    const map = new Map();
+
+    merged.forEach((item) => {
+        const key = item.bookingId;
+        if (!map.has(key)) {
+            map.set(key, item);
+        }
+    });
+
+    return Array.from(map.values()).filter((item) =>
+        ["approved", "confirmed", "paid", "upcoming", "ongoing"].includes(
+            normalizeStatus(item.status)
+        )
+    );
+}
+
 function AdminFinancialManagement() {
     const [refreshKey, setRefreshKey] = useState(0);
     const [expenseForm, setExpenseForm] = useState({
@@ -65,7 +191,45 @@ function AdminFinancialManagement() {
         message: "",
     });
 
-    const bookings = useMemo(() => getAllBookings(), [refreshKey]);
+    useEffect(() => {
+        const refreshData = () => setRefreshKey((prev) => prev + 1);
+
+        window.addEventListener("storage", refreshData);
+        window.addEventListener("focus", refreshData);
+        document.addEventListener("visibilitychange", refreshData);
+
+        return () => {
+            window.removeEventListener("storage", refreshData);
+            window.removeEventListener("focus", refreshData);
+            document.removeEventListener("visibilitychange", refreshData);
+        };
+    }, []);
+
+    const bookings = useMemo(() => {
+        const primary = (getAllBookings() || []).map((item, index) =>
+            normalizeBookingRecord(item, index)
+        );
+
+        const fallback = getFallbackBookings();
+
+        const map = new Map();
+
+        [...primary, ...fallback]
+            .filter(Boolean)
+            .forEach((item) => {
+                const key = String(item.bookingId || item.id);
+                if (!map.has(key)) {
+                    map.set(key, item);
+                }
+            });
+
+        return Array.from(map.values()).filter((item) =>
+            ["approved", "confirmed", "paid", "upcoming", "ongoing"].includes(
+                normalizeStatus(item.status)
+            )
+        );
+    }, [refreshKey]);
+
     const payments = useMemo(() => getAllPayments(), [refreshKey]);
     const expenses = useMemo(() => getAllExpenses(), [refreshKey]);
 
@@ -73,21 +237,24 @@ function AdminFinancialManagement() {
         return bookings.map((booking) => {
             const paymentSummary = getBookingPaymentSummary(booking);
             const bookingExpenses = expenses.filter(
-                (expense) => expense.bookingId === booking.bookingId
+                (expense) =>
+                    String(expense.bookingId || "") === String(booking.bookingId || "")
             );
+
             const totalExpenses = bookingExpenses.reduce(
                 (sum, item) => sum + Number(item.amount || 0),
                 0
             );
+
             const revenue = Number(booking.totalAmount || 0);
             const profit = revenue - totalExpenses;
             const margin = revenue > 0 ? ((profit / revenue) * 100).toFixed(1) : "0.0";
 
             return {
                 ...booking,
-                paid: paymentSummary.paid,
-                balance: paymentSummary.balance,
-                paymentStatus: paymentSummary.paymentStatus,
+                paid: Number(paymentSummary?.paid || 0),
+                balance: Number(paymentSummary?.balance || 0),
+                paymentStatus: paymentSummary?.paymentStatus || "Unpaid",
                 totalExpenses,
                 profit,
                 margin,
@@ -134,7 +301,9 @@ function AdminFinancialManagement() {
 
     const handleBookingSelect = (e) => {
         const selectedId = e.target.value;
-        const booking = bookings.find((item) => item.bookingId === selectedId);
+        const booking = bookings.find(
+            (item) => String(item.bookingId) === String(selectedId)
+        );
 
         if (!booking) {
             setExpenseForm((prev) => ({
@@ -455,7 +624,9 @@ function AdminFinancialManagement() {
                                     className="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
                                     required
                                 >
-                                    <option value="">Select booking</option>
+                                    <option value="">
+                                        {bookings.length === 0 ? "No approved bookings found" : "Select booking"}
+                                    </option>
                                     {bookings.map((booking) => (
                                         <option key={booking.id} value={booking.bookingId}>
                                             {booking.bookingId} — {booking.fullName}
