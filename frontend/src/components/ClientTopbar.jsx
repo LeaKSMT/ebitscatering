@@ -251,6 +251,28 @@ function ClientTopbar() {
         setTheme((prev) => (prev === "light" ? "dark" : "light"));
     };
 
+    const isDark = theme === "dark";
+
+    const profileButtonClass = isDark
+        ? "flex h-[50px] max-w-[210px] items-center gap-2 rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.98)_0%,rgba(13,40,32,0.98)_100%)] px-4 py-2.5 text-sm font-bold text-[#98efcc] shadow-[0_14px_30px_rgba(0,0,0,0.18)]"
+        : "flex h-[50px] max-w-[210px] items-center gap-2 rounded-2xl border border-white/10 bg-white/95 px-4 py-2.5 text-sm font-bold text-[#0b5a43] shadow-[0_14px_30px_rgba(0,0,0,0.08)]";
+
+    const profileInitialClass = isDark
+        ? "flex h-8 w-8 items-center justify-center rounded-xl bg-[linear-gradient(135deg,#0d5c46_0%,#0f6d51_100%)] text-xs font-extrabold text-white"
+        : "flex h-8 w-8 items-center justify-center rounded-xl bg-[linear-gradient(135deg,#0b5a43_0%,#0f6d51_100%)] text-xs font-extrabold text-white";
+
+    const dropdownClass = isDark
+        ? "absolute right-0 top-[calc(100%+12px)] z-[80] w-[280px] overflow-hidden rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.99)_0%,rgba(13,40,32,0.99)_100%)] text-white shadow-[0_30px_60px_rgba(0,0,0,0.28)]"
+        : "absolute right-0 top-[calc(100%+12px)] z-[80] w-[280px] overflow-hidden rounded-[28px] border border-[#dfe8e4] bg-white text-slate-800 shadow-[0_30px_60px_rgba(0,0,0,0.18)]";
+
+    const dropdownItemClass = isDark
+        ? "flex w-full items-center gap-3 rounded-[20px] px-4 py-3 text-left text-sm font-semibold text-white/90 transition hover:bg-white/5"
+        : "flex w-full items-center gap-3 rounded-[20px] px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-[#f7fbf9]";
+
+    const mobileSignedInCardClass = isDark
+        ? "relative mt-5 rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.98)_0%,rgba(13,40,32,0.98)_100%)] px-4 py-4 text-[#98efcc] shadow-[0_14px_30px_rgba(0,0,0,0.18)]"
+        : "relative mt-5 rounded-[24px] border border-white/10 bg-white/95 px-4 py-4 text-[#0b5a43] shadow-[0_14px_30px_rgba(0,0,0,0.12)]";
+
     const navItems = [
         { to: "/client/dashboard", label: "Dashboard", icon: LayoutDashboard },
         { to: "/client/quotations", label: "Quotations", icon: FileText },
@@ -260,8 +282,7 @@ function ClientTopbar() {
     ];
 
     const navClass = ({ isActive }) =>
-        `client-topbar-link ${isActive ? "client-topbar-link-active" : "client-topbar-link-idle"
-        }`;
+        `client-topbar-link ${isActive ? "client-topbar-link-active" : "client-topbar-link-idle"}`;
 
     return (
         <>
@@ -417,9 +438,9 @@ function ClientTopbar() {
                                         setShowProfileDropdown((prev) => !prev);
                                         setShowNotifications(false);
                                     }}
-                                    className={profileInitialClass}
+                                    className={profileButtonClass}
                                 >
-                                    <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[linear-gradient(135deg,#0b5a43_0%,#0f6d51_100%)] text-xs font-extrabold text-white">
+                                    <div className={profileInitialClass}>
                                         {String(clientUser?.name || "C").charAt(0).toUpperCase()}
                                     </div>
                                     <span className={`truncate ${isDark ? "text-[#98efcc]" : "text-[#0b5a43]"}`}>
@@ -427,8 +448,7 @@ function ClientTopbar() {
                                     </span>
                                     <ChevronRight
                                         size={15}
-                                        className={`shrink-0 transition ${showProfileDropdown ? "rotate-90" : ""
-                                            }`}
+                                        className={`shrink-0 transition ${showProfileDropdown ? "rotate-90" : ""}`}
                                     />
                                 </button>
 
@@ -463,7 +483,8 @@ function ClientTopbar() {
                                                         setShowProfileDropdown(false);
                                                         navigate("/client/dashboard");
                                                     }}
-                                                    className={dropdownItemClass}                                                >
+                                                    className={dropdownItemClass}
+                                                >
                                                     <User size={17} className="text-[#0d5c46]" />
                                                     <span>Profile Overview</span>
                                                 </button>

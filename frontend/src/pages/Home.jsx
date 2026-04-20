@@ -26,6 +26,10 @@ import {
     Quote,
     Eye,
     Shield,
+    Wand2,
+    Salad,
+    Music4,
+    Camera,
 } from "lucide-react";
 
 import hero from "../assets/hero.jpg";
@@ -35,7 +39,7 @@ import gal3 from "../assets/gal3.jpg";
 import ChatBot from "../components/ChatBot";
 
 const fadeUp = {
-    hidden: { opacity: 0, y: 26 },
+    hidden: { opacity: 0, y: 30 },
     visible: (i = 0) => ({
         opacity: 1,
         y: 0,
@@ -171,7 +175,7 @@ function Home() {
         {
             title: "Fresh and Quality Food",
             text: "Prepared with quality ingredients to give your guests a satisfying dining experience.",
-            icon: <UtensilsCrossed className="h-5 w-5" />,
+            icon: <Salad className="h-5 w-5" />,
         },
         {
             title: "Organized Booking Process",
@@ -181,7 +185,7 @@ function Home() {
         {
             title: "Reliable Event Service",
             text: "Our team focuses on timely setup, smooth coordination, and professional presentation.",
-            icon: <Clock3 className="h-5 w-5" />,
+            icon: <ShieldCheck className="h-5 w-5" />,
         },
         {
             title: "Memorable Celebrations",
@@ -213,7 +217,7 @@ function Home() {
             step: "03",
             title: "Plan Your Setup",
             text: "Finalize the package, styling, and celebration details with confidence.",
-            icon: <PartyPopper className="h-5 w-5" />,
+            icon: <Wand2 className="h-5 w-5" />,
         },
         {
             step: "04",
@@ -227,23 +231,52 @@ function Home() {
         { value: 100, suffix: "+", label: "Elegant Setups" },
         { value: 50, suffix: "+", label: "Premium Events" },
         { value: 100, suffix: "%", label: "Service Focus" },
+        { value: 10, suffix: "+", label: "Celebration Styles" },
     ];
 
-    const testimonials = [
+    const premiumHighlights = [
         {
-            name: "Client Experience",
-            role: "Wedding Celebration",
-            text: "The setup looked elegant and the service felt organized from start to finish. Everything looked premium.",
+            title: "Elegant Styling",
+            text: "Coordinated setups, tasteful details, and a polished presentation for every celebration.",
+            icon: <Crown className="h-5 w-5" />,
         },
         {
-            name: "Event Impression",
-            role: "Debut Celebration",
-            text: "The food presentation, styling, and coordination made the event feel smooth and memorable.",
+            title: "Quality Service Flow",
+            text: "From inquiry to event day, every step is handled with clarity and professionalism.",
+            icon: <Shield className="h-5 w-5" />,
         },
         {
-            name: "Celebration Feedback",
-            role: "Birthday Occasion",
-            text: "Professional team, beautiful arrangement, and a very polished overall event experience.",
+            title: "Memorable Moments",
+            text: "Designed for weddings, debuts, birthdays, anniversaries, and milestone events.",
+            icon: <Sparkles className="h-5 w-5" />,
+        },
+        {
+            title: "Flexible Experience",
+            text: "Packages and event details can be aligned with your theme, setup, and celebration needs.",
+            icon: <PartyPopper className="h-5 w-5" />,
+        },
+    ];
+
+    const experienceCards = [
+        {
+            title: "Elegant Setup",
+            text: "Visually polished tables, stage styling, and coordinated presentation.",
+            icon: <Award className="h-5 w-5" />,
+        },
+        {
+            title: "Food & Service",
+            text: "Fresh menu options delivered with professional catering support.",
+            icon: <UtensilsCrossed className="h-5 w-5" />,
+        },
+        {
+            title: "Celebration Flow",
+            text: "Smooth coordination to keep the event organized and stress-free.",
+            icon: <Music4 className="h-5 w-5" />,
+        },
+        {
+            title: "Picture-Ready Moments",
+            text: "A polished look that makes every event feel premium and memorable.",
+            icon: <Camera className="h-5 w-5" />,
         },
     ];
 
@@ -364,12 +397,13 @@ function Home() {
     );
 
     return (
-        <div className="min-h-screen bg-[#f8f7f2] text-green-950">
-            <div className="fixed left-0 top-0 z-[60] h-[3px] bg-yellow-400 transition-all duration-150"
+        <div className="relative min-h-screen overflow-x-hidden bg-[#f7f4ee] text-green-950">
+            <div
+                className="fixed left-0 top-0 z-[70] h-[3px] bg-gradient-to-r from-[#f7d56a] via-[#d4a514] to-[#f7d56a] transition-all duration-150"
                 style={{ width: `${scrollProgress}%` }}
             />
 
-            <nav className="sticky top-0 z-50 flex h-[82px] items-center justify-between border-b border-white/10 bg-[#0b4d3b]/85 px-5 text-white shadow-[0_10px_30px_rgba(0,0,0,0.08)] backdrop-blur-xl md:px-10 lg:px-14">
+            <nav className="sticky top-0 z-50 flex h-[82px] items-center justify-between border-b border-white/10 bg-[#0b4d3b]/80 px-5 text-white shadow-[0_10px_30px_rgba(0,0,0,0.08)] backdrop-blur-2xl md:px-10 lg:px-14">
                 <div className="leading-none">
                     <h1 className="text-[21px] font-extrabold tracking-tight text-yellow-400 md:text-[25px]">
                         Ebit&apos;s Catering
@@ -472,7 +506,7 @@ function Home() {
 
             <section
                 id="home"
-                className="scroll-mt-24 relative flex min-h-[720px] items-center overflow-hidden md:min-h-[860px] md:scroll-mt-28"
+                className="scroll-mt-24 relative flex min-h-[760px] items-center overflow-hidden md:min-h-[920px] md:scroll-mt-28"
                 style={{
                     backgroundImage: `url(${hero})`,
                     backgroundSize: "cover",
@@ -484,7 +518,6 @@ function Home() {
                 <div className="hero-vignette absolute inset-0" />
                 <div className="hero-mesh absolute inset-0" />
                 <div className="hero-noise absolute inset-0" />
-
                 <div className="hero-glow hero-glow-1" />
                 <div className="hero-glow hero-glow-2" />
                 <div className="hero-glow hero-glow-3" />
@@ -499,12 +532,12 @@ function Home() {
                             variants={fadeUp}
                             className="mb-6 flex flex-wrap items-center justify-center gap-3 lg:justify-start"
                         >
-                            <div className="inline-flex items-center gap-2 rounded-full border border-yellow-300/20 bg-white/10 px-4 py-2 text-xs text-white/95 backdrop-blur-sm md:text-sm">
+                            <div className="inline-flex items-center gap-2 rounded-full border border-yellow-300/20 bg-white/10 px-4 py-2 text-xs text-white/95 backdrop-blur-md md:text-sm">
                                 <Sparkles size={14} className="text-yellow-400" />
                                 Elegant Event Catering
                             </div>
 
-                            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs text-white/90 backdrop-blur-sm md:text-sm">
+                            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs text-white/90 backdrop-blur-md md:text-sm">
                                 <Star size={14} className="text-yellow-400" />
                                 Refined • Premium • Memorable
                             </div>
@@ -515,7 +548,7 @@ function Home() {
                             animate="visible"
                             custom={1}
                             variants={fadeUp}
-                            className="text-[40px] font-extrabold leading-[0.98] tracking-[-0.05em] text-white sm:text-[58px] md:text-[78px]"
+                            className="text-[42px] font-extrabold leading-[0.95] tracking-[-0.06em] text-white sm:text-[62px] md:text-[86px]"
                         >
                             Luxury Catering
                             <br />
@@ -545,7 +578,7 @@ function Home() {
                         >
                             <Link
                                 to="/packages"
-                                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-6 py-3.5 font-semibold text-[#0b4d3b] shadow-[0_14px_34px_rgba(0,0,0,0.18)] transition duration-300 hover:-translate-y-1 hover:bg-[#fff8e6]"
+                                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-6 py-3.5 font-semibold text-[#0b4d3b] shadow-[0_18px_40px_rgba(0,0,0,0.18)] transition duration-300 hover:-translate-y-1 hover:bg-[#fff8e6]"
                             >
                                 View Packages
                                 <ChevronRight size={18} />
@@ -553,7 +586,7 @@ function Home() {
 
                             <button
                                 onClick={handleGetQuotation}
-                                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-yellow-400 px-6 py-3.5 font-semibold text-green-950 shadow-[0_14px_34px_rgba(0,0,0,0.22)] transition duration-300 hover:-translate-y-1 hover:bg-yellow-300"
+                                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-yellow-400 px-6 py-3.5 font-semibold text-green-950 shadow-[0_18px_40px_rgba(0,0,0,0.22)] transition duration-300 hover:-translate-y-1 hover:bg-yellow-300"
                             >
                                 Get Free Quotation
                                 <ArrowRight size={18} />
@@ -565,7 +598,7 @@ function Home() {
                             animate="visible"
                             custom={4}
                             variants={fadeUp}
-                            className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-3"
+                            className="mt-10 grid grid-cols-2 gap-4 lg:max-w-3xl lg:grid-cols-4"
                         >
                             {stats.map((item, index) => (
                                 <div
@@ -589,17 +622,17 @@ function Home() {
                         variants={softScale}
                         className="hidden lg:block"
                     >
-                        <div className="relative mx-auto max-w-[500px] rounded-[36px] border border-white/10 bg-white/10 p-4 shadow-[0_32px_90px_rgba(0,0,0,0.22)] backdrop-blur-xl">
-                            <div className="pointer-events-none absolute inset-0 rounded-[36px] bg-gradient-to-br from-white/10 via-transparent to-yellow-300/5" />
+                        <div className="relative mx-auto max-w-[530px] rounded-[38px] border border-white/10 bg-white/10 p-4 shadow-[0_32px_90px_rgba(0,0,0,0.24)] backdrop-blur-xl">
+                            <div className="absolute inset-0 rounded-[38px] bg-gradient-to-br from-white/10 via-transparent to-yellow-300/5" />
 
-                            <div className="relative rounded-[30px] bg-gradient-to-br from-[#12533f] via-[#0b4d3b] to-[#06291f] p-7 text-white">
+                            <div className="relative rounded-[32px] bg-gradient-to-br from-[#14583f] via-[#0b4d3b] to-[#06291f] p-7 text-white">
                                 <div className="mb-7 flex items-center justify-between">
                                     <div>
                                         <p className="text-[11px] uppercase tracking-[0.34em] text-white/60">
                                             Signature Experience
                                         </p>
-                                        <h3 className="mt-3 text-[30px] font-bold leading-tight">
-                                            Ebit&apos;s Premium Service
+                                        <h3 className="mt-3 text-[31px] font-bold leading-tight">
+                                            End-to-End Elegant Service
                                         </h3>
                                     </div>
 
@@ -608,33 +641,23 @@ function Home() {
                                     </div>
                                 </div>
 
-                                <div className="space-y-4">
-                                    {[
-                                        {
-                                            icon: <CheckCircle2 size={17} className="mt-0.5 shrink-0 text-yellow-400" />,
-                                            text: "Elegant setup and stylish presentation",
-                                        },
-                                        {
-                                            icon: <UtensilsCrossed size={17} className="mt-0.5 shrink-0 text-yellow-400" />,
-                                            text: "Fresh, quality food for special occasions",
-                                        },
-                                        {
-                                            icon: <Shield size={17} className="mt-0.5 shrink-0 text-yellow-400" />,
-                                            text: "Professional staff and smooth coordination",
-                                        },
-                                        {
-                                            icon: <Star size={17} className="mt-0.5 shrink-0 text-yellow-400" />,
-                                            text: "Curated packages for memorable celebrations",
-                                        },
-                                    ].map((item, index) => (
+                                <div className="grid gap-4">
+                                    {experienceCards.map((item, index) => (
                                         <div
                                             key={index}
                                             className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/8 p-4 transition hover:border-yellow-300/25 hover:bg-white/10"
                                         >
-                                            {item.icon}
-                                            <p className="text-sm leading-7 text-white/88">
-                                                {item.text}
-                                            </p>
+                                            <div className="mt-0.5 rounded-xl bg-white/10 p-2 text-yellow-400">
+                                                {item.icon}
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-semibold text-white">
+                                                    {item.title}
+                                                </p>
+                                                <p className="mt-1 text-sm leading-6 text-white/76">
+                                                    {item.text}
+                                                </p>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
@@ -645,16 +668,16 @@ function Home() {
                                             Best for
                                         </p>
                                         <p className="mt-2 text-sm font-semibold text-white/92">
-                                            Weddings • Debuts
+                                            Weddings • Debuts • Milestones
                                         </p>
                                     </div>
 
                                     <div className="rounded-2xl border border-white/10 bg-white/10 p-4">
                                         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/60">
-                                            Service
+                                            Signature
                                         </p>
                                         <p className="mt-2 text-sm font-semibold text-white/92">
-                                            Elegant • Organized • Trusted
+                                            Elegant • Organized • Premium
                                         </p>
                                     </div>
                                 </div>
@@ -664,7 +687,7 @@ function Home() {
                 </div>
             </section>
 
-            <section className="relative overflow-hidden bg-[#f8f7f2] px-5 py-16 md:px-10 md:py-20 lg:px-20">
+            <section className="relative overflow-hidden bg-[#f7f4ee] px-5 py-16 md:px-10 md:py-20 lg:px-20">
                 <div className="pointer-events-none absolute left-0 top-12 h-40 w-40 rounded-full bg-[#d4a514]/10 blur-3xl" />
                 <div className="pointer-events-none absolute right-0 bottom-0 h-40 w-40 rounded-full bg-[#0b4d3b]/10 blur-3xl" />
 
@@ -687,7 +710,7 @@ function Home() {
                             key={index}
                             custom={index}
                             variants={fadeUp}
-                            className="group premium-card relative overflow-hidden rounded-[30px] border border-[#ece6d8] bg-white px-6 py-7 text-center shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
+                            className="group premium-card relative overflow-hidden rounded-[30px] border border-[#ece6d8] bg-white/90 px-6 py-7 text-center shadow-[0_12px_34px_rgba(0,0,0,0.04)] backdrop-blur-sm"
                         >
                             <div className="premium-card-shine" />
                             <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#fbf4df] text-[#c99d1a] transition duration-300 group-hover:bg-[#0b4d3b] group-hover:text-white">
@@ -706,13 +729,13 @@ function Home() {
                 </motion.div>
             </section>
 
-            <section className="bg-[#f8f7f2] px-5 pb-16 md:px-10 md:pb-20 lg:px-20">
+            <section className="bg-[#f7f4ee] px-5 pb-16 md:px-10 md:pb-20 lg:px-20">
                 <motion.div
                     initial="hidden"
                     whileInView="visible"
                     viewport={{ once: true, amount: 0.16 }}
                     variants={softScale}
-                    className="relative mx-auto max-w-6xl overflow-hidden rounded-[38px] bg-gradient-to-br from-[#0d5a43] via-[#0b4d3b] to-[#082f25] p-7 text-white shadow-[0_28px_56px_rgba(0,0,0,0.16)] md:p-10"
+                    className="relative mx-auto max-w-6xl overflow-hidden rounded-[40px] bg-gradient-to-br from-[#0d5a43] via-[#0b4d3b] to-[#082f25] p-7 text-white shadow-[0_30px_60px_rgba(0,0,0,0.16)] md:p-10"
                 >
                     <div className="absolute right-0 top-0 h-48 w-48 rounded-full bg-yellow-300/10 blur-3xl" />
                     <div className="absolute bottom-0 left-0 h-44 w-44 rounded-full bg-white/5 blur-3xl" />
@@ -752,7 +775,7 @@ function Home() {
                                 key={item.id}
                                 custom={index}
                                 variants={fadeUp}
-                                className={`group relative overflow-hidden rounded-[30px] border bg-[#fffdf8] p-6 text-[#0b4d3b] shadow-sm transition duration-300 hover:-translate-y-2 hover:shadow-2xl ${index === 1
+                                className={`group relative overflow-hidden rounded-[32px] border bg-[#fffdf8] p-6 text-[#0b4d3b] shadow-sm transition duration-300 hover:-translate-y-2 hover:shadow-2xl ${index === 1
                                         ? "package-featured border-[#e4bc41] ring-1 ring-[#e4bc41]/40 scale-[1.02]"
                                         : "border-transparent"
                                     }`}
@@ -813,13 +836,13 @@ function Home() {
                 </motion.div>
             </section>
 
-            <section className="bg-[#f8f7f2] px-5 pb-16 md:px-10 md:pb-20 lg:px-20">
+            <section className="bg-[#f7f4ee] px-5 pb-16 md:px-10 md:pb-20 lg:px-20">
                 <motion.div
                     initial="hidden"
                     whileInView="visible"
                     viewport={{ once: true, amount: 0.18 }}
                     variants={softScale}
-                    className="mx-auto max-w-6xl rounded-[36px] border border-[#ece6d8] bg-white p-7 shadow-[0_16px_40px_rgba(0,0,0,0.05)] md:p-10"
+                    className="mx-auto max-w-6xl rounded-[38px] border border-[#ece6d8] bg-white/95 p-7 shadow-[0_18px_40px_rgba(0,0,0,0.05)] backdrop-blur-sm md:p-10"
                 >
                     <div className="mb-8 max-w-2xl">
                         <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-[#0b4d3b]/55 md:text-xs">
@@ -956,7 +979,7 @@ function Home() {
                         variants={softScale}
                         className="relative"
                     >
-                        <div className="absolute -right-5 -top-5 z-10 rounded-2xl border border-white/10 bg-white/10 px-4 py-3 backdrop-blur-md">
+                        <div className="absolute -right-3 -top-3 z-10 rounded-2xl border border-white/10 bg-white/10 px-4 py-3 backdrop-blur-md md:-right-5 md:-top-5">
                             <p className="text-sm font-semibold text-yellow-400">
                                 Elegant & Organized
                             </p>
@@ -965,13 +988,13 @@ function Home() {
                             </p>
                         </div>
 
-                        <div className="relative overflow-hidden rounded-[32px] border border-white/10 shadow-2xl">
+                        <div className="relative overflow-hidden rounded-[34px] border border-white/10 shadow-[0_26px_70px_rgba(0,0,0,0.28)]">
                             <img
                                 src={gal2}
                                 alt="Ebit's Catering event setup"
-                                className="h-[320px] w-full object-cover transition duration-700 hover:scale-105 md:h-[470px]"
+                                className="h-[330px] w-full object-cover transition duration-700 hover:scale-105 md:h-[500px]"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-[#0b4d3b]/84 via-transparent to-transparent" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#0b4d3b]/84 via-black/10 to-transparent" />
                             <div className="absolute bottom-0 left-0 right-0 p-5">
                                 <div className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur-md">
                                     <p className="text-base font-bold text-yellow-400 md:text-lg">
@@ -988,12 +1011,15 @@ function Home() {
                 </div>
             </section>
 
-            <section className="bg-[#f8f7f2] px-5 py-16 md:px-10 md:py-20 lg:px-20">
+            <section className="relative overflow-hidden bg-[#f7f4ee] px-5 py-16 md:px-10 md:py-20 lg:px-20">
+                <div className="pointer-events-none absolute left-[8%] top-20 h-40 w-40 rounded-full bg-[#d4a514]/10 blur-3xl" />
+                <div className="pointer-events-none absolute right-[6%] bottom-8 h-40 w-40 rounded-full bg-[#0b4d3b]/10 blur-3xl" />
+
                 {sectionTitle(
-                    "Why Choose Us",
-                    "Why Choose",
-                    "Ebit’s",
-                    "A trusted catering service focused on quality food, elegant setup, and organized event support."
+                    "Premium Experience",
+                    "What Makes It",
+                    "Special",
+                    "A cleaner, more elegant event experience built around quality, style, and organized service."
                 )}
 
                 <motion.div
@@ -1001,70 +1027,25 @@ function Home() {
                     initial="hidden"
                     whileInView="visible"
                     viewport={{ once: true, amount: 0.18 }}
-                    className="mx-auto grid max-w-5xl gap-5 md:grid-cols-2"
+                    className="mx-auto grid max-w-6xl gap-5 md:grid-cols-2 xl:grid-cols-4"
                 >
-                    {reasons.map((item, index) => (
+                    {premiumHighlights.map((item, index) => (
                         <motion.div
                             key={index}
                             custom={index}
                             variants={fadeUp}
-                            className="group rounded-[28px] border border-[#ece6d8] bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1.5 hover:shadow-xl"
+                            className="group relative overflow-hidden rounded-[30px] border border-[#ece6d8] bg-white/90 p-6 shadow-[0_10px_28px_rgba(0,0,0,0.04)] backdrop-blur-sm transition duration-300 hover:-translate-y-1.5 hover:shadow-xl"
                         >
-                            <div className="flex items-start gap-4">
-                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#fbf4df] text-[#c99d1a] transition duration-300 group-hover:bg-[#0b4d3b] group-hover:text-white">
-                                    {item.icon}
-                                </div>
-
-                                <div>
-                                    <h4 className="mb-2 text-[20px] font-bold text-[#0b4d3b]">
-                                        {item.title}
-                                    </h4>
-                                    <p className="text-[15px] leading-7 text-slate-600">
-                                        {item.text}
-                                    </p>
-                                </div>
+                            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-[#d4a514] to-transparent opacity-60" />
+                            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#fbf4df] text-[#c99d1a] transition duration-300 group-hover:bg-[#0b4d3b] group-hover:text-white">
+                                {item.icon}
                             </div>
-                        </motion.div>
-                    ))}
-                </motion.div>
-            </section>
-
-            <section className="bg-[#f8f7f2] px-5 pb-16 md:px-10 md:pb-20 lg:px-20">
-                {sectionTitle(
-                    "Client Impression",
-                    "Trusted",
-                    "Experience",
-                    "A refined event service that feels polished, organized, and premium from start to finish."
-                )}
-
-                <motion.div
-                    variants={staggerWrap}
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={{ once: true, amount: 0.18 }}
-                    className="mx-auto grid max-w-6xl gap-5 md:grid-cols-3"
-                >
-                    {testimonials.map((item, index) => (
-                        <motion.div
-                            key={index}
-                            custom={index}
-                            variants={fadeUp}
-                            className="rounded-[30px] border border-[#ece6d8] bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1.5 hover:shadow-xl"
-                        >
-                            <div className="mb-4 flex items-center gap-1 text-yellow-400">
-                                {[...Array(5)].map((_, i) => (
-                                    <Star key={i} className="h-4 w-4 fill-current" />
-                                ))}
-                            </div>
-
+                            <h4 className="mb-3 text-[20px] font-bold text-[#0b4d3b]">
+                                {item.title}
+                            </h4>
                             <p className="text-[15px] leading-7 text-slate-600">
-                                “{item.text}”
+                                {item.text}
                             </p>
-
-                            <div className="mt-5 border-t border-[#ece6d8] pt-4">
-                                <p className="font-bold text-[#0b4d3b]">{item.name}</p>
-                                <p className="text-sm text-slate-500">{item.role}</p>
-                            </div>
                         </motion.div>
                     ))}
                 </motion.div>
@@ -1072,7 +1053,7 @@ function Home() {
 
             <section
                 id="gallery"
-                className="scroll-mt-24 bg-[#f8f7f2] px-5 py-16 md:scroll-mt-28 md:px-10 md:py-20 lg:px-20"
+                className="scroll-mt-24 bg-[#f7f4ee] px-5 py-16 md:scroll-mt-28 md:px-10 md:py-20 lg:px-20"
             >
                 {sectionTitle(
                     "Recent Setups",
@@ -1086,7 +1067,7 @@ function Home() {
                     initial="hidden"
                     whileInView="visible"
                     viewport={{ once: true, amount: 0.18 }}
-                    className="mx-auto grid max-w-5xl gap-6 md:grid-cols-3"
+                    className="mx-auto grid max-w-6xl gap-6 md:grid-cols-3"
                 >
                     {galleryItems.map((item, index) => (
                         <motion.button
@@ -1095,20 +1076,21 @@ function Home() {
                             custom={index}
                             variants={fadeUp}
                             onClick={() => setSelectedGallery(item)}
-                            className="group gallery-card relative overflow-hidden rounded-[30px] text-left shadow-md"
+                            className={`group gallery-card relative overflow-hidden rounded-[32px] text-left shadow-[0_18px_40px_rgba(0,0,0,0.10)] ${index === 1 ? "md:-translate-y-4" : ""
+                                }`}
                         >
                             <img
                                 src={item.src}
                                 alt={item.title}
-                                className="h-64 w-full object-cover transition duration-700 group-hover:scale-110 md:h-72"
+                                className="h-72 w-full object-cover transition duration-700 group-hover:scale-110 md:h-[350px]"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
                             <div className="gallery-hover-overlay absolute inset-0 opacity-0 transition duration-500 group-hover:opacity-100" />
                             <div className="absolute right-4 top-4 rounded-full bg-white/15 p-2 text-white backdrop-blur-md">
                                 <Eye className="h-4 w-4" />
                             </div>
-                            <div className="absolute bottom-0 left-0 right-0 p-4">
-                                <p className="text-base font-semibold text-white md:text-lg">
+                            <div className="absolute bottom-0 left-0 right-0 p-5">
+                                <p className="text-lg font-semibold text-white">
                                     {item.title}
                                 </p>
                                 <p className="mt-1 translate-y-2 text-sm text-white/0 transition duration-500 group-hover:translate-y-0 group-hover:text-white/75">
@@ -1122,7 +1104,7 @@ function Home() {
 
             <section
                 id="contact"
-                className="scroll-mt-24 bg-[#f8f7f2] px-5 py-16 md:scroll-mt-28 md:px-10 md:py-20 lg:px-20"
+                className="scroll-mt-24 bg-[#f7f4ee] px-5 py-16 md:scroll-mt-28 md:px-10 md:py-20 lg:px-20"
             >
                 {sectionTitle(
                     "Contact Us",
@@ -1131,7 +1113,7 @@ function Home() {
                     "We’d love to hear from you"
                 )}
 
-                <div className="mx-auto grid max-w-5xl gap-8 lg:grid-cols-[0.95fr_1.05fr]">
+                <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[0.95fr_1.05fr]">
                     <motion.div
                         initial="hidden"
                         whileInView="visible"
@@ -1139,7 +1121,7 @@ function Home() {
                         variants={fadeUp}
                         className="space-y-5"
                     >
-                        <div className="rounded-[28px] border border-[#ece6d8] bg-white p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl">
+                        <div className="rounded-[30px] border border-[#ece6d8] bg-white/90 p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl">
                             <div className="flex items-start gap-4">
                                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#fbf4df]">
                                     <Phone className="h-5 w-5 text-[#b99117]" />
@@ -1155,7 +1137,7 @@ function Home() {
                             </div>
                         </div>
 
-                        <div className="rounded-[28px] border border-[#ece6d8] bg-white p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl">
+                        <div className="rounded-[30px] border border-[#ece6d8] bg-white/90 p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl">
                             <div className="flex items-start gap-4">
                                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#fbf4df]">
                                     <MapPin className="h-5 w-5 text-[#b99117]" />
@@ -1173,7 +1155,7 @@ function Home() {
                             </div>
                         </div>
 
-                        <div className="rounded-[28px] border border-[#ece6d8] bg-white p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl">
+                        <div className="rounded-[30px] border border-[#ece6d8] bg-white/90 p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl">
                             <div className="flex items-start gap-4">
                                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#fbf4df]">
                                     <MessageCircle className="h-5 w-5 text-[#b99117]" />
@@ -1205,9 +1187,11 @@ function Home() {
                         viewport={{ once: true, amount: 0.2 }}
                         variants={softScale}
                         onSubmit={handleContactSubmit}
-                        className="relative overflow-hidden rounded-[30px] border border-[#ece6d8] bg-white p-6 shadow-[0_10px_30px_rgba(0,0,0,0.05)]"
+                        className="relative overflow-hidden rounded-[34px] border border-[#ece6d8] bg-white/95 p-6 shadow-[0_14px_34px_rgba(0,0,0,0.05)] backdrop-blur-sm md:p-7"
                     >
-                        <div className="absolute right-0 top-0 h-40 w-40 rounded-full bg-[#d4a514]/10 blur-3xl" />
+                        <div className="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-[#d4a514]/10 blur-3xl" />
+                        <div className="absolute -left-10 bottom-0 h-40 w-40 rounded-full bg-[#0b4d3b]/8 blur-3xl" />
+
                         <div className="relative">
                             <div className="mb-5 flex items-center gap-3">
                                 <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#fbf4df]">
@@ -1239,7 +1223,7 @@ function Home() {
                             <textarea
                                 name="message"
                                 placeholder="Your Message"
-                                rows="5"
+                                rows="6"
                                 value={contactForm.message}
                                 onChange={handleContactChange}
                                 className="mb-4 w-full resize-none rounded-2xl border border-[#d8d2c7] bg-[#fcfbf7] px-4 py-3.5 outline-none transition focus:border-yellow-400 focus:bg-white focus:ring-4 focus:ring-yellow-100"
@@ -1267,20 +1251,20 @@ function Home() {
                 </div>
             </section>
 
-            <section className="bg-[#f8f7f2] px-5 pb-16 md:px-10 md:pb-20 lg:px-20">
+            <section className="bg-[#f7f4ee] px-5 pb-16 md:px-10 md:pb-20 lg:px-20">
                 <motion.div
                     initial="hidden"
                     whileInView="visible"
                     viewport={{ once: true, amount: 0.2 }}
                     variants={softScale}
-                    className="mx-auto max-w-6xl overflow-hidden rounded-[36px] bg-gradient-to-br from-[#114f3d] via-[#0b4d3b] to-[#072e24] px-6 py-10 text-white shadow-[0_24px_50px_rgba(0,0,0,0.14)] md:px-10"
+                    className="cta-surface mx-auto max-w-6xl overflow-hidden rounded-[38px] px-6 py-10 text-white shadow-[0_28px_60px_rgba(0,0,0,0.16)] md:px-10 md:py-12"
                 >
                     <div className="grid items-center gap-8 lg:grid-cols-[1fr_auto]">
                         <div>
                             <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/65">
                                 Ready to Begin
                             </p>
-                            <h3 className="mt-3 text-[30px] font-extrabold leading-tight md:text-[42px]">
+                            <h3 className="mt-3 text-[30px] font-extrabold leading-tight md:text-[46px]">
                                 Let’s make your celebration
                                 <span className="text-yellow-400"> unforgettable</span>
                             </h3>
@@ -1311,16 +1295,19 @@ function Home() {
                 </motion.div>
             </section>
 
-            <footer className="relative overflow-hidden bg-[#0c5a43] px-5 py-12 text-white md:px-10 lg:px-20">
+            <footer className="relative overflow-hidden bg-[#0b4d3b] px-5 py-14 text-white md:px-10 lg:px-20">
                 <div className="absolute left-0 top-0 h-44 w-44 rounded-full bg-yellow-300/8 blur-3xl" />
                 <div className="absolute right-0 bottom-0 h-44 w-44 rounded-full bg-white/5 blur-3xl" />
 
-                <div className="relative mx-auto grid max-w-6xl gap-10 md:grid-cols-3">
+                <div className="relative mx-auto grid max-w-6xl gap-10 md:grid-cols-[1.2fr_0.8fr_1fr]">
                     <div>
-                        <h4 className="mb-3 text-[30px] font-bold text-yellow-400 md:text-[34px]">
+                        <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-yellow-400">
+                            Premium Event Service
+                        </div>
+                        <h4 className="mt-5 text-[30px] font-bold text-yellow-400 md:text-[36px]">
                             Ebit&apos;s Catering
                         </h4>
-                        <p className="max-w-md text-[15px] leading-8 text-white/85 md:text-[16px]">
+                        <p className="mt-4 max-w-md text-[15px] leading-8 text-white/85 md:text-[16px]">
                             For making parties better with fresh, clean, and tasty food
                             and elegant celebration services.
                         </p>
@@ -1387,7 +1374,7 @@ function Home() {
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.92, y: 20 }}
                             transition={{ duration: 0.25 }}
-                            className="relative w-full max-w-4xl overflow-hidden rounded-[28px] bg-white shadow-2xl"
+                            className="relative w-full max-w-5xl overflow-hidden rounded-[30px] bg-white shadow-2xl"
                             onClick={(e) => e.stopPropagation()}
                         >
                             <button
@@ -1401,7 +1388,7 @@ function Home() {
                             <img
                                 src={selectedGallery.src}
                                 alt={selectedGallery.title}
-                                className="max-h-[75vh] w-full object-cover"
+                                className="max-h-[78vh] w-full object-cover"
                             />
 
                             <div className="border-t border-slate-200 px-6 py-5">
