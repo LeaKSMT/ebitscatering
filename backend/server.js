@@ -38,6 +38,12 @@ app.use(
     })
 );
 
+// Set Cross-Origin-Opener-Policy header
+app.use((req, res, next) => {
+    res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+    next();
+});
+
 app.use(compression());
 app.use(cookieParser());
 app.use(express.json());
