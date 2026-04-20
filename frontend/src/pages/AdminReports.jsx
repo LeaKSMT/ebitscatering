@@ -11,9 +11,11 @@ import {
     MessageSquareQuote,
     TrendingUp,
     BarChart3,
-    ArrowUpRight,
     Sparkles,
     LoaderCircle,
+    CheckCircle2,
+    Clock3,
+    Users,
 } from "lucide-react";
 import { quotationService } from "../services/quotationService.js";
 import { buildPrintableTable, openPrintWindow } from "../utils/AdminPrint";
@@ -87,19 +89,21 @@ function getTotalAmount(item) {
         item.totalPrice ||
         item.price ||
         item.amount ||
+        item.estimated_total ||
+        item.total_price ||
         0
     );
 }
 
 function getPaymentsTotal(payments = []) {
     return payments.reduce((sum, item) => {
-        return sum + normalizeNumber(item?.amount || item?.paymentAmount);
+        return sum + normalizeNumber(item?.amount || item?.paymentAmount || item?.payment_amount);
     }, 0);
 }
 
 function mapRecord(item) {
     const status = normalizeStatus(item.status || "pending");
-    const payments = parseArrayField(item.payments);
+    const payments = parseArrayField(item.payments || item.payment_records);
     const expenses = parseArrayField(item.expenses);
     const inquiries = parseArrayField(item.inquiries);
 
@@ -112,24 +116,40 @@ function mapRecord(item) {
         status,
         quotationId: getQuotationId(item),
         bookingId: getBookingId(item),
-        fullName: item.fullName || item.clientName || item.name || "Client",
-        eventType: item.eventType || item.packageType || item.package_name || "Event",
+        fullName:
+            item.fullName ||
+            item.full_name ||
+            item.clientName ||
+            item.client_name ||
+            item.name ||
+            "Client",
+        email: item.email || item.client_email || "",
+        eventType:
+            item.eventType ||
+            item.event_type ||
+            item.packageType ||
+            item.package_name ||
+            "Event",
         preferredDate:
             item.preferredDate ||
+            item.preferred_date ||
             item.eventDate ||
+            item.event_date ||
             item.bookingDate ||
             item.date ||
             "",
         eventDate:
             item.eventDate ||
+            item.event_date ||
             item.preferredDate ||
+            item.preferred_date ||
             item.bookingDate ||
             item.date ||
             "",
         guests: normalizeNumber(item.guests || item.guestCount || item.pax || 0),
         guestCount: normalizeNumber(item.guestCount || item.guests || item.pax || 0),
-        estimatedTotal: totalAmount,
         totalAmount,
+        estimatedTotal: totalAmount,
         payments,
         expenses,
         inquiries,
@@ -166,7 +186,6 @@ function AdminReports() {
                 console.error("Failed to load reports data:", error);
                 if (isMounted) {
                     setRecords([]);
-                    alert(error.message || "Failed to load reports data.");
                 }
             } finally {
                 if (isMounted) {
@@ -186,9 +205,7 @@ function AdminReports() {
         return records.filter((item) => item.isBookingLike);
     }, [records]);
 
-    const quotations = useMemo(() => {
-        return records;
-    }, [records]);
+    const quotations = useMemo(() => records, [records]);
 
     const payments = useMemo(() => {
         return records.flatMap((record) =>
@@ -198,7 +215,7 @@ function AdminReports() {
                 clientName: payment.clientName || record.fullName,
                 paymentType: payment.paymentType || "Booking Payment",
                 paymentMethod: payment.paymentMethod || "Recorded Payment",
-                amount: normalizeNumber(payment.amount || payment.paymentAmount),
+                amount: normalizeNumber(payment.amount || payment.paymentAmount || payment.payment_amount),
                 createdAt: payment.createdAt || payment.updatedAt || record.eventDate,
                 paymentId:
                     payment.paymentId ||
@@ -651,6 +668,57 @@ function AdminReports() {
         });
     };
 
+    const reportCards = [
+        {
+            title: "Business Overview",
+            description: "Printable executive summary of core system metrics.",
+            icon: PieChart,
+            onClick: handlePrintOverview,
+        },
+        {
+            title: "Bookings Report",
+            description: "Printable booking list with paid and balance summary.",
+            icon: CalendarRange,
+            onClick: handlePrintBookings,
+        },
+        {
+            title: "Quotation Report",
+            description: "Printable quotation request records.",
+            icon: FileText,
+            onClick: handlePrintQuotations,
+        },
+        {
+            title: "Payment Report",
+            description: "Printable payment transaction records.",
+            icon: Wallet,
+            onClick: handlePrintPayments,
+        },
+        {
+            title: "Expense Report",
+            description: "Printable expense monitoring report.",
+            icon: ReceiptText,
+            onClick: handlePrintExpenses,
+        },
+        {
+            title: "Inquiry Report",
+            description: "Printable inquiry summary and client requests.",
+            icon: MessageSquareQuote,
+            onClick: handlePrintInquiries,
+        },
+        {
+            title: "Monthly Financial",
+            description: "Printable monthly revenue, expense, and profit report.",
+            icon: BarChart3,
+            onClick: handlePrintMonthlyFinancial,
+        },
+        {
+            title: "Demand Forecast",
+            description: "Printable demand distribution by event type.",
+            icon: TrendingUp,
+            onClick: handlePrintForecast,
+        },
+    ];
+
     return (
         <div className="space-y-6">
             <motion.section
@@ -667,25 +735,28 @@ function AdminReports() {
                             Executive Reporting Center
                         </div>
                         <h1 className="mt-4 text-3xl font-black leading-tight md:text-4xl">
-                            Admin Reports & Analytics
+                            Admin Reports
                         </h1>
                         <p className="mt-3 max-w-xl text-sm leading-6 text-white/75 md:text-base">
-                            Generate clean business reports and view operational snapshots from
-                            your live admin data with a more premium executive dashboard feel.
+                            Generate clean printable reports from your current system data.
+                            This page is focused on report export, not payment management.
                         </p>
                     </div>
 
-                    <div className="inline-flex items-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-semibold text-white/85">
-                        <Sparkles className="h-4 w-4 text-[#f4d97a]" />
-                        Real-time system-based report previews
-                    </div>
+                    <button
+                        onClick={handlePrintOverview}
+                        className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#f4d97a]/40 bg-[#d4af37] px-5 py-3 text-sm font-bold text-[#0f2c24] transition hover:scale-[1.02] hover:bg-[#e0bc49]"
+                    >
+                        <Printer className="h-4 w-4" />
+                        Print Business Overview
+                    </button>
                 </div>
             </motion.section>
 
             <section className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
                 <SummaryCard title="Total Bookings" value={summary.totalBookings} icon={CalendarRange} delay={0.05} />
                 <SummaryCard title="Total Revenue" value={formatCurrency(summary.totalRevenue)} icon={Wallet} delay={0.1} />
-                <SummaryCard title="Total Expenses" value={formatCurrency(summary.totalExpenses)} icon={ReceiptText} delay={0.15} />
+                <SummaryCard title="Total Inquiries" value={summary.totalInquiries} icon={Users} delay={0.15} />
                 <SummaryCard title="Net Profit" value={formatCurrency(summary.netProfit)} icon={TrendingUp} delay={0.2} />
             </section>
 
@@ -697,23 +768,34 @@ function AdminReports() {
             >
                 <div className="border-b border-gray-100 p-6">
                     <h2 className="text-2xl font-black text-[#0f4d3c]">
-                        Generate PDF Reports
+                        Printable Report Generator
                     </h2>
                     <p className="mt-1 text-sm text-gray-500">
-                        These reports use only the current real data saved in your system.
+                        Click any report card below to open a printable version.
                     </p>
                 </div>
 
-                <div className="grid gap-4 p-6 md:grid-cols-2 xl:grid-cols-4">
-                    <ReportButton label="Business Overview" onClick={handlePrintOverview} icon={PieChart} />
-                    <ReportButton label="Bookings Report" onClick={handlePrintBookings} icon={CalendarRange} />
-                    <ReportButton label="Quotation Report" onClick={handlePrintQuotations} icon={FileText} />
-                    <ReportButton label="Payment Report" onClick={handlePrintPayments} icon={Wallet} />
-                    <ReportButton label="Expense Report" onClick={handlePrintExpenses} icon={ReceiptText} />
-                    <ReportButton label="Inquiry Report" onClick={handlePrintInquiries} icon={MessageSquareQuote} />
-                    <ReportButton label="Monthly Financial" onClick={handlePrintMonthlyFinancial} icon={BarChart3} />
-                    <ReportButton label="Demand Forecast" onClick={handlePrintForecast} icon={TrendingUp} />
-                </div>
+                {loading ? (
+                    <div className="p-10 text-center">
+                        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#ecfdf5]">
+                            <LoaderCircle className="h-8 w-8 animate-spin text-[#0f766e]" />
+                        </div>
+                        <p className="mt-4 text-sm text-gray-500">Loading report data...</p>
+                    </div>
+                ) : (
+                    <div className="grid gap-4 p-6 md:grid-cols-2 xl:grid-cols-4">
+                        {reportCards.map((card, index) => (
+                            <ReportButton
+                                key={card.title}
+                                label={card.title}
+                                description={card.description}
+                                onClick={card.onClick}
+                                icon={card.icon}
+                                delay={index * 0.04}
+                            />
+                        ))}
+                    </div>
+                )}
             </motion.section>
 
             <section className="grid grid-cols-1 gap-6 xl:grid-cols-2">
@@ -725,14 +807,14 @@ function AdminReports() {
                 >
                     <div className="flex items-center gap-3">
                         <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#fff8e6] text-[#b99117]">
-                            <PieChart className="h-6 w-6" />
+                            <CheckCircle2 className="h-6 w-6" />
                         </div>
                         <div>
                             <h2 className="text-2xl font-black text-[#0f4d3c]">
                                 Report Summary
                             </h2>
                             <p className="text-sm text-gray-500">
-                                Executive snapshot of current business metrics.
+                                Quick summary before printing.
                             </p>
                         </div>
                     </div>
@@ -740,9 +822,9 @@ function AdminReports() {
                     <div className="mt-6 space-y-4">
                         <SummaryLine label="Approved Quotations" value={summary.approvedQuotations} />
                         <SummaryLine label="Pending Quotations" value={summary.pendingQuotations} />
-                        <SummaryLine label="Total Inquiries" value={summary.totalInquiries} />
-                        <SummaryLine label="Replied Inquiries" value={summary.repliedInquiries} />
                         <SummaryLine label="Total Collected" value={formatCurrency(summary.totalCollected)} />
+                        <SummaryLine label="Total Expenses" value={formatCurrency(summary.totalExpenses)} />
+                        <SummaryLine label="Replied Inquiries" value={summary.repliedInquiries} />
                     </div>
                 </motion.div>
 
@@ -754,14 +836,14 @@ function AdminReports() {
                 >
                     <div className="flex items-center gap-3">
                         <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#ecfdf5] text-[#0f766e]">
-                            <TrendingUp className="h-6 w-6" />
+                            <Clock3 className="h-6 w-6" />
                         </div>
                         <div>
                             <h2 className="text-2xl font-black text-[#0f4d3c]">
                                 Demand Forecast Snapshot
                             </h2>
                             <p className="text-sm text-gray-500">
-                                Current event demand based on booking distribution.
+                                Event type distribution based on current bookings.
                             </p>
                         </div>
                     </div>
@@ -798,71 +880,6 @@ function AdminReports() {
                     </div>
                 </motion.div>
             </section>
-
-            <motion.section
-                initial={{ opacity: 0, y: 18 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
-                className="overflow-hidden rounded-[28px] border border-white/70 bg-white/90 shadow-[0_18px_60px_rgba(15,23,42,0.08)]"
-            >
-                <div className="border-b border-gray-100 p-6">
-                    <h2 className="text-2xl font-black text-[#0f4d3c]">
-                        Monthly Financial Preview
-                    </h2>
-                    <p className="mt-1 text-sm text-gray-500">
-                        Revenue, expenses, profit, and margin overview by month.
-                    </p>
-                </div>
-
-                {loading ? (
-                    <div className="p-6 text-gray-500">Loading monthly data...</div>
-                ) : monthlyRows.length === 0 ? (
-                    <div className="p-6 text-gray-500">No monthly data yet.</div>
-                ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full min-w-[820px] text-sm">
-                            <thead>
-                                <tr className="bg-[#fcfcfd] text-left text-[12px] uppercase tracking-[0.16em] text-gray-500">
-                                    <th className="px-6 py-4 font-bold">Month</th>
-                                    <th className="px-6 py-4 font-bold">Revenue</th>
-                                    <th className="px-6 py-4 font-bold">Expenses</th>
-                                    <th className="px-6 py-4 font-bold">Profit</th>
-                                    <th className="px-6 py-4 font-bold">Margin</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {monthlyRows.map((row, index) => (
-                                    <motion.tr
-                                        key={row.label}
-                                        initial={{ opacity: 0, y: 12 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ duration: 0.28, delay: index * 0.03 }}
-                                        className="border-t border-gray-100 transition hover:bg-[#fcfdfd]"
-                                    >
-                                        <td className="px-6 py-5 font-black text-[#0f4d3c]">
-                                            {row.label}
-                                        </td>
-                                        <td className="px-6 py-5 font-medium text-slate-700">
-                                            {formatCurrency(row.revenue)}
-                                        </td>
-                                        <td className="px-6 py-5 font-medium text-slate-700">
-                                            {formatCurrency(row.expenses)}
-                                        </td>
-                                        <td className="px-6 py-5 font-bold text-[#10b981]">
-                                            {formatCurrency(row.profit)}
-                                        </td>
-                                        <td className="px-6 py-5">
-                                            <span className="inline-flex rounded-full bg-[#ecfdf5] px-3 py-1 text-xs font-bold text-[#0f766e] ring-1 ring-emerald-200">
-                                                {row.margin.toFixed(1)}%
-                                            </span>
-                                        </td>
-                                    </motion.tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
-            </motion.section>
         </div>
     );
 }
@@ -897,9 +914,12 @@ function SummaryLine({ label, value }) {
     );
 }
 
-function ReportButton({ label, onClick, icon: Icon }) {
+function ReportButton({ label, description, onClick, icon: Icon, delay = 0 }) {
     return (
-        <button
+        <motion.button
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay }}
             onClick={onClick}
             className="group rounded-[24px] border border-[#dce5eb] bg-[linear-gradient(135deg,#ffffff,#f8fafc)] p-4 text-left shadow-sm transition hover:-translate-y-1 hover:border-[#d4af37] hover:shadow-[0_16px_40px_rgba(15,23,42,0.08)]"
         >
@@ -910,20 +930,16 @@ function ReportButton({ label, onClick, icon: Icon }) {
                     </div>
                     <h3 className="mt-4 text-base font-black text-[#0f4d3c]">{label}</h3>
                     <p className="mt-1 text-xs leading-5 text-gray-500">
-                        Generate and export this report as PDF.
+                        {description}
                     </p>
-                </div>
-
-                <div className="mt-1 text-[#0f4d3c] transition group-hover:translate-x-1">
-                    <ArrowUpRight className="h-5 w-5" />
                 </div>
             </div>
 
             <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#fff8e6] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-[#9b7510]">
                 <Printer className="h-3.5 w-3.5" />
-                Export
+                Print Report
             </div>
-        </button>
+        </motion.button>
     );
 }
 
