@@ -65,6 +65,11 @@ function parseArrayField(value) {
     return [];
 }
 
+function getSafeTime(value) {
+    const time = new Date(value || 0).getTime();
+    return Number.isFinite(time) ? time : 0;
+}
+
 function mapQuotationToPaymentRow(item) {
     const payments = parseArrayField(item.payments || item.payment_records);
 
@@ -122,23 +127,15 @@ function mapQuotationToPaymentRow(item) {
         paid,
         balance,
         paymentStatus,
-        payments: [...payments].sort(
-            (a, b) =>
-                new Date(
-                    b?.createdAt ||
-                    b?.created_at ||
-                    b?.updatedAt ||
-                    b?.updated_at ||
-                    0
-                ) -
-                new Date(
-                    a?.createdAt ||
-                    a?.created_at ||
-                    a?.updatedAt ||
-                    a?.updated_at ||
-                    0
-                )
-        ),
+        payments: [...payments].sort((a, b) => {
+            const bTime = getSafeTime(
+                b?.createdAt || b?.created_at || b?.updatedAt || b?.updated_at
+            );
+            const aTime = getSafeTime(
+                a?.createdAt || a?.created_at || a?.updatedAt || a?.updated_at
+            );
+            return bTime - aTime;
+        }),
         status: normalizeStatus(item.status || "pending"),
     };
 }
@@ -146,10 +143,6 @@ function mapQuotationToPaymentRow(item) {
 async function updateQuotationRecord(id, payload) {
     if (typeof quotationService?.updateQuotation === "function") {
         return quotationService.updateQuotation(id, payload);
-    }
-
-    if (typeof quotationService?.updateStatus === "function" && payload?.status) {
-        return quotationService.updateStatus(id, payload.status, payload);
     }
 
     throw new Error(
@@ -366,8 +359,7 @@ function AdminPaymentTracking() {
             showFeedback(
                 "success",
                 "Payment Saved",
-                `${formatCurrency(amount)} was successfully recorded for ${selectedRow.fullName
-                }.`
+                `${formatCurrency(amount)} was successfully recorded for ${selectedRow.fullName}.`
             );
         } catch (error) {
             console.error("Failed to save payment:", error);
