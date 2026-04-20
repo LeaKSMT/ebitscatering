@@ -178,7 +178,8 @@ function normalizeQuotation(item) {
 
     return {
         id: item.id,
-        quotationId: item.quotation_id || `Q${item.id}`,
+        quotationId: item.quotation_id || "",
+        displayQuotationId: `Q${String(item.id || 0).padStart(2, "0")}`,
         clientName: item.full_name || item.owner_name || "",
         fullName: item.full_name || item.owner_name || "",
         email: item.email || item.owner_email || "",
@@ -433,7 +434,7 @@ function ClientQuotations() {
                                             <div>
                                                 <div className="flex flex-wrap items-center gap-3">
                                                     <h2 className="text-2xl font-extrabold text-[#153f31]">
-                                                        {quote.eventType || "Custom Event"}
+                                                        {quote.displayQuotationId}
                                                     </h2>
                                                     <span
                                                         className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ${getStatusClasses(
@@ -535,7 +536,7 @@ function ClientQuotations() {
                                                             <Mail size={14} />
                                                             Email
                                                         </p>
-                                                        <p className="mt-2 text-sm font-semibold text-slate-800 break-all">
+                                                        <p className="mt-2 break-all text-sm font-semibold text-slate-800">
                                                             {quote.email || clientEmail || "No email provided"}
                                                         </p>
                                                     </div>

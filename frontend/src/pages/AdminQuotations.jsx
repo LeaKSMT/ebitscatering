@@ -69,6 +69,7 @@ function normalizeQuotation(item) {
     return {
         id: item.id,
         quotationId: item.quotation_id || item.quotationId || "",
+        displayQuotationId: `Q${String(item.id || 0).padStart(2, "0")}`,
         fullName:
             item.full_name ||
             item.fullName ||
@@ -407,8 +408,7 @@ function AdminQuotations() {
                                             <div className="space-y-4">
                                                 <div className="flex flex-wrap items-center gap-3">
                                                     <h2 className="text-2xl font-extrabold text-[#0f4d3c] md:text-3xl">
-                                                        {quote.quotationId ||
-                                                            `Q${String(index + 1).padStart(2, "0")}`}
+                                                        {quote.displayQuotationId}
                                                     </h2>
                                                     <span
                                                         className={`inline-flex rounded-full px-3 py-1 text-sm font-semibold ${getStatusClasses(
@@ -554,6 +554,7 @@ function AdminQuotations() {
                                                         </h3>
 
                                                         <div className="grid gap-x-6 gap-y-4 text-sm sm:grid-cols-2">
+                                                            <DetailItem label="Reference No." value={quote.displayQuotationId} />
                                                             <DetailItem label="Full Name" value={quote.fullName} />
                                                             <DetailItem
                                                                 label="Contact Number"
