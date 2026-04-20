@@ -1,10 +1,13 @@
 const db = require("../config/db");
 
 exports.getPayments = (req, res) => {
-    db.query("SELECT * FROM payments ORDER BY created_at DESC, id DESC", (err, results) => {
+    db.query("SELECT * FROM payments ORDER BY id DESC", (err, results) => {
         if (err) {
             console.error("Get payments error:", err);
-            return res.status(500).json({ message: "Failed to fetch payments" });
+            return res.status(500).json({
+                message: "Failed to fetch payments",
+                error: err.message,
+            });
         }
 
         return res.status(200).json(results);
@@ -17,10 +20,13 @@ exports.getPaymentById = (req, res) => {
     db.query("SELECT * FROM payments WHERE id = ? LIMIT 1", [id], (err, results) => {
         if (err) {
             console.error("Get payment by id error:", err);
-            return res.status(500).json({ message: "Failed to fetch payment" });
+            return res.status(500).json({
+                message: "Failed to fetch payment",
+                error: err.message,
+            });
         }
 
-        if (results.length === 0) {
+        if (!results || results.length === 0) {
             return res.status(404).json({ message: "Payment not found" });
         }
 
@@ -40,9 +46,17 @@ exports.createPayment = (req, res) => {
         notes,
     } = req.body;
 
-    if (!client_name || !client_email || !amount) {
+    if (!client_name || !client_email || amount === undefined || amount === null || amount === "") {
         return res.status(400).json({
             message: "client_name, client_email, and amount are required",
+        });
+    }
+
+    const numericAmount = Number(amount);
+
+    if (!Number.isFinite(numericAmount) || numericAmount < 0) {
+        return res.status(400).json({
+            message: "amount must be a valid number",
         });
     }
 
@@ -65,7 +79,7 @@ exports.createPayment = (req, res) => {
         booking_id || null,
         client_name,
         client_email,
-        amount,
+        numericAmount,
         payment_method || null,
         payment_status || "pending",
         reference_number || null,
@@ -75,7 +89,10 @@ exports.createPayment = (req, res) => {
     db.query(query, values, (err, result) => {
         if (err) {
             console.error("Create payment error:", err);
-            return res.status(500).json({ message: "Failed to create payment" });
+            return res.status(500).json({
+                message: "Failed to create payment",
+                error: err.message,
+            });
         }
 
         return res.status(201).json({
@@ -98,6 +115,20 @@ exports.updatePayment = (req, res) => {
         notes,
     } = req.body;
 
+    if (!client_name || !client_email || amount === undefined || amount === null || amount === "") {
+        return res.status(400).json({
+            message: "client_name, client_email, and amount are required",
+        });
+    }
+
+    const numericAmount = Number(amount);
+
+    if (!Number.isFinite(numericAmount) || numericAmount < 0) {
+        return res.status(400).json({
+            message: "amount must be a valid number",
+        });
+    }
+
     const query = `
         UPDATE payments
         SET
@@ -116,7 +147,7 @@ exports.updatePayment = (req, res) => {
         booking_id || null,
         client_name,
         client_email,
-        amount,
+        numericAmount,
         payment_method || null,
         payment_status || "pending",
         reference_number || null,
@@ -127,10 +158,13 @@ exports.updatePayment = (req, res) => {
     db.query(query, values, (err, result) => {
         if (err) {
             console.error("Update payment error:", err);
-            return res.status(500).json({ message: "Failed to update payment" });
+            return res.status(500).json({
+                message: "Failed to update payment",
+                error: err.message,
+            });
         }
 
-        if (result.affectedRows === 0) {
+        if (!result || result.affectedRows === 0) {
             return res.status(404).json({ message: "Payment not found" });
         }
 
@@ -144,10 +178,13 @@ exports.deletePayment = (req, res) => {
     db.query("DELETE FROM payments WHERE id = ?", [id], (err, result) => {
         if (err) {
             console.error("Delete payment error:", err);
-            return res.status(500).json({ message: "Failed to delete payment" });
+            return res.status(500).json({
+                message: "Failed to delete payment",
+                error: err.message,
+            });
         }
 
-        if (result.affectedRows === 0) {
+        if (!result || result.affectedRows === 0) {
             return res.status(404).json({ message: "Payment not found" });
         }
 
