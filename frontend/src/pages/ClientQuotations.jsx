@@ -45,6 +45,14 @@ function getCurrentClientName() {
     );
 }
 
+function getStoredToken() {
+    return (
+        localStorage.getItem("clientToken") ||
+        localStorage.getItem("token") ||
+        ""
+    );
+}
+
 function getApiBaseUrl() {
     const envUrl = import.meta.env.VITE_API_URL?.trim();
 
@@ -210,6 +218,7 @@ const fadeUp = {
 function ClientQuotations() {
     const clientEmail = getCurrentClientEmail().toLowerCase().trim();
     const clientName = getCurrentClientName().toLowerCase().trim();
+    const token = getStoredToken();
 
     const [quotations, setQuotations] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -226,6 +235,7 @@ function ClientQuotations() {
                     credentials: "include",
                     headers: {
                         "Content-Type": "application/json",
+                        ...(token ? { Authorization: `Bearer ${token}` } : {}),
                     },
                 });
 
@@ -273,7 +283,7 @@ function ClientQuotations() {
         }
 
         fetchQuotations();
-    }, [clientEmail, clientName]);
+    }, [clientEmail, clientName, token]);
 
     const summary = useMemo(() => {
         const total = quotations.length;

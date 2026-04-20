@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -13,15 +14,6 @@ import {
     Clock3,
     CheckCircle2,
 } from "lucide-react";
-
-function safeParse(key, fallback = []) {
-    try {
-        const raw = localStorage.getItem(key);
-        return raw ? JSON.parse(raw) : fallback;
-    } catch {
-        return fallback;
-    }
-}
 
 function getClientUser() {
     try {
@@ -45,9 +37,27 @@ function getCurrentClientEmail() {
     );
 }
 
-function getScopedKey(baseKey, email) {
-    return email ? `${baseKey}_${email}` : `${baseKey}_guest`;
+function getStoredToken() {
+    return (
+        localStorage.getItem("clientToken") ||
+        localStorage.getItem("token") ||
+        ""
+    );
 }
+
+function getApiBaseUrl() {
+    const envUrl = import.meta.env.VITE_API_URL?.trim();
+
+    if (!envUrl) {
+        console.warn("VITE_API_URL is missing. Using Railway fallback.");
+        return "https://ebitscatering-production.up.railway.app/api";
+    }
+
+    const cleaned = envUrl.replace(/\/+$/, "");
+    return cleaned.endsWith("/api") ? cleaned : `${cleaned}/api`;
+}
+
+const API_BASE_URL = getApiBaseUrl();
 
 function formatCurrency(value) {
     const num = Number(value || 0);
@@ -69,25 +79,160 @@ function normalizeStatus(status) {
     return String(status || "").trim().toLowerCase();
 }
 
+function normalizeQuotation(item) {
+    if (!item || typeof item !== "object") return null;
+
+    return {
+        id: item.id,
+        quotationId: item.quotation_id || `Q${item.id}`,
+        clientName: item.full_name || item.owner_name || "",
+        email: item.email || item.owner_email || "",
+        eventType: item.event_type || "",
+        eventDate: item.preferred_date || "",
+        venue: item.venue || "",
+        guests: Number(item.guests || 0),
+        packageName: item.package_type || "",
+        packageType: item.package_type || "",
+        estimatedTotal: Number(item.estimated_total || 0),
+        status: item.status || "Pending",
+        createdAt: item.created_at || "",
+    };
+}
+
+function normalizeBooking(item) {
+    if (!item || typeof item !== "object") return null;
+
+    return {
+        id: item.id,
+        bookingId: item.id,
+        email: item.client_email || "",
+        clientName: item.client_name || "",
+        eventDate: item.event_date || "",
+        time: item.event_time || "",
+        venue: item.venue || "",
+        guests: Number(item.guests || 0),
+        packageName: item.package_name || "",
+        totalAmount: Number(item.total_price || 0),
+        status: item.booking_status || "Pending",
+        eventType: item.event_type || "Event Booking",
+        createdAt: item.created_at || "",
+    };
+}
+
 function ClientDashboard() {
     const clientUser = getClientUser();
-    const clientEmail = getCurrentClientEmail();
+    const clientEmail = getCurrentClientEmail().toLowerCase().trim();
+    const clientName = String(clientUser?.name || "").toLowerCase().trim();
+    const token = getStoredToken();
 
-    const quotations = safeParse(getScopedKey("clientQuotations", clientEmail));
-    const bookings = safeParse(getScopedKey("clientBookings", clientEmail));
-    const payments = safeParse(getScopedKey("clientPaymentHistory", clientEmail));
+    const [quotations, setQuotations] = useState([]);
+    const [bookings, setBookings] = useState([]);
+    const [payments] = useState([]);
+
+    useEffect(() => {
+        const fetchDashboardData = async () => {
+            try {
+                const headers = {
+                    "Content-Type": "application/json",
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                };
+
+                const [quotationRes, bookingRes] = await Promise.all([
+                    fetch(`${API_BASE_URL}/quotations`, {
+                        method: "GET",
+                        credentials: "include",
+                        headers,
+                    }),
+                    fetch(`${API_BASE_URL}/bookings`, {
+                        method: "GET",
+                        credentials: "include",
+                        headers,
+                    }),
+                ]);
+
+                const quotationData = await quotationRes.json().catch(() => []);
+                const bookingData = await bookingRes.json().catch(() => []);
+
+                if (!quotationRes.ok) {
+                    throw new Error(
+                        quotationData?.message || "Failed to fetch quotations."
+                    );
+                }
+
+                if (!bookingRes.ok) {
+                    throw new Error(
+                        bookingData?.message || "Failed to fetch bookings."
+                    );
+                }
+
+                const normalizedQuotations = Array.isArray(quotationData)
+                    ? quotationData.map(normalizeQuotation).filter(Boolean)
+                    : [];
+
+                const normalizedBookings = Array.isArray(bookingData)
+                    ? bookingData.map(normalizeBooking).filter(Boolean)
+                    : [];
+
+                const filteredQuotations = normalizedQuotations.filter((item) => {
+                    const itemEmail = String(item.email || "").toLowerCase().trim();
+                    const itemClientName = String(item.clientName || "")
+                        .toLowerCase()
+                        .trim();
+
+                    return (
+                        (clientEmail && itemEmail === clientEmail) ||
+                        (clientName && itemClientName === clientName)
+                    );
+                });
+
+                const filteredBookings = normalizedBookings.filter((item) => {
+                    const itemEmail = String(item.email || "").toLowerCase().trim();
+                    const itemClientName = String(item.clientName || "")
+                        .toLowerCase()
+                        .trim();
+
+                    return (
+                        (clientEmail && itemEmail === clientEmail) ||
+                        (clientName && itemClientName === clientName)
+                    );
+                });
+
+                filteredQuotations.sort((a, b) => {
+                    const first = new Date(b.createdAt || 0).getTime();
+                    const second = new Date(a.createdAt || 0).getTime();
+                    return first - second;
+                });
+
+                filteredBookings.sort((a, b) => {
+                    const first = new Date(b.eventDate || b.createdAt || 0).getTime();
+                    const second = new Date(a.eventDate || a.createdAt || 0).getTime();
+                    return first - second;
+                });
+
+                setQuotations(filteredQuotations);
+                setBookings(filteredBookings);
+            } catch (error) {
+                console.error("Fetch client dashboard data error:", error);
+                setQuotations([]);
+                setBookings([]);
+            }
+        };
+
+        if (!clientEmail && !clientName) {
+            setQuotations([]);
+            setBookings([]);
+            return;
+        }
+
+        fetchDashboardData();
+    }, [clientEmail, clientName, token]);
 
     const totalPayments = payments.reduce((sum, item) => {
         return sum + Number(item.amount || item.paymentAmount || 0);
     }, 0);
 
-    const latestQuotation = quotations.length
-        ? quotations[quotations.length - 1]
-        : null;
-
-    const latestBooking = bookings.length
-        ? bookings[bookings.length - 1]
-        : null;
+    const latestQuotation = quotations.length ? quotations[0] : null;
+    const latestBooking = bookings.length ? bookings[0] : null;
 
     const hasQuotation = quotations.length > 0;
     const approvedQuotation = quotations.some((item) => {
@@ -105,7 +250,8 @@ function ClientDashboard() {
         return (
             status.includes("confirmed") ||
             status.includes("approved") ||
-            status.includes("scheduled")
+            status.includes("scheduled") ||
+            status.includes("paid")
         );
     });
 
@@ -458,7 +604,6 @@ function ClientDashboard() {
                                     <span className="font-semibold text-slate-700">
                                         {formatDate(
                                             latestQuotation?.createdAt ||
-                                            latestQuotation?.dateSubmitted ||
                                             latestQuotation?.eventDate
                                         )}
                                     </span>
@@ -495,7 +640,6 @@ function ClientDashboard() {
                                     <span className="font-semibold text-slate-700">
                                         {formatDate(
                                             latestBooking?.eventDate ||
-                                            latestBooking?.date ||
                                             latestBooking?.createdAt
                                         )}
                                     </span>

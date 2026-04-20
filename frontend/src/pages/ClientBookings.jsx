@@ -47,6 +47,14 @@ function getCurrentClientName() {
     );
 }
 
+function getStoredToken() {
+    return (
+        localStorage.getItem("clientToken") ||
+        localStorage.getItem("token") ||
+        ""
+    );
+}
+
 function formatCurrency(value) {
     return `₱${Number(value || 0).toLocaleString()}`;
 }
@@ -93,6 +101,7 @@ function normalizeBooking(item) {
         totalAmount: Number(item.total_price || 0),
         status: item.booking_status || "Pending",
         eventType: item.event_type || "Event Booking",
+        createdAt: item.created_at || "",
     };
 }
 
@@ -148,6 +157,7 @@ const API_BASE_URL = getApiBaseUrl();
 export default function ClientBookings() {
     const email = getCurrentClientEmail().toLowerCase().trim();
     const clientName = getCurrentClientName().toLowerCase().trim();
+    const token = getStoredToken();
 
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -164,6 +174,7 @@ export default function ClientBookings() {
                     credentials: "include",
                     headers: {
                         "Content-Type": "application/json",
+                        ...(token ? { Authorization: `Bearer ${token}` } : {}),
                     },
                 });
 
@@ -188,8 +199,8 @@ export default function ClientBookings() {
                 });
 
                 filtered.sort((a, b) => {
-                    const first = new Date(a.date).getTime();
-                    const second = new Date(b.date).getTime();
+                    const first = new Date(a.date || a.createdAt || 0).getTime();
+                    const second = new Date(b.date || b.createdAt || 0).getTime();
                     return first - second;
                 });
 
@@ -211,7 +222,7 @@ export default function ClientBookings() {
         }
 
         fetchBookings();
-    }, [email, clientName]);
+    }, [email, clientName, token]);
 
     const summary = useMemo(() => {
         const total = bookings.length;
