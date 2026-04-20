@@ -1,12 +1,42 @@
 const db = require("../config/db");
 
-exports.getBookings = (req, res) => {
-    const query = `
-        SELECT * FROM bookings
-        ORDER BY id DESC
-    `;
+function normalizeValue(value) {
+    return String(value || "").trim().toLowerCase();
+}
 
-    db.query(query, (err, results) => {
+function isAdminUser(req) {
+    return normalizeValue(req.user?.role) === "admin";
+}
+
+function getUserEmail(req) {
+    return normalizeValue(req.user?.email);
+}
+
+exports.getBookings = (req, res) => {
+    const admin = isAdminUser(req);
+    const userEmail = getUserEmail(req);
+
+    let query = `
+        SELECT * FROM bookings
+    `;
+    let values = [];
+
+    if (!admin) {
+        if (!userEmail) {
+            return res.status(401).json({
+                message: "Unauthorized user",
+            });
+        }
+
+        query += `
+            WHERE LOWER(COALESCE(client_email, '')) = ?
+        `;
+        values.push(userEmail);
+    }
+
+    query += ` ORDER BY id DESC`;
+
+    db.query(query, values, (err, results) => {
         if (err) {
             console.error("Get bookings error:", err);
             return res.status(500).json({
@@ -21,8 +51,25 @@ exports.getBookings = (req, res) => {
 
 exports.getBookingById = (req, res) => {
     const { id } = req.params;
+    const admin = isAdminUser(req);
+    const userEmail = getUserEmail(req);
 
-    db.query("SELECT * FROM bookings WHERE id = ? LIMIT 1", [id], (err, results) => {
+    let query = `
+        SELECT * FROM bookings
+        WHERE id = ?
+    `;
+    let values = [id];
+
+    if (!admin) {
+        query += `
+            AND LOWER(COALESCE(client_email, '')) = ?
+        `;
+        values.push(userEmail);
+    }
+
+    query += ` LIMIT 1`;
+
+    db.query(query, values, (err, results) => {
         if (err) {
             console.error("Get booking by id error:", err);
             return res.status(500).json({
@@ -40,6 +87,9 @@ exports.getBookingById = (req, res) => {
 };
 
 exports.createBooking = (req, res) => {
+    const admin = isAdminUser(req);
+    const userEmail = getUserEmail(req);
+
     const {
         client_name,
         client_email,
@@ -56,9 +106,17 @@ exports.createBooking = (req, res) => {
         notes,
     } = req.body;
 
-    if (!client_name || !client_email || !event_date || !venue) {
+    const normalizedClientEmail = normalizeValue(client_email || userEmail);
+
+    if (!client_name || !normalizedClientEmail || !event_date || !venue) {
         return res.status(400).json({
             message: "client_name, client_email, event_date, and venue are required",
+        });
+    }
+
+    if (!admin && normalizedClientEmail !== userEmail) {
+        return res.status(403).json({
+            message: "You can only create bookings for your own account",
         });
     }
 
@@ -84,7 +142,7 @@ exports.createBooking = (req, res) => {
 
     const values = [
         client_name,
-        client_email,
+        normalizedClientEmail,
         contact_number || null,
         event_type || null,
         package_name || null,
@@ -116,6 +174,9 @@ exports.createBooking = (req, res) => {
 
 exports.updateBooking = (req, res) => {
     const { id } = req.params;
+    const admin = isAdminUser(req);
+    const userEmail = getUserEmail(req);
+
     const {
         client_name,
         client_email,
@@ -132,7 +193,15 @@ exports.updateBooking = (req, res) => {
         notes,
     } = req.body;
 
-    const query = `
+    const normalizedClientEmail = normalizeValue(client_email || userEmail);
+
+    if (!admin && normalizedClientEmail !== userEmail) {
+        return res.status(403).json({
+            message: "You can only update your own booking",
+        });
+    }
+
+    let query = `
         UPDATE bookings
         SET
             client_name = ?,
@@ -150,10 +219,9 @@ exports.updateBooking = (req, res) => {
             notes = ?
         WHERE id = ?
     `;
-
     const values = [
         client_name,
-        client_email,
+        normalizedClientEmail,
         contact_number || null,
         event_type || null,
         package_name || null,
@@ -167,6 +235,11 @@ exports.updateBooking = (req, res) => {
         notes || null,
         id,
     ];
+
+    if (!admin) {
+        query += ` AND LOWER(COALESCE(client_email, '')) = ?`;
+        values.push(userEmail);
+    }
 
     db.query(query, values, (err, result) => {
         if (err) {
@@ -187,8 +260,18 @@ exports.updateBooking = (req, res) => {
 
 exports.deleteBooking = (req, res) => {
     const { id } = req.params;
+    const admin = isAdminUser(req);
+    const userEmail = getUserEmail(req);
 
-    db.query("DELETE FROM bookings WHERE id = ?", [id], (err, result) => {
+    let query = `DELETE FROM bookings WHERE id = ?`;
+    const values = [id];
+
+    if (!admin) {
+        query += ` AND LOWER(COALESCE(client_email, '')) = ?`;
+        values.push(userEmail);
+    }
+
+    db.query(query, values, (err, result) => {
         if (err) {
             console.error("Delete booking error:", err);
             return res.status(500).json({
