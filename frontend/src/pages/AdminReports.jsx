@@ -1,30 +1,31 @@
-import { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-    FileBarChart2,
-    Printer,
-    CalendarRange,
     Wallet,
+    CircleDollarSign,
+    BadgeCheck,
+    Clock3,
     ReceiptText,
-    PieChart,
-    FileText,
-    MessageSquareQuote,
-    TrendingUp,
-    BarChart3,
-    ArrowUpRight,
-    Sparkles,
+    Search,
+    Printer,
+    CreditCard,
+    X,
+    ArrowRight,
+    Pencil,
+    Trash2,
+    History,
     LoaderCircle,
 } from "lucide-react";
 import { quotationService } from "../services/quotationService.js";
 import { buildPrintableTable, openPrintWindow } from "../utils/AdminPrint";
 
-function normalizeStatus(status = "") {
-    return String(status || "").trim().toLowerCase();
-}
-
 function normalizeNumber(value) {
     const num = Number(value || 0);
     return Number.isFinite(num) ? num : 0;
+}
+
+function normalizeStatus(status = "") {
+    return String(status || "").trim().toLowerCase();
 }
 
 function formatCurrency(value) {
@@ -61,563 +62,413 @@ function parseArrayField(value) {
     return [];
 }
 
-function getQuotationId(item) {
-    return (
-        item.quotationId ||
-        item.quotation_code ||
-        item.referenceNumber ||
-        `Q-${item.id}`
-    );
-}
+function mapQuotationToPaymentRow(item) {
+    const payments = parseArrayField(item.payments || item.payment_records);
 
-function getBookingId(item) {
-    return (
-        item.bookingId ||
-        item.booking_code ||
-        item.bookingCode ||
-        item.referenceNumber ||
-        `BK-${item.id}`
-    );
-}
-
-function getTotalAmount(item) {
-    return normalizeNumber(
+    const totalAmount = normalizeNumber(
+        item.estimated_total ||
+        item.total_price ||
         item.totalAmount ||
         item.estimatedTotal ||
-        item.totalPrice ||
-        item.price ||
-        item.amount ||
         0
     );
-}
 
-function getPaymentsTotal(payments = []) {
-    return payments.reduce((sum, item) => {
-        return sum + normalizeNumber(item?.amount || item?.paymentAmount);
+    const paidRaw = payments.reduce((sum, payment) => {
+        return (
+            sum +
+            normalizeNumber(
+                payment?.amount ||
+                payment?.paymentAmount ||
+                payment?.payment_amount
+            )
+        );
     }, 0);
-}
 
-function mapRecord(item) {
-    const status = normalizeStatus(item.status || "pending");
-    const payments = parseArrayField(item.payments);
-    const expenses = parseArrayField(item.expenses);
-    const inquiries = parseArrayField(item.inquiries);
-
-    const totalAmount = getTotalAmount(item);
-    const paid = Math.min(getPaymentsTotal(payments), totalAmount);
+    const paid = Math.min(paidRaw, totalAmount);
     const balance = Math.max(totalAmount - paid, 0);
+
+    let paymentStatus = "unpaid";
+    if (paid > 0 && balance > 0) paymentStatus = "partial";
+    if (totalAmount > 0 && balance <= 0) paymentStatus = "paid";
 
     return {
         ...item,
-        status,
-        quotationId: getQuotationId(item),
-        bookingId: getBookingId(item),
-        fullName: item.fullName || item.clientName || item.name || "Client",
-        eventType: item.eventType || item.packageType || item.package_name || "Event",
-        preferredDate:
-            item.preferredDate ||
-            item.eventDate ||
-            item.bookingDate ||
-            item.date ||
-            "",
+        bookingId:
+            item.booking_id ||
+            item.bookingId ||
+            item.quotation_id ||
+            `Q${item.id}`,
+        fullName:
+            item.full_name ||
+            item.owner_name ||
+            item.fullName ||
+            item.client_name ||
+            item.clientName ||
+            "Client",
+        email: item.email || item.owner_email || item.client_email || "",
+        ownerEmail:
+            item.owner_email || item.email || item.client_email || "",
+        eventType: item.event_type || item.eventType || "Booking",
         eventDate:
+            item.preferred_date ||
+            item.event_date ||
             item.eventDate ||
             item.preferredDate ||
-            item.bookingDate ||
-            item.date ||
             "",
-        guests: normalizeNumber(item.guests || item.guestCount || item.pax || 0),
-        guestCount: normalizeNumber(item.guestCount || item.guests || item.pax || 0),
-        estimatedTotal: totalAmount,
         totalAmount,
-        payments,
-        expenses,
-        inquiries,
         paid,
         balance,
-        isBookingLike: [
-            "approved",
-            "confirmed",
-            "paid",
-            "upcoming",
-            "ongoing",
-            "completed",
-        ].includes(status),
+        paymentStatus,
+        payments: [...payments].sort(
+            (a, b) =>
+                new Date(
+                    b?.createdAt ||
+                    b?.created_at ||
+                    b?.updatedAt ||
+                    b?.updated_at ||
+                    0
+                ) -
+                new Date(
+                    a?.createdAt ||
+                    a?.created_at ||
+                    a?.updatedAt ||
+                    a?.updated_at ||
+                    0
+                )
+        ),
+        status: normalizeStatus(item.status || "pending"),
     };
 }
 
-function AdminReports() {
-    const [records, setRecords] = useState([]);
+async function updateQuotationRecord(id, payload) {
+    if (typeof quotationService?.updateQuotation === "function") {
+        return quotationService.updateQuotation(id, payload);
+    }
+
+    if (typeof quotationService?.updateStatus === "function" && payload?.status) {
+        return quotationService.updateStatus(id, payload.status, payload);
+    }
+
+    throw new Error(
+        "quotationService.updateQuotation is not available. Add updateQuotation in quotationService.js."
+    );
+}
+
+function getPaymentIdentity(payment, index = 0) {
+    return (
+        payment?.id ||
+        payment?.paymentId ||
+        payment?.referenceNumber ||
+        `${payment?.bookingId || ""}_${payment?.amount || 0}_${payment?.createdAt || payment?.created_at || index}`
+    );
+}
+
+function isSamePaymentRecord(source, target, sourceIndex = 0) {
+    return getPaymentIdentity(source, sourceIndex) === getPaymentIdentity(target);
+}
+
+function AdminPaymentTracking() {
+    const [rows, setRows] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
 
-    useEffect(() => {
-        let isMounted = true;
+    const [modalTarget, setModalTarget] = useState(null);
+    const [paymentInput, setPaymentInput] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
+    const [editingPayment, setEditingPayment] = useState(null);
+    const [editingAmount, setEditingAmount] = useState("");
 
-        async function loadReportsData() {
-            setLoading(true);
-            try {
-                const data = await quotationService.getQuotations();
-                const mapped = Array.isArray(data) ? data.map(mapRecord) : [];
+    const loadRows = useCallback(async () => {
+        setLoading(true);
+        try {
+            const data = await quotationService.getQuotations();
+            const mapped = Array.isArray(data)
+                ? data
+                    .map(mapQuotationToPaymentRow)
+                    .filter(
+                        (item) =>
+                            !["cancelled", "rejected"].includes(
+                                normalizeStatus(item.status)
+                            )
+                    )
+                : [];
 
-                if (isMounted) {
-                    setRecords(mapped);
-                }
-            } catch (error) {
-                console.error("Failed to load reports data:", error);
-                if (isMounted) {
-                    setRecords([]);
-                    alert(error.message || "Failed to load reports data.");
-                }
-            } finally {
-                if (isMounted) {
-                    setLoading(false);
-                }
-            }
+            setRows(mapped);
+        } catch (error) {
+            console.error("Failed to load payment tracking rows:", error);
+            alert(error.message || "Failed to load payment tracking data.");
+        } finally {
+            setLoading(false);
         }
-
-        loadReportsData();
-
-        return () => {
-            isMounted = false;
-        };
     }, []);
 
-    const bookings = useMemo(() => {
-        return records.filter((item) => item.isBookingLike);
-    }, [records]);
+    useEffect(() => {
+        loadRows();
+    }, [loadRows]);
 
-    const quotations = useMemo(() => {
-        return records;
-    }, [records]);
+    const filteredRows = useMemo(() => {
+        const keyword = searchTerm.trim().toLowerCase();
 
-    const payments = useMemo(() => {
-        return records.flatMap((record) =>
-            (record.payments || []).map((payment, index) => ({
-                ...payment,
-                bookingId: payment.bookingId || record.bookingId,
-                clientName: payment.clientName || record.fullName,
-                paymentType: payment.paymentType || "Booking Payment",
-                paymentMethod: payment.paymentMethod || "Recorded Payment",
-                amount: normalizeNumber(payment.amount || payment.paymentAmount),
-                createdAt: payment.createdAt || payment.updatedAt || record.eventDate,
-                paymentId:
-                    payment.paymentId ||
-                    payment.referenceNumber ||
-                    `P-${record.id}-${index + 1}`,
-            }))
-        );
-    }, [records]);
+        if (!keyword) return rows;
 
-    const expenses = useMemo(() => {
-        return records.flatMap((record) =>
-            (record.expenses || []).map((expense, index) => ({
-                ...expense,
-                bookingId: expense.bookingId || record.bookingId || "—",
-                clientName: expense.clientName || record.fullName || "—",
-                eventType: expense.eventType || record.eventType || "—",
-                category: expense.category || expense.type || "Expense",
-                amount: normalizeNumber(expense.amount),
-                createdAt: expense.createdAt || expense.updatedAt || record.eventDate,
-                expenseId: expense.expenseId || `EXP-${record.id}-${index + 1}`,
-            }))
-        );
-    }, [records]);
-
-    const inquiries = useMemo(() => {
-        return records.flatMap((record) =>
-            (record.inquiries || []).map((inquiry, index) => ({
-                ...inquiry,
-                inquiryId:
-                    inquiry.inquiryId ||
-                    inquiry.referenceNumber ||
-                    `INQ-${record.id}-${index + 1}`,
-                fullName: inquiry.fullName || record.fullName,
-                eventType: inquiry.eventType || record.eventType || "Inquiry",
-                preferredDate:
-                    inquiry.preferredDate ||
-                    inquiry.eventDate ||
-                    record.preferredDate ||
-                    "",
-                guests: normalizeNumber(
-                    inquiry.guests || inquiry.guestCount || record.guests || 0
-                ),
-                status: normalizeStatus(inquiry.status || "recorded"),
-            }))
-        );
-    }, [records]);
-
-    const summary = useMemo(() => {
-        const totalRevenue = bookings.reduce(
-            (sum, item) => sum + normalizeNumber(item.totalAmount),
-            0
-        );
-
-        const totalCollected = payments.reduce(
-            (sum, item) => sum + normalizeNumber(item.amount),
-            0
-        );
-
-        const totalExpenses = expenses.reduce(
-            (sum, item) => sum + normalizeNumber(item.amount),
-            0
-        );
-
-        const approvedQuotations = quotations.filter((item) =>
-            ["approved", "confirmed", "paid"].includes(normalizeStatus(item.status))
-        ).length;
-
-        const pendingQuotations = quotations.filter(
-            (item) => normalizeStatus(item.status) === "pending"
-        ).length;
-
-        const repliedInquiries = inquiries.filter(
-            (item) => normalizeStatus(item.status) === "replied"
-        ).length;
-
-        return {
-            totalBookings: bookings.length,
-            totalRevenue,
-            totalCollected,
-            totalExpenses,
-            netProfit: totalRevenue - totalExpenses,
-            approvedQuotations,
-            pendingQuotations,
-            totalInquiries: inquiries.length,
-            repliedInquiries,
-        };
-    }, [bookings, payments, expenses, quotations, inquiries]);
-
-    const bookingReportRows = useMemo(() => {
-        return bookings.map((booking) => [
-            booking.bookingId,
-            booking.fullName,
-            booking.eventType,
-            formatDate(booking.eventDate),
-            booking.guestCount,
-            formatCurrency(booking.totalAmount),
-            formatCurrency(booking.paid),
-            formatCurrency(booking.balance),
-            booking.status,
-        ]);
-    }, [bookings]);
-
-    const quotationReportRows = useMemo(() => {
-        return quotations.map((item) => [
-            item.quotationId,
-            item.fullName,
-            item.eventType,
-            formatDate(item.preferredDate),
-            item.guests,
-            formatCurrency(item.estimatedTotal),
-            item.status,
-        ]);
-    }, [quotations]);
-
-    const paymentReportRows = useMemo(() => {
-        return payments.map((item) => [
-            item.paymentId,
-            item.bookingId || "—",
-            item.clientName,
-            item.paymentType,
-            item.paymentMethod,
-            formatCurrency(item.amount),
-            formatDate(item.createdAt),
-        ]);
-    }, [payments]);
-
-    const expenseReportRows = useMemo(() => {
-        return expenses.map((item) => [
-            item.bookingId || "—",
-            item.clientName || "—",
-            item.eventType || "—",
-            item.category || "—",
-            formatCurrency(item.amount),
-            formatDate(item.createdAt),
-        ]);
-    }, [expenses]);
-
-    const inquiryReportRows = useMemo(() => {
-        return inquiries.map((item) => [
-            item.inquiryId,
-            item.fullName,
-            item.eventType,
-            formatDate(item.preferredDate),
-            item.guests,
-            item.status,
-        ]);
-    }, [inquiries]);
-
-    const monthlyRows = useMemo(() => {
-        const bucket = new Map();
-
-        records.forEach((record) => {
-            const rawDate = record.eventDate || record.preferredDate;
-            const date = new Date(rawDate);
-            if (Number.isNaN(date.getTime())) return;
-
-            const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
-            const label = date.toLocaleDateString("en-PH", {
-                year: "numeric",
-                month: "long",
-            });
-
-            if (!bucket.has(key)) {
-                bucket.set(key, {
-                    key,
-                    label,
-                    revenue: 0,
-                    expenses: 0,
-                });
-            }
-
-            const row = bucket.get(key);
-
-            if (record.isBookingLike) {
-                row.revenue += normalizeNumber(record.totalAmount);
-            }
-
-            row.expenses += (record.expenses || []).reduce(
-                (sum, item) => sum + normalizeNumber(item.amount),
-                0
+        return rows.filter((row) => {
+            return (
+                String(row.bookingId || "").toLowerCase().includes(keyword) ||
+                String(row.fullName || "").toLowerCase().includes(keyword) ||
+                String(row.eventType || "").toLowerCase().includes(keyword) ||
+                String(row.paymentStatus || "").toLowerCase().includes(keyword)
             );
         });
+    }, [rows, searchTerm]);
 
-        return [...bucket.values()]
-            .sort((a, b) => a.key.localeCompare(b.key))
-            .map((row) => {
-                const profit = row.revenue - row.expenses;
-                const margin = row.revenue > 0 ? (profit / row.revenue) * 100 : 0;
+    const totals = useMemo(() => {
+        const collected = rows.reduce(
+            (sum, item) => sum + normalizeNumber(item.paid),
+            0
+        );
 
-                return {
-                    ...row,
-                    profit,
-                    margin,
-                };
+        const balance = rows.reduce(
+            (sum, item) => sum + normalizeNumber(item.balance),
+            0
+        );
+
+        return { collected, balance };
+    }, [rows]);
+
+    const statusCounts = useMemo(() => {
+        return {
+            paid: rows.filter((item) => item.paymentStatus === "paid").length,
+            partial: rows.filter((item) => item.paymentStatus === "partial").length,
+            unpaid: rows.filter((item) => item.paymentStatus === "unpaid").length,
+        };
+    }, [rows]);
+
+    const selectedRow = useMemo(() => {
+        if (!modalTarget?.id) return null;
+        return rows.find((item) => item.id === modalTarget.id) || null;
+    }, [modalTarget, rows]);
+
+    const currentEditableRemaining = useMemo(() => {
+        if (!selectedRow || !editingPayment) return 0;
+
+        const currentAmount = normalizeNumber(
+            editingPayment?.amount ||
+            editingPayment?.paymentAmount ||
+            editingPayment?.payment_amount
+        );
+
+        return normalizeNumber(selectedRow.balance) + currentAmount;
+    }, [selectedRow, editingPayment]);
+
+    const handleOpenModal = (row) => {
+        setModalTarget(row);
+        setPaymentInput("");
+        setEditingPayment(null);
+        setEditingAmount("");
+    };
+
+    const closePaymentModal = () => {
+        setModalTarget(null);
+        setPaymentInput("");
+        setEditingPayment(null);
+        setEditingAmount("");
+    };
+
+    const handleSavePayment = async () => {
+        if (!selectedRow) return;
+
+        const amount = normalizeNumber(paymentInput);
+
+        if (amount <= 0) {
+            alert("Enter a valid payment amount.");
+            return;
+        }
+
+        if (selectedRow.balance <= 0) {
+            alert("This booking is already fully paid.");
+            return;
+        }
+
+        if (amount > selectedRow.balance) {
+            alert(
+                `Payment exceeds the remaining balance of ${formatCurrency(
+                    selectedRow.balance
+                )}.`
+            );
+            return;
+        }
+
+        const currentPayments = Array.isArray(selectedRow.payments)
+            ? selectedRow.payments
+            : [];
+
+        const newPayment = {
+            id: `payment_${Date.now()}`,
+            paymentId: `P${Date.now()}`,
+            bookingId: selectedRow.bookingId,
+            amount,
+            paymentAmount: amount,
+            paymentType: "Booking Payment",
+            paymentMethod: "Manual Admin Entry",
+            referenceNumber: `REF-${Date.now()}`,
+            createdAt: new Date().toISOString(),
+            status: amount === selectedRow.balance ? "Paid" : "Partial",
+            clientName: selectedRow.fullName || "Client",
+            ownerEmail: selectedRow.ownerEmail || selectedRow.email || "",
+        };
+
+        try {
+            setSaving(true);
+
+            await updateQuotationRecord(selectedRow.id, {
+                payments: [...currentPayments, newPayment],
+                updatedAt: new Date().toISOString(),
             });
-    }, [records]);
 
-    const demandForecast = useMemo(() => {
-        const counter = new Map();
-
-        bookings.forEach((item) => {
-            const type = item.eventType || "Other";
-            counter.set(type, (counter.get(type) || 0) + 1);
-        });
-
-        const total = bookings.length || 1;
-
-        return [...counter.entries()]
-            .map(([type, count]) => ({
-                type,
-                count,
-                percent: ((count / total) * 100).toFixed(1),
-            }))
-            .sort((a, b) => b.count - a.count);
-    }, [bookings]);
-
-    const handlePrintOverview = () => {
-        openPrintWindow({
-            title: "Business Overview Report",
-            subtitle: "Summary of bookings, revenue, quotations, inquiries, and profit",
-            summaryCards: [
-                { label: "Bookings", value: summary.totalBookings },
-                { label: "Revenue", value: formatCurrency(summary.totalRevenue) },
-                { label: "Expenses", value: formatCurrency(summary.totalExpenses) },
-                { label: "Net Profit", value: formatCurrency(summary.netProfit) },
-            ],
-            content: `
-                <div class="section">
-                    <h2 class="section-title">Overview Summary</h2>
-                    ${buildPrintableTable(
-                ["Metric", "Value"],
-                [
-                    ["Total Bookings", summary.totalBookings],
-                    ["Total Revenue", formatCurrency(summary.totalRevenue)],
-                    ["Total Collected", formatCurrency(summary.totalCollected)],
-                    ["Total Expenses", formatCurrency(summary.totalExpenses)],
-                    ["Net Profit", formatCurrency(summary.netProfit)],
-                    ["Approved Quotations", summary.approvedQuotations],
-                    ["Pending Quotations", summary.pendingQuotations],
-                    ["Total Inquiries", summary.totalInquiries],
-                    ["Replied Inquiries", summary.repliedInquiries],
-                ]
-            )}
-                </div>
-            `,
-        });
+            setPaymentInput("");
+            await loadRows();
+        } catch (error) {
+            console.error("Failed to save payment:", error);
+            alert(error.message || "Failed to save payment.");
+        } finally {
+            setSaving(false);
+        }
     };
 
-    const handlePrintBookings = () => {
-        openPrintWindow({
-            title: "Bookings Report",
-            subtitle: "All booking records currently saved in the system",
-            summaryCards: [
-                { label: "Total Bookings", value: summary.totalBookings },
-                { label: "Revenue", value: formatCurrency(summary.totalRevenue) },
-                { label: "Collected", value: formatCurrency(summary.totalCollected) },
-                { label: "Net Profit", value: formatCurrency(summary.netProfit) },
-            ],
-            content: `
-                <div class="section">
-                    <h2 class="section-title">Booking Records</h2>
-                    ${buildPrintableTable(
-                [
-                    "Booking ID",
-                    "Client",
-                    "Event Type",
-                    "Event Date",
-                    "Guests",
-                    "Total",
-                    "Paid",
-                    "Balance",
-                    "Status",
-                ],
-                bookingReportRows
-            )}
-                </div>
-            `,
-        });
+    const startEditPayment = (payment) => {
+        setEditingPayment(payment);
+        setEditingAmount(
+            String(
+                normalizeNumber(
+                    payment?.amount ||
+                    payment?.paymentAmount ||
+                    payment?.payment_amount
+                )
+            )
+        );
     };
 
-    const handlePrintQuotations = () => {
-        openPrintWindow({
-            title: "Quotation Report",
-            subtitle: "All quotation requests currently saved in the system",
-            summaryCards: [
-                { label: "Total Quotations", value: quotations.length },
-                { label: "Approved", value: summary.approvedQuotations },
-                { label: "Pending", value: summary.pendingQuotations },
-                { label: "Bookings", value: summary.totalBookings },
-            ],
-            content: `
-                <div class="section">
-                    <h2 class="section-title">Quotation Records</h2>
-                    ${buildPrintableTable(
-                [
-                    "Quotation ID",
-                    "Client",
-                    "Event Type",
-                    "Preferred Date",
-                    "Guests",
-                    "Estimated Total",
-                    "Status",
-                ],
-                quotationReportRows
-            )}
-                </div>
-            `,
+    const cancelEditPayment = () => {
+        setEditingPayment(null);
+        setEditingAmount("");
+    };
+
+    const handleUpdatePayment = async () => {
+        if (!selectedRow || !editingPayment) return;
+
+        const newAmount = normalizeNumber(editingAmount);
+
+        if (newAmount <= 0) {
+            alert("Enter a valid updated payment amount.");
+            return;
+        }
+
+        if (newAmount > currentEditableRemaining) {
+            alert(
+                `Updated payment exceeds the allowed amount of ${formatCurrency(
+                    currentEditableRemaining
+                )}.`
+            );
+            return;
+        }
+
+        const updatedPayments = (selectedRow.payments || []).map((item, index) => {
+            if (isSamePaymentRecord(item, editingPayment, index)) {
+                return {
+                    ...item,
+                    amount: newAmount,
+                    paymentAmount: newAmount,
+                    status:
+                        newAmount === currentEditableRemaining ? "Paid" : "Partial",
+                    updatedAt: new Date().toISOString(),
+                };
+            }
+            return item;
         });
+
+        try {
+            setSaving(true);
+
+            await updateQuotationRecord(selectedRow.id, {
+                payments: updatedPayments,
+                updatedAt: new Date().toISOString(),
+            });
+
+            setEditingPayment(null);
+            setEditingAmount("");
+            await loadRows();
+        } catch (error) {
+            console.error("Failed to update payment:", error);
+            alert(error.message || "Failed to update payment.");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleDeletePayment = async (payment) => {
+        const confirmed = window.confirm(
+            "Are you sure you want to delete this payment record?"
+        );
+
+        if (!confirmed || !selectedRow) return;
+
+        const filteredPayments = (selectedRow.payments || []).filter((item, index) => {
+            return !isSamePaymentRecord(item, payment, index);
+        });
+
+        try {
+            setSaving(true);
+
+            await updateQuotationRecord(selectedRow.id, {
+                payments: filteredPayments,
+                updatedAt: new Date().toISOString(),
+            });
+
+            setEditingPayment(null);
+            setEditingAmount("");
+            await loadRows();
+        } catch (error) {
+            console.error("Failed to delete payment:", error);
+            alert(error.message || "Failed to delete payment.");
+        } finally {
+            setSaving(false);
+        }
     };
 
     const handlePrintPayments = () => {
         openPrintWindow({
-            title: "Payment Report",
-            subtitle: "All payment records currently saved in the system",
+            title: "Payment Tracking Report",
+            subtitle: "Booking payment status summary",
             summaryCards: [
-                { label: "Payments", value: payments.length },
-                { label: "Collected", value: formatCurrency(summary.totalCollected) },
-                { label: "Revenue", value: formatCurrency(summary.totalRevenue) },
-                { label: "Expenses", value: formatCurrency(summary.totalExpenses) },
+                { label: "Bookings", value: rows.length },
+                { label: "Collected", value: formatCurrency(totals.collected) },
+                { label: "Outstanding", value: formatCurrency(totals.balance) },
+                {
+                    label: "Paid Bookings",
+                    value: rows.filter((item) => item.paymentStatus === "paid").length,
+                },
             ],
             content: `
                 <div class="section">
-                    <h2 class="section-title">Payment Records</h2>
-                    ${buildPrintableTable(
-                [
-                    "Payment ID",
-                    "Booking ID",
-                    "Client",
-                    "Payment Type",
-                    "Method",
-                    "Amount",
-                    "Date",
-                ],
-                paymentReportRows
-            )}
-                </div>
-            `,
-        });
-    };
-
-    const handlePrintExpenses = () => {
-        openPrintWindow({
-            title: "Expense Report",
-            subtitle: "All admin-recorded expenses currently saved in the system",
-            summaryCards: [
-                { label: "Expenses", value: expenses.length },
-                { label: "Total Expenses", value: formatCurrency(summary.totalExpenses) },
-                { label: "Revenue", value: formatCurrency(summary.totalRevenue) },
-                { label: "Net Profit", value: formatCurrency(summary.netProfit) },
-            ],
-            content: `
-                <div class="section">
-                    <h2 class="section-title">Expense Records</h2>
+                    <h2 class="section-title">Booking Payment Status</h2>
                     ${buildPrintableTable(
                 [
                     "Booking ID",
                     "Client",
-                    "Event Type",
-                    "Category",
-                    "Amount",
-                    "Date",
-                ],
-                expenseReportRows
-            )}
-                </div>
-            `,
-        });
-    };
-
-    const handlePrintInquiries = () => {
-        openPrintWindow({
-            title: "Inquiry Report",
-            subtitle: "All inquiry records currently saved in the system",
-            summaryCards: [
-                { label: "Total Inquiries", value: summary.totalInquiries },
-                { label: "Replied", value: summary.repliedInquiries },
-                { label: "Quotations", value: quotations.length },
-                { label: "Bookings", value: bookings.length },
-            ],
-            content: `
-                <div class="section">
-                    <h2 class="section-title">Inquiry Records</h2>
-                    ${buildPrintableTable(
-                [
-                    "Inquiry ID",
-                    "Client",
-                    "Event Type",
-                    "Preferred Date",
-                    "Guests",
+                    "Event Date",
+                    "Total Amount",
+                    "Paid",
+                    "Balance",
                     "Status",
                 ],
-                inquiryReportRows
-            )}
-                </div>
-            `,
-        });
-    };
-
-    const handlePrintMonthlyFinancial = () => {
-        openPrintWindow({
-            title: "Monthly Financial Report",
-            subtitle: "Monthly revenue, expenses, and profit summary",
-            summaryCards: [
-                { label: "Revenue", value: formatCurrency(summary.totalRevenue) },
-                { label: "Expenses", value: formatCurrency(summary.totalExpenses) },
-                { label: "Collected", value: formatCurrency(summary.totalCollected) },
-                { label: "Profit", value: formatCurrency(summary.netProfit) },
-            ],
-            content: `
-                <div class="section">
-                    <h2 class="section-title">Monthly Financial Summary</h2>
-                    ${buildPrintableTable(
-                ["Month", "Revenue", "Expenses", "Profit", "Margin"],
-                monthlyRows.map((row) => [
-                    row.label,
-                    formatCurrency(row.revenue),
-                    formatCurrency(row.expenses),
-                    formatCurrency(row.profit),
-                    `${row.margin.toFixed(1)}%`,
+                rows.map((row) => [
+                    row.bookingId,
+                    row.fullName,
+                    formatDate(row.eventDate),
+                    formatCurrency(row.totalAmount),
+                    formatCurrency(row.paid),
+                    formatCurrency(row.balance),
+                    row.paymentStatus,
                 ])
             )}
                 </div>
@@ -625,262 +476,572 @@ function AdminReports() {
         });
     };
 
-    const handlePrintForecast = () => {
-        openPrintWindow({
-            title: "Demand Forecast Report",
-            subtitle: "Demand overview based on current booking distribution",
-            summaryCards: [
-                { label: "Bookings", value: summary.totalBookings },
-                { label: "Quotations", value: quotations.length },
-                { label: "Inquiries", value: summary.totalInquiries },
-                { label: "Revenue", value: formatCurrency(summary.totalRevenue) },
-            ],
-            content: `
-                <div class="section">
-                    <h2 class="section-title">Demand Forecast</h2>
-                    ${buildPrintableTable(
-                ["Event Type", "Bookings", "Demand Share"],
-                demandForecast.map((item) => [
-                    item.type,
-                    item.count,
-                    `${item.percent}%`,
-                ])
-            )}
-                </div>
-            `,
-        });
+    const getStatusStyle = (status) => {
+        if (status === "paid") {
+            return "bg-emerald-50 text-emerald-700 border border-emerald-200";
+        }
+        if (status === "partial") {
+            return "bg-amber-50 text-amber-700 border border-amber-200";
+        }
+        return "bg-rose-50 text-rose-700 border border-rose-200";
     };
 
     return (
-        <div className="space-y-6">
-            <motion.section
-                initial={{ opacity: 0, y: 18 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.45 }}
-                className="relative overflow-hidden rounded-[28px] border border-white/60 bg-gradient-to-br from-[#0f4d3c] via-[#0c3f33] to-[#07241d] p-6 text-white shadow-[0_24px_80px_rgba(15,77,60,0.22)]"
-            >
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(212,175,55,0.24),transparent_30%),radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.08),transparent_25%)]" />
-                <div className="relative flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
-                    <div className="max-w-2xl">
-                        <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#f7e7a1] backdrop-blur">
-                            <FileBarChart2 className="h-4 w-4" />
-                            Executive Reporting Center
-                        </div>
-                        <h1 className="mt-4 text-3xl font-black leading-tight md:text-4xl">
-                            Admin Reports & Analytics
-                        </h1>
-                        <p className="mt-3 max-w-xl text-sm leading-6 text-white/75 md:text-base">
-                            Generate clean business reports and view operational snapshots from
-                            your live admin data with a more premium executive dashboard feel.
-                        </p>
-                    </div>
-
-                    <div className="inline-flex items-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-semibold text-white/85">
-                        <Sparkles className="h-4 w-4 text-[#f4d97a]" />
-                        Real-time system-based report previews
-                    </div>
-                </div>
-            </motion.section>
-
-            <section className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
-                <SummaryCard title="Total Bookings" value={summary.totalBookings} icon={CalendarRange} delay={0.05} />
-                <SummaryCard title="Total Revenue" value={formatCurrency(summary.totalRevenue)} icon={Wallet} delay={0.1} />
-                <SummaryCard title="Total Expenses" value={formatCurrency(summary.totalExpenses)} icon={ReceiptText} delay={0.15} />
-                <SummaryCard title="Net Profit" value={formatCurrency(summary.netProfit)} icon={TrendingUp} delay={0.2} />
-            </section>
-
-            <motion.section
-                initial={{ opacity: 0, y: 18 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.45, delay: 0.08 }}
-                className="overflow-hidden rounded-[28px] border border-white/70 bg-white/90 shadow-[0_18px_60px_rgba(15,23,42,0.08)]"
-            >
-                <div className="border-b border-gray-100 p-6">
-                    <h2 className="text-2xl font-black text-[#0f4d3c]">
-                        Generate PDF Reports
-                    </h2>
-                    <p className="mt-1 text-sm text-gray-500">
-                        These reports use only the current real data saved in your system.
-                    </p>
-                </div>
-
-                <div className="grid gap-4 p-6 md:grid-cols-2 xl:grid-cols-4">
-                    <ReportButton label="Business Overview" onClick={handlePrintOverview} icon={PieChart} />
-                    <ReportButton label="Bookings Report" onClick={handlePrintBookings} icon={CalendarRange} />
-                    <ReportButton label="Quotation Report" onClick={handlePrintQuotations} icon={FileText} />
-                    <ReportButton label="Payment Report" onClick={handlePrintPayments} icon={Wallet} />
-                    <ReportButton label="Expense Report" onClick={handlePrintExpenses} icon={ReceiptText} />
-                    <ReportButton label="Inquiry Report" onClick={handlePrintInquiries} icon={MessageSquareQuote} />
-                    <ReportButton label="Monthly Financial" onClick={handlePrintMonthlyFinancial} icon={BarChart3} />
-                    <ReportButton label="Demand Forecast" onClick={handlePrintForecast} icon={TrendingUp} />
-                </div>
-            </motion.section>
-
-            <section className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-                <motion.div
-                    initial={{ opacity: 0, x: -18 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.35 }}
-                    className="rounded-[28px] border border-white/70 bg-white/90 p-6 shadow-[0_18px_60px_rgba(15,23,42,0.08)]"
+        <>
+            <div className="space-y-6">
+                <motion.section
+                    initial={{ opacity: 0, y: 18 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.45 }}
+                    className="relative overflow-hidden rounded-[28px] border border-white/60 bg-gradient-to-br from-[#0f4d3c] via-[#0c3f33] to-[#07241d] p-6 text-white shadow-[0_24px_80px_rgba(15,77,60,0.22)]"
                 >
-                    <div className="flex items-center gap-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#fff8e6] text-[#b99117]">
-                            <PieChart className="h-6 w-6" />
-                        </div>
-                        <div>
-                            <h2 className="text-2xl font-black text-[#0f4d3c]">
-                                Report Summary
-                            </h2>
-                            <p className="text-sm text-gray-500">
-                                Executive snapshot of current business metrics.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="mt-6 space-y-4">
-                        <SummaryLine label="Approved Quotations" value={summary.approvedQuotations} />
-                        <SummaryLine label="Pending Quotations" value={summary.pendingQuotations} />
-                        <SummaryLine label="Total Inquiries" value={summary.totalInquiries} />
-                        <SummaryLine label="Replied Inquiries" value={summary.repliedInquiries} />
-                        <SummaryLine label="Total Collected" value={formatCurrency(summary.totalCollected)} />
-                    </div>
-                </motion.div>
-
-                <motion.div
-                    initial={{ opacity: 0, x: 18 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.35 }}
-                    className="rounded-[28px] border border-white/70 bg-white/90 p-6 shadow-[0_18px_60px_rgba(15,23,42,0.08)]"
-                >
-                    <div className="flex items-center gap-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#ecfdf5] text-[#0f766e]">
-                            <TrendingUp className="h-6 w-6" />
-                        </div>
-                        <div>
-                            <h2 className="text-2xl font-black text-[#0f4d3c]">
-                                Demand Forecast Snapshot
-                            </h2>
-                            <p className="text-sm text-gray-500">
-                                Current event demand based on booking distribution.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="mt-6 space-y-5">
-                        {loading ? (
-                            <div className="flex items-center gap-3 text-sm text-gray-500">
-                                <LoaderCircle className="h-4 w-4 animate-spin" />
-                                Loading demand forecast...
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(212,175,55,0.24),transparent_30%),radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.10),transparent_28%)]" />
+                    <div className="relative flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
+                        <div className="max-w-2xl">
+                            <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#f7e7a1] backdrop-blur">
+                                <Wallet className="h-4 w-4" />
+                                Admin Finance Control
                             </div>
-                        ) : demandForecast.length === 0 ? (
-                            <p className="text-sm text-gray-500">No demand forecast data yet.</p>
-                        ) : (
-                            demandForecast.map((item) => (
-                                <div key={item.type}>
-                                    <div className="mb-2 flex items-center justify-between gap-3 text-sm">
-                                        <span className="font-bold text-[#0f4d3c]">{item.type}</span>
-                                        <span className="text-gray-500">
-                                            {item.count} • {item.percent}%
-                                        </span>
+                            <h1 className="mt-4 text-3xl font-black leading-tight md:text-4xl">
+                                Payment Tracking Dashboard
+                            </h1>
+                            <p className="mt-3 max-w-xl text-sm leading-6 text-white/75 md:text-base">
+                                Monitor booking payments, collected revenue, and outstanding
+                                balances through a cleaner premium financial interface.
+                            </p>
+                        </div>
+
+                        <button
+                            onClick={handlePrintPayments}
+                            className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#f4d97a]/40 bg-[#d4af37] px-5 py-3 text-sm font-bold text-[#0f2c24] transition hover:scale-[1.02] hover:bg-[#e0bc49]"
+                        >
+                            <Printer className="h-4 w-4" />
+                            Generate PDF Report
+                        </button>
+                    </div>
+                </motion.section>
+
+                <section className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+                    <StatCard
+                        title="Total Collected"
+                        value={formatCurrency(totals.collected)}
+                        icon={CircleDollarSign}
+                        accent="emerald"
+                        delay={0.05}
+                    />
+                    <StatCard
+                        title="Outstanding Balance"
+                        value={formatCurrency(totals.balance)}
+                        icon={ReceiptText}
+                        accent="rose"
+                        delay={0.1}
+                    />
+                    <StatCard
+                        title="Fully Paid"
+                        value={statusCounts.paid}
+                        icon={BadgeCheck}
+                        accent="gold"
+                        delay={0.15}
+                    />
+                    <StatCard
+                        title="Partial / Unpaid"
+                        value={statusCounts.partial + statusCounts.unpaid}
+                        icon={Clock3}
+                        accent="slate"
+                        delay={0.2}
+                    />
+                </section>
+
+                <motion.section
+                    initial={{ opacity: 0, y: 18 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.45, delay: 0.1 }}
+                    className="overflow-hidden rounded-[28px] border border-white/70 bg-white/90 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur"
+                >
+                    <div className="border-b border-gray-100 p-6">
+                        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+                            <div>
+                                <h2 className="text-2xl font-black tracking-tight text-[#0f4d3c]">
+                                    Booking Payment Records
+                                </h2>
+                                <p className="mt-1 text-sm text-gray-500">
+                                    Review payment progress, balances, and booking status in one place.
+                                </p>
+                            </div>
+
+                            <div className="flex w-full flex-col gap-3 sm:flex-row xl:w-auto">
+                                <div className="relative min-w-0 flex-1 xl:w-[320px]">
+                                    <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                                    <input
+                                        type="text"
+                                        placeholder="Search booking, client, event, status..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="w-full rounded-2xl border border-gray-200 bg-[#f8fafc] py-3 pl-11 pr-4 text-sm outline-none transition focus:border-[#d4af37] focus:bg-white"
+                                    />
+                                </div>
+
+                                <div className="inline-flex items-center rounded-2xl border border-[#d4af37]/30 bg-[#fff8e6] px-4 py-3 text-sm font-semibold text-[#8d6a0e]">
+                                    {filteredRows.length} record(s)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {loading ? (
+                        <div className="p-10">
+                            <div className="rounded-[24px] border border-dashed border-[#d9e2ec] bg-[linear-gradient(135deg,#f8fafc,white)] p-10 text-center">
+                                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#ecfdf5]">
+                                    <LoaderCircle className="h-8 w-8 animate-spin text-[#0f766e]" />
+                                </div>
+                                <h3 className="mt-4 text-xl font-bold text-[#0f4d3c]">
+                                    Loading payment records
+                                </h3>
+                            </div>
+                        </div>
+                    ) : filteredRows.length === 0 ? (
+                        <div className="p-10">
+                            <div className="rounded-[24px] border border-dashed border-[#d9e2ec] bg-[linear-gradient(135deg,#f8fafc,white)] p-10 text-center">
+                                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#ecfdf5]">
+                                    <Wallet className="h-8 w-8 text-[#0f766e]" />
+                                </div>
+                                <h3 className="mt-4 text-xl font-bold text-[#0f4d3c]">
+                                    No payment records found
+                                </h3>
+                                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-gray-500">
+                                    There are currently no matching booking payments in the system.
+                                </p>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="w-full min-w-[1160px] text-sm">
+                                <thead>
+                                    <tr className="bg-[#fcfcfd] text-left text-[12px] uppercase tracking-[0.16em] text-gray-500">
+                                        <th className="px-6 py-4 font-bold">Booking</th>
+                                        <th className="px-6 py-4 font-bold">Client</th>
+                                        <th className="px-6 py-4 font-bold">Event Date</th>
+                                        <th className="px-6 py-4 font-bold">Total</th>
+                                        <th className="px-6 py-4 font-bold">Paid</th>
+                                        <th className="px-6 py-4 font-bold">Balance</th>
+                                        <th className="px-6 py-4 font-bold">Status</th>
+                                        <th className="px-6 py-4 text-center font-bold">Action</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    {filteredRows.map((row, index) => (
+                                        <motion.tr
+                                            key={row.id || row.bookingId}
+                                            initial={{ opacity: 0, y: 14 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.3, delay: index * 0.03 }}
+                                            className="border-t border-gray-100 transition hover:bg-[#fcfdfd]"
+                                        >
+                                            <td className="px-6 py-5">
+                                                <div>
+                                                    <p className="font-extrabold text-[#0f4d3c]">
+                                                        {row.bookingId}
+                                                    </p>
+                                                    <p className="mt-1 text-xs text-gray-400">
+                                                        {row.eventType || "Booking record"}
+                                                    </p>
+                                                </div>
+                                            </td>
+
+                                            <td className="px-6 py-5">
+                                                <div>
+                                                    <p className="font-semibold text-slate-700">
+                                                        {row.fullName}
+                                                    </p>
+                                                    <p className="mt-1 text-xs text-gray-400">
+                                                        {row.email || row.ownerEmail || "No email"}
+                                                    </p>
+                                                </div>
+                                            </td>
+
+                                            <td className="px-6 py-5 font-medium text-slate-600">
+                                                {formatDate(row.eventDate)}
+                                            </td>
+
+                                            <td className="px-6 py-5">
+                                                <span className="font-bold text-[#0f4d3c]">
+                                                    {formatCurrency(row.totalAmount)}
+                                                </span>
+                                            </td>
+
+                                            <td className="px-6 py-5">
+                                                <span className="font-bold text-emerald-600">
+                                                    {formatCurrency(row.paid)}
+                                                </span>
+                                            </td>
+
+                                            <td className="px-6 py-5">
+                                                <span
+                                                    className={`font-bold ${row.balance <= 0
+                                                            ? "text-emerald-600"
+                                                            : "text-rose-500"
+                                                        }`}
+                                                >
+                                                    {formatCurrency(row.balance)}
+                                                </span>
+                                            </td>
+
+                                            <td className="px-6 py-5">
+                                                <span
+                                                    className={`inline-flex rounded-full px-3 py-1 text-xs font-bold capitalize ${getStatusStyle(
+                                                        row.paymentStatus
+                                                    )}`}
+                                                >
+                                                    {row.paymentStatus}
+                                                </span>
+                                            </td>
+
+                                            <td className="px-6 py-5 text-center">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleOpenModal(row)}
+                                                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#0b4a3a] px-4 py-2.5 text-xs font-bold text-white transition hover:-translate-y-0.5 hover:bg-[#09382d]"
+                                                >
+                                                    <CreditCard className="h-4 w-4" />
+                                                    Manage Payment
+                                                </button>
+                                            </td>
+                                        </motion.tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </motion.section>
+            </div>
+
+            <AnimatePresence>
+                {selectedRow && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-[#020617]/55 px-4 backdrop-blur-[3px]"
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, y: 26, scale: 0.96 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 20, scale: 0.96 }}
+                            transition={{ duration: 0.25 }}
+                            className="relative max-h-[92vh] w-full max-w-4xl overflow-hidden rounded-[32px] border border-white/60 bg-white shadow-[0_30px_90px_rgba(2,6,23,0.30)]"
+                        >
+                            <div className="bg-[linear-gradient(135deg,#0f4d3c,#09382d)] p-6 text-white">
+                                <div className="flex items-start justify-between gap-4">
+                                    <div className="flex items-start gap-4">
+                                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/15">
+                                            <CreditCard className="h-7 w-7 text-[#f4d97a]" />
+                                        </div>
+
+                                        <div>
+                                            <h3 className="text-2xl font-black">
+                                                Manage Payment
+                                            </h3>
+                                            <p className="mt-1 text-sm text-white/75">
+                                                Add, edit, or remove payment records for this booking.
+                                            </p>
+                                        </div>
                                     </div>
 
-                                    <div className="h-3 overflow-hidden rounded-full bg-gray-100">
-                                        <motion.div
-                                            initial={{ width: 0 }}
-                                            animate={{ width: `${item.percent}%` }}
-                                            transition={{ duration: 0.7 }}
-                                            className="h-full rounded-full bg-[linear-gradient(90deg,#d4af37,#f0cd66)]"
-                                        />
+                                    <button
+                                        type="button"
+                                        onClick={closePaymentModal}
+                                        className="rounded-full bg-white/10 p-2 text-white transition hover:bg-white/20"
+                                    >
+                                        <X className="h-5 w-5" />
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="max-h-[calc(92vh-112px)] overflow-y-auto p-6">
+                                <div className="grid gap-6 xl:grid-cols-[1.05fr_1.35fr]">
+                                    <div className="space-y-5">
+                                        <div className="rounded-[24px] border border-[#f4ecd2] bg-[#fffaf0] p-4">
+                                            <p className="text-sm font-bold text-[#0f4d3c]">
+                                                {selectedRow.fullName}
+                                            </p>
+                                            <p className="mt-1 text-xs text-gray-500">
+                                                Booking ID: {selectedRow.bookingId}
+                                            </p>
+
+                                            <div className="mt-4 grid grid-cols-2 gap-3">
+                                                <MiniInfo
+                                                    label="Total Amount"
+                                                    value={formatCurrency(selectedRow.totalAmount)}
+                                                />
+                                                <MiniInfo
+                                                    label="Current Paid"
+                                                    value={formatCurrency(selectedRow.paid)}
+                                                />
+                                                <MiniInfo
+                                                    label="Balance"
+                                                    value={formatCurrency(selectedRow.balance)}
+                                                />
+                                                <MiniInfo
+                                                    label="Status"
+                                                    value={selectedRow.paymentStatus}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="rounded-[24px] border border-gray-100 bg-white p-5 shadow-sm">
+                                            <div className="mb-4 flex items-center gap-2">
+                                                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#ecfdf5]">
+                                                    <ArrowRight className="h-5 w-5 text-[#0f766e]" />
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-extrabold text-[#0f4d3c]">
+                                                        Add New Payment
+                                                    </h4>
+                                                    <p className="text-xs text-gray-500">
+                                                        Record an additional payment for this booking.
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label className="mb-2 block text-sm font-bold text-[#0f4d3c]">
+                                                    Amount Paid
+                                                </label>
+                                                <div className="relative">
+                                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400">
+                                                        ₱
+                                                    </span>
+                                                    <input
+                                                        type="number"
+                                                        min="1"
+                                                        max={selectedRow.balance}
+                                                        placeholder={
+                                                            selectedRow.balance <= 0
+                                                                ? "Booking already fully paid"
+                                                                : "Enter payment amount"
+                                                        }
+                                                        value={paymentInput}
+                                                        onChange={(e) =>
+                                                            setPaymentInput(e.target.value)
+                                                        }
+                                                        disabled={selectedRow.balance <= 0 || saving}
+                                                        className="w-full rounded-2xl border border-gray-200 bg-[#f8fafc] py-3 pl-10 pr-4 outline-none transition focus:border-[#d4af37] focus:bg-white disabled:cursor-not-allowed disabled:bg-gray-100"
+                                                    />
+                                                </div>
+                                                <p className="mt-2 text-xs text-gray-500">
+                                                    Maximum allowed payment:{" "}
+                                                    {formatCurrency(selectedRow.balance)}
+                                                </p>
+                                            </div>
+
+                                            <button
+                                                type="button"
+                                                onClick={handleSavePayment}
+                                                disabled={selectedRow.balance <= 0 || saving}
+                                                className={`mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-bold text-white transition ${selectedRow.balance <= 0 || saving
+                                                        ? "cursor-not-allowed bg-emerald-600/70"
+                                                        : "bg-[#0b4a3a] hover:-translate-y-0.5 hover:bg-[#09382d]"
+                                                    }`}
+                                            >
+                                                <CreditCard className="h-4 w-4" />
+                                                {selectedRow.balance <= 0
+                                                    ? "Fully Paid"
+                                                    : saving
+                                                        ? "Saving..."
+                                                        : "Save Payment"}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-5">
+                                        <div className="rounded-[24px] border border-gray-100 bg-white p-5 shadow-sm">
+                                            <div className="mb-4 flex items-center gap-2">
+                                                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#eff6ff]">
+                                                    <History className="h-5 w-5 text-[#2563eb]" />
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-extrabold text-[#0f4d3c]">
+                                                        Payment History
+                                                    </h4>
+                                                    <p className="text-xs text-gray-500">
+                                                        Edit or delete recorded payments when deductions are wrong.
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            {selectedRow.payments.length === 0 ? (
+                                                <div className="rounded-2xl border border-dashed border-gray-200 bg-[#fafafa] px-4 py-8 text-center text-sm text-gray-500">
+                                                    No payment records yet for this booking.
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-3">
+                                                    {selectedRow.payments.map((payment, index) => {
+                                                        const isEditing =
+                                                            editingPayment &&
+                                                            isSamePaymentRecord(
+                                                                payment,
+                                                                editingPayment,
+                                                                index
+                                                            );
+
+                                                        const amountValue = normalizeNumber(
+                                                            payment?.amount ||
+                                                            payment?.paymentAmount ||
+                                                            payment?.payment_amount
+                                                        );
+
+                                                        return (
+                                                            <div
+                                                                key={getPaymentIdentity(payment, index)}
+                                                                className="rounded-[22px] border border-gray-100 bg-[#fcfcfd] p-4"
+                                                            >
+                                                                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                                                                    <div className="min-w-0">
+                                                                        <p className="text-sm font-extrabold text-[#0f4d3c]">
+                                                                            {formatCurrency(amountValue)}
+                                                                        </p>
+                                                                        <p className="mt-1 text-xs text-gray-500">
+                                                                            {payment?.referenceNumber ||
+                                                                                payment?.paymentId ||
+                                                                                "Manual payment record"}
+                                                                        </p>
+                                                                        <p className="mt-1 text-xs text-gray-400">
+                                                                            {formatDate(
+                                                                                payment?.createdAt ||
+                                                                                payment?.created_at ||
+                                                                                payment?.updatedAt ||
+                                                                                payment?.updated_at
+                                                                            )}
+                                                                        </p>
+                                                                    </div>
+
+                                                                    {!isEditing ? (
+                                                                        <div className="flex flex-wrap items-center gap-2">
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() =>
+                                                                                    startEditPayment(payment)
+                                                                                }
+                                                                                className="inline-flex items-center gap-2 rounded-xl border border-[#d4af37]/30 bg-[#fff8e6] px-3 py-2 text-xs font-bold text-[#8d6a0e] transition hover:bg-[#fff1c5]"
+                                                                            >
+                                                                                <Pencil className="h-3.5 w-3.5" />
+                                                                                Edit
+                                                                            </button>
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() =>
+                                                                                    handleDeletePayment(payment)
+                                                                                }
+                                                                                className="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-bold text-rose-600 transition hover:bg-rose-100"
+                                                                            >
+                                                                                <Trash2 className="h-3.5 w-3.5" />
+                                                                                Delete
+                                                                            </button>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <div className="w-full md:w-[280px]">
+                                                                            <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.14em] text-gray-500">
+                                                                                Edit payment amount
+                                                                            </label>
+                                                                            <div className="relative">
+                                                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400">
+                                                                                    ₱
+                                                                                </span>
+                                                                                <input
+                                                                                    type="number"
+                                                                                    min="1"
+                                                                                    max={currentEditableRemaining}
+                                                                                    value={editingAmount}
+                                                                                    onChange={(e) =>
+                                                                                        setEditingAmount(
+                                                                                            e.target.value
+                                                                                        )
+                                                                                    }
+                                                                                    className="w-full rounded-2xl border border-gray-200 bg-white py-3 pl-10 pr-4 text-sm outline-none transition focus:border-[#d4af37]"
+                                                                                />
+                                                                            </div>
+                                                                            <p className="mt-2 text-[11px] text-gray-500">
+                                                                                Max allowed:{" "}
+                                                                                {formatCurrency(
+                                                                                    currentEditableRemaining
+                                                                                )}
+                                                                            </p>
+
+                                                                            <div className="mt-3 flex flex-wrap gap-2">
+                                                                                <button
+                                                                                    type="button"
+                                                                                    onClick={handleUpdatePayment}
+                                                                                    disabled={saving}
+                                                                                    className="inline-flex items-center gap-2 rounded-xl bg-[#0b4a3a] px-3 py-2 text-xs font-bold text-white transition hover:bg-[#09382d] disabled:opacity-60"
+                                                                                >
+                                                                                    Save Update
+                                                                                </button>
+                                                                                <button
+                                                                                    type="button"
+                                                                                    onClick={cancelEditPayment}
+                                                                                    className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-bold text-gray-600 transition hover:bg-gray-50"
+                                                                                >
+                                                                                    Cancel
+                                                                                </button>
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
-                            ))
-                        )}
-                    </div>
-                </motion.div>
-            </section>
 
-            <motion.section
-                initial={{ opacity: 0, y: 18 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
-                className="overflow-hidden rounded-[28px] border border-white/70 bg-white/90 shadow-[0_18px_60px_rgba(15,23,42,0.08)]"
-            >
-                <div className="border-b border-gray-100 p-6">
-                    <h2 className="text-2xl font-black text-[#0f4d3c]">
-                        Monthly Financial Preview
-                    </h2>
-                    <p className="mt-1 text-sm text-gray-500">
-                        Revenue, expenses, profit, and margin overview by month.
-                    </p>
-                </div>
-
-                {loading ? (
-                    <div className="p-6 text-gray-500">Loading monthly data...</div>
-                ) : monthlyRows.length === 0 ? (
-                    <div className="p-6 text-gray-500">No monthly data yet.</div>
-                ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full min-w-[820px] text-sm">
-                            <thead>
-                                <tr className="bg-[#fcfcfd] text-left text-[12px] uppercase tracking-[0.16em] text-gray-500">
-                                    <th className="px-6 py-4 font-bold">Month</th>
-                                    <th className="px-6 py-4 font-bold">Revenue</th>
-                                    <th className="px-6 py-4 font-bold">Expenses</th>
-                                    <th className="px-6 py-4 font-bold">Profit</th>
-                                    <th className="px-6 py-4 font-bold">Margin</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {monthlyRows.map((row, index) => (
-                                    <motion.tr
-                                        key={row.label}
-                                        initial={{ opacity: 0, y: 12 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ duration: 0.28, delay: index * 0.03 }}
-                                        className="border-t border-gray-100 transition hover:bg-[#fcfdfd]"
+                                <div className="mt-6 flex justify-end">
+                                    <button
+                                        type="button"
+                                        onClick={closePaymentModal}
+                                        className="rounded-2xl border border-gray-200 bg-white px-5 py-3 text-sm font-bold text-gray-600 transition hover:bg-gray-50"
                                     >
-                                        <td className="px-6 py-5 font-black text-[#0f4d3c]">
-                                            {row.label}
-                                        </td>
-                                        <td className="px-6 py-5 font-medium text-slate-700">
-                                            {formatCurrency(row.revenue)}
-                                        </td>
-                                        <td className="px-6 py-5 font-medium text-slate-700">
-                                            {formatCurrency(row.expenses)}
-                                        </td>
-                                        <td className="px-6 py-5 font-bold text-[#10b981]">
-                                            {formatCurrency(row.profit)}
-                                        </td>
-                                        <td className="px-6 py-5">
-                                            <span className="inline-flex rounded-full bg-[#ecfdf5] px-3 py-1 text-xs font-bold text-[#0f766e] ring-1 ring-emerald-200">
-                                                {row.margin.toFixed(1)}%
-                                            </span>
-                                        </td>
-                                    </motion.tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
                 )}
-            </motion.section>
-        </div>
+            </AnimatePresence>
+        </>
     );
 }
 
-function SummaryCard({ title, value, icon: Icon, delay = 0 }) {
+function StatCard({ title, value, icon: Icon, accent = "gold", delay = 0 }) {
+    const accentMap = {
+        emerald:
+            "from-emerald-500/10 to-emerald-100/40 text-emerald-600 ring-emerald-200",
+        rose: "from-rose-500/10 to-rose-100/40 text-rose-600 ring-rose-200",
+        gold: "from-[#d4af37]/15 to-[#fff4cd] text-[#b99117] ring-[#ecd891]",
+        slate: "from-slate-500/10 to-slate-100/40 text-slate-600 ring-slate-200",
+    };
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, delay }}
-            className="rounded-[26px] border border-white/70 bg-white/90 p-5 shadow-[0_16px_50px_rgba(15,23,42,0.07)]"
+            className="group rounded-[26px] border border-white/70 bg-white/90 p-5 shadow-[0_16px_50px_rgba(15,23,42,0.07)] backdrop-blur transition hover:-translate-y-1"
         >
             <div className="flex items-start justify-between gap-4">
                 <div>
                     <p className="text-sm font-medium text-gray-500">{title}</p>
-                    <h2 className="mt-3 text-3xl font-black text-[#0f4d3c]">{value}</h2>
+                    <h2 className="mt-3 text-3xl font-black tracking-tight text-[#0f4d3c]">
+                        {value}
+                    </h2>
                 </div>
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,rgba(212,175,55,0.16),rgba(255,248,230,1))] text-[#b99117] ring-1 ring-[#ecd891]">
+
+                <div
+                    className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${accentMap[accent]} ring-1`}
+                >
                     <Icon className="h-6 w-6" />
                 </div>
             </div>
@@ -888,43 +1049,17 @@ function SummaryCard({ title, value, icon: Icon, delay = 0 }) {
     );
 }
 
-function SummaryLine({ label, value }) {
+function MiniInfo({ label, value }) {
     return (
-        <div className="flex items-center justify-between rounded-[20px] border border-gray-100 bg-[linear-gradient(135deg,#ffffff,#f8fafc)] px-4 py-4 shadow-sm">
-            <span className="text-sm text-gray-600">{label}</span>
-            <span className="font-black text-[#0f4d3c]">{value}</span>
+        <div className="rounded-2xl border border-white bg-white px-4 py-3 shadow-sm">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-gray-400">
+                {label}
+            </p>
+            <p className="mt-2 font-extrabold capitalize text-[#0f4d3c]">
+                {value}
+            </p>
         </div>
     );
 }
 
-function ReportButton({ label, onClick, icon: Icon }) {
-    return (
-        <button
-            onClick={onClick}
-            className="group rounded-[24px] border border-[#dce5eb] bg-[linear-gradient(135deg,#ffffff,#f8fafc)] p-4 text-left shadow-sm transition hover:-translate-y-1 hover:border-[#d4af37] hover:shadow-[0_16px_40px_rgba(15,23,42,0.08)]"
-        >
-            <div className="flex items-start justify-between gap-4">
-                <div>
-                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#0f4d3c] text-white transition group-hover:bg-[#d4af37] group-hover:text-[#0f2c24]">
-                        <Icon className="h-5 w-5" />
-                    </div>
-                    <h3 className="mt-4 text-base font-black text-[#0f4d3c]">{label}</h3>
-                    <p className="mt-1 text-xs leading-5 text-gray-500">
-                        Generate and export this report as PDF.
-                    </p>
-                </div>
-
-                <div className="mt-1 text-[#0f4d3c] transition group-hover:translate-x-1">
-                    <ArrowUpRight className="h-5 w-5" />
-                </div>
-            </div>
-
-            <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#fff8e6] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-[#9b7510]">
-                <Printer className="h-3.5 w-3.5" />
-                Export
-            </div>
-        </button>
-    );
-}
-
-export default AdminReports;
+export default AdminPaymentTracking;

@@ -48,27 +48,6 @@ function formatDate(value) {
     });
 }
 
-function getBookingTotalAmount(booking) {
-    return normalizeNumber(
-        booking?.totalAmount ||
-        booking?.estimatedTotal ||
-        booking?.totalPrice ||
-        booking?.price ||
-        booking?.amount ||
-        0
-    );
-}
-
-function getBookingId(item) {
-    return (
-        item.bookingId ||
-        item.booking_code ||
-        item.bookingCode ||
-        item.referenceNumber ||
-        `BK-${item.id}`
-    );
-}
-
 function parseArrayField(value) {
     if (Array.isArray(value)) return value;
     if (!value) return [];
@@ -84,11 +63,25 @@ function parseArrayField(value) {
 }
 
 function mapQuotationToPaymentRow(item) {
-    const payments = parseArrayField(item.payments);
+    const payments = parseArrayField(item.payments || item.payment_records);
 
-    const totalAmount = getBookingTotalAmount(item);
+    const totalAmount = normalizeNumber(
+        item.estimated_total ||
+        item.total_price ||
+        item.totalAmount ||
+        item.estimatedTotal ||
+        0
+    );
+
     const paidRaw = payments.reduce((sum, payment) => {
-        return sum + normalizeNumber(payment?.amount || payment?.paymentAmount);
+        return (
+            sum +
+            normalizeNumber(
+                payment?.amount ||
+                payment?.paymentAmount ||
+                payment?.payment_amount
+            )
+        );
     }, 0);
 
     const paid = Math.min(paidRaw, totalAmount);
@@ -100,16 +93,27 @@ function mapQuotationToPaymentRow(item) {
 
     return {
         ...item,
-        bookingId: getBookingId(item),
-        fullName: item.fullName || item.clientName || item.name || "",
-        email: item.email || item.clientEmail || item.ownerEmail || "",
-        ownerEmail: item.ownerEmail || item.email || item.clientEmail || "",
-        eventType: item.eventType || item.packageType || "Booking",
+        bookingId:
+            item.booking_id ||
+            item.bookingId ||
+            item.quotation_id ||
+            `Q${item.id}`,
+        fullName:
+            item.full_name ||
+            item.owner_name ||
+            item.fullName ||
+            item.client_name ||
+            item.clientName ||
+            "Client",
+        email: item.email || item.owner_email || item.client_email || "",
+        ownerEmail:
+            item.owner_email || item.email || item.client_email || "",
+        eventType: item.event_type || item.eventType || "Booking",
         eventDate:
+            item.preferred_date ||
+            item.event_date ||
             item.eventDate ||
             item.preferredDate ||
-            item.bookingDate ||
-            item.date ||
             "",
         totalAmount,
         paid,
@@ -117,8 +121,20 @@ function mapQuotationToPaymentRow(item) {
         paymentStatus,
         payments: [...payments].sort(
             (a, b) =>
-                new Date(b?.createdAt || b?.updatedAt || 0) -
-                new Date(a?.createdAt || a?.updatedAt || 0)
+                new Date(
+                    b?.createdAt ||
+                    b?.created_at ||
+                    b?.updatedAt ||
+                    b?.updated_at ||
+                    0
+                ) -
+                new Date(
+                    a?.createdAt ||
+                    a?.created_at ||
+                    a?.updatedAt ||
+                    a?.updated_at ||
+                    0
+                )
         ),
         status: normalizeStatus(item.status || "pending"),
     };
@@ -143,7 +159,7 @@ function getPaymentIdentity(payment, index = 0) {
         payment?.id ||
         payment?.paymentId ||
         payment?.referenceNumber ||
-        `${payment?.bookingId || ""}_${payment?.amount || 0}_${payment?.createdAt || index}`
+        `${payment?.bookingId || ""}_${payment?.amount || 0}_${payment?.createdAt || payment?.created_at || index}`
     );
 }
 
@@ -236,7 +252,9 @@ function AdminPaymentTracking() {
         if (!selectedRow || !editingPayment) return 0;
 
         const currentAmount = normalizeNumber(
-            editingPayment?.amount || editingPayment?.paymentAmount
+            editingPayment?.amount ||
+            editingPayment?.paymentAmount ||
+            editingPayment?.payment_amount
         );
 
         return normalizeNumber(selectedRow.balance) + currentAmount;
@@ -296,10 +314,7 @@ function AdminPaymentTracking() {
             createdAt: new Date().toISOString(),
             status: amount === selectedRow.balance ? "Paid" : "Partial",
             clientName: selectedRow.fullName || "Client",
-            ownerEmail:
-                selectedRow.ownerEmail ||
-                selectedRow.email ||
-                "",
+            ownerEmail: selectedRow.ownerEmail || selectedRow.email || "",
         };
 
         try {
@@ -323,7 +338,13 @@ function AdminPaymentTracking() {
     const startEditPayment = (payment) => {
         setEditingPayment(payment);
         setEditingAmount(
-            String(normalizeNumber(payment?.amount || payment?.paymentAmount))
+            String(
+                normalizeNumber(
+                    payment?.amount ||
+                    payment?.paymentAmount ||
+                    payment?.payment_amount
+                )
+            )
         );
     };
 
@@ -801,7 +822,9 @@ function AdminPaymentTracking() {
                                                                 : "Enter payment amount"
                                                         }
                                                         value={paymentInput}
-                                                        onChange={(e) => setPaymentInput(e.target.value)}
+                                                        onChange={(e) =>
+                                                            setPaymentInput(e.target.value)
+                                                        }
                                                         disabled={selectedRow.balance <= 0 || saving}
                                                         className="w-full rounded-2xl border border-gray-200 bg-[#f8fafc] py-3 pl-10 pr-4 outline-none transition focus:border-[#d4af37] focus:bg-white disabled:cursor-not-allowed disabled:bg-gray-100"
                                                     />
@@ -863,7 +886,9 @@ function AdminPaymentTracking() {
                                                             );
 
                                                         const amountValue = normalizeNumber(
-                                                            payment?.amount || payment?.paymentAmount
+                                                            payment?.amount ||
+                                                            payment?.paymentAmount ||
+                                                            payment?.payment_amount
                                                         );
 
                                                         return (
@@ -884,7 +909,9 @@ function AdminPaymentTracking() {
                                                                         <p className="mt-1 text-xs text-gray-400">
                                                                             {formatDate(
                                                                                 payment?.createdAt ||
-                                                                                payment?.updatedAt
+                                                                                payment?.created_at ||
+                                                                                payment?.updatedAt ||
+                                                                                payment?.updated_at
                                                                             )}
                                                                         </p>
                                                                     </div>

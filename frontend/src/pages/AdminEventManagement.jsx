@@ -169,31 +169,87 @@ function parseArrayField(value) {
 function mapQuotationToBooking(item) {
     return {
         ...item,
-        bookingId: getBookingId(item),
-        fullName: item.fullName || item.clientName || item.name || "",
-        contactNumber: item.contactNumber || item.phone || item.mobile || "",
-        email: item.email || item.clientEmail || item.ownerEmail || "",
-        ownerEmail: item.ownerEmail || item.email || item.clientEmail || "",
-        eventType: item.eventType || item.packageType || item.package_name || "Event",
-        eventDate:
-            item.eventDate ||
-            item.preferredDate ||
-            item.bookingDate ||
-            item.date ||
+        bookingId:
+            item.booking_id ||
+            item.bookingId ||
+            item.quotation_id ||
+            `Q${item.id}`,
+        fullName:
+            item.full_name ||
+            item.owner_name ||
+            item.fullName ||
+            item.client_name ||
+            item.clientName ||
+            "Client",
+        contactNumber:
+            item.contact_number ||
+            item.contactNumber ||
+            item.phone ||
+            item.mobile ||
             "",
-        eventTime: item.eventTime || item.preferredTime || item.time || "",
-        venue: item.venue || item.location || item.address || "",
-        guestCount: normalizeNumber(item.guestCount || item.guests || item.pax || 0),
-        packageType: item.packageType || item.package_name || "",
-        classicMenu: item.classicMenu || item.menu || "",
-        themePreference: item.themePreference || item.theme || "",
-        specialRequests: item.specialRequests || item.notes || item.message || "",
-        totalAmount: getTotalAmount(item),
-        assignedStaff: parseArrayField(item.assignedStaff),
-        eventOutcome: item.eventOutcome || "",
-        evaluationNotes: item.evaluationNotes || "",
-        clientSatisfaction: item.clientSatisfaction || "Satisfied",
-        staffPerformance: item.staffPerformance || "Good",
+        email:
+            item.email ||
+            item.owner_email ||
+            item.client_email ||
+            "",
+        ownerEmail:
+            item.owner_email ||
+            item.email ||
+            item.client_email ||
+            "",
+        eventType:
+            item.event_type ||
+            item.eventType ||
+            "Event",
+        eventDate:
+            item.preferred_date ||
+            item.event_date ||
+            item.eventDate ||
+            "",
+        eventTime:
+            item.event_time ||
+            item.eventTime ||
+            "",
+        venue:
+            item.venue ||
+            "",
+        guestCount: normalizeNumber(
+            item.guests ||
+            item.guest_count ||
+            item.guestCount ||
+            0
+        ),
+        packageType:
+            item.package_type ||
+            item.package_name ||
+            item.packageType ||
+            "",
+        classicMenu:
+            item.classic_menu ||
+            item.classicMenu ||
+            "",
+        themePreference:
+            item.theme_preference ||
+            item.themePreference ||
+            "",
+        specialRequests:
+            item.special_requests ||
+            item.specialRequests ||
+            item.notes ||
+            "",
+        totalAmount: normalizeNumber(
+            item.estimated_total ||
+            item.total_price ||
+            item.totalAmount ||
+            0
+        ),
+        assignedStaff: parseArrayField(item.assigned_staff || item.assignedStaff),
+        eventOutcome: item.event_outcome || item.eventOutcome || "",
+        evaluationNotes: item.evaluation_notes || item.evaluationNotes || "",
+        clientSatisfaction:
+            item.client_satisfaction || item.clientSatisfaction || "Satisfied",
+        staffPerformance:
+            item.staff_performance || item.staffPerformance || "Good",
         status: normalizeStatus(item.status || "pending"),
     };
 }
@@ -1078,8 +1134,8 @@ function AdminEventManagement() {
                         >
                             <div
                                 className={`px-6 py-5 text-white ${popup.type === "success"
-                                        ? "bg-gradient-to-r from-[#0f4d3c] via-[#11614c] to-[#22b67f]"
-                                        : "bg-gradient-to-r from-[#b91c1c] via-[#dc2626] to-[#ef4444]"
+                                    ? "bg-gradient-to-r from-[#0f4d3c] via-[#11614c] to-[#22b67f]"
+                                    : "bg-gradient-to-r from-[#b91c1c] via-[#dc2626] to-[#ef4444]"
                                     }`}
                             >
                                 <div className="flex items-center gap-4">
@@ -1112,8 +1168,8 @@ function AdminEventManagement() {
                                     whileTap={{ scale: 0.98 }}
                                     onClick={closePopup}
                                     className={`mt-6 w-full rounded-2xl px-5 py-3.5 font-bold text-white transition ${popup.type === "success"
-                                            ? "bg-[#0f4d3c] hover:bg-[#0c3f31]"
-                                            : "bg-red-500 hover:bg-red-600"
+                                        ? "bg-[#0f4d3c] hover:bg-[#0c3f31]"
+                                        : "bg-red-500 hover:bg-red-600"
                                         }`}
                                 >
                                     Okay
