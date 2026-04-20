@@ -15,6 +15,8 @@ import {
     Trash2,
     History,
     LoaderCircle,
+    CheckCircle2,
+    AlertTriangle,
 } from "lucide-react";
 import { quotationService } from "../services/quotationService.js";
 import { buildPrintableTable, openPrintWindow } from "../utils/AdminPrint";
@@ -33,7 +35,8 @@ function formatCurrency(value) {
     return new Intl.NumberFormat("en-PH", {
         style: "currency",
         currency: "PHP",
-        minimumFractionDigits: 2,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
     }).format(amount);
 }
 
@@ -178,6 +181,32 @@ function AdminPaymentTracking() {
     const [editingPayment, setEditingPayment] = useState(null);
     const [editingAmount, setEditingAmount] = useState("");
 
+    const [feedback, setFeedback] = useState({
+        open: false,
+        type: "success",
+        title: "",
+        message: "",
+    });
+
+    const showFeedback = useCallback((type, title, message) => {
+        setFeedback({
+            open: true,
+            type,
+            title,
+            message,
+        });
+
+        if (type === "success") {
+            setTimeout(() => {
+                setFeedback((prev) => ({ ...prev, open: false }));
+            }, 2200);
+        }
+    }, []);
+
+    const closeFeedback = () => {
+        setFeedback((prev) => ({ ...prev, open: false }));
+    };
+
     const loadRows = useCallback(async () => {
         setLoading(true);
         try {
@@ -196,11 +225,15 @@ function AdminPaymentTracking() {
             setRows(mapped);
         } catch (error) {
             console.error("Failed to load payment tracking rows:", error);
-            alert(error.message || "Failed to load payment tracking data.");
+            showFeedback(
+                "error",
+                "Failed to Load Payments",
+                error.message || "Failed to load payment tracking data."
+            );
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [showFeedback]);
 
     useEffect(() => {
         loadRows();
@@ -280,17 +313,19 @@ function AdminPaymentTracking() {
         const amount = normalizeNumber(paymentInput);
 
         if (amount <= 0) {
-            alert("Enter a valid payment amount.");
+            showFeedback("error", "Invalid Amount", "Enter a valid payment amount.");
             return;
         }
 
         if (selectedRow.balance <= 0) {
-            alert("This booking is already fully paid.");
+            showFeedback("error", "Already Fully Paid", "This booking is already fully paid.");
             return;
         }
 
         if (amount > selectedRow.balance) {
-            alert(
+            showFeedback(
+                "error",
+                "Payment Exceeded",
                 `Payment exceeds the remaining balance of ${formatCurrency(
                     selectedRow.balance
                 )}.`
@@ -327,9 +362,20 @@ function AdminPaymentTracking() {
 
             setPaymentInput("");
             await loadRows();
+
+            showFeedback(
+                "success",
+                "Payment Saved",
+                `${formatCurrency(amount)} was successfully recorded for ${selectedRow.fullName
+                }.`
+            );
         } catch (error) {
             console.error("Failed to save payment:", error);
-            alert(error.message || "Failed to save payment.");
+            showFeedback(
+                "error",
+                "Save Failed",
+                error.message || "Failed to save payment."
+            );
         } finally {
             setSaving(false);
         }
@@ -359,12 +405,18 @@ function AdminPaymentTracking() {
         const newAmount = normalizeNumber(editingAmount);
 
         if (newAmount <= 0) {
-            alert("Enter a valid updated payment amount.");
+            showFeedback(
+                "error",
+                "Invalid Updated Amount",
+                "Enter a valid updated payment amount."
+            );
             return;
         }
 
         if (newAmount > currentEditableRemaining) {
-            alert(
+            showFeedback(
+                "error",
+                "Amount Exceeded",
                 `Updated payment exceeds the allowed amount of ${formatCurrency(
                     currentEditableRemaining
                 )}.`
@@ -397,9 +449,19 @@ function AdminPaymentTracking() {
             setEditingPayment(null);
             setEditingAmount("");
             await loadRows();
+
+            showFeedback(
+                "success",
+                "Payment Updated",
+                "The payment record was updated successfully."
+            );
         } catch (error) {
             console.error("Failed to update payment:", error);
-            alert(error.message || "Failed to update payment.");
+            showFeedback(
+                "error",
+                "Update Failed",
+                error.message || "Failed to update payment."
+            );
         } finally {
             setSaving(false);
         }
@@ -427,9 +489,19 @@ function AdminPaymentTracking() {
             setEditingPayment(null);
             setEditingAmount("");
             await loadRows();
+
+            showFeedback(
+                "success",
+                "Payment Deleted",
+                "The payment record was removed successfully."
+            );
         } catch (error) {
             console.error("Failed to delete payment:", error);
-            alert(error.message || "Failed to delete payment.");
+            showFeedback(
+                "error",
+                "Delete Failed",
+                error.message || "Failed to delete payment."
+            );
         } finally {
             setSaving(false);
         }
@@ -715,6 +787,61 @@ function AdminPaymentTracking() {
                     )}
                 </motion.section>
             </div>
+
+            <AnimatePresence>
+                {feedback.open && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -16, scale: 0.96 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -12, scale: 0.96 }}
+                        className="fixed right-5 top-5 z-[70] w-full max-w-md"
+                    >
+                        <div
+                            className={`overflow-hidden rounded-[24px] border shadow-[0_24px_70px_rgba(15,23,42,0.22)] ${feedback.type === "success"
+                                    ? "border-emerald-200 bg-white"
+                                    : "border-rose-200 bg-white"
+                                }`}
+                        >
+                            <div
+                                className={`flex items-start gap-4 p-5 ${feedback.type === "success"
+                                        ? "bg-gradient-to-r from-emerald-50 to-white"
+                                        : "bg-gradient-to-r from-rose-50 to-white"
+                                    }`}
+                            >
+                                <div
+                                    className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${feedback.type === "success"
+                                            ? "bg-emerald-100 text-emerald-600"
+                                            : "bg-rose-100 text-rose-600"
+                                        }`}
+                                >
+                                    {feedback.type === "success" ? (
+                                        <CheckCircle2 className="h-6 w-6" />
+                                    ) : (
+                                        <AlertTriangle className="h-6 w-6" />
+                                    )}
+                                </div>
+
+                                <div className="min-w-0 flex-1">
+                                    <h4 className="text-base font-black text-[#0f172a]">
+                                        {feedback.title}
+                                    </h4>
+                                    <p className="mt-1 text-sm leading-6 text-slate-600">
+                                        {feedback.message}
+                                    </p>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={closeFeedback}
+                                    className="rounded-full p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+                                >
+                                    <X className="h-4 w-4" />
+                                </button>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <AnimatePresence>
                 {selectedRow && (

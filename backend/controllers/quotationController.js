@@ -130,7 +130,6 @@ exports.createQuotation = (req, res) => {
         excess_cost,
         package_inclusions,
         status,
-        assigned_staff,
         payments,
         expenses,
         inquiries,
@@ -180,7 +179,6 @@ exports.createQuotation = (req, res) => {
             excess_cost,
             package_inclusions,
             status,
-            assigned_staff,
             payments,
             expenses,
             inquiries,
@@ -189,7 +187,7 @@ exports.createQuotation = (req, res) => {
             client_satisfaction,
             staff_performance
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const values = [
@@ -219,7 +217,6 @@ exports.createQuotation = (req, res) => {
         Number(excess_cost || 0),
         JSON.stringify(Array.isArray(package_inclusions) ? package_inclusions : []),
         status || "Pending",
-        JSON.stringify(Array.isArray(assigned_staff) ? assigned_staff : []),
         JSON.stringify(Array.isArray(payments) ? payments : []),
         JSON.stringify(Array.isArray(expenses) ? expenses : []),
         JSON.stringify(Array.isArray(inquiries) ? inquiries : []),
@@ -301,17 +298,6 @@ exports.updateQuotation = (req, res) => {
             .trim()
             .toLowerCase();
 
-        const assignedStaff =
-            body.assignedStaff ??
-            body.assigned_staff ??
-            (() => {
-                try {
-                    return JSON.parse(current.assigned_staff || "[]");
-                } catch {
-                    return [];
-                }
-            })();
-
         const payments =
             body.payments ??
             (() => {
@@ -392,7 +378,6 @@ exports.updateQuotation = (req, res) => {
                 excess_cost = ?,
                 package_inclusions = ?,
                 status = ?,
-                assigned_staff = ?,
                 payments = ?,
                 expenses = ?,
                 inquiries = ?,
@@ -405,20 +390,25 @@ exports.updateQuotation = (req, res) => {
 
         const updateValues = [
             nextOwnerEmail || null,
-            body.ownerName || body.owner_name || current.owner_name || body.fullName || body.full_name || current.full_name || null,
+            body.ownerName ||
+            body.owner_name ||
+            current.owner_name ||
+            body.fullName ||
+            body.full_name ||
+            current.full_name ||
+            null,
             body.fullName || body.full_name || current.full_name,
             nextEmail || null,
             body.contactNumber || body.contact_number || current.contact_number || null,
             body.eventType || body.event_type || current.event_type || null,
-            body.preferredDate || body.preferred_date || body.eventDate || current.preferred_date || null,
+            body.preferredDate ||
+            body.preferred_date ||
+            body.eventDate ||
+            current.preferred_date ||
+            null,
             body.eventTime || body.event_time || current.event_time || null,
             body.venue || current.venue || null,
-            Number(
-                body.guests ??
-                body.guestCount ??
-                current.guests ??
-                0
-            ),
+            Number(body.guests ?? body.guestCount ?? current.guests ?? 0),
             body.packageType || body.package_type || current.package_type || null,
             body.classicMenu || body.classic_menu || current.classic_menu || null,
             JSON.stringify(Array.isArray(addOns) ? addOns : []),
@@ -426,7 +416,13 @@ exports.updateQuotation = (req, res) => {
             body.specialRequests || body.special_requests || current.special_requests || null,
             Number(body.packagePrice ?? body.package_price ?? current.package_price ?? 0),
             Number(body.addOnsTotal ?? body.add_ons_total ?? current.add_ons_total ?? 0),
-            Number(body.estimatedTotal ?? body.estimated_total ?? body.totalAmount ?? current.estimated_total ?? 0),
+            Number(
+                body.estimatedTotal ??
+                body.estimated_total ??
+                body.totalAmount ??
+                current.estimated_total ??
+                0
+            ),
             body.includedPax != null
                 ? Number(body.includedPax)
                 : current.included_pax != null
@@ -442,7 +438,6 @@ exports.updateQuotation = (req, res) => {
             Number(body.excessCost ?? body.excess_cost ?? current.excess_cost ?? 0),
             JSON.stringify(Array.isArray(packageInclusions) ? packageInclusions : []),
             body.status || current.status || "Pending",
-            JSON.stringify(Array.isArray(assignedStaff) ? assignedStaff : []),
             JSON.stringify(Array.isArray(payments) ? payments : []),
             JSON.stringify(Array.isArray(expenses) ? expenses : []),
             JSON.stringify(Array.isArray(inquiries) ? inquiries : []),
@@ -566,10 +561,7 @@ exports.updateQuotationStatus = (req, res) => {
                     bookingLookupValues,
                     (bookingCheckErr, bookingResults) => {
                         if (bookingCheckErr) {
-                            console.error(
-                                "Check existing booking error:",
-                                bookingCheckErr
-                            );
+                            console.error("Check existing booking error:", bookingCheckErr);
                             return res.status(500).json({
                                 message:
                                     "Quotation status updated but failed to sync booking",
@@ -603,15 +595,11 @@ exports.updateQuotationStatus = (req, res) => {
                         }
 
                         if (quotation.theme_preference) {
-                            notesParts.push(
-                                `Theme Preference: ${quotation.theme_preference}`
-                            );
+                            notesParts.push(`Theme Preference: ${quotation.theme_preference}`);
                         }
 
                         if (quotation.special_requests) {
-                            notesParts.push(
-                                `Special Requests: ${quotation.special_requests}`
-                            );
+                            notesParts.push(`Special Requests: ${quotation.special_requests}`);
                         }
 
                         if (quotation.quotation_id) {
@@ -654,29 +642,25 @@ exports.updateQuotationStatus = (req, res) => {
                             notesParts.join(" | ") || null,
                         ];
 
-                        db.query(
-                            bookingInsertQuery,
-                            bookingInsertValues,
-                            (bookingInsertErr) => {
-                                if (bookingInsertErr) {
-                                    console.error(
-                                        "Create booking from quotation error:",
-                                        bookingInsertErr
-                                    );
-                                    return res.status(500).json({
-                                        message:
-                                            "Quotation status updated but failed to create booking",
-                                        error: bookingInsertErr.message,
-                                    });
-                                }
-
-                                return res.status(200).json({
-                                    message: "Quotation status updated successfully",
-                                    bookingSynced: true,
-                                    bookingCreated: true,
+                        db.query(bookingInsertQuery, bookingInsertValues, (bookingInsertErr) => {
+                            if (bookingInsertErr) {
+                                console.error(
+                                    "Create booking from quotation error:",
+                                    bookingInsertErr
+                                );
+                                return res.status(500).json({
+                                    message:
+                                        "Quotation status updated but failed to create booking",
+                                    error: bookingInsertErr.message,
                                 });
                             }
-                        );
+
+                            return res.status(200).json({
+                                message: "Quotation status updated successfully",
+                                bookingSynced: true,
+                                bookingCreated: true,
+                            });
+                        });
                     }
                 );
             }
