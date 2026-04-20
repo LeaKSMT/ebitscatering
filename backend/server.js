@@ -1,32 +1,25 @@
 const express = require("express");
+const cors = require("cors");
 const compression = require("compression");
 const cookieParser = require("cookie-parser");
 require("dotenv").config();
 
 const app = express();
 
-console.log("🔥 COOKIE AUTH VERSION LOADED");
+console.log(" COOKIE AUTH VERSION LOADED");
 
 app.set("trust proxy", 1);
 
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 const { httpLogger } = require("./utils/logger");
 
-// Simple wildcard CORS for all origins
-app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-    res.header("Access-Control-Allow-Credentials", "true");
-
-    console.log(`[CORS] ${req.method} ${req.originalUrl} | origin: ${req.headers.origin || "none"}`);
-
-    if (req.method === "OPTIONS") {
-        return res.sendStatus(204);
-    }
-
-    next();
-});
+// Use cors package for reliable CORS handling
+app.use(cors({
+    origin: "*",
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+}));
 
 app.use(compression());
 app.use(cookieParser());
