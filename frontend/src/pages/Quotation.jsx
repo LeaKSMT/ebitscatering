@@ -769,23 +769,6 @@ function Quotation({ mode = "public" }) {
                             </div>
                         </div>
 
-                        <div className="grid gap-4 border-t border-white/5 bg-[linear-gradient(180deg,#fbfdfc_0%,#f7faf8_100%)] px-6 py-5 md:grid-cols-3 md:px-8 lg:px-10">
-                            <TopInfoCard
-                                icon={Stars}
-                                title="Elegant Experience"
-                                subtitle="Crafted to feel refined and premium"
-                            />
-                            <TopInfoCard
-                                icon={BadgeCheck}
-                                title="Live Cost Breakdown"
-                                subtitle="Package, add-ons, and totals update instantly"
-                            />
-                            <TopInfoCard
-                                icon={PartyPopper}
-                                title="Defense-Ready Design"
-                                subtitle="Modern visual hierarchy aligned with your system"
-                            />
-                        </div>
                     </motion.section>
 
                     <div className="mt-8 grid gap-8 xl:grid-cols-[0.97fr_1.23fr]">
