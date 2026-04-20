@@ -59,7 +59,7 @@ exports.register = async (req, res) => {
                 const hashedPassword = await bcrypt.hash(password, 10);
 
                 db.query(
-                    "INSERT INTO users (name, email, password, role, contact_number) VALUES (?, ?, ?, ?, ?)",
+                    "INSERT INTO users (name, email, password, role, contactNumber) VALUES (?, ?, ?, ?, ?)",
                     [name, email, hashedPassword, "client", contactNumber || null],
                     (insertErr, insertResult) => {
                         if (insertErr) {
@@ -67,6 +67,7 @@ exports.register = async (req, res) => {
                             return res.status(500).json({
                                 success: false,
                                 message: "Registration failed",
+                                error: insertErr.message,
                             });
                         }
 
@@ -159,6 +160,7 @@ exports.login = (req, res) => {
                         id: user.id,
                         name: user.name,
                         email: user.email,
+                        contactNumber: user.contactNumber || "",
                         role: user.role,
                     },
                 });
@@ -189,7 +191,7 @@ exports.logout = (req, res) => {
 
 exports.me = (req, res) => {
     db.query(
-        "SELECT id, name, email, role, created_at FROM users WHERE id = ? LIMIT 1",
+        "SELECT id, name, email, role, contactNumber, created_at FROM users WHERE id = ? LIMIT 1",
         [req.user.id],
         (err, results) => {
             if (err) {
