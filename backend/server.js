@@ -25,22 +25,25 @@ const corsOptions = {
         if (!origin) return callback(null, true);
 
         const isAllowedExact = allowedOrigins.includes(origin);
-        const isVercelPreview = /^https:\/\/.*\.vercel\.app$/.test(origin);
+        const isVercelDomain = /^https:\/\/.*\.vercel\.app$/.test(origin);
 
-        if (isAllowedExact || isVercelPreview) {
+        if (isAllowedExact || isVercelDomain) {
             return callback(null, true);
         }
 
-        console.log(`CORS blocked for origin: ${origin}`);
+        console.log("CORS blocked for origin:", origin);
         return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    optionsSuccessStatus: 200,
 };
 
 app.use(compression());
 app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(httpLogger);
