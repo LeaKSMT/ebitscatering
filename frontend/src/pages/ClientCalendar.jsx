@@ -57,7 +57,7 @@ function getApiBaseUrl() {
 
     if (!envUrl) {
         console.warn("VITE_API_URL is missing. Using localhost fallback.");
-        return "http://localhost:5000/api";
+        return "https://ebitscatering-production.up.railway.app/api";
     }
 
     const cleaned = envUrl.replace(/\/+$/, "");

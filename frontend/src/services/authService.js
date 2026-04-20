@@ -5,7 +5,7 @@ function getApiBaseUrl() {
     return envUrl.replace(/\/+$/, "");
   }
 
-  return "http://localhost:5000/api";
+  return "https://ebitscatering-production.up.railway.app/api";
 }
 
 const API_BASE_URL = getApiBaseUrl();

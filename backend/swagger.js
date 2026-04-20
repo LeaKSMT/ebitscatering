@@ -16,7 +16,7 @@ const options = {
     servers: [
       {
         url: process.env.NODE_ENV === 'production'
-          ? 'https://your-domain.com/api'
+          ? 'https://ebitscatering-production.up.railway.app/api'
           : 'http://localhost:5000/api',
         description: process.env.NODE_ENV === 'production'
           ? 'Production server'
