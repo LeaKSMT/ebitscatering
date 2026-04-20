@@ -124,12 +124,30 @@ function ClientInquiries() {
     const email = getCurrentClientEmail();
     const storageKey = getScopedKey("clientInquiries", email);
 
+    const [theme, setTheme] = useState(
+        () => localStorage.getItem("clientPortalTheme") || "light"
+    );
+
     const [messages, setMessages] = useState(() => safeParse(storageKey, []));
     const [input, setInput] = useState("");
     const [isAdminTyping, setIsAdminTyping] = useState(false);
 
     const messagesEndRef = useRef(null);
     const typingTimeoutRef = useRef(null);
+
+    useEffect(() => {
+        const syncTheme = () => {
+            setTheme(localStorage.getItem("clientPortalTheme") || "light");
+        };
+
+        window.addEventListener("storage", syncTheme);
+        window.addEventListener("client-theme-change", syncTheme);
+
+        return () => {
+            window.removeEventListener("storage", syncTheme);
+            window.removeEventListener("client-theme-change", syncTheme);
+        };
+    }, []);
 
     const sortedMessages = useMemo(() => {
         return [...messages].sort(
@@ -286,6 +304,34 @@ function ClientInquiries() {
         }, 1600);
     };
 
+    const isDark = theme === "dark";
+
+    const summaryCard = isDark
+        ? "border border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.96)_0%,rgba(13,40,32,0.96)_100%)] shadow-[0_18px_40px_rgba(0,0,0,0.22)]"
+        : "border border-[#e3ebe7] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] shadow-sm";
+
+    const shellCard = isDark
+        ? "border border-white/10 bg-[linear-gradient(180deg,rgba(9,30,24,0.98)_0%,rgba(12,37,30,0.98)_100%)] shadow-[0_18px_40px_rgba(0,0,0,0.22)]"
+        : "border border-[#dce7e2] bg-white shadow-[0_16px_40px_rgba(14,61,47,0.07)]";
+
+    const chatBody = isDark
+        ? "bg-[linear-gradient(180deg,#081d18_0%,#0b241d_100%)]"
+        : "bg-[linear-gradient(180deg,#f9fcfb_0%,#f5f8fc_100%)]";
+
+    const footerCard = isDark
+        ? "border-t border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.98)_0%,rgba(13,40,32,0.98)_100%)]"
+        : "border-t border-[#edf2ef] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)]";
+
+    const incomingBubble = isDark
+        ? "border border-white/10 bg-[linear-gradient(180deg,rgba(12,38,30,0.98)_0%,rgba(15,43,35,0.98)_100%)] text-white/90 shadow-[0_12px_24px_rgba(0,0,0,0.18)]"
+        : "border border-[#e3ebe7] bg-white text-slate-700 shadow-[0_12px_24px_rgba(14,61,47,0.05)]";
+
+    const typingBubble = incomingBubble;
+
+    const titleColor = isDark ? "text-white" : "text-[#0d5c46]";
+    const subtitleColor = isDark ? "text-white/72" : "text-slate-500";
+    const bodyColor = isDark ? "text-white/82" : "text-slate-500";
+
     return (
         <motion.div
             variants={staggerContainer}
@@ -353,25 +399,28 @@ function ClientInquiries() {
                             label: "Total Messages",
                             value: messageSummary.total,
                             icon: MessageSquare,
-                            iconWrap:
-                                "bg-gradient-to-br from-[#edf8f3] to-[#dff1e8] text-[#0d5c46]",
-                            valueClass: "text-[#0d5c46]",
+                            iconWrap: isDark
+                                ? "bg-[linear-gradient(135deg,rgba(21,64,50,0.95)_0%,rgba(24,77,60,0.95)_100%)] text-[#98efcc]"
+                                : "bg-gradient-to-br from-[#edf8f3] to-[#dff1e8] text-[#0d5c46]",
+                            valueClass: isDark ? "text-[#98efcc]" : "text-[#0d5c46]",
                         },
                         {
                             label: "Your Messages",
                             value: messageSummary.clientCount,
                             icon: UserCircle2,
-                            iconWrap:
-                                "bg-gradient-to-br from-[#fff9e7] to-[#fff0bf] text-[#b99117]",
-                            valueClass: "text-[#b99117]",
+                            iconWrap: isDark
+                                ? "bg-[linear-gradient(135deg,rgba(88,67,20,0.75)_0%,rgba(120,91,27,0.72)_100%)] text-[#f5cf67]"
+                                : "bg-gradient-to-br from-[#fff9e7] to-[#fff0bf] text-[#b99117]",
+                            valueClass: isDark ? "text-[#f5cf67]" : "text-[#b99117]",
                         },
                         {
                             label: "Admin Replies",
                             value: messageSummary.adminCount,
                             icon: ShieldCheck,
-                            iconWrap:
-                                "bg-gradient-to-br from-[#eef6ff] to-[#dbeafe] text-[#2563eb]",
-                            valueClass: "text-[#2563eb]",
+                            iconWrap: isDark
+                                ? "bg-[linear-gradient(135deg,rgba(24,52,104,0.72)_0%,rgba(35,82,168,0.55)_100%)] text-[#9ac0ff]"
+                                : "bg-gradient-to-br from-[#eef6ff] to-[#dbeafe] text-[#2563eb]",
+                            valueClass: isDark ? "text-[#9ac0ff]" : "text-[#2563eb]",
                         },
                     ].map((item) => {
                         const Icon = item.icon;
@@ -381,11 +430,11 @@ function ClientInquiries() {
                                 key={item.label}
                                 variants={fadeUp}
                                 whileHover={{ y: -5, scale: 1.01 }}
-                                className="group rounded-[26px] border border-[#e3ebe7] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-5 shadow-sm transition"
+                                className={`group rounded-[26px] p-5 transition ${summaryCard}`}
                             >
                                 <div className="flex items-start justify-between gap-4">
                                     <div>
-                                        <p className="text-sm font-semibold text-slate-500">
+                                        <p className={`text-sm font-semibold ${subtitleColor}`}>
                                             {item.label}
                                         </p>
                                         <h2 className={`mt-3 text-3xl font-extrabold ${item.valueClass}`}>
@@ -407,20 +456,30 @@ function ClientInquiries() {
 
             <motion.section
                 variants={fadeUp}
-                className="overflow-hidden rounded-[34px] border border-[#dce7e2] bg-white shadow-[0_16px_40px_rgba(14,61,47,0.07)]"
+                className={`overflow-hidden rounded-[34px] ${shellCard}`}
             >
-                <div className="border-b border-[#edf2ef] bg-[linear-gradient(90deg,#f3fbf8_0%,#fff8ea_100%)] px-6 py-5">
+                <div
+                    className={`px-6 py-5 ${isDark
+                            ? "border-b border-white/10 bg-[linear-gradient(90deg,rgba(13,38,31,0.98)_0%,rgba(23,58,45,0.96)_100%)]"
+                            : "border-b border-[#edf2ef] bg-[linear-gradient(90deg,#f3fbf8_0%,#fff8ea_100%)]"
+                        }`}
+                >
                     <div className="flex flex-wrap items-center justify-between gap-4">
                         <div>
-                            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">
+                            <p className={`text-[11px] font-semibold uppercase tracking-[0.24em] ${subtitleColor}`}>
                                 Inquiry Center
                             </p>
-                            <h2 className="mt-1 text-2xl font-extrabold text-[#0d5c46] md:text-3xl">
+                            <h2 className={`mt-1 text-2xl font-extrabold md:text-3xl ${titleColor}`}>
                                 Message the Admin
                             </h2>
                         </div>
 
-                        <div className="rounded-2xl border border-[#f1d98a] bg-[#fff8e6] px-4 py-2 text-sm font-semibold text-[#b99117] shadow-sm">
+                        <div
+                            className={`rounded-2xl px-4 py-2 text-sm font-semibold shadow-sm ${isDark
+                                    ? "border border-[rgba(97,76,24,0.34)] bg-[rgba(97,76,24,0.28)] text-[#f5cf67]"
+                                    : "border border-[#f1d98a] bg-[#fff8e6] text-[#b99117]"
+                                }`}
+                        >
                             {isAdminTyping
                                 ? "Admin is typing..."
                                 : "Admin usually replies here"}
@@ -428,7 +487,7 @@ function ClientInquiries() {
                     </div>
                 </div>
 
-                <div className="relative min-h-[540px] max-h-[540px] overflow-y-auto bg-[linear-gradient(180deg,#f9fcfb_0%,#f5f8fc_100%)] p-5 md:p-6">
+                <div className={`relative min-h-[540px] max-h-[540px] overflow-y-auto p-5 md:p-6 ${chatBody}`}>
                     <div className="pointer-events-none absolute inset-0 opacity-[0.045]">
                         <div
                             className="h-full w-full"
@@ -447,10 +506,10 @@ function ClientInquiries() {
                                     <MessageCircleMore size={34} />
                                 </div>
 
-                                <h3 className="text-2xl font-extrabold text-[#0f4d3c] md:text-3xl">
+                                <h3 className={`text-2xl font-extrabold md:text-3xl ${titleColor}`}>
                                     No inquiries yet
                                 </h3>
-                                <p className="mx-auto mt-3 max-w-lg text-sm leading-7 text-slate-500 md:text-base">
+                                <p className={`mx-auto mt-3 max-w-lg text-sm leading-7 md:text-base ${subtitleColor}`}>
                                     Start a conversation with the admin regarding your
                                     quotation, booking, payment, package, or event
                                     schedule. Your messages will appear here in a clean
@@ -471,22 +530,21 @@ function ClientInquiries() {
                                             animate={{ opacity: 1, y: 0, scale: 1 }}
                                             exit={{ opacity: 0, y: 10 }}
                                             transition={{ duration: 0.28 }}
-                                            className={`flex ${isClient
-                                                    ? "justify-end"
-                                                    : "justify-start"
-                                                }`}
+                                            className={`flex ${isClient ? "justify-end" : "justify-start"}`}
                                         >
                                             <div
                                                 className={`max-w-[90%] md:max-w-[72%] rounded-[28px] px-4 py-4 shadow-sm md:px-5 ${isClient
                                                         ? "border border-[#e8c95e] bg-[linear-gradient(135deg,#d4af37_0%,#f0cb58_100%)] text-[#0f4d3c] shadow-[0_14px_28px_rgba(212,175,55,0.2)]"
-                                                        : "border border-[#e3ebe7] bg-white text-slate-700 shadow-[0_12px_24px_rgba(14,61,47,0.05)]"
+                                                        : incomingBubble
                                                     }`}
                                             >
                                                 <div className="mb-3 flex items-center gap-2">
                                                     <div
                                                         className={`flex h-8 w-8 items-center justify-center rounded-xl ${isClient
                                                                 ? "bg-white/30"
-                                                                : "bg-[#edf8f3] text-[#0d5c46]"
+                                                                : isDark
+                                                                    ? "bg-[linear-gradient(135deg,rgba(21,64,50,0.95)_0%,rgba(24,77,60,0.95)_100%)] text-[#98efcc]"
+                                                                    : "bg-[#edf8f3] text-[#0d5c46]"
                                                             }`}
                                                     >
                                                         {isClient ? (
@@ -536,9 +594,14 @@ function ClientInquiries() {
                                         exit={{ opacity: 0, y: 10 }}
                                         className="flex justify-start"
                                     >
-                                        <div className="max-w-[85%] rounded-[28px] border border-[#e3ebe7] bg-white px-4 py-4 text-slate-700 shadow-[0_12px_24px_rgba(14,61,47,0.05)] md:max-w-[70%] md:px-5">
+                                        <div className={`max-w-[85%] rounded-[28px] px-4 py-4 md:max-w-[70%] md:px-5 ${typingBubble}`}>
                                             <div className="mb-3 flex items-center gap-2">
-                                                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#edf8f3] text-[#0d5c46]">
+                                                <div
+                                                    className={`flex h-8 w-8 items-center justify-center rounded-xl ${isDark
+                                                            ? "bg-[linear-gradient(135deg,rgba(21,64,50,0.95)_0%,rgba(24,77,60,0.95)_100%)] text-[#98efcc]"
+                                                            : "bg-[#edf8f3] text-[#0d5c46]"
+                                                        }`}
+                                                >
                                                     <Bot size={16} />
                                                 </div>
                                                 <div>
@@ -566,7 +629,7 @@ function ClientInquiries() {
                     )}
                 </div>
 
-                <div className="border-t border-[#edf2ef] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-5 md:p-6">
+                <div className={`p-5 md:p-6 ${footerCard}`}>
                     <div className="flex flex-col gap-3 md:flex-row">
                         <input
                             type="text"
@@ -578,7 +641,10 @@ function ClientInquiries() {
                                 }
                             }}
                             placeholder="Type your message here..."
-                            className="flex-1 rounded-[22px] border border-[#d7e1dc] bg-white px-4 py-3.5 text-sm outline-none transition focus:border-[#d4af37] focus:ring-4 focus:ring-[#f6e8b9]"
+                            className={`flex-1 rounded-[22px] px-4 py-3.5 text-sm outline-none transition ${isDark
+                                    ? "border border-white/10 bg-[rgba(12,38,30,0.96)] text-white placeholder:text-white/35 focus:border-[#d4af37] focus:ring-4 focus:ring-[rgba(212,175,55,0.18)]"
+                                    : "border border-[#d7e1dc] bg-white focus:border-[#d4af37] focus:ring-4 focus:ring-[#f6e8b9]"
+                                }`}
                         />
 
                         <motion.button
@@ -593,7 +659,7 @@ function ClientInquiries() {
                         </motion.button>
                     </div>
 
-                    <p className="mt-3 text-xs text-slate-400">
+                    <p className={`mt-3 text-xs ${isDark ? "text-white/40" : "text-slate-400"}`}>
                         This chat saves your inquiries in the current client account.
                     </p>
                 </div>

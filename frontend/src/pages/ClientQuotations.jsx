@@ -114,7 +114,7 @@ function formatTime(timeString) {
     });
 }
 
-function getStatusClasses(status) {
+function getStatusClasses(status, isDark) {
     const normalized = (status || "pending").toLowerCase();
 
     if (
@@ -122,18 +122,26 @@ function getStatusClasses(status) {
         normalized === "confirmed" ||
         normalized === "paid"
     ) {
-        return "bg-emerald-100 text-emerald-700 border border-emerald-200";
+        return isDark
+            ? "bg-[rgba(21,90,60,0.34)] text-[#8df0bf] border border-emerald-400/20"
+            : "bg-emerald-100 text-emerald-700 border border-emerald-200";
     }
 
     if (normalized === "rejected" || normalized === "declined") {
-        return "bg-rose-100 text-rose-700 border border-rose-200";
+        return isDark
+            ? "bg-[rgba(120,34,55,0.28)] text-[#ff9bb0] border border-rose-400/20"
+            : "bg-rose-100 text-rose-700 border border-rose-200";
     }
 
     if (normalized === "processing") {
-        return "bg-blue-100 text-blue-700 border border-blue-200";
+        return isDark
+            ? "bg-[rgba(34,74,120,0.28)] text-[#90c6ff] border border-blue-400/20"
+            : "bg-blue-100 text-blue-700 border border-blue-200";
     }
 
-    return "bg-amber-100 text-amber-700 border border-amber-200";
+    return isDark
+        ? "bg-[rgba(125,95,28,0.3)] text-[#f5cf67] border border-amber-400/20"
+        : "bg-amber-100 text-amber-700 border border-amber-200";
 }
 
 function normalizeQuotation(item) {
@@ -203,9 +211,27 @@ function ClientQuotations() {
     const clientName = getCurrentClientName().toLowerCase().trim();
     const token = getStoredToken();
 
+    const [theme, setTheme] = useState(
+        () => localStorage.getItem("clientPortalTheme") || "light"
+    );
+
     const [quotations, setQuotations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+
+    useEffect(() => {
+        const syncTheme = () => {
+            setTheme(localStorage.getItem("clientPortalTheme") || "light");
+        };
+
+        window.addEventListener("storage", syncTheme);
+        window.addEventListener("client-theme-change", syncTheme);
+
+        return () => {
+            window.removeEventListener("storage", syncTheme);
+            window.removeEventListener("client-theme-change", syncTheme);
+        };
+    }, []);
 
     useEffect(() => {
         const fetchQuotations = async () => {
@@ -267,6 +293,30 @@ function ClientQuotations() {
 
         fetchQuotations();
     }, [clientEmail, clientName, token]);
+
+    const isDark = theme === "dark";
+
+    const cardBase = isDark
+        ? "border border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.96)_0%,rgba(13,40,32,0.96)_100%)] shadow-[0_18px_40px_rgba(0,0,0,0.22)]"
+        : "border border-[#e3ebe7] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] shadow-sm";
+
+    const softBlock = isDark
+        ? "border border-white/10 bg-[linear-gradient(180deg,rgba(12,38,30,0.96)_0%,rgba(15,43,35,0.96)_100%)]"
+        : "border border-[#e3ebe7] bg-[#f8fbfa]";
+
+    const labelCard = isDark
+        ? "border border-white/10 bg-[linear-gradient(180deg,rgba(12,38,30,0.96)_0%,rgba(15,43,35,0.96)_100%)]"
+        : "bg-[#f8fbfa]";
+
+    const summaryCard = isDark
+        ? "border border-white/10 bg-[linear-gradient(180deg,rgba(11,35,28,0.98)_0%,rgba(15,42,34,0.98)_100%)]"
+        : "border border-[#e3ebe7] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)]";
+
+    const titleColor = isDark ? "text-white" : "text-[#0d5c46]";
+    const subtitleColor = isDark ? "text-white/72" : "text-slate-500";
+    const bodyColor = isDark ? "text-white/80" : "text-slate-700";
+    const softText = isDark ? "text-white/60" : "text-slate-500";
+    const strongText = isDark ? "text-white/95" : "text-slate-800";
 
     const summary = useMemo(() => {
         const total = quotations.length;
@@ -360,12 +410,12 @@ function ClientQuotations() {
                     ].map((item) => (
                         <div
                             key={item.label}
-                            className="portal-panel-hover rounded-[28px] border border-[#e3ebe7] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] px-5 py-4 shadow-sm"
+                            className={`portal-panel-hover rounded-[28px] px-5 py-4 ${summaryCard}`}
                         >
-                            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                            <p className={`text-xs font-semibold uppercase tracking-[0.18em] ${softText}`}>
                                 {item.label}
                             </p>
-                            <p className="mt-2 text-3xl font-extrabold tracking-tight text-[#0d5c46]">
+                            <p className="mt-2 text-3xl font-extrabold tracking-tight text-[#98efcc]">
                                 {item.value}
                             </p>
                         </div>
@@ -378,32 +428,37 @@ function ClientQuotations() {
                     variants={fadeUp}
                     className="portal-card-premium px-6 py-16 text-center"
                 >
-                    <h2 className="text-2xl font-bold text-[#0d5c46]">
+                    <h2 className={`text-2xl font-bold ${titleColor}`}>
                         Loading quotations...
                     </h2>
                 </motion.div>
             ) : error ? (
                 <motion.div
                     variants={fadeUp}
-                    className="rounded-[32px] border border-red-200 bg-white px-6 py-16 text-center shadow-sm"
+                    className={`rounded-[32px] px-6 py-16 text-center ${cardBase}`}
                 >
-                    <h2 className="text-2xl font-bold text-red-600">
+                    <h2 className="text-2xl font-bold text-red-400">
                         Failed to load quotations
                     </h2>
-                    <p className="mt-2 text-sm text-slate-500">{error}</p>
+                    <p className={`mt-2 text-sm ${subtitleColor}`}>{error}</p>
                 </motion.div>
             ) : quotations.length === 0 ? (
                 <motion.div
                     variants={fadeUp}
                     className="portal-card-premium border-dashed px-6 py-16 text-center"
                 >
-                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#eef8f4] text-[#0d5c46]">
+                    <div
+                        className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full ${isDark
+                            ? "bg-[linear-gradient(135deg,rgba(21,64,50,0.95)_0%,rgba(24,77,60,0.95)_100%)] text-[#98efcc]"
+                            : "bg-[#eef8f4] text-[#0d5c46]"
+                            }`}
+                    >
                         <FileText className="h-8 w-8" />
                     </div>
-                    <h2 className="mt-5 text-2xl font-bold text-[#0d5c46]">
+                    <h2 className={`mt-5 text-2xl font-bold ${titleColor}`}>
                         No quotations yet
                     </h2>
-                    <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-500">
+                    <p className={`mx-auto mt-2 max-w-xl text-sm leading-6 ${subtitleColor}`}>
                         You have not submitted any quotation requests yet. Once you
                         submit a quotation, it will appear here together with package
                         details, event information, and approval status.
@@ -429,25 +484,31 @@ function ClientQuotations() {
                                     whileHover={{ y: -4 }}
                                     className="portal-card-premium overflow-hidden transition"
                                 >
-                                    <div className="border-b border-[#edf2ef] bg-[linear-gradient(90deg,#f3fbf8_0%,#fffaf0_100%)] px-6 py-5">
+                                    <div
+                                        className={`px-6 py-5 ${isDark
+                                            ? "border-b border-white/10 bg-[linear-gradient(90deg,rgba(13,38,31,0.98)_0%,rgba(23,58,45,0.96)_100%)]"
+                                            : "border-b border-[#edf2ef] bg-[linear-gradient(90deg,#f3fbf8_0%,#fffaf0_100%)]"
+                                            }`}
+                                    >
                                         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                                             <div>
                                                 <div className="flex flex-wrap items-center gap-3">
-                                                    <h2 className="text-2xl font-extrabold tracking-tight text-[#153f31]">
+                                                    <h2 className={`text-2xl font-extrabold tracking-tight ${strongText}`}>
                                                         {quote.displayQuotationId}
                                                     </h2>
                                                     <span
                                                         className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ${getStatusClasses(
-                                                            quote.status
+                                                            quote.status,
+                                                            isDark
                                                         )}`}
                                                     >
                                                         {quote.status || "Pending"}
                                                     </span>
                                                 </div>
 
-                                                <p className="mt-2 text-sm text-slate-500">
+                                                <p className={`mt-2 text-sm ${softText}`}>
                                                     Submitted on{" "}
-                                                    <span className="font-medium text-slate-700">
+                                                    <span className={`font-medium ${strongText}`}>
                                                         {formatDateTime(createdLabel)}
                                                     </span>
                                                 </p>
@@ -458,113 +519,113 @@ function ClientQuotations() {
                                     <div className="grid gap-6 px-6 py-6 xl:grid-cols-[1.75fr_0.9fr]">
                                         <div className="space-y-5">
                                             <div className="grid gap-4 sm:grid-cols-2">
-                                                <div className="rounded-[26px] bg-[#f8fbfa] px-4 py-4">
-                                                    <div className="flex items-center gap-2 text-slate-500">
+                                                <div className={`rounded-[26px] px-4 py-4 ${labelCard}`}>
+                                                    <div className={`flex items-center gap-2 ${softText}`}>
                                                         <Layers3 className="h-4 w-4" />
                                                         <p className="text-xs font-semibold uppercase tracking-wide">
                                                             Package
                                                         </p>
                                                     </div>
-                                                    <p className="mt-2 text-base font-bold text-slate-800">
+                                                    <p className={`mt-2 text-base font-bold ${strongText}`}>
                                                         {quote.packageName || "Not selected"}
                                                     </p>
                                                 </div>
 
-                                                <div className="rounded-[26px] bg-[#f8fbfa] px-4 py-4">
-                                                    <div className="flex items-center gap-2 text-slate-500">
+                                                <div className={`rounded-[26px] px-4 py-4 ${labelCard}`}>
+                                                    <div className={`flex items-center gap-2 ${softText}`}>
                                                         <Sparkles className="h-4 w-4" />
                                                         <p className="text-xs font-semibold uppercase tracking-wide">
                                                             Theme Preference
                                                         </p>
                                                     </div>
-                                                    <p className="mt-2 text-base font-bold text-slate-800">
+                                                    <p className={`mt-2 text-base font-bold ${strongText}`}>
                                                         {quote.themePreference || "Not specified"}
                                                     </p>
                                                 </div>
                                             </div>
 
                                             <div className="grid gap-4 sm:grid-cols-3">
-                                                <div className="rounded-[26px] border border-[#e3ebe7] px-4 py-4">
-                                                    <div className="flex items-center gap-2 text-slate-500">
+                                                <div className={`rounded-[26px] px-4 py-4 ${softBlock}`}>
+                                                    <div className={`flex items-center gap-2 ${softText}`}>
                                                         <CalendarDays className="h-4 w-4" />
                                                         <p className="text-xs font-semibold uppercase tracking-wide">
                                                             Event Date
                                                         </p>
                                                     </div>
-                                                    <p className="mt-2 text-sm font-semibold text-slate-800">
+                                                    <p className={`mt-2 text-sm font-semibold ${strongText}`}>
                                                         {formatDate(quote.eventDate)}
                                                     </p>
                                                 </div>
 
-                                                <div className="rounded-[26px] border border-[#e3ebe7] px-4 py-4">
-                                                    <div className="flex items-center gap-2 text-slate-500">
+                                                <div className={`rounded-[26px] px-4 py-4 ${softBlock}`}>
+                                                    <div className={`flex items-center gap-2 ${softText}`}>
                                                         <MapPin className="h-4 w-4" />
                                                         <p className="text-xs font-semibold uppercase tracking-wide">
                                                             Venue
                                                         </p>
                                                     </div>
-                                                    <p className="mt-2 text-sm font-semibold text-slate-800">
+                                                    <p className={`mt-2 text-sm font-semibold ${strongText}`}>
                                                         {quote.venue || "No venue provided"}
                                                     </p>
                                                 </div>
 
-                                                <div className="rounded-[26px] border border-[#e3ebe7] px-4 py-4">
-                                                    <div className="flex items-center gap-2 text-slate-500">
+                                                <div className={`rounded-[26px] px-4 py-4 ${softBlock}`}>
+                                                    <div className={`flex items-center gap-2 ${softText}`}>
                                                         <Users className="h-4 w-4" />
                                                         <p className="text-xs font-semibold uppercase tracking-wide">
                                                             Guests
                                                         </p>
                                                     </div>
-                                                    <p className="mt-2 text-sm font-semibold text-slate-800">
+                                                    <p className={`mt-2 text-sm font-semibold ${strongText}`}>
                                                         {quote.guests || 0} pax
                                                     </p>
                                                 </div>
                                             </div>
 
-                                            <div className="rounded-[28px] border border-[#e3ebe7] px-5 py-5">
-                                                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                            <div className={`rounded-[28px] px-5 py-5 ${softBlock}`}>
+                                                <p className={`text-xs font-semibold uppercase tracking-wide ${softText}`}>
                                                     Client Information
                                                 </p>
 
                                                 <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                                                    <div className="rounded-2xl bg-[#f8fbfa] p-4">
-                                                        <p className="flex items-center gap-2 text-xs text-slate-500">
+                                                    <div className={`rounded-2xl p-4 ${labelCard}`}>
+                                                        <p className={`flex items-center gap-2 text-xs ${softText}`}>
                                                             <BadgeCheck size={14} />
                                                             Full Name
                                                         </p>
-                                                        <p className="mt-2 text-sm font-semibold text-slate-800">
+                                                        <p className={`mt-2 text-sm font-semibold ${strongText}`}>
                                                             {quote.clientName || getCurrentClientName()}
                                                         </p>
                                                     </div>
 
-                                                    <div className="rounded-2xl bg-[#f8fbfa] p-4">
-                                                        <p className="flex items-center gap-2 text-xs text-slate-500">
+                                                    <div className={`rounded-2xl p-4 ${labelCard}`}>
+                                                        <p className={`flex items-center gap-2 text-xs ${softText}`}>
                                                             <Mail size={14} />
                                                             Email
                                                         </p>
-                                                        <p className="mt-2 break-all text-sm font-semibold text-slate-800">
+                                                        <p className={`mt-2 break-all text-sm font-semibold ${strongText}`}>
                                                             {quote.email ||
                                                                 clientEmail ||
                                                                 "No email provided"}
                                                         </p>
                                                     </div>
 
-                                                    <div className="rounded-2xl bg-[#f8fbfa] p-4">
-                                                        <p className="flex items-center gap-2 text-xs text-slate-500">
+                                                    <div className={`rounded-2xl p-4 ${labelCard}`}>
+                                                        <p className={`flex items-center gap-2 text-xs ${softText}`}>
                                                             <Phone size={14} />
                                                             Contact Number
                                                         </p>
-                                                        <p className="mt-2 text-sm font-semibold text-slate-800">
+                                                        <p className={`mt-2 text-sm font-semibold ${strongText}`}>
                                                             {quote.contactNumber || "No contact number"}
                                                         </p>
                                                     </div>
 
-                                                    <div className="rounded-2xl bg-[#f8fbfa] p-4">
-                                                        <p className="flex items-center gap-2 text-xs text-slate-500">
+                                                    <div className={`rounded-2xl p-4 ${labelCard}`}>
+                                                        <p className={`flex items-center gap-2 text-xs ${softText}`}>
                                                             <Clock3 size={14} />
                                                             Event Time
                                                         </p>
-                                                        <p className="mt-2 text-sm font-semibold text-slate-800">
+                                                        <p className={`mt-2 text-sm font-semibold ${strongText}`}>
                                                             {formatTime(quote.eventTime)}
                                                         </p>
                                                     </div>
@@ -573,15 +634,18 @@ function ClientQuotations() {
 
                                             {Array.isArray(quote.addOns) &&
                                                 quote.addOns.length > 0 && (
-                                                    <div className="rounded-[28px] border border-[#e3ebe7] px-5 py-5">
-                                                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                                    <div className={`rounded-[28px] px-5 py-5 ${softBlock}`}>
+                                                        <p className={`text-xs font-semibold uppercase tracking-wide ${softText}`}>
                                                             Selected Add-ons
                                                         </p>
                                                         <div className="mt-3 flex flex-wrap gap-2">
                                                             {quote.addOns.map((addon, addonIndex) => (
                                                                 <span
                                                                     key={`${addon}-${addonIndex}`}
-                                                                    className="rounded-full bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-700"
+                                                                    className={`rounded-full px-3 py-1 text-sm font-medium ${isDark
+                                                                        ? "bg-[rgba(21,90,60,0.3)] text-[#98efcc]"
+                                                                        : "bg-emerald-50 text-emerald-700"
+                                                                        }`}
                                                                 >
                                                                     {addon}
                                                                 </span>
@@ -591,14 +655,14 @@ function ClientQuotations() {
                                                 )}
 
                                             {quote.specialRequests && (
-                                                <div className="rounded-[28px] border border-[#e3ebe7] px-5 py-5">
-                                                    <div className="flex items-center gap-2 text-slate-500">
+                                                <div className={`rounded-[28px] px-5 py-5 ${softBlock}`}>
+                                                    <div className={`flex items-center gap-2 ${softText}`}>
                                                         <ScrollText size={16} />
                                                         <p className="text-xs font-semibold uppercase tracking-wide">
                                                             Special Requests
                                                         </p>
                                                     </div>
-                                                    <p className="mt-3 text-sm leading-6 text-slate-700">
+                                                    <p className={`mt-3 text-sm leading-6 ${bodyColor}`}>
                                                         {quote.specialRequests}
                                                     </p>
                                                 </div>
@@ -606,14 +670,19 @@ function ClientQuotations() {
                                         </div>
 
                                         <div className="space-y-4">
-                                            <div className="rounded-[30px] bg-[linear-gradient(135deg,#fffaf0_0%,#fff3d0_100%)] px-5 py-6 text-right shadow-sm">
-                                                <div className="flex items-center justify-end gap-2 text-[#b99117]">
+                                            <div
+                                                className={`rounded-[30px] px-5 py-6 text-right ${isDark
+                                                    ? "border border-[rgba(97,76,24,0.34)] bg-[linear-gradient(135deg,rgba(88,67,20,0.3)_0%,rgba(120,91,27,0.24)_100%)] shadow-[0_10px_22px_rgba(0,0,0,0.18)]"
+                                                    : "bg-[linear-gradient(135deg,#fffaf0_0%,#fff3d0_100%)] shadow-sm"
+                                                    }`}
+                                            >
+                                                <div className="flex items-center justify-end gap-2 text-[#f5cf67]">
                                                     <CircleDollarSign size={18} />
-                                                    <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+                                                    <p className={`text-xs font-semibold uppercase tracking-widest ${softText}`}>
                                                         Estimated Total
                                                     </p>
                                                 </div>
-                                                <p className="mt-2 text-3xl font-extrabold tracking-tight text-[#b9911f]">
+                                                <p className="mt-2 text-3xl font-extrabold tracking-tight text-[#f5cf67]">
                                                     {formatCurrency(quote.estimatedTotal)}
                                                 </p>
                                             </div>

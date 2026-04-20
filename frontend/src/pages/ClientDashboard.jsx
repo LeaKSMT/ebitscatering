@@ -136,9 +136,27 @@ function ClientDashboard() {
     const clientName = String(clientUser?.name || "").toLowerCase().trim();
     const token = getStoredToken();
 
+    const [theme, setTheme] = useState(
+        () => localStorage.getItem("clientPortalTheme") || "light"
+    );
+
     const [quotations, setQuotations] = useState([]);
     const [bookings, setBookings] = useState([]);
     const [payments] = useState([]);
+
+    useEffect(() => {
+        const syncTheme = () => {
+            setTheme(localStorage.getItem("clientPortalTheme") || "light");
+        };
+
+        window.addEventListener("storage", syncTheme);
+        window.addEventListener("client-theme-change", syncTheme);
+
+        return () => {
+            window.removeEventListener("storage", syncTheme);
+            window.removeEventListener("client-theme-change", syncTheme);
+        };
+    }, []);
 
     useEffect(() => {
         const fetchDashboardData = async () => {
@@ -238,6 +256,25 @@ function ClientDashboard() {
         fetchDashboardData();
     }, [clientEmail, clientName, token]);
 
+    const isDark = theme === "dark";
+
+    const cardBase = isDark
+        ? "border border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.96)_0%,rgba(13,40,32,0.96)_100%)] shadow-[0_18px_40px_rgba(0,0,0,0.22)]"
+        : "border border-[#e3ebe7] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] shadow-sm";
+
+    const softCard = isDark
+        ? "border border-white/10 bg-[linear-gradient(180deg,rgba(12,38,30,0.96)_0%,rgba(16,45,36,0.96)_100%)]"
+        : "border border-[#e3ebe7] bg-[#f8fbfa]";
+
+    const mutedCard = isDark
+        ? "border border-white/10 bg-[linear-gradient(180deg,rgba(12,38,30,0.9)_0%,rgba(15,43,35,0.9)_100%)]"
+        : "border border-[#e3ebe7] bg-[linear-gradient(180deg,#fbfdfc_0%,#f7fbf9_100%)]";
+
+    const titleColor = isDark ? "text-white" : "text-[#0d5c46]";
+    const subtitleColor = isDark ? "text-white/75" : "text-slate-500";
+    const bodyColor = isDark ? "text-white/80" : "text-slate-600";
+    const strongText = isDark ? "text-white/95" : "text-slate-800";
+
     const totalPayments = payments.reduce((sum, item) => {
         return sum + Number(item.amount || item.paymentAmount || 0);
     }, 0);
@@ -330,33 +367,45 @@ function ClientDashboard() {
             value: quotations.length,
             subtitle: "Submitted requests",
             icon: FileText,
-            valueClass: "text-[#0d5c46]",
+            valueClass: isDark ? "text-[#98efcc]" : "text-[#0d5c46]",
             iconWrap:
-                "bg-gradient-to-br from-[#edf8f3] to-[#dff1e8] text-[#0d5c46]",
+                isDark
+                    ? "bg-[linear-gradient(135deg,rgba(21,64,50,0.95)_0%,rgba(24,77,60,0.95)_100%)] text-[#98efcc]"
+                    : "bg-gradient-to-br from-[#edf8f3] to-[#dff1e8] text-[#0d5c46]",
             badge: "Tracked",
-            glow: "group-hover:shadow-[0_20px_40px_rgba(13,92,70,0.14)]",
+            glow: isDark
+                ? "group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.28)]"
+                : "group-hover:shadow-[0_20px_40px_rgba(13,92,70,0.14)]",
         },
         {
             title: "My Bookings",
             value: bookings.length,
             subtitle: "Scheduled events",
             icon: BookOpenCheck,
-            valueClass: "text-[#0d5c46]",
+            valueClass: isDark ? "text-[#98efcc]" : "text-[#0d5c46]",
             iconWrap:
-                "bg-gradient-to-br from-[#edf8f3] to-[#dff1e8] text-[#0d5c46]",
+                isDark
+                    ? "bg-[linear-gradient(135deg,rgba(21,64,50,0.95)_0%,rgba(24,77,60,0.95)_100%)] text-[#98efcc]"
+                    : "bg-gradient-to-br from-[#edf8f3] to-[#dff1e8] text-[#0d5c46]",
             badge: "Active",
-            glow: "group-hover:shadow-[0_20px_40px_rgba(13,92,70,0.14)]",
+            glow: isDark
+                ? "group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.28)]"
+                : "group-hover:shadow-[0_20px_40px_rgba(13,92,70,0.14)]",
         },
         {
             title: "Payments Made",
             value: formatCurrency(totalPayments),
             subtitle: "Total payments recorded",
             icon: Wallet,
-            valueClass: "text-[#b99117]",
+            valueClass: isDark ? "text-[#f5cf67]" : "text-[#b99117]",
             iconWrap:
-                "bg-gradient-to-br from-[#fff9e7] to-[#fff0bf] text-[#b99117]",
+                isDark
+                    ? "bg-[linear-gradient(135deg,rgba(88,67,20,0.75)_0%,rgba(120,91,27,0.72)_100%)] text-[#f5cf67]"
+                    : "bg-gradient-to-br from-[#fff9e7] to-[#fff0bf] text-[#b99117]",
             badge: "Financial",
-            glow: "group-hover:shadow-[0_20px_40px_rgba(185,145,23,0.16)]",
+            glow: isDark
+                ? "group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.28)]"
+                : "group-hover:shadow-[0_20px_40px_rgba(185,145,23,0.16)]",
         },
     ];
 
@@ -530,18 +579,23 @@ function ClientDashboard() {
                                 variants={fadeUp}
                                 transition={{ delay: index * 0.06 }}
                                 whileHover={{ y: -8, scale: 1.018 }}
-                                className={`portal-panel-hover group relative overflow-hidden rounded-[30px] border border-[#e3ebe7] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-5 shadow-sm transition ${item.glow}`}
+                                className={`portal-panel-hover group relative overflow-hidden rounded-[30px] p-5 transition ${cardBase} ${item.glow}`}
                             >
                                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(212,175,55,0.08),transparent_30%)] opacity-0 transition duration-300 group-hover:opacity-100" />
                                 <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#d4af37]/40 to-transparent opacity-0 transition group-hover:opacity-100" />
 
                                 <div className="relative flex items-start justify-between gap-4">
                                     <div>
-                                        <div className="inline-flex rounded-full bg-[#f4f8f6] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">
+                                        <div
+                                            className={`inline-flex rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] ${isDark
+                                                ? "bg-white/10 text-white/70"
+                                                : "bg-[#f4f8f6] text-slate-500"
+                                                }`}
+                                        >
                                             {item.badge}
                                         </div>
 
-                                        <p className="mt-3 text-sm font-semibold text-slate-500">
+                                        <p className={`mt-3 text-sm font-semibold ${subtitleColor}`}>
                                             {item.title}
                                         </p>
                                         <h2
@@ -549,7 +603,7 @@ function ClientDashboard() {
                                         >
                                             {item.value}
                                         </h2>
-                                        <p className="mt-2 text-sm text-slate-500">
+                                        <p className={`mt-2 text-sm ${subtitleColor}`}>
                                             {item.subtitle}
                                         </p>
                                     </div>
@@ -573,15 +627,20 @@ function ClientDashboard() {
                 >
                     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                         <div>
-                            <div className="inline-flex items-center gap-2 rounded-full bg-[#eef8f3] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-[#0d5c46]">
+                            <div
+                                className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] ${isDark
+                                    ? "bg-white/10 text-[#98efcc]"
+                                    : "bg-[#eef8f3] text-[#0d5c46]"
+                                    }`}
+                            >
                                 <Sparkles size={12} />
                                 Action Center
                             </div>
 
-                            <h2 className="mt-3 text-2xl font-extrabold tracking-tight text-[#0d5c46] md:text-3xl">
+                            <h2 className={`mt-3 text-2xl font-extrabold tracking-tight md:text-3xl ${titleColor}`}>
                                 Quick Actions
                             </h2>
-                            <p className="mt-2 text-slate-500">
+                            <p className={`mt-2 ${subtitleColor}`}>
                                 Access your most important client actions quickly in one
                                 polished workspace.
                             </p>
@@ -613,27 +672,37 @@ function ClientDashboard() {
                                 >
                                     <Link
                                         to={item.to}
-                                        className="portal-panel-hover group relative block h-full overflow-hidden rounded-[30px] border border-[#dfe8e4] bg-[linear-gradient(180deg,#fbfdfc_0%,#f5faf7_100%)] p-5 shadow-sm transition duration-300 hover:border-[#d4af37]/40 hover:shadow-md"
+                                        className={`portal-panel-hover group relative block h-full overflow-hidden rounded-[30px] p-5 transition duration-300 hover:border-[#d4af37]/40 hover:shadow-md ${mutedCard}`}
                                     >
                                         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(212,175,55,0.08),transparent_28%)] opacity-0 transition duration-300 group-hover:opacity-100" />
 
                                         <div className="relative">
-                                            <div className="inline-flex rounded-full bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500 shadow-sm">
+                                            <div
+                                                className={`inline-flex rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] shadow-sm ${isDark
+                                                    ? "bg-white/10 text-white/70"
+                                                    : "bg-white text-slate-500"
+                                                    }`}
+                                            >
                                                 {item.tag}
                                             </div>
 
-                                            <div className="mt-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#edf8f3] text-[#0d5c46] transition duration-300 group-hover:scale-110 group-hover:bg-[#e6f5ee] group-hover:rotate-3">
+                                            <div
+                                                className={`mt-4 flex h-12 w-12 items-center justify-center rounded-2xl transition duration-300 group-hover:scale-110 group-hover:rotate-3 ${isDark
+                                                    ? "bg-[linear-gradient(135deg,rgba(21,64,50,0.95)_0%,rgba(24,77,60,0.95)_100%)] text-[#98efcc]"
+                                                    : "bg-[#edf8f3] text-[#0d5c46] group-hover:bg-[#e6f5ee]"
+                                                    }`}
+                                            >
                                                 <Icon size={22} />
                                             </div>
 
-                                            <h3 className="mt-4 text-lg font-bold text-[#0d5c46]">
+                                            <h3 className={`mt-4 text-lg font-bold ${titleColor}`}>
                                                 {item.title}
                                             </h3>
-                                            <p className="mt-2 text-sm leading-6 text-slate-500">
+                                            <p className={`mt-2 text-sm leading-6 ${bodyColor}`}>
                                                 {item.description}
                                             </p>
 
-                                            <div className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[#b99117]">
+                                            <div className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[#f5cf67]">
                                                 Open
                                                 <ArrowRight
                                                     size={15}
@@ -653,31 +722,41 @@ function ClientDashboard() {
                     className="portal-card-premium p-6 md:p-8"
                 >
                     <div className="flex items-center gap-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#edf8f3] text-[#0d5c46]">
+                        <div
+                            className={`flex h-12 w-12 items-center justify-center rounded-2xl ${isDark
+                                ? "bg-[linear-gradient(135deg,rgba(21,64,50,0.95)_0%,rgba(24,77,60,0.95)_100%)] text-[#98efcc]"
+                                : "bg-[#edf8f3] text-[#0d5c46]"
+                                }`}
+                        >
                             <TrendingUp size={22} />
                         </div>
                         <div>
-                            <h2 className="text-2xl font-extrabold tracking-tight text-[#0d5c46]">
+                            <h2 className={`text-2xl font-extrabold tracking-tight ${titleColor}`}>
                                 Recent Activity
                             </h2>
-                            <p className="mt-1 text-slate-500">
+                            <p className={`mt-1 ${subtitleColor}`}>
                                 A quick look at your latest records and updates.
                             </p>
                         </div>
                     </div>
 
                     <div className="mt-6 space-y-4">
-                        <div className="portal-panel-hover rounded-[28px] border border-[#e3ebe7] bg-[linear-gradient(180deg,#fbfdfc_0%,#f7fbf9_100%)] p-5">
+                        <div className={`portal-panel-hover rounded-[28px] p-5 ${mutedCard}`}>
                             <div className="flex items-start justify-between gap-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#edf8f3] text-[#0d5c46]">
+                                    <div
+                                        className={`flex h-11 w-11 items-center justify-center rounded-2xl ${isDark
+                                            ? "bg-[linear-gradient(135deg,rgba(21,64,50,0.95)_0%,rgba(24,77,60,0.95)_100%)] text-[#98efcc]"
+                                            : "bg-[#edf8f3] text-[#0d5c46]"
+                                            }`}
+                                    >
                                         <FileText size={20} />
                                     </div>
                                     <div>
-                                        <p className="text-sm font-semibold text-slate-500">
+                                        <p className={`text-sm font-semibold ${subtitleColor}`}>
                                             Latest Quotation
                                         </p>
-                                        <p className="text-base font-bold text-[#0d5c46]">
+                                        <p className={`text-base font-bold ${titleColor}`}>
                                             {latestQuotation?.eventType ||
                                                 latestQuotation?.packageName ||
                                                 latestQuotation?.packageType ||
@@ -686,21 +765,26 @@ function ClientDashboard() {
                                     </div>
                                 </div>
 
-                                <div className="rounded-full bg-[#eef8f3] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-[#0d5c46]">
+                                <div
+                                    className={`rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] ${isDark
+                                        ? "bg-white/10 text-[#98efcc]"
+                                        : "bg-[#eef8f3] text-[#0d5c46]"
+                                        }`}
+                                >
                                     Record
                                 </div>
                             </div>
 
-                            <div className="mt-4 grid gap-2 text-sm text-slate-500">
+                            <div className={`mt-4 grid gap-2 text-sm ${subtitleColor}`}>
                                 <p>
                                     Status:{" "}
-                                    <span className="font-semibold text-[#b99117]">
+                                    <span className="font-semibold text-[#f5cf67]">
                                         {latestQuotation?.status || "No status yet"}
                                     </span>
                                 </p>
                                 <p>
                                     Date:{" "}
-                                    <span className="font-semibold text-slate-700">
+                                    <span className={`font-semibold ${strongText}`}>
                                         {formatDate(
                                             latestQuotation?.createdAt ||
                                             latestQuotation?.eventDate
@@ -710,17 +794,22 @@ function ClientDashboard() {
                             </div>
                         </div>
 
-                        <div className="portal-panel-hover rounded-[28px] border border-[#e3ebe7] bg-[linear-gradient(180deg,#fbfdfc_0%,#f7fbf9_100%)] p-5">
+                        <div className={`portal-panel-hover rounded-[28px] p-5 ${mutedCard}`}>
                             <div className="flex items-start justify-between gap-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#fff7df] text-[#b99117]">
+                                    <div
+                                        className={`flex h-11 w-11 items-center justify-center rounded-2xl ${isDark
+                                            ? "bg-[linear-gradient(135deg,rgba(88,67,20,0.75)_0%,rgba(120,91,27,0.72)_100%)] text-[#f5cf67]"
+                                            : "bg-[#fff7df] text-[#b99117]"
+                                            }`}
+                                    >
                                         <CalendarClock size={20} />
                                     </div>
                                     <div>
-                                        <p className="text-sm font-semibold text-slate-500">
+                                        <p className={`text-sm font-semibold ${subtitleColor}`}>
                                             Latest Booking
                                         </p>
-                                        <p className="text-base font-bold text-[#0d5c46]">
+                                        <p className={`text-base font-bold ${titleColor}`}>
                                             {latestBooking?.eventType ||
                                                 latestBooking?.packageName ||
                                                 "No booking yet"}
@@ -728,21 +817,26 @@ function ClientDashboard() {
                                     </div>
                                 </div>
 
-                                <div className="rounded-full bg-[#fff8e6] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-[#8f6a0f]">
+                                <div
+                                    className={`rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] ${isDark
+                                        ? "bg-[rgba(97,76,24,0.4)] text-[#f5cf67]"
+                                        : "bg-[#fff8e6] text-[#8f6a0f]"
+                                        }`}
+                                >
                                     Event
                                 </div>
                             </div>
 
-                            <div className="mt-4 grid gap-2 text-sm text-slate-500">
+                            <div className={`mt-4 grid gap-2 text-sm ${subtitleColor}`}>
                                 <p>
                                     Status:{" "}
-                                    <span className="font-semibold text-[#0d5c46]">
+                                    <span className="font-semibold text-[#98efcc]">
                                         {latestBooking?.status || "No status yet"}
                                     </span>
                                 </p>
                                 <p>
                                     Event Date:{" "}
-                                    <span className="font-semibold text-slate-700">
+                                    <span className={`font-semibold ${strongText}`}>
                                         {formatDate(
                                             latestBooking?.eventDate ||
                                             latestBooking?.createdAt
@@ -752,22 +846,35 @@ function ClientDashboard() {
                             </div>
                         </div>
 
-                        <div className="rounded-[28px] border border-dashed border-[#d8e7e1] bg-[linear-gradient(180deg,#fbfdfc_0%,#f5faf7_100%)] p-5">
+                        <div
+                            className={`rounded-[28px] border-dashed p-5 ${isDark
+                                ? "border border-white/10 bg-[linear-gradient(180deg,rgba(12,38,30,0.92)_0%,rgba(15,43,35,0.92)_100%)]"
+                                : "border border-dashed border-[#d8e7e1] bg-[linear-gradient(180deg,#fbfdfc_0%,#f5faf7_100%)]"
+                                }`}
+                        >
                             <div className="flex items-center gap-3">
-                                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#eef8f3] text-[#0d5c46]">
+                                <div
+                                    className={`flex h-11 w-11 items-center justify-center rounded-2xl ${isDark
+                                        ? "bg-[linear-gradient(135deg,rgba(21,64,50,0.95)_0%,rgba(24,77,60,0.95)_100%)] text-[#98efcc]"
+                                        : "bg-[#eef8f3] text-[#0d5c46]"
+                                        }`}
+                                >
                                     <ReceiptText size={20} />
                                 </div>
                                 <div>
-                                    <p className="text-sm font-bold text-[#0d5c46]">
+                                    <p className={`text-sm font-bold ${titleColor}`}>
                                         Smart Insight
                                     </p>
-                                    <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
+                                    <p
+                                        className={`text-xs uppercase tracking-[0.18em] ${isDark ? "text-white/50" : "text-slate-400"
+                                            }`}
+                                    >
                                         System guidance
                                     </p>
                                 </div>
                             </div>
 
-                            <p className="mt-3 text-sm leading-6 text-slate-600">
+                            <p className={`mt-3 text-sm leading-6 ${bodyColor}`}>
                                 {portalProgress >= 100
                                     ? "Your transaction flow is complete. You may review your records anytime in your client portal."
                                     : approvedQuotation && !hasBooking
@@ -781,22 +888,22 @@ function ClientDashboard() {
                         </div>
 
                         <div className="grid gap-3 sm:grid-cols-2">
-                            <div className="rounded-[24px] border border-[#e3ebe7] bg-white p-4">
-                                <div className="flex items-center gap-2 text-[#0d5c46]">
+                            <div className={`rounded-[24px] p-4 ${softCard}`}>
+                                <div className="flex items-center gap-2 text-[#98efcc]">
                                     <Activity size={17} />
                                     <span className="text-sm font-bold">Journey Status</span>
                                 </div>
-                                <p className="mt-2 text-sm text-slate-600">
+                                <p className={`mt-2 text-sm ${bodyColor}`}>
                                     {overviewTitle}
                                 </p>
                             </div>
 
-                            <div className="rounded-[24px] border border-[#e3ebe7] bg-white p-4">
-                                <div className="flex items-center gap-2 text-[#b99117]">
+                            <div className={`rounded-[24px] p-4 ${softCard}`}>
+                                <div className="flex items-center gap-2 text-[#f5cf67]">
                                     <CircleDollarSign size={17} />
                                     <span className="text-sm font-bold">Recorded Payments</span>
                                 </div>
-                                <p className="mt-2 text-sm text-slate-600">
+                                <p className={`mt-2 text-sm ${bodyColor}`}>
                                     {formatCurrency(totalPayments)}
                                 </p>
                             </div>
@@ -804,7 +911,7 @@ function ClientDashboard() {
 
                         <Link
                             to="/client/bookings"
-                            className="inline-flex items-center gap-2 text-sm font-bold text-[#0d5c46] transition hover:text-[#084633]"
+                            className="inline-flex items-center gap-2 text-sm font-bold text-[#98efcc] transition hover:text-[#b4f6dd]"
                         >
                             View full booking details
                             <ArrowRight size={15} />

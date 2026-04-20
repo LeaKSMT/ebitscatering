@@ -273,6 +273,117 @@ textarea {
   text-rendering: optimizeLegibility;
 }
 
+/* EXTRA DARK MODE UNIFICATION */
+.client-theme-dark .rounded-\[32px\].bg-white,
+.client-theme-dark .rounded-\[30px\].bg-white,
+.client-theme-dark .rounded-\[28px\].bg-white,
+.client-theme-dark .rounded-\[26px\].bg-white,
+.client-theme-dark .rounded-\[24px\].bg-white,
+.client-theme-dark .rounded-2xl.bg-white {
+  background: linear-gradient(180deg, rgba(10, 33, 27, 0.98) 0%, rgba(13, 40, 32, 0.98) 100%) !important;
+  border-color: rgba(255, 255, 255, 0.10) !important;
+  color: rgb(238 247 243 / 0.98) !important;
+}
+
+.client-theme-dark .bg-\[linear-gradient\(180deg\,\#ffffff_0\%\,\#fbfdfc_100\%\)\] {
+  background: linear-gradient(180deg, rgba(10, 33, 27, 0.98) 0%, rgba(13, 40, 32, 0.98) 100%) !important;
+}
+
+.client-theme-dark .bg-\[linear-gradient\(180deg\,\#fbfdfc_0\%\,\#f7fbf9_100\%\)\],
+.client-theme-dark .bg-\[linear-gradient\(180deg\,\#fbfdfc_0\%\,\#f5faf7_100\%\)\],
+.client-theme-dark .bg-\[linear-gradient\(180deg\,\#f9fcfb_0\%\,\#f5f8fc_100\%\)\],
+.client-theme-dark .bg-\[linear-gradient\(180deg\,\#ffffff_0\%\,\#fbfdfc_100\%\)\] {
+  background: linear-gradient(180deg, rgba(10, 33, 27, 0.98) 0%, rgba(13, 40, 32, 0.98) 100%) !important;
+}
+
+.client-theme-dark .bg-\[linear-gradient\(90deg\,\#f3fbf8_0\%\,\#fffaf0_100\%\)\],
+.client-theme-dark .bg-\[linear-gradient\(90deg\,\#f3fbf8_0\%\,\#fff8ea_100\%\)\] {
+  background: linear-gradient(90deg, rgba(13, 38, 31, 0.98) 0%, rgba(23, 58, 45, 0.96) 100%) !important;
+}
+
+.client-theme-dark .bg-\[linear-gradient\(135deg\,\#fffaf0_0\%\,\#fff3d0_100\%\)\],
+.client-theme-dark .bg-\[linear-gradient\(135deg\,\#fff8df_0\%\,\#fff1bf_100\%\)\] {
+  background: linear-gradient(135deg, rgba(88, 67, 20, 0.3) 0%, rgba(120, 91, 27, 0.24) 100%) !important;
+}
+
+.client-theme-dark .border-red-200 {
+  border-color: rgba(248, 113, 113, 0.24) !important;
+}
+
+.client-theme-dark .text-red-600 {
+  color: #fca5a5 !important;
+}
+
+.client-theme-dark .border-dashed {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.client-theme-dark .client-topbar-link-active {
+  color: #8a6710;
+  background: linear-gradient(135deg, #fff8df 0%, #fff1bf 100%);
+  box-shadow:
+    0 10px 25px rgba(212, 175, 55, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.75);
+}
+
+.client-theme-dark .rounded-\[28px\].border.border-\[\#dfe8e4\].bg-white,
+.client-theme-dark .rounded-\[28px\].border.border-\[\#dfe8e4\].bg-white.text-slate-800,
+.client-theme-dark .absolute.right-0.top-\[calc\(100\%\+12px\)\].z-\[80\].w-\[280px\].overflow-hidden.rounded-\[28px\].border.border-\[\#dfe8e4\].bg-white,
+.client-theme-dark .absolute.right-0.top-\[calc\(100\%\+12px\)\].z-\[80\].w-\[360px\].overflow-hidden.rounded-\[28px\].border.border-\[\#dfe8e4\].bg-white {
+  background: linear-gradient(180deg, rgba(10, 33, 27, 0.99) 0%, rgba(13, 40, 32, 0.99) 100%) !important;
+  border-color: rgba(255, 255, 255, 0.10) !important;
+  color: rgb(238 247 243 / 0.98) !important;
+}
+
+.client-theme-dark .fixed.inset-0.z-\[90\] .bg-white,
+.client-theme-dark .w-full.max-w-md.overflow-hidden.rounded-\[32px\].border.border-\[\#efe2a9\].bg-white {
+  background: linear-gradient(180deg, rgba(10, 33, 27, 0.99) 0%, rgba(13, 40, 32, 0.99) 100%) !important;
+  border-color: rgba(212, 175, 55, 0.5) !important;
+}
+
+.client-theme-dark .border-\[\#efe2a9\] {
+  border-color: rgba(212, 175, 55, 0.5) !important;
+}
+
+.client-theme-dark .border-slate-200 {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.client-theme-dark .hover\:bg-slate-50:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+.client-theme-dark .bg-\[linear-gradient\(180deg\,\#fffdf6_0\%\,\#fff8e8_100\%\)\] {
+  background: linear-gradient(180deg, rgba(88, 67, 20, 0.14) 0%, rgba(120, 91, 27, 0.12) 100%) !important;
+}
+
+.client-theme-dark .text-slate-600 {
+  color: rgb(210 225 219 / 0.92) !important;
+}
+
+.client-theme-dark .text-slate-700 {
+  color: rgb(238 247 243 / 0.98) !important;
+}
+
+.client-theme-dark .text-slate-800 {
+  color: rgb(245 250 248 / 0.99) !important;
+}
+
+.client-theme-dark .text-\[\#143c2f\] {
+  color: #143c2f !important;
+}
+
+.client-theme-dark input,
+.client-theme-dark textarea,
+.client-theme-dark select {
+  color: rgb(238 247 243 / 0.98);
+}
+
+.client-theme-dark input::placeholder,
+.client-theme-dark textarea::placeholder {
+  color: rgba(220, 232, 227, 0.4);
+}
+
 .client-topbar-link {
   position: relative;
   display: inline-flex;

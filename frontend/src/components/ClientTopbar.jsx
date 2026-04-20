@@ -136,9 +136,26 @@ function ClientTopbar() {
         []
     );
 
+    const notificationSeenKey = useMemo(
+        () => getScopedKey("clientSeenNotifications", clientEmail),
+        [clientEmail]
+    );
+
     const [theme, setTheme] = useState(() => {
         return localStorage.getItem("clientPortalTheme") || "light";
     });
+
+    const [seenNotificationIds, setSeenNotificationIds] = useState(() => {
+        return getSafeJson(notificationSeenKey, []);
+    });
+
+    useEffect(() => {
+        setSeenNotificationIds(getSafeJson(notificationSeenKey, []));
+    }, [notificationSeenKey]);
+
+    useEffect(() => {
+        localStorage.setItem(notificationSeenKey, JSON.stringify(seenNotificationIds));
+    }, [notificationSeenKey, seenNotificationIds]);
 
     useEffect(() => {
         localStorage.setItem("clientPortalTheme", theme);
@@ -184,7 +201,31 @@ function ClientTopbar() {
         return buildNotifications({ quotations, bookings, inquiries });
     }, [quotations, bookings, inquiries]);
 
-    const unreadCount = notifications.length;
+    useEffect(() => {
+        const validIds = notifications.map((item) => item.id);
+        setSeenNotificationIds((prev) => prev.filter((id) => validIds.includes(id)));
+    }, [notifications]);
+
+    const unreadNotifications = useMemo(() => {
+        return notifications.filter((item) => !seenNotificationIds.includes(item.id));
+    }, [notifications, seenNotificationIds]);
+
+    const unreadCount = unreadNotifications.length;
+
+    const markNotificationsAsSeen = (ids = []) => {
+        if (!ids.length) return;
+        setSeenNotificationIds((prev) => Array.from(new Set([...prev, ...ids])));
+    };
+
+    const handleOpenNotifications = () => {
+        const nextOpen = !showNotifications;
+        setShowNotifications(nextOpen);
+        setShowProfileDropdown(false);
+
+        if (nextOpen) {
+            markNotificationsAsSeen(notifications.map((item) => item.id));
+        }
+    };
 
     const handleConfirmLogout = () => {
         localStorage.removeItem("clientUser");
@@ -277,10 +318,7 @@ function ClientTopbar() {
                         >
                             <div ref={notificationsRef} className="relative">
                                 <button
-                                    onClick={() => {
-                                        setShowNotifications((prev) => !prev);
-                                        setShowProfileDropdown(false);
-                                    }}
+                                    onClick={handleOpenNotifications}
                                     className="relative inline-flex h-[50px] w-[50px] items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-white shadow-[0_10px_22px_rgba(0,0,0,0.12)] transition hover:bg-white/15"
                                 >
                                     <Bell size={18} />
@@ -333,6 +371,7 @@ function ClientTopbar() {
                                                             <button
                                                                 key={item.id}
                                                                 onClick={() => {
+                                                                    markNotificationsAsSeen([item.id]);
                                                                     setShowNotifications(false);
                                                                     navigate(item.to);
                                                                 }}
@@ -528,8 +567,15 @@ function ClientTopbar() {
                                 <div className="mt-4 flex items-center justify-end">
                                     <button
                                         onClick={() => {
-                                            setShowNotifications((prev) => !prev);
+                                            const nextOpen = !showNotifications;
+                                            setShowNotifications(nextOpen);
                                             setShowProfileDropdown(false);
+
+                                            if (nextOpen) {
+                                                markNotificationsAsSeen(
+                                                    notifications.map((item) => item.id)
+                                                );
+                                            }
                                         }}
                                         className="relative inline-flex h-[50px] w-[50px] items-center justify-center rounded-[18px] border border-white/10 bg-white/10 text-white"
                                     >
@@ -608,6 +654,7 @@ function ClientTopbar() {
                                                     <button
                                                         key={item.id}
                                                         onClick={() => {
+                                                            markNotificationsAsSeen([item.id]);
                                                             setMobileMenuOpen(false);
                                                             setShowNotifications(false);
                                                             navigate(item.to);
