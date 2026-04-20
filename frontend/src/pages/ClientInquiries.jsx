@@ -1,11 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
     Sparkles,
     Send,
     MessageSquare,
     Bot,
     UserCircle2,
+    ShieldCheck,
+    Clock3,
+    CheckCircle2,
+    MessageCircleMore,
 } from "lucide-react";
 
 const DEFAULT_ACKNOWLEDGMENT =
@@ -99,7 +103,20 @@ function buildAutoReply(messageText) {
 
 const fadeUp = {
     hidden: { opacity: 0, y: 18 },
-    show: { opacity: 1, y: 0 },
+    show: {
+        opacity: 1,
+        y: 0,
+        transition: { duration: 0.42, ease: "easeOut" },
+    },
+};
+
+const staggerContainer = {
+    hidden: {},
+    show: {
+        transition: {
+            staggerChildren: 0.08,
+        },
+    },
 };
 
 function ClientInquiries() {
@@ -119,6 +136,18 @@ function ClientInquiries() {
             (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
         );
     }, [messages]);
+
+    const messageSummary = useMemo(() => {
+        const total = sortedMessages.length;
+        const clientCount = sortedMessages.filter(
+            (msg) => msg.sender === "client"
+        ).length;
+        const adminCount = sortedMessages.filter(
+            (msg) => msg.sender === "admin"
+        ).length;
+
+        return { total, clientCount, adminCount };
+    }, [sortedMessages]);
 
     const saveMessages = (updated) => {
         setMessages(updated);
@@ -259,158 +288,285 @@ function ClientInquiries() {
 
     return (
         <motion.div
+            variants={staggerContainer}
             initial="hidden"
             animate="show"
-            transition={{ staggerChildren: 0.08 }}
-            className="space-y-6"
+            className="space-y-7"
         >
-            <motion.div
+            <motion.section
                 variants={fadeUp}
-                className="relative overflow-hidden rounded-[32px] border border-[#dbe6e1] bg-white shadow-[0_14px_40px_rgba(14,61,47,0.08)]"
+                className="relative overflow-hidden rounded-[34px] border border-[#dbe6e1] bg-white shadow-[0_18px_50px_rgba(14,61,47,0.08)]"
             >
-                <div className="absolute inset-0 pointer-events-none">
-                    <div className="absolute -top-10 right-[-30px] h-44 w-44 rounded-full bg-[#d4af37]/15 blur-3xl" />
+                <div className="pointer-events-none absolute inset-0">
+                    <div className="absolute -top-10 right-[-20px] h-44 w-44 rounded-full bg-[#d4af37]/15 blur-3xl" />
+                    <div className="absolute bottom-[-30px] left-[-30px] h-40 w-40 rounded-full bg-white/10 blur-3xl" />
                 </div>
 
-                <div className="relative bg-[linear-gradient(135deg,#0b5a43_0%,#0f6d51_58%,#138062_100%)] px-6 py-8 text-white md:px-8 md:py-10">
-                    <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-                        <div>
-                            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.22em] text-white/80">
+                <div className="relative bg-[linear-gradient(135deg,#0a5a43_0%,#0f6d51_55%,#138062_100%)] px-6 py-8 text-white md:px-8 md:py-10">
+                    <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+                        <div className="max-w-3xl">
+                            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.24em] text-white/80 backdrop-blur">
                                 <Sparkles size={14} />
                                 Client Support
                             </div>
 
-                            <h1 className="mt-4 text-3xl font-extrabold md:text-5xl">
+                            <h1 className="mt-4 text-3xl font-extrabold leading-tight md:text-5xl">
                                 My Inquiries
                             </h1>
+
                             <p className="mt-3 max-w-2xl text-sm leading-7 text-white/85 md:text-base">
-                                Send questions, follow-ups, and concerns to the admin
-                                through a more premium and organized inquiry center.
+                                Message the admin in a cleaner, more premium support
+                                center designed for follow-ups, clarifications, and event
+                                concerns.
                             </p>
                         </div>
 
-                        <div className="rounded-[26px] border border-white/10 bg-white/10 p-4 backdrop-blur-md">
-                            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/70">
-                                Support Status
-                            </p>
-                            <p className="mt-2 text-lg font-bold text-white">
-                                {isAdminTyping ? "Admin is typing..." : "Chat Support Active"}
-                            </p>
-                            <p className="mt-1 text-sm text-white/75">
-                                Messages are saved in your account
-                            </p>
+                        <div className="grid gap-3 sm:grid-cols-3 lg:w-[420px] lg:grid-cols-1">
+                            <div className="rounded-[24px] border border-white/10 bg-white/10 p-4 backdrop-blur-md">
+                                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">
+                                    Support Status
+                                </p>
+                                <div className="mt-2 flex items-center gap-2">
+                                    <div
+                                        className={`h-2.5 w-2.5 rounded-full ${isAdminTyping
+                                                ? "bg-[#f5c94a] shadow-[0_0_14px_rgba(245,201,74,0.8)]"
+                                                : "bg-[#5df1a6] shadow-[0_0_14px_rgba(93,241,166,0.75)]"
+                                            }`}
+                                    />
+                                    <p className="text-lg font-bold text-white">
+                                        {isAdminTyping
+                                            ? "Admin is typing..."
+                                            : "Chat Support Active"}
+                                    </p>
+                                </div>
+                                <p className="mt-1 text-sm text-white/75">
+                                    Messages are saved in your account
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </motion.div>
 
-            <motion.div
+                <div className="grid gap-4 px-6 py-6 md:grid-cols-3 md:px-8">
+                    {[
+                        {
+                            label: "Total Messages",
+                            value: messageSummary.total,
+                            icon: MessageSquare,
+                            iconWrap:
+                                "bg-gradient-to-br from-[#edf8f3] to-[#dff1e8] text-[#0d5c46]",
+                            valueClass: "text-[#0d5c46]",
+                        },
+                        {
+                            label: "Your Messages",
+                            value: messageSummary.clientCount,
+                            icon: UserCircle2,
+                            iconWrap:
+                                "bg-gradient-to-br from-[#fff9e7] to-[#fff0bf] text-[#b99117]",
+                            valueClass: "text-[#b99117]",
+                        },
+                        {
+                            label: "Admin Replies",
+                            value: messageSummary.adminCount,
+                            icon: ShieldCheck,
+                            iconWrap:
+                                "bg-gradient-to-br from-[#eef6ff] to-[#dbeafe] text-[#2563eb]",
+                            valueClass: "text-[#2563eb]",
+                        },
+                    ].map((item) => {
+                        const Icon = item.icon;
+
+                        return (
+                            <motion.div
+                                key={item.label}
+                                variants={fadeUp}
+                                whileHover={{ y: -5, scale: 1.01 }}
+                                className="group rounded-[26px] border border-[#e3ebe7] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-5 shadow-sm transition"
+                            >
+                                <div className="flex items-start justify-between gap-4">
+                                    <div>
+                                        <p className="text-sm font-semibold text-slate-500">
+                                            {item.label}
+                                        </p>
+                                        <h2 className={`mt-3 text-3xl font-extrabold ${item.valueClass}`}>
+                                            {item.value}
+                                        </h2>
+                                    </div>
+
+                                    <div
+                                        className={`flex h-14 w-14 items-center justify-center rounded-2xl shadow-sm transition duration-300 group-hover:scale-110 ${item.iconWrap}`}
+                                    >
+                                        <Icon size={24} />
+                                    </div>
+                                </div>
+                            </motion.div>
+                        );
+                    })}
+                </div>
+            </motion.section>
+
+            <motion.section
                 variants={fadeUp}
-                className="overflow-hidden rounded-[32px] border border-[#dce7e2] bg-white shadow-[0_12px_30px_rgba(14,61,47,0.06)]"
+                className="overflow-hidden rounded-[34px] border border-[#dce7e2] bg-white shadow-[0_16px_40px_rgba(14,61,47,0.07)]"
             >
-                <div className="border-b border-[#edf2ef] bg-[linear-gradient(90deg,#f2fbf7_0%,#fff9ea_100%)] px-6 py-5">
+                <div className="border-b border-[#edf2ef] bg-[linear-gradient(90deg,#f3fbf8_0%,#fff8ea_100%)] px-6 py-5">
                     <div className="flex flex-wrap items-center justify-between gap-4">
                         <div>
-                            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+                            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">
                                 Inquiry Center
                             </p>
-                            <h2 className="mt-1 text-2xl font-extrabold text-[#0d5c46]">
+                            <h2 className="mt-1 text-2xl font-extrabold text-[#0d5c46] md:text-3xl">
                                 Message the Admin
                             </h2>
                         </div>
 
-                        <div className="rounded-2xl border border-[#f1d98a] bg-[#fff8e6] px-4 py-2 text-sm font-semibold text-[#b99117]">
-                            {isAdminTyping ? "Admin is typing..." : "Admin usually replies here"}
+                        <div className="rounded-2xl border border-[#f1d98a] bg-[#fff8e6] px-4 py-2 text-sm font-semibold text-[#b99117] shadow-sm">
+                            {isAdminTyping
+                                ? "Admin is typing..."
+                                : "Admin usually replies here"}
                         </div>
                     </div>
                 </div>
 
-                <div className="min-h-[460px] max-h-[460px] space-y-4 overflow-y-auto bg-[#f8fafc] p-5 md:p-6">
+                <div className="relative min-h-[540px] max-h-[540px] overflow-y-auto bg-[linear-gradient(180deg,#f9fcfb_0%,#f5f8fc_100%)] p-5 md:p-6">
+                    <div className="pointer-events-none absolute inset-0 opacity-[0.045]">
+                        <div
+                            className="h-full w-full"
+                            style={{
+                                backgroundImage:
+                                    "linear-gradient(to right, rgba(11,90,67,0.18) 1px, transparent 1px), linear-gradient(to bottom, rgba(11,90,67,0.18) 1px, transparent 1px)",
+                                backgroundSize: "34px 34px",
+                            }}
+                        />
+                    </div>
+
                     {sortedMessages.length === 0 && !isAdminTyping ? (
-                        <div className="flex h-[360px] items-center justify-center">
-                            <div className="max-w-lg text-center">
-                                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#0f4d3c] text-white">
-                                    <MessageSquare size={28} />
+                        <div className="relative flex h-[430px] items-center justify-center">
+                            <div className="max-w-xl text-center">
+                                <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-[28px] bg-[linear-gradient(135deg,#0f4d3c_0%,#127254_100%)] text-white shadow-[0_18px_35px_rgba(15,77,60,0.2)]">
+                                    <MessageCircleMore size={34} />
                                 </div>
-                                <h3 className="text-2xl font-bold text-[#0f4d3c]">
+
+                                <h3 className="text-2xl font-extrabold text-[#0f4d3c] md:text-3xl">
                                     No inquiries yet
                                 </h3>
-                                <p className="mt-2 leading-7 text-gray-500">
+                                <p className="mx-auto mt-3 max-w-lg text-sm leading-7 text-slate-500 md:text-base">
                                     Start a conversation with the admin regarding your
-                                    quotation, booking, payment, package, or event schedule.
+                                    quotation, booking, payment, package, or event
+                                    schedule. Your messages will appear here in a clean
+                                    chat timeline.
                                 </p>
                             </div>
                         </div>
                     ) : (
-                        <>
-                            {sortedMessages.map((message) => {
-                                const isClient = message.sender === "client";
+                        <div className="relative space-y-4">
+                            <AnimatePresence initial={false}>
+                                {sortedMessages.map((message) => {
+                                    const isClient = message.sender === "client";
 
-                                return (
-                                    <motion.div
-                                        key={message.id}
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        className={`flex ${isClient ? "justify-end" : "justify-start"
-                                            }`}
-                                    >
-                                        <div
-                                            className={`max-w-[85%] md:max-w-[70%] rounded-[26px] px-4 py-4 shadow-sm ${isClient
-                                                    ? "bg-[linear-gradient(135deg,#d4af37_0%,#f0cb58_100%)] text-[#0f4d3c]"
-                                                    : "border border-gray-200 bg-white text-gray-700"
+                                    return (
+                                        <motion.div
+                                            key={message.id}
+                                            initial={{ opacity: 0, y: 16, scale: 0.98 }}
+                                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                                            exit={{ opacity: 0, y: 10 }}
+                                            transition={{ duration: 0.28 }}
+                                            className={`flex ${isClient
+                                                    ? "justify-end"
+                                                    : "justify-start"
                                                 }`}
                                         >
-                                            <div className="mb-2 flex items-center gap-2">
-                                                {isClient ? (
-                                                    <UserCircle2 size={16} className="opacity-80" />
-                                                ) : (
-                                                    <Bot size={16} className="opacity-80" />
-                                                )}
+                                            <div
+                                                className={`max-w-[90%] md:max-w-[72%] rounded-[28px] px-4 py-4 shadow-sm md:px-5 ${isClient
+                                                        ? "border border-[#e8c95e] bg-[linear-gradient(135deg,#d4af37_0%,#f0cb58_100%)] text-[#0f4d3c] shadow-[0_14px_28px_rgba(212,175,55,0.2)]"
+                                                        : "border border-[#e3ebe7] bg-white text-slate-700 shadow-[0_12px_24px_rgba(14,61,47,0.05)]"
+                                                    }`}
+                                            >
+                                                <div className="mb-3 flex items-center gap-2">
+                                                    <div
+                                                        className={`flex h-8 w-8 items-center justify-center rounded-xl ${isClient
+                                                                ? "bg-white/30"
+                                                                : "bg-[#edf8f3] text-[#0d5c46]"
+                                                            }`}
+                                                    >
+                                                        {isClient ? (
+                                                            <UserCircle2 size={16} />
+                                                        ) : (
+                                                            <Bot size={16} />
+                                                        )}
+                                                    </div>
 
-                                                <p className="text-xs font-bold uppercase tracking-[0.15em] opacity-80">
-                                                    {isClient
-                                                        ? message.senderName || "You"
-                                                        : message.senderName || "Admin"}
+                                                    <div>
+                                                        <p className="text-[11px] font-bold uppercase tracking-[0.18em] opacity-80">
+                                                            {isClient
+                                                                ? message.senderName || "You"
+                                                                : message.senderName || "Admin"}
+                                                        </p>
+                                                        <p className="text-[11px] opacity-60">
+                                                            {isClient
+                                                                ? "Client message"
+                                                                : message.isAutoAcknowledgment
+                                                                    ? "Auto acknowledgment"
+                                                                    : "Admin reply"}
+                                                        </p>
+                                                    </div>
+                                                </div>
+
+                                                <p className="whitespace-pre-wrap text-sm leading-7 md:text-[15px]">
+                                                    {message.text}
                                                 </p>
+
+                                                <div className="mt-3 flex items-center justify-end gap-2 text-[11px] opacity-70">
+                                                    {isClient ? (
+                                                        <Clock3 size={12} />
+                                                    ) : (
+                                                        <CheckCircle2 size={12} />
+                                                    )}
+                                                    <span>{formatDateTime(message.createdAt)}</span>
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    );
+                                })}
+
+                                {isAdminTyping && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: 10 }}
+                                        className="flex justify-start"
+                                    >
+                                        <div className="max-w-[85%] rounded-[28px] border border-[#e3ebe7] bg-white px-4 py-4 text-slate-700 shadow-[0_12px_24px_rgba(14,61,47,0.05)] md:max-w-[70%] md:px-5">
+                                            <div className="mb-3 flex items-center gap-2">
+                                                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#edf8f3] text-[#0d5c46]">
+                                                    <Bot size={16} />
+                                                </div>
+                                                <div>
+                                                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] opacity-80">
+                                                        Admin
+                                                    </p>
+                                                    <p className="text-[11px] opacity-60">
+                                                        Preparing response
+                                                    </p>
+                                                </div>
                                             </div>
 
-                                            <p className="whitespace-pre-wrap text-sm leading-7">
-                                                {message.text}
-                                            </p>
-
-                                            <p className="mt-3 text-right text-[11px] opacity-70">
-                                                {formatDateTime(message.createdAt)}
-                                            </p>
+                                            <div className="flex items-center gap-2">
+                                                <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-[#0f6d51]" />
+                                                <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-[#0f6d51] [animation-delay:0.15s]" />
+                                                <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-[#0f6d51] [animation-delay:0.3s]" />
+                                            </div>
                                         </div>
                                     </motion.div>
-                                );
-                            })}
+                                )}
+                            </AnimatePresence>
 
-                            {isAdminTyping && (
-                                <div className="flex justify-start">
-                                    <div className="max-w-[85%] rounded-[26px] border border-gray-200 bg-white px-4 py-4 text-gray-700 shadow-sm md:max-w-[70%]">
-                                        <div className="mb-2 flex items-center gap-2">
-                                            <Bot size={16} className="opacity-80" />
-                                            <p className="text-xs font-bold uppercase tracking-[0.15em] opacity-80">
-                                                Admin
-                                            </p>
-                                        </div>
-
-                                        <div className="flex items-center gap-2">
-                                            <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-gray-400" />
-                                            <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-gray-400 [animation-delay:0.15s]" />
-                                            <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-gray-400 [animation-delay:0.3s]" />
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </>
+                            <div ref={messagesEndRef} />
+                        </div>
                     )}
-
-                    <div ref={messagesEndRef} />
                 </div>
 
-                <div className="border-t border-gray-100 bg-white p-5">
+                <div className="border-t border-[#edf2ef] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-5 md:p-6">
                     <div className="flex flex-col gap-3 md:flex-row">
                         <input
                             type="text"
@@ -422,24 +578,26 @@ function ClientInquiries() {
                                 }
                             }}
                             placeholder="Type your message here..."
-                            className="flex-1 rounded-2xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#f4e2a0]"
+                            className="flex-1 rounded-[22px] border border-[#d7e1dc] bg-white px-4 py-3.5 text-sm outline-none transition focus:border-[#d4af37] focus:ring-4 focus:ring-[#f6e8b9]"
                         />
 
-                        <button
+                        <motion.button
+                            whileHover={{ y: -2, scale: 1.01 }}
+                            whileTap={{ scale: 0.98 }}
                             type="button"
                             onClick={handleSendMessage}
-                            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#0f4d3c] px-6 py-3 font-semibold text-white transition hover:bg-[#0c3f31]"
+                            className="inline-flex items-center justify-center gap-2 rounded-[22px] bg-[linear-gradient(135deg,#0f4d3c_0%,#127254_100%)] px-6 py-3.5 font-semibold text-white shadow-[0_14px_26px_rgba(15,77,60,0.2)] transition hover:shadow-[0_18px_32px_rgba(15,77,60,0.26)]"
                         >
                             <Send size={16} />
                             Send Message
-                        </button>
+                        </motion.button>
                     </div>
 
-                    <p className="mt-3 text-xs text-gray-400">
+                    <p className="mt-3 text-xs text-slate-400">
                         This chat saves your inquiries in the current client account.
                     </p>
                 </div>
-            </motion.div>
+            </motion.section>
         </motion.div>
     );
 }

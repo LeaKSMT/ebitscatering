@@ -131,11 +131,29 @@ function normalizeNumber(value) {
 function getBookingId(item) {
     return (
         item.bookingId ||
+        item.booking_id ||
         item.booking_code ||
         item.bookingCode ||
         item.referenceNumber ||
+        item.reference_number ||
         `BK-${item.id}`
     );
+}
+
+function formatBookingIdForDisplay(item) {
+    const rawId = String(getBookingId(item) || "").trim();
+
+    if (!rawId) return "BK-—";
+
+    if (/^BK-\d+$/i.test(rawId)) {
+        return rawId.toUpperCase();
+    }
+
+    if (item?.id !== undefined && item?.id !== null && item?.id !== "") {
+        return `BK-${String(item.id).padStart(4, "0")}`;
+    }
+
+    return rawId;
 }
 
 function getTotalAmount(item) {
@@ -169,11 +187,9 @@ function parseArrayField(value) {
 function mapQuotationToBooking(item) {
     return {
         ...item,
-        bookingId:
-            item.booking_id ||
-            item.bookingId ||
-            item.quotation_id ||
-            `Q${item.id}`,
+        bookingId: getBookingId(item),
+        displayBookingId: formatBookingIdForDisplay(item),
+        rawBookingId: getBookingId(item),
         fullName:
             item.full_name ||
             item.owner_name ||
@@ -237,12 +253,7 @@ function mapQuotationToBooking(item) {
             item.specialRequests ||
             item.notes ||
             "",
-        totalAmount: normalizeNumber(
-            item.estimated_total ||
-            item.total_price ||
-            item.totalAmount ||
-            0
-        ),
+        totalAmount: getTotalAmount(item),
         assignedStaff: parseArrayField(item.assigned_staff || item.assignedStaff),
         eventOutcome: item.event_outcome || item.eventOutcome || "",
         evaluationNotes: item.evaluation_notes || item.evaluationNotes || "",
@@ -648,7 +659,8 @@ function AdminEventManagement() {
                                         <InfoCard
                                             icon={FileText}
                                             label="Booking ID"
-                                            value={booking.bookingId}
+                                            value={booking.displayBookingId || booking.bookingId}
+                                            title={booking.rawBookingId || booking.bookingId}
                                         />
                                         <InfoCard
                                             icon={User}
@@ -835,7 +847,16 @@ function AdminEventManagement() {
                                     <div className="mb-5 grid gap-4 md:grid-cols-3">
                                         <PreviewInfo
                                             label="Booking ID"
-                                            value={selectedBooking.bookingId || "—"}
+                                            value={
+                                                selectedBooking.displayBookingId ||
+                                                selectedBooking.bookingId ||
+                                                "—"
+                                            }
+                                            title={
+                                                selectedBooking.rawBookingId ||
+                                                selectedBooking.bookingId ||
+                                                "—"
+                                            }
                                         />
                                         <PreviewInfo
                                             label="Current Status"
@@ -1241,7 +1262,7 @@ function MotionCard({ children, delay = 0 }) {
     );
 }
 
-function InfoCard({ icon: Icon, label, value, highlight = false }) {
+function InfoCard({ icon: Icon, label, value, highlight = false, title = "" }) {
     return (
         <motion.div
             whileHover={{ y: -3 }}
@@ -1255,7 +1276,8 @@ function InfoCard({ icon: Icon, label, value, highlight = false }) {
                 {label}
             </p>
             <p
-                className={`mt-2 text-base font-bold ${highlight ? "text-[#b99117]" : "text-[#0f4d3c]"
+                title={title || value || ""}
+                className={`mt-2 break-words text-base font-bold ${highlight ? "text-[#b99117]" : "text-[#0f4d3c]"
                     }`}
             >
                 {value || "—"}
@@ -1264,13 +1286,18 @@ function InfoCard({ icon: Icon, label, value, highlight = false }) {
     );
 }
 
-function PreviewInfo({ label, value }) {
+function PreviewInfo({ label, value, title = "" }) {
     return (
         <div className="rounded-[20px] border border-[#e4ece8] bg-[#f8fbf9] p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
                 {label}
             </p>
-            <p className="mt-2 text-base font-bold text-[#0f4d3c]">{value || "—"}</p>
+            <p
+                title={title || value || ""}
+                className="mt-2 break-words text-base font-bold text-[#0f4d3c]"
+            >
+                {value || "—"}
+            </p>
         </div>
     );
 }

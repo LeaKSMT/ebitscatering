@@ -13,6 +13,10 @@ import {
     Sparkles,
     Wallet,
     ArrowRight,
+    BadgeCheck,
+    ShieldCheck,
+    PartyPopper,
+    CalendarClock,
 } from "lucide-react";
 
 function getClientUser() {
@@ -251,27 +255,44 @@ export default function ClientBookings() {
         >
             <motion.div
                 variants={fadeUp}
-                className="relative overflow-hidden rounded-[32px] border border-[#dbe6e1] bg-white shadow-[0_14px_40px_rgba(14,61,47,0.08)]"
+                className="portal-card-premium relative overflow-hidden"
             >
-                <div className="absolute inset-0 pointer-events-none">
+                <div className="pointer-events-none absolute inset-0">
                     <div className="absolute -top-10 right-[-30px] h-44 w-44 rounded-full bg-[#d4af37]/15 blur-3xl" />
+                    <div className="absolute bottom-[-45px] left-[-30px] h-40 w-40 rounded-full bg-white/10 blur-3xl" />
                 </div>
 
-                <div className="relative bg-[linear-gradient(135deg,#0b5a43_0%,#0f6d51_58%,#138062_100%)] px-6 py-8 text-white md:px-8 md:py-10">
-                    <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-                        <div>
+                <div className="relative overflow-hidden bg-[linear-gradient(135deg,#073c2e_0%,#0b5641_28%,#0f6d51_58%,#14906b_100%)] px-6 py-8 text-white md:px-8 md:py-10">
+                    <div className="absolute inset-0 opacity-[0.08]">
+                        <div className="h-full w-full bg-[linear-gradient(to_right,rgba(255,255,255,0.2)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.2)_1px,transparent_1px)] bg-[size:44px_44px]" />
+                    </div>
+
+                    <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+                        <div className="max-w-3xl">
                             <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.22em] text-white/80">
                                 <Sparkles size={14} />
                                 Booking Overview
                             </div>
 
-                            <h1 className="mt-4 text-3xl font-extrabold md:text-5xl">
+                            <h1 className="mt-4 text-3xl font-extrabold tracking-tight md:text-5xl">
                                 My Bookings
                             </h1>
                             <p className="mt-3 max-w-2xl text-sm leading-7 text-white/85 md:text-base">
                                 View your confirmed, approved, and pending event bookings
-                                with a cleaner and more premium presentation.
+                                with a cleaner, more premium, and more elegant presentation.
                             </p>
+
+                            <div className="mt-5 flex flex-wrap items-center gap-3">
+                                <div className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white/90 backdrop-blur">
+                                    <ShieldCheck size={16} className="text-[#f5c94a]" />
+                                    Premium booking records and event tracking
+                                </div>
+
+                                <div className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-black/10 px-4 py-2.5 text-sm font-semibold text-white/80">
+                                    <PartyPopper size={15} className="text-[#f5c94a]" />
+                                    Organized for smoother client review
+                                </div>
+                            </div>
                         </div>
 
                         <Link
@@ -289,30 +310,30 @@ export default function ClientBookings() {
                 </div>
 
                 <div className="grid gap-4 px-6 py-6 md:grid-cols-2 xl:grid-cols-4 md:px-8">
-                    <div className="rounded-[24px] border border-[#e3ebe7] bg-white p-5 shadow-sm">
+                    <div className="portal-panel-hover rounded-[28px] border border-[#e3ebe7] bg-white p-5 shadow-sm">
                         <p className="text-sm font-medium text-slate-500">Total Bookings</p>
-                        <h2 className="mt-2 text-3xl font-extrabold text-[#0d5c46]">
+                        <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-[#0d5c46]">
                             {summary.total}
                         </h2>
                     </div>
 
-                    <div className="rounded-[24px] border border-[#e3ebe7] bg-white p-5 shadow-sm">
+                    <div className="portal-panel-hover rounded-[28px] border border-[#e3ebe7] bg-white p-5 shadow-sm">
                         <p className="text-sm font-medium text-slate-500">Confirmed</p>
-                        <h2 className="mt-2 text-3xl font-extrabold text-green-600">
+                        <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-green-600">
                             {summary.confirmed}
                         </h2>
                     </div>
 
-                    <div className="rounded-[24px] border border-[#e3ebe7] bg-white p-5 shadow-sm">
+                    <div className="portal-panel-hover rounded-[28px] border border-[#e3ebe7] bg-white p-5 shadow-sm">
                         <p className="text-sm font-medium text-slate-500">Pending</p>
-                        <h2 className="mt-2 text-3xl font-extrabold text-yellow-600">
+                        <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-yellow-600">
                             {summary.pending}
                         </h2>
                     </div>
 
-                    <div className="rounded-[24px] border border-[#e3ebe7] bg-white p-5 shadow-sm">
+                    <div className="portal-panel-hover rounded-[28px] border border-[#e3ebe7] bg-white p-5 shadow-sm">
                         <p className="text-sm font-medium text-slate-500">Estimated Total</p>
-                        <h2 className="mt-2 text-3xl font-extrabold text-[#0d5c46]">
+                        <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-[#0d5c46]">
                             {formatCurrency(summary.totalSpent)}
                         </h2>
                     </div>
@@ -322,7 +343,7 @@ export default function ClientBookings() {
             {loading ? (
                 <motion.div
                     variants={fadeUp}
-                    className="rounded-[32px] border border-[#dce7e2] bg-white px-6 py-14 text-center shadow-sm"
+                    className="portal-card-premium px-6 py-14 text-center"
                 >
                     <h2 className="text-2xl font-extrabold text-[#0d5c46]">
                         Loading bookings...
@@ -341,13 +362,13 @@ export default function ClientBookings() {
             ) : bookings.length === 0 ? (
                 <motion.div
                     variants={fadeUp}
-                    className="rounded-[32px] border border-[#dce7e2] bg-white px-6 py-14 text-center shadow-sm"
+                    className="portal-card-premium px-6 py-14 text-center"
                 >
                     <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#eef9f5] text-[#0d5c46]">
                         <ClipboardList size={28} />
                     </div>
 
-                    <h2 className="mt-5 text-3xl font-extrabold text-[#0d5c46]">
+                    <h2 className="mt-5 text-3xl font-extrabold tracking-tight text-[#0d5c46]">
                         No bookings yet
                     </h2>
                     <p className="mx-auto mt-3 max-w-xl text-slate-500">
@@ -368,13 +389,13 @@ export default function ClientBookings() {
                         <motion.div
                             key={booking.id || index}
                             variants={fadeUp}
-                            whileHover={{ y: -4 }}
-                            className="rounded-[32px] border border-[#dce7e2] bg-white p-6 shadow-[0_12px_30px_rgba(14,61,47,0.06)] transition"
+                            whileHover={{ y: -5, scale: 1.005 }}
+                            className="portal-card-premium p-6 transition"
                         >
                             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                                 <div>
                                     <div className="flex flex-wrap items-center gap-3">
-                                        <h2 className="text-2xl font-extrabold text-[#0d5c46]">
+                                        <h2 className="text-2xl font-extrabold tracking-tight text-[#0d5c46]">
                                             {booking.eventType || "Event Booking"}
                                         </h2>
 
@@ -395,21 +416,21 @@ export default function ClientBookings() {
                                     </p>
                                 </div>
 
-                                <div className="rounded-[24px] bg-[linear-gradient(135deg,#fffaf0_0%,#fff3d0_100%)] px-5 py-4 text-left lg:min-w-[230px]">
+                                <div className="rounded-[26px] bg-[linear-gradient(135deg,#fffaf0_0%,#fff3d0_100%)] px-5 py-4 text-left shadow-sm lg:min-w-[240px]">
                                     <div className="flex items-center gap-2 text-[#b99117]">
                                         <Wallet size={18} />
                                         <p className="text-xs font-semibold uppercase tracking-[0.18em]">
                                             Total Amount
                                         </p>
                                     </div>
-                                    <p className="mt-2 text-2xl font-extrabold text-[#0d5c46]">
+                                    <p className="mt-2 text-2xl font-extrabold tracking-tight text-[#0d5c46]">
                                         {formatCurrency(booking.totalAmount)}
                                     </p>
                                 </div>
                             </div>
 
                             <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                                <div className="rounded-[24px] bg-[#f8fbfa] p-4">
+                                <div className="rounded-[26px] bg-[#f8fbfa] p-4">
                                     <div className="flex items-center gap-2 text-[#0d5c46]">
                                         <CalendarDays size={18} />
                                         <span className="text-sm font-bold">Date</span>
@@ -419,7 +440,7 @@ export default function ClientBookings() {
                                     </p>
                                 </div>
 
-                                <div className="rounded-[24px] bg-[#f8fbfa] p-4">
+                                <div className="rounded-[26px] bg-[#f8fbfa] p-4">
                                     <div className="flex items-center gap-2 text-[#0d5c46]">
                                         <Clock3 size={18} />
                                         <span className="text-sm font-bold">Time</span>
@@ -429,7 +450,7 @@ export default function ClientBookings() {
                                     </p>
                                 </div>
 
-                                <div className="rounded-[24px] bg-[#f8fbfa] p-4">
+                                <div className="rounded-[26px] bg-[#f8fbfa] p-4">
                                     <div className="flex items-center gap-2 text-[#0d5c46]">
                                         <MapPin size={18} />
                                         <span className="text-sm font-bold">Venue</span>
@@ -439,7 +460,7 @@ export default function ClientBookings() {
                                     </p>
                                 </div>
 
-                                <div className="rounded-[24px] bg-[#f8fbfa] p-4">
+                                <div className="rounded-[26px] bg-[#f8fbfa] p-4">
                                     <div className="flex items-center gap-2 text-[#0d5c46]">
                                         <Users size={18} />
                                         <span className="text-sm font-bold">Guests</span>
@@ -451,7 +472,7 @@ export default function ClientBookings() {
                             </div>
 
                             <div className="mt-4 grid gap-4 md:grid-cols-2">
-                                <div className="rounded-[24px] border border-[#e3ebe7] p-4">
+                                <div className="rounded-[26px] border border-[#e3ebe7] p-4">
                                     <div className="flex items-center gap-2 text-[#0d5c46]">
                                         <Package size={18} />
                                         <span className="text-sm font-bold">Package</span>
@@ -461,7 +482,7 @@ export default function ClientBookings() {
                                     </p>
                                 </div>
 
-                                <div className="rounded-[24px] border border-[#e3ebe7] p-4">
+                                <div className="rounded-[26px] border border-[#e3ebe7] p-4">
                                     <div className="flex items-center gap-2 text-[#0d5c46]">
                                         <Receipt size={18} />
                                         <span className="text-sm font-bold">Menu / Notes</span>
@@ -477,13 +498,18 @@ export default function ClientBookings() {
                                     to="/client/calendar"
                                     className="inline-flex items-center gap-2 rounded-2xl bg-[#0d5c46] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#0b4f3d]"
                                 >
-                                    <CalendarDays size={16} />
+                                    <CalendarClock size={16} />
                                     View in Calendar
                                 </Link>
 
                                 <span className="inline-flex items-center gap-2 rounded-2xl bg-[#eef9f5] px-4 py-2.5 text-sm font-semibold text-[#0d5c46]">
                                     <CircleCheckBig size={16} />
                                     Keep checking this page for booking updates
+                                </span>
+
+                                <span className="inline-flex items-center gap-2 rounded-2xl bg-[#fff8e6] px-4 py-2.5 text-sm font-semibold text-[#8f6a0f]">
+                                    <BadgeCheck size={16} />
+                                    Premium record view
                                 </span>
                             </div>
                         </motion.div>

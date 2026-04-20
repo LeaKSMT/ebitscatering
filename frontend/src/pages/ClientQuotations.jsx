@@ -11,6 +11,12 @@ import {
     Clock3,
     Mail,
     Phone,
+    ScrollText,
+    CircleDollarSign,
+    Layers3,
+    ShieldCheck,
+    Star,
+    ReceiptText,
 } from "lucide-react";
 
 function getClientUser() {
@@ -312,32 +318,50 @@ function ClientQuotations() {
         >
             <motion.div
                 variants={fadeUp}
-                className="relative overflow-hidden rounded-[32px] border border-[#dbe6e1] bg-white shadow-[0_14px_40px_rgba(14,61,47,0.08)]"
+                className="portal-card-premium relative overflow-hidden"
             >
-                <div className="absolute inset-0 pointer-events-none">
+                <div className="pointer-events-none absolute inset-0">
                     <div className="absolute -top-10 right-[-30px] h-44 w-44 rounded-full bg-[#d4af37]/15 blur-3xl" />
+                    <div className="absolute left-[5%] top-[30%] h-20 w-20 rounded-full bg-white/10 blur-2xl" />
+                    <div className="absolute bottom-[-40px] left-[-25px] h-40 w-40 rounded-full bg-white/8 blur-3xl" />
                 </div>
 
-                <div className="relative bg-[linear-gradient(135deg,#0b5a43_0%,#0f6d51_58%,#138062_100%)] px-6 py-8 text-white md:px-8 md:py-10">
-                    <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-                        <div>
+                <div className="relative overflow-hidden bg-[linear-gradient(135deg,#073c2e_0%,#0b5641_28%,#0f6d51_58%,#14906b_100%)] px-6 py-8 text-white md:px-8 md:py-10">
+                    <div className="absolute inset-0 opacity-[0.08]">
+                        <div className="h-full w-full bg-[linear-gradient(to_right,rgba(255,255,255,0.2)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.2)_1px,transparent_1px)] bg-[size:44px_44px]" />
+                    </div>
+
+                    <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+                        <div className="max-w-3xl">
                             <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.22em] text-white/80">
                                 <Sparkles size={14} />
                                 Client Portal
                             </div>
 
-                            <h1 className="mt-4 text-3xl font-extrabold md:text-5xl">
+                            <h1 className="mt-4 text-3xl font-extrabold tracking-tight md:text-5xl">
                                 My Quotations
                             </h1>
 
                             <p className="mt-3 max-w-2xl text-sm leading-7 text-white/85 md:text-base">
                                 Review all your submitted catering quotations, monitor
                                 their status, and track event request details in one
-                                premium workspace.
+                                elevated, premium workspace.
                             </p>
+
+                            <div className="mt-5 flex flex-wrap items-center gap-3">
+                                <div className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white/90">
+                                    <ShieldCheck size={16} className="text-[#f5c94a]" />
+                                    Elegant quotation tracking and review
+                                </div>
+
+                                <div className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-black/10 px-4 py-2.5 text-sm font-semibold text-white/80">
+                                    <Star size={15} className="text-[#f5c94a]" />
+                                    Built for premium client presentation
+                                </div>
+                            </div>
                         </div>
 
-                        <div className="rounded-[26px] border border-white/10 bg-white/10 p-4 backdrop-blur-md">
+                        <div className="rounded-[28px] border border-white/10 bg-white/10 p-5 backdrop-blur-md shadow-[0_15px_35px_rgba(0,0,0,0.12)]">
                             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/70">
                                 Logged in as
                             </p>
@@ -360,12 +384,12 @@ function ClientQuotations() {
                     ].map((item) => (
                         <div
                             key={item.label}
-                            className="rounded-[24px] border border-[#e3ebe7] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] px-5 py-4 shadow-sm"
+                            className="portal-panel-hover rounded-[28px] border border-[#e3ebe7] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] px-5 py-4 shadow-sm"
                         >
                             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
                                 {item.label}
                             </p>
-                            <p className="mt-2 text-3xl font-extrabold text-[#0d5c46]">
+                            <p className="mt-2 text-3xl font-extrabold tracking-tight text-[#0d5c46]">
                                 {item.value}
                             </p>
                         </div>
@@ -376,7 +400,7 @@ function ClientQuotations() {
             {loading ? (
                 <motion.div
                     variants={fadeUp}
-                    className="rounded-[32px] border border-[#dce7e2] bg-white px-6 py-16 text-center shadow-sm"
+                    className="portal-card-premium px-6 py-16 text-center"
                 >
                     <h2 className="text-2xl font-bold text-[#0d5c46]">
                         Loading quotations...
@@ -395,7 +419,7 @@ function ClientQuotations() {
             ) : quotations.length === 0 ? (
                 <motion.div
                     variants={fadeUp}
-                    className="rounded-[32px] border border-dashed border-[#d7e3de] bg-white px-6 py-16 text-center shadow-sm"
+                    className="portal-card-premium border-dashed px-6 py-16 text-center"
                 >
                     <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#eef8f4] text-[#0d5c46]">
                         <FileText className="h-8 w-8" />
@@ -426,14 +450,14 @@ function ClientQuotations() {
                                     initial="hidden"
                                     animate="show"
                                     exit={{ opacity: 0, y: 20 }}
-                                    whileHover={{ y: -4 }}
-                                    className="overflow-hidden rounded-[32px] border border-[#dce7e2] bg-white shadow-[0_12px_30px_rgba(14,61,47,0.06)] transition"
+                                    whileHover={{ y: -5, scale: 1.003 }}
+                                    className="portal-card-premium overflow-hidden transition"
                                 >
-                                    <div className="border-b border-[#edf2ef] bg-[linear-gradient(90deg,#f2fbf7_0%,#fff9ea_100%)] px-6 py-5">
+                                    <div className="border-b border-[#edf2ef] bg-[linear-gradient(90deg,#f3fbf8_0%,#fffaf0_100%)] px-6 py-5">
                                         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                                             <div>
                                                 <div className="flex flex-wrap items-center gap-3">
-                                                    <h2 className="text-2xl font-extrabold text-[#153f31]">
+                                                    <h2 className="text-2xl font-extrabold tracking-tight text-[#153f31]">
                                                         {quote.displayQuotationId}
                                                     </h2>
                                                     <span
@@ -452,25 +476,36 @@ function ClientQuotations() {
                                                     </span>
                                                 </p>
                                             </div>
+
+                                            <div className="inline-flex items-center gap-2 rounded-full bg-[#eef8f3] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-[#0d5c46]">
+                                                <ReceiptText size={13} />
+                                                Client quotation record
+                                            </div>
                                         </div>
                                     </div>
 
                                     <div className="grid gap-6 px-6 py-6 xl:grid-cols-[1.55fr_1fr]">
                                         <div className="space-y-5">
                                             <div className="grid gap-4 sm:grid-cols-2">
-                                                <div className="rounded-[24px] bg-[#f8fbfa] px-4 py-4">
-                                                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                                                        Package
-                                                    </p>
+                                                <div className="rounded-[26px] bg-[#f8fbfa] px-4 py-4">
+                                                    <div className="flex items-center gap-2 text-slate-500">
+                                                        <Layers3 className="h-4 w-4" />
+                                                        <p className="text-xs font-semibold uppercase tracking-wide">
+                                                            Package
+                                                        </p>
+                                                    </div>
                                                     <p className="mt-2 text-base font-bold text-slate-800">
                                                         {quote.packageName || "Not selected"}
                                                     </p>
                                                 </div>
 
-                                                <div className="rounded-[24px] bg-[#f8fbfa] px-4 py-4">
-                                                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                                                        Theme Preference
-                                                    </p>
+                                                <div className="rounded-[26px] bg-[#f8fbfa] px-4 py-4">
+                                                    <div className="flex items-center gap-2 text-slate-500">
+                                                        <Sparkles className="h-4 w-4" />
+                                                        <p className="text-xs font-semibold uppercase tracking-wide">
+                                                            Theme Preference
+                                                        </p>
+                                                    </div>
                                                     <p className="mt-2 text-base font-bold text-slate-800">
                                                         {quote.themePreference || "Not specified"}
                                                     </p>
@@ -478,7 +513,7 @@ function ClientQuotations() {
                                             </div>
 
                                             <div className="grid gap-4 sm:grid-cols-3">
-                                                <div className="rounded-[24px] border border-[#e3ebe7] px-4 py-4">
+                                                <div className="rounded-[26px] border border-[#e3ebe7] px-4 py-4">
                                                     <div className="flex items-center gap-2 text-slate-500">
                                                         <CalendarDays className="h-4 w-4" />
                                                         <p className="text-xs font-semibold uppercase tracking-wide">
@@ -490,7 +525,7 @@ function ClientQuotations() {
                                                     </p>
                                                 </div>
 
-                                                <div className="rounded-[24px] border border-[#e3ebe7] px-4 py-4">
+                                                <div className="rounded-[26px] border border-[#e3ebe7] px-4 py-4">
                                                     <div className="flex items-center gap-2 text-slate-500">
                                                         <MapPin className="h-4 w-4" />
                                                         <p className="text-xs font-semibold uppercase tracking-wide">
@@ -502,7 +537,7 @@ function ClientQuotations() {
                                                     </p>
                                                 </div>
 
-                                                <div className="rounded-[24px] border border-[#e3ebe7] px-4 py-4">
+                                                <div className="rounded-[26px] border border-[#e3ebe7] px-4 py-4">
                                                     <div className="flex items-center gap-2 text-slate-500">
                                                         <Users className="h-4 w-4" />
                                                         <p className="text-xs font-semibold uppercase tracking-wide">
@@ -515,7 +550,7 @@ function ClientQuotations() {
                                                 </div>
                                             </div>
 
-                                            <div className="rounded-[24px] border border-[#e3ebe7] px-5 py-5">
+                                            <div className="rounded-[28px] border border-[#e3ebe7] px-5 py-5">
                                                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                                                     Client Information
                                                 </p>
@@ -537,7 +572,9 @@ function ClientQuotations() {
                                                             Email
                                                         </p>
                                                         <p className="mt-2 break-all text-sm font-semibold text-slate-800">
-                                                            {quote.email || clientEmail || "No email provided"}
+                                                            {quote.email ||
+                                                                clientEmail ||
+                                                                "No email provided"}
                                                         </p>
                                                     </div>
 
@@ -565,7 +602,7 @@ function ClientQuotations() {
 
                                             {Array.isArray(quote.addOns) &&
                                                 quote.addOns.length > 0 && (
-                                                    <div className="rounded-[24px] border border-[#e3ebe7] px-5 py-5">
+                                                    <div className="rounded-[28px] border border-[#e3ebe7] px-5 py-5">
                                                         <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                                                             Selected Add-ons
                                                         </p>
@@ -583,10 +620,13 @@ function ClientQuotations() {
                                                 )}
 
                                             {quote.specialRequests && (
-                                                <div className="rounded-[24px] border border-[#e3ebe7] px-5 py-5">
-                                                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                                                        Special Requests
-                                                    </p>
+                                                <div className="rounded-[28px] border border-[#e3ebe7] px-5 py-5">
+                                                    <div className="flex items-center gap-2 text-slate-500">
+                                                        <ScrollText size={16} />
+                                                        <p className="text-xs font-semibold uppercase tracking-wide">
+                                                            Special Requests
+                                                        </p>
+                                                    </div>
                                                     <p className="mt-3 text-sm leading-6 text-slate-700">
                                                         {quote.specialRequests}
                                                     </p>
@@ -595,16 +635,19 @@ function ClientQuotations() {
                                         </div>
 
                                         <div className="space-y-4">
-                                            <div className="rounded-[28px] bg-[linear-gradient(135deg,#fffaf0_0%,#fff3d0_100%)] px-5 py-5 text-right shadow-sm">
-                                                <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
-                                                    Estimated Total
-                                                </p>
-                                                <p className="mt-2 text-3xl font-extrabold text-[#b9911f]">
+                                            <div className="rounded-[30px] bg-[linear-gradient(135deg,#fffaf0_0%,#fff3d0_100%)] px-5 py-5 text-right shadow-sm">
+                                                <div className="flex items-center justify-end gap-2 text-[#b99117]">
+                                                    <CircleDollarSign size={18} />
+                                                    <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+                                                        Estimated Total
+                                                    </p>
+                                                </div>
+                                                <p className="mt-2 text-3xl font-extrabold tracking-tight text-[#b9911f]">
                                                     {formatCurrency(quote.estimatedTotal)}
                                                 </p>
                                             </div>
 
-                                            <div className="rounded-[28px] border border-[#e3ebe7] bg-[#f8fbfa] px-5 py-5">
+                                            <div className="rounded-[30px] border border-[#e3ebe7] bg-[#f8fbfa] px-5 py-5">
                                                 <p className="text-sm font-bold text-slate-800">
                                                     Status Overview
                                                 </p>
@@ -613,7 +656,7 @@ function ClientQuotations() {
                                                 </p>
                                             </div>
 
-                                            <div className="rounded-[28px] border border-dashed border-emerald-200 bg-emerald-50 px-5 py-5">
+                                            <div className="rounded-[30px] border border-dashed border-emerald-200 bg-emerald-50 px-5 py-5">
                                                 <p className="text-sm font-bold text-emerald-800">
                                                     Smart Reminder
                                                 </p>
@@ -624,7 +667,7 @@ function ClientQuotations() {
                                                 </p>
                                             </div>
 
-                                            <div className="rounded-[28px] border border-[#e3ebe7] bg-white px-5 py-5">
+                                            <div className="rounded-[30px] border border-[#e3ebe7] bg-white px-5 py-5">
                                                 <div className="flex items-center gap-3">
                                                     <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#edf8f3] text-[#0d5c46]">
                                                         <Wallet size={20} />
@@ -639,6 +682,19 @@ function ClientQuotations() {
                                                         </p>
                                                     </div>
                                                 </div>
+                                            </div>
+
+                                            <div className="rounded-[26px] border border-[#e3ebe7] bg-white p-4">
+                                                <div className="flex items-center gap-2 text-[#0d5c46]">
+                                                    <ShieldCheck size={16} />
+                                                    <span className="text-sm font-bold">
+                                                        Premium Record Status
+                                                    </span>
+                                                </div>
+                                                <p className="mt-2 text-sm text-slate-600">
+                                                    This quotation is displayed in a cleaner,
+                                                    defense-ready view for easier review.
+                                                </p>
                                             </div>
                                         </div>
                                     </div>
