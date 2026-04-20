@@ -14,7 +14,31 @@ const API_BASE_URL = getApiBaseUrl();
 
 console.log("Quotation API Base URL:", API_BASE_URL);
 
+function getStoredToken() {
+  try {
+    return (
+      localStorage.getItem("token") ||
+      localStorage.getItem("adminToken") ||
+      localStorage.getItem("clientToken") ||
+      ""
+    );
+  } catch {
+    return "";
+  }
+}
+
+function buildHeaders(extraHeaders = {}) {
+  const token = getStoredToken();
+
+  return {
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...extraHeaders,
+  };
+}
+
 async function handleResponse(response) {
+  if (response.status === 204) return null;
+
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
@@ -32,9 +56,9 @@ export const quotationService = {
   async createQuotation(payload) {
     const response = await fetch(`${API_BASE_URL}/quotations`, {
       method: "POST",
-      headers: {
+      headers: buildHeaders({
         "Content-Type": "application/json",
-      },
+      }),
       credentials: "include",
       body: JSON.stringify(payload),
     });
@@ -45,6 +69,7 @@ export const quotationService = {
   async getQuotations() {
     const response = await fetch(`${API_BASE_URL}/quotations`, {
       method: "GET",
+      headers: buildHeaders(),
       credentials: "include",
     });
 
@@ -54,7 +79,21 @@ export const quotationService = {
   async getQuotationById(id) {
     const response = await fetch(`${API_BASE_URL}/quotations/${id}`, {
       method: "GET",
+      headers: buildHeaders(),
       credentials: "include",
+    });
+
+    return handleResponse(response);
+  },
+
+  async updateQuotation(id, payload) {
+    const response = await fetch(`${API_BASE_URL}/quotations/${id}`, {
+      method: "PUT",
+      headers: buildHeaders({
+        "Content-Type": "application/json",
+      }),
+      credentials: "include",
+      body: JSON.stringify(payload),
     });
 
     return handleResponse(response);
@@ -63,9 +102,9 @@ export const quotationService = {
   async updateQuotationStatus(id, status) {
     const response = await fetch(`${API_BASE_URL}/quotations/${id}/status`, {
       method: "PUT",
-      headers: {
+      headers: buildHeaders({
         "Content-Type": "application/json",
-      },
+      }),
       credentials: "include",
       body: JSON.stringify({ status }),
     });
@@ -73,9 +112,25 @@ export const quotationService = {
     return handleResponse(response);
   },
 
+  async updateStatus(id, status, extraPayload = {}) {
+    if (
+      extraPayload &&
+      typeof extraPayload === "object" &&
+      Object.keys(extraPayload).length > 0
+    ) {
+      return this.updateQuotation(id, {
+        ...extraPayload,
+        status,
+      });
+    }
+
+    return this.updateQuotationStatus(id, status);
+  },
+
   async deleteQuotation(id) {
     const response = await fetch(`${API_BASE_URL}/quotations/${id}`, {
       method: "DELETE",
+      headers: buildHeaders(),
       credentials: "include",
     });
 

@@ -1,15 +1,5 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import {
-    getAllBookings,
-    getAllPayments,
-    getAllQuotations,
-    getBookingPaymentSummary,
-    getMonthlyFinancialRows,
-    getDemandForecast,
-    formatCurrency,
-    normalizeStatus,
-} from "../utils/AdminData";
 import {
     ResponsiveContainer,
     PieChart,
@@ -56,12 +46,233 @@ const fadeUp = {
     show: { opacity: 1, y: 0 },
 };
 
+function getStoredToken() {
+    return localStorage.getItem("token") || localStorage.getItem("clientToken") || "";
+}
+
+function getApiBaseUrl() {
+    const envUrl = import.meta.env.VITE_API_URL?.trim();
+
+    if (!envUrl) {
+        console.warn("VITE_API_URL is missing. Using Railway fallback.");
+        return "https://ebitscatering-production.up.railway.app/api";
+    }
+
+    const cleaned = envUrl.replace(/\/+$/, "");
+    return cleaned.endsWith("/api") ? cleaned : `${cleaned}/api`;
+}
+
+const API_BASE_URL = getApiBaseUrl();
+
+function formatCurrency(value) {
+    return `₱${Number(value || 0).toLocaleString()}`;
+}
+
+function normalizeStatus(status) {
+    return String(status || "").trim().toLowerCase();
+}
+
+function normalizeQuotation(item) {
+    if (!item || typeof item !== "object") return null;
+
+    return {
+        id: item.id,
+        fullName: item.full_name || item.owner_name || "",
+        email: item.email || item.owner_email || "",
+        packageName: item.package_type || "",
+        packageType: item.package_type || "",
+        status: item.status || "Pending",
+        createdAt: item.created_at || "",
+        estimatedTotal: Number(item.estimated_total || 0),
+        eventType: item.event_type || "",
+    };
+}
+
+function normalizeBooking(item) {
+    if (!item || typeof item !== "object") return null;
+
+    return {
+        id: item.id,
+        clientName: item.client_name || "",
+        email: item.client_email || "",
+        eventDate: item.event_date || "",
+        createdAt: item.created_at || "",
+        eventType: item.event_type || "",
+        guestCount: Number(item.guests || 0),
+        totalAmount: Number(item.total_price || 0),
+        status: item.booking_status || "Pending",
+        paymentStatus: item.payment_status || "pending",
+    };
+}
+
+function normalizePayment(item) {
+    if (!item || typeof item !== "object") return null;
+
+    return {
+        id: item.id,
+        amount: Number(item.amount || item.payment_amount || 0),
+        status: item.status || item.payment_status || "pending",
+        bookingId: item.booking_id || null,
+        createdAt: item.created_at || "",
+    };
+}
+
+function getBookingPaymentSummary(booking, payments) {
+    const relatedPayments = payments.filter(
+        (payment) => String(payment.bookingId || "") === String(booking.id || "")
+    );
+
+    const totalPaid = relatedPayments.reduce(
+        (sum, item) => sum + Number(item.amount || 0),
+        0
+    );
+
+    const totalAmount = Number(booking.totalAmount || 0);
+
+    let paymentStatus = "unpaid";
+    if (totalPaid > 0 && totalPaid < totalAmount) paymentStatus = "partial";
+    if (totalAmount > 0 && totalPaid >= totalAmount) paymentStatus = "paid";
+
+    return {
+        totalPaid,
+        totalAmount,
+        paymentStatus,
+    };
+}
+
+function formatEventDate(value) {
+    const date = new Date(value || "");
+    if (Number.isNaN(date.getTime())) return "No date available";
+
+    return date.toLocaleDateString("en-PH", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+    });
+}
+
 function AdminDashboard() {
-    const bookings = useMemo(() => getAllBookings(), []);
-    const payments = useMemo(() => getAllPayments(), []);
-    const quotations = useMemo(() => getAllQuotations(), []);
-    const monthlyRows = useMemo(() => getMonthlyFinancialRows(), []);
-    const demandForecast = useMemo(() => getDemandForecast(), []);
+    const token = getStoredToken();
+
+    const [quotations, setQuotations] = useState([]);
+    const [bookings, setBookings] = useState([]);
+    const [payments, setPayments] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchDashboardData = async () => {
+            try {
+                setLoading(true);
+
+                const headers = {
+                    "Content-Type": "application/json",
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                };
+
+                const [quotationRes, bookingRes, paymentRes] = await Promise.all([
+                    fetch(`${API_BASE_URL}/quotations`, {
+                        method: "GET",
+                        credentials: "include",
+                        headers,
+                    }),
+                    fetch(`${API_BASE_URL}/bookings`, {
+                        method: "GET",
+                        credentials: "include",
+                        headers,
+                    }),
+                    fetch(`${API_BASE_URL}/payments`, {
+                        method: "GET",
+                        credentials: "include",
+                        headers,
+                    }).catch(() => null),
+                ]);
+
+                const quotationData = await quotationRes.json().catch(() => []);
+                const bookingData = await bookingRes.json().catch(() => []);
+                const paymentData = paymentRes
+                    ? await paymentRes.json().catch(() => [])
+                    : [];
+
+                if (!quotationRes.ok) {
+                    throw new Error(
+                        quotationData?.message || "Failed to fetch quotations."
+                    );
+                }
+
+                if (!bookingRes.ok) {
+                    throw new Error(
+                        bookingData?.message || "Failed to fetch bookings."
+                    );
+                }
+
+                setQuotations(
+                    Array.isArray(quotationData)
+                        ? quotationData.map(normalizeQuotation).filter(Boolean)
+                        : []
+                );
+
+                setBookings(
+                    Array.isArray(bookingData)
+                        ? bookingData.map(normalizeBooking).filter(Boolean)
+                        : []
+                );
+
+                setPayments(
+                    Array.isArray(paymentData)
+                        ? paymentData.map(normalizePayment).filter(Boolean)
+                        : []
+                );
+            } catch (error) {
+                console.error("Fetch admin dashboard data error:", error);
+                setQuotations([]);
+                setBookings([]);
+                setPayments([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDashboardData();
+    }, [token]);
+
+    const monthlyRows = useMemo(() => {
+        const map = new Map();
+
+        bookings.forEach((booking) => {
+            const date = new Date(booking.eventDate || booking.createdAt || "");
+            if (Number.isNaN(date.getTime())) return;
+
+            const key = `${date.getFullYear()}-${date.getMonth()}`;
+            const label = date.toLocaleDateString("en-PH", {
+                month: "short",
+                year: "numeric",
+            });
+
+            if (!map.has(key)) {
+                map.set(key, {
+                    key,
+                    label,
+                    revenue: 0,
+                    expenses: 0,
+                });
+            }
+
+            map.get(key).revenue += Number(booking.totalAmount || 0);
+        });
+
+        return [...map.values()].sort((a, b) => a.key.localeCompare(b.key));
+    }, [bookings]);
+
+    const demandForecast = useMemo(() => {
+        const counts = {};
+
+        bookings.forEach((booking) => {
+            const type = booking.eventType || "Other";
+            counts[type] = (counts[type] || 0) + 1;
+        });
+
+        return Object.entries(counts).map(([type, count]) => ({ type, count }));
+    }, [bookings]);
 
     const stats = useMemo(() => {
         const totalRevenue = bookings.reduce(
@@ -95,12 +306,12 @@ function AdminDashboard() {
             (item) => normalizeStatus(item.status) === "pending"
         ).length;
 
-        const confirmedBookings = bookings.filter(
-            (item) => normalizeStatus(item.status) === "confirmed"
+        const confirmedBookings = bookings.filter((item) =>
+            ["confirmed", "approved", "paid"].includes(normalizeStatus(item.status))
         ).length;
 
-        const completedEvents = bookings.filter(
-            (item) => normalizeStatus(item.status) === "completed"
+        const completedEvents = bookings.filter((item) =>
+            ["completed", "done"].includes(normalizeStatus(item.status))
         ).length;
 
         return {
@@ -154,7 +365,7 @@ function AdminDashboard() {
         };
 
         bookings.forEach((booking) => {
-            const paymentSummary = getBookingPaymentSummary(booking);
+            const paymentSummary = getBookingPaymentSummary(booking, payments);
             const status = String(paymentSummary.paymentStatus || "unpaid").toLowerCase();
 
             if (status === "paid") summary.Paid += 1;
@@ -167,7 +378,7 @@ function AdminDashboard() {
             { name: "Partial", value: summary.Partial },
             { name: "Unpaid", value: summary.Unpaid },
         ].filter((item) => item.value > 0);
-    }, [bookings]);
+    }, [bookings, payments]);
 
     const upcomingEventList = useMemo(() => {
         const today = new Date();
@@ -191,8 +402,8 @@ function AdminDashboard() {
     const recentQuotations = useMemo(() => {
         return [...quotations]
             .sort((a, b) => {
-                const aTime = new Date(a.createdAt || a.dateCreated || 0).getTime();
-                const bTime = new Date(b.createdAt || b.dateCreated || 0).getTime();
+                const aTime = new Date(a.createdAt || 0).getTime();
+                const bTime = new Date(b.createdAt || 0).getTime();
                 return bTime - aTime;
             })
             .slice(0, 5);
@@ -218,7 +429,7 @@ function AdminDashboard() {
 
     return (
         <motion.div
-            data-build="premium-admin-dashboard-v5-smooth"
+            data-build="premium-admin-dashboard-v6-api"
             initial="hidden"
             animate="show"
             transition={{ staggerChildren: 0.1 }}
@@ -298,7 +509,7 @@ function AdminDashboard() {
                                         Business Health
                                     </div>
                                     <p className="mt-2 text-3xl font-extrabold text-white">
-                                        Stable
+                                        {loading ? "Loading..." : "Stable"}
                                     </p>
                                     <div className="mt-2 flex items-center gap-2 text-sm text-white/80">
                                         <ArrowUpRight size={15} />
@@ -312,18 +523,9 @@ function AdminDashboard() {
                             </div>
 
                             <div className="mt-5 space-y-3">
-                                <ProgressRow
-                                    label="Collection Performance"
-                                    value={collectionRate}
-                                />
-                                <ProgressRow
-                                    label="Booking Completion"
-                                    value={completionRate}
-                                />
-                                <ProgressRow
-                                    label="Booking Confirmation"
-                                    value={confirmationRate}
-                                />
+                                <ProgressRow label="Collection Performance" value={collectionRate} />
+                                <ProgressRow label="Booking Completion" value={completionRate} />
+                                <ProgressRow label="Booking Confirmation" value={confirmationRate} />
                             </div>
                         </motion.div>
                     </div>
@@ -363,7 +565,7 @@ function AdminDashboard() {
             </motion.section>
 
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                <motion.div variants={fadeUp} transition={{ duration: 0.42, ease: "easeOut" }}>
+                <motion.div variants={fadeUp}>
                     <MiniMetricCard
                         title="Collected Payments"
                         value={formatCurrency(stats.totalCollected)}
@@ -371,7 +573,7 @@ function AdminDashboard() {
                     />
                 </motion.div>
 
-                <motion.div variants={fadeUp} transition={{ duration: 0.42, ease: "easeOut" }}>
+                <motion.div variants={fadeUp}>
                     <MiniMetricCard
                         title="Pending Quotations"
                         value={stats.pendingQuotations}
@@ -379,7 +581,7 @@ function AdminDashboard() {
                     />
                 </motion.div>
 
-                <motion.div variants={fadeUp} transition={{ duration: 0.42, ease: "easeOut" }}>
+                <motion.div variants={fadeUp}>
                     <MiniMetricCard
                         title="Confirmed Bookings"
                         value={stats.confirmedBookings}
@@ -387,7 +589,7 @@ function AdminDashboard() {
                     />
                 </motion.div>
 
-                <motion.div variants={fadeUp} transition={{ duration: 0.42, ease: "easeOut" }}>
+                <motion.div variants={fadeUp}>
                     <MiniMetricCard
                         title="Completed Events"
                         value={stats.completedEvents}
@@ -650,8 +852,8 @@ function AdminDashboard() {
                         <div className="space-y-3">
                             {upcomingEventList.map((booking, index) => (
                                 <ListRow
-                                    key={booking.id || booking._id || `${booking.clientName}-${index}`}
-                                    title={booking.clientName || booking.fullName || "Client Event"}
+                                    key={booking.id || `${booking.clientName}-${index}`}
+                                    title={booking.clientName || "Client Event"}
                                     metaLeft={booking.eventType || "Event"}
                                     metaRight={formatEventDate(booking.eventDate)}
                                     status={booking.status || "Pending"}
@@ -673,17 +875,14 @@ function AdminDashboard() {
                         <div className="space-y-3">
                             {recentQuotations.map((quotation, index) => (
                                 <ListRow
-                                    key={quotation.id || quotation._id || `${quotation.email}-${index}`}
+                                    key={quotation.id || `${quotation.email}-${index}`}
                                     title={
                                         quotation.fullName ||
-                                        quotation.clientName ||
                                         quotation.email ||
                                         "Quotation Request"
                                     }
                                     metaLeft={quotation.packageName || quotation.packageType || "Quotation"}
-                                    metaRight={formatEventDate(
-                                        quotation.createdAt || quotation.dateCreated
-                                    )}
+                                    metaRight={formatEventDate(quotation.createdAt)}
                                     status={quotation.status || "Pending"}
                                     delay={index * 0.04}
                                 />
@@ -906,16 +1105,3 @@ function EmptyListState({ message }) {
         </div>
     );
 }
-
-function formatEventDate(value) {
-    const date = new Date(value || "");
-    if (Number.isNaN(date.getTime())) return "No date available";
-
-    return date.toLocaleDateString("en-PH", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-    });
-}
-
-export default AdminDashboard;

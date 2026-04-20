@@ -12,73 +12,284 @@ import {
     UserRound,
     ChevronRight,
     BadgeCheck,
+    LoaderCircle,
 } from "lucide-react";
-import {
-    getActiveClientsFromBookings,
-    getAllQuotations,
-    getAllInquiries,
-    formatCurrency,
-    formatDate,
-} from "../utils/AdminData";
+import { quotationService } from "../services/quotationService.js";
 import { buildPrintableTable, openPrintWindow } from "../utils/AdminPrint";
+
+function normalizeStatus(status = "") {
+    return String(status || "").trim().toLowerCase();
+}
+
+function normalizeNumber(value) {
+    const num = Number(value || 0);
+    return Number.isFinite(num) ? num : 0;
+}
+
+function formatCurrency(value) {
+    const amount = normalizeNumber(value);
+    return new Intl.NumberFormat("en-PH", {
+        style: "currency",
+        currency: "PHP",
+        minimumFractionDigits: 2,
+    }).format(amount);
+}
+
+function formatDate(value) {
+    if (!value) return "—";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleDateString("en-PH", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+    });
+}
+
+function parseArrayField(value) {
+    if (Array.isArray(value)) return value;
+    if (!value) return [];
+    if (typeof value === "string") {
+        try {
+            const parsed = JSON.parse(value);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch {
+            return [];
+        }
+    }
+    return [];
+}
+
+function getQuotationId(item) {
+    return (
+        item.quotationId ||
+        item.quotation_code ||
+        item.referenceNumber ||
+        `Q-${item.id}`
+    );
+}
+
+function getBookingId(item) {
+    return (
+        item.bookingId ||
+        item.booking_code ||
+        item.bookingCode ||
+        item.referenceNumber ||
+        `BK-${item.id}`
+    );
+}
+
+function getTotalAmount(item) {
+    return normalizeNumber(
+        item.totalAmount ||
+        item.estimatedTotal ||
+        item.totalPrice ||
+        item.price ||
+        item.amount ||
+        0
+    );
+}
+
+function mapQuotationRecord(item) {
+    const status = normalizeStatus(item.status || "pending");
+
+    const fullName = item.fullName || item.clientName || item.name || "Client";
+    const email = item.email || item.clientEmail || item.ownerEmail || "";
+    const contactNumber = item.contactNumber || item.phone || item.mobile || "";
+    const eventType = item.eventType || item.packageType || item.package_name || "Event";
+    const preferredDate =
+        item.preferredDate ||
+        item.eventDate ||
+        item.bookingDate ||
+        item.date ||
+        "";
+    const guests = normalizeNumber(item.guests || item.guestCount || item.pax || 0);
+    const estimatedTotal = getTotalAmount(item);
+    const packageName = item.packageName || item.packageType || item.package_name || "";
+
+    const inquiries = parseArrayField(item.inquiries);
+    const payments = parseArrayField(item.payments);
+    const assignedStaff = parseArrayField(item.assignedStaff);
+
+    return {
+        ...item,
+        status,
+        fullName,
+        email,
+        ownerEmail: item.ownerEmail || email,
+        contactNumber,
+        eventType,
+        preferredDate,
+        eventDate: item.eventDate || preferredDate,
+        guests,
+        guestCount: normalizeNumber(item.guestCount || guests),
+        estimatedTotal,
+        totalAmount: estimatedTotal,
+        packageName,
+        quotationId: getQuotationId(item),
+        bookingId: getBookingId(item),
+        venue: item.venue || item.location || item.address || "",
+        inquiries,
+        payments,
+        assignedStaff,
+        isBookingLike: [
+            "approved",
+            "confirmed",
+            "paid",
+            "upcoming",
+            "ongoing",
+            "completed",
+        ].includes(status),
+    };
+}
+
+function getClientKey(item) {
+    return (
+        String(item.ownerEmail || item.email || "").trim().toLowerCase() ||
+        `${String(item.fullName || "client").trim().toLowerCase()}_${String(
+            item.contactNumber || ""
+        ).trim()}`
+    );
+}
 
 function AdminClients() {
     const [selectedClient, setSelectedClient] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
+    const [records, setRecords] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    const bookingClients = useMemo(() => getActiveClientsFromBookings(), []);
-    const quotations = useMemo(() => getAllQuotations(), []);
-    const inquiries = useMemo(() => getAllInquiries(), []);
+    useEffect(() => {
+        let isMounted = true;
+
+        async function loadClients() {
+            setLoading(true);
+            try {
+                const data = await quotationService.getQuotations();
+                const mapped = Array.isArray(data) ? data.map(mapQuotationRecord) : [];
+
+                if (isMounted) {
+                    setRecords(mapped);
+                }
+            } catch (error) {
+                console.error("Failed to load client records:", error);
+                if (isMounted) {
+                    setRecords([]);
+                    alert(error.message || "Failed to load client records.");
+                }
+            } finally {
+                if (isMounted) {
+                    setLoading(false);
+                }
+            }
+        }
+
+        loadClients();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
 
     const clients = useMemo(() => {
         const map = new Map();
 
-        bookingClients.forEach((client) => {
-            map.set(client.clientKey, {
-                clientKey: client.clientKey,
-                fullName: client.fullName || "Client",
-                email: client.email || "",
-                contactNumber: client.contactNumber || "",
-                bookings: client.bookings || [],
-                quotations: [],
-                inquiries: [],
+        records.forEach((record) => {
+            const key = getClientKey(record);
+
+            if (!map.has(key)) {
+                map.set(key, {
+                    clientKey: key,
+                    fullName: record.fullName || "Client",
+                    email: record.email || record.ownerEmail || "",
+                    contactNumber: record.contactNumber || "",
+                    bookings: [],
+                    quotations: [],
+                    inquiries: [],
+                });
+            }
+
+            const client = map.get(key);
+
+            if (!client.email && (record.email || record.ownerEmail)) {
+                client.email = record.email || record.ownerEmail || "";
+            }
+
+            if (!client.contactNumber && record.contactNumber) {
+                client.contactNumber = record.contactNumber;
+            }
+
+            client.quotations.push({
+                id: record.id,
+                quotationId: record.quotationId,
+                eventType: record.eventType,
+                preferredDate: record.preferredDate,
+                guests: record.guests,
+                packageName: record.packageName,
+                estimatedTotal: record.estimatedTotal,
+                status: record.status,
             });
-        });
 
-        quotations.forEach((quote) => {
-            const key = quote.ownerEmail || quote.email || quote.fullName;
-            if (!map.has(key)) {
-                map.set(key, {
-                    clientKey: key,
-                    fullName: quote.fullName || "Client",
-                    email: quote.email || quote.ownerEmail || "",
-                    contactNumber: quote.contactNumber || "",
-                    bookings: [],
-                    quotations: [],
-                    inquiries: [],
+            if (record.isBookingLike) {
+                client.bookings.push({
+                    id: record.id,
+                    bookingId: record.bookingId,
+                    eventType: record.eventType,
+                    eventDate: record.eventDate,
+                    guestCount: record.guestCount,
+                    venue: record.venue,
+                    totalAmount: record.totalAmount,
+                    status: record.status,
                 });
             }
-            map.get(key).quotations.push(quote);
-        });
 
-        inquiries.forEach((inq) => {
-            const key = inq.ownerEmail || inq.email || inq.fullName;
-            if (!map.has(key)) {
-                map.set(key, {
-                    clientKey: key,
-                    fullName: inq.fullName || "Client",
-                    email: inq.email || inq.ownerEmail || "",
-                    contactNumber: inq.contactNumber || "",
-                    bookings: [],
-                    quotations: [],
-                    inquiries: [],
+            if (Array.isArray(record.inquiries) && record.inquiries.length > 0) {
+                record.inquiries.forEach((inq, index) => {
+                    client.inquiries.push({
+                        id: inq.id || `${record.id}_inq_${index}`,
+                        inquiryId:
+                            inq.inquiryId ||
+                            inq.referenceNumber ||
+                            `INQ-${record.id}-${index + 1}`,
+                        eventType: inq.eventType || record.eventType || "Inquiry",
+                        preferredDate:
+                            inq.preferredDate ||
+                            inq.eventDate ||
+                            record.preferredDate ||
+                            "",
+                        guests: normalizeNumber(
+                            inq.guests || inq.guestCount || record.guests || 0
+                        ),
+                        message:
+                            inq.message ||
+                            inq.notes ||
+                            inq.specialRequests ||
+                            "Inquiry record",
+                        status: normalizeStatus(inq.status || "recorded"),
+                    });
                 });
             }
-            map.get(key).inquiries.push(inq);
         });
 
-        return [...map.values()].sort((a, b) => a.fullName.localeCompare(b.fullName));
-    }, [bookingClients, quotations, inquiries]);
+        return [...map.values()]
+            .map((client) => ({
+                ...client,
+                bookings: [...client.bookings].sort(
+                    (a, b) =>
+                        new Date(b.eventDate || 0) - new Date(a.eventDate || 0)
+                ),
+                quotations: [...client.quotations].sort(
+                    (a, b) =>
+                        new Date(b.preferredDate || 0) -
+                        new Date(a.preferredDate || 0)
+                ),
+                inquiries: [...client.inquiries].sort(
+                    (a, b) =>
+                        new Date(b.preferredDate || 0) -
+                        new Date(a.preferredDate || 0)
+                ),
+            }))
+            .sort((a, b) => a.fullName.localeCompare(b.fullName));
+    }, [records]);
 
     const filteredClients = useMemo(() => {
         const keyword = searchTerm.trim().toLowerCase();
@@ -203,7 +414,20 @@ function AdminClients() {
                 <TopStatCard title="With Inquiries" value={stats.withInquiries} icon={MessageSquareQuote} delay={0.2} />
             </section>
 
-            {clients.length === 0 ? (
+            {loading ? (
+                <motion.div
+                    initial={{ opacity: 0, y: 18 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="rounded-[28px] border border-white/70 bg-white/90 p-10 text-center shadow-[0_18px_60px_rgba(15,23,42,0.08)]"
+                >
+                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#ecfdf5]">
+                        <LoaderCircle className="h-8 w-8 animate-spin text-[#0f766e]" />
+                    </div>
+                    <h3 className="mt-4 text-xl font-black text-[#0f4d3c]">
+                        Loading client records
+                    </h3>
+                </motion.div>
+            ) : clients.length === 0 ? (
                 <motion.div
                     initial={{ opacity: 0, y: 18 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -216,7 +440,7 @@ function AdminClients() {
                         No client records yet
                     </h3>
                     <p className="mt-2 text-sm text-gray-500">
-                        Client information will appear here once bookings, quotations, or inquiries are saved.
+                        Client information will appear here once quotations or related records are saved.
                     </p>
                 </motion.div>
             ) : (
@@ -260,8 +484,8 @@ function AdminClients() {
                                     transition={{ duration: 0.3, delay: index * 0.025 }}
                                     onClick={() => setSelectedClient(client)}
                                     className={`w-full rounded-[24px] border p-4 text-left transition ${selectedClient?.clientKey === client.clientKey
-                                        ? "border-[#d4af37] bg-[linear-gradient(135deg,#fff8e6,#fffdf7)] shadow-[0_12px_35px_rgba(212,175,55,0.15)]"
-                                        : "border-gray-200 bg-white hover:-translate-y-0.5 hover:border-[#d7e0e8] hover:bg-[#fcfcfd]"
+                                            ? "border-[#d4af37] bg-[linear-gradient(135deg,#fff8e6,#fffdf7)] shadow-[0_12px_35px_rgba(212,175,55,0.15)]"
+                                            : "border-gray-200 bg-white hover:-translate-y-0.5 hover:border-[#d7e0e8] hover:bg-[#fcfcfd]"
                                         }`}
                                 >
                                     <div className="flex items-start justify-between gap-4">
@@ -351,11 +575,7 @@ function AdminClients() {
                                     <MiniStat label="Inquiries" value={selectedClient.inquiries.length} />
                                 </div>
 
-                                <HistorySection
-                                    title="Booking History"
-                                    icon={CalendarDays}
-                                    emptyText="No booking history."
-                                >
+                                <HistorySection title="Booking History" icon={CalendarDays}>
                                     {selectedClient.bookings.length === 0 ? (
                                         <EmptyMini text="No booking history." />
                                     ) : (
@@ -374,11 +594,7 @@ function AdminClients() {
                                     )}
                                 </HistorySection>
 
-                                <HistorySection
-                                    title="Quotation History"
-                                    icon={FileText}
-                                    emptyText="No quotation history."
-                                >
+                                <HistorySection title="Quotation History" icon={FileText}>
                                     {selectedClient.quotations.length === 0 ? (
                                         <EmptyMini text="No quotation history." />
                                     ) : (
@@ -397,11 +613,7 @@ function AdminClients() {
                                     )}
                                 </HistorySection>
 
-                                <HistorySection
-                                    title="Inquiry History"
-                                    icon={MessageSquareQuote}
-                                    emptyText="No inquiry history."
-                                >
+                                <HistorySection title="Inquiry History" icon={MessageSquareQuote}>
                                     {selectedClient.inquiries.length === 0 ? (
                                         <EmptyMini text="No inquiry history." />
                                     ) : (

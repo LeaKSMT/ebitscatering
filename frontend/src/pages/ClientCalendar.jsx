@@ -42,6 +42,14 @@ function getCurrentClientName() {
     );
 }
 
+function getStoredToken() {
+    return (
+        localStorage.getItem("clientToken") ||
+        localStorage.getItem("token") ||
+        ""
+    );
+}
+
 function getApiBaseUrl() {
     const envUrl = import.meta.env.VITE_API_URL?.trim();
 
@@ -120,6 +128,7 @@ function normalizeBooking(item) {
         totalAmount: Number(item.total_price || 0),
         status: item.booking_status || "Pending",
         eventType: item.event_type || "Event Booking",
+        createdAt: item.created_at || "",
     };
 }
 
@@ -131,6 +140,7 @@ const fadeUp = {
 export default function ClientCalendar() {
     const email = getCurrentClientEmail().toLowerCase().trim();
     const clientName = getCurrentClientName().toLowerCase().trim();
+    const token = getStoredToken();
 
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -153,6 +163,7 @@ export default function ClientCalendar() {
                     credentials: "include",
                     headers: {
                         "Content-Type": "application/json",
+                        ...(token ? { Authorization: `Bearer ${token}` } : {}),
                     },
                 });
 
@@ -178,7 +189,11 @@ export default function ClientCalendar() {
                             (clientName && itemName === clientName)
                         );
                     })
-                    .sort((a, b) => new Date(a.date) - new Date(b.date));
+                    .sort((a, b) => {
+                        const aTime = new Date(a.date || a.createdAt || 0).getTime();
+                        const bTime = new Date(b.date || b.createdAt || 0).getTime();
+                        return aTime - bTime;
+                    });
 
                 setBookings(filtered);
             } catch (err) {
@@ -198,7 +213,7 @@ export default function ClientCalendar() {
         }
 
         fetchBookings();
-    }, [email, clientName]);
+    }, [email, clientName, token]);
 
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();

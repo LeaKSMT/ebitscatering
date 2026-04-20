@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
     X,
@@ -15,16 +15,208 @@ import {
     ArrowRight,
     UserPlus,
     Star,
+    LoaderCircle,
 } from "lucide-react";
-import {
-    getAllBookings,
-    updateRecordInCollection,
-    formatCurrency,
-    formatDate,
-} from "../utils/AdminData";
+import { quotationService } from "../services/quotationService.js";
+
+function getEditInitialState() {
+    return {
+        fullName: "",
+        contactNumber: "",
+        email: "",
+        eventType: "",
+        eventDate: "",
+        eventTime: "",
+        venue: "",
+        guestCount: "",
+        packageType: "",
+        classicMenu: "",
+        themePreference: "",
+        specialRequests: "",
+        status: "Confirmed",
+    };
+}
+
+function getEvaluationInitialState() {
+    return {
+        status: "Completed",
+        eventOutcome: "",
+        evaluationNotes: "",
+        clientSatisfaction: "Satisfied",
+        staffPerformance: "Good",
+    };
+}
+
+function normalizeStatus(status = "") {
+    return String(status || "").trim().toLowerCase();
+}
+
+function capitalizeStatus(status = "") {
+    const normalized = normalizeStatus(status);
+    if (!normalized) return "Pending";
+    return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+}
+
+function toInputDate(dateStr) {
+    if (!dateStr) return "";
+    const date = new Date(dateStr);
+    if (Number.isNaN(date.getTime())) return dateStr;
+    return date.toISOString().split("T")[0];
+}
+
+function formatDate(value) {
+    if (!value) return "—";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleDateString("en-PH", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+    });
+}
+
+function formatCurrency(value) {
+    const amount = Number(value || 0);
+    return new Intl.NumberFormat("en-PH", {
+        style: "currency",
+        currency: "PHP",
+        minimumFractionDigits: 2,
+    }).format(Number.isFinite(amount) ? amount : 0);
+}
+
+function getStatusChip(status = "") {
+    const normalized = normalizeStatus(status);
+
+    if (
+        normalized === "confirmed" ||
+        normalized === "approved" ||
+        normalized === "paid" ||
+        normalized === "completed"
+    ) {
+        return "bg-[#ecf8f2] text-[#0f7a51]";
+    }
+
+    if (
+        normalized === "pending" ||
+        normalized === "ongoing" ||
+        normalized === "upcoming"
+    ) {
+        return "bg-[#fff8e8] text-[#b07d12]";
+    }
+
+    if (normalized === "cancelled" || normalized === "rejected") {
+        return "bg-[#fef2f2] text-[#dc2626]";
+    }
+
+    return "bg-[#eef2f7] text-[#64748b]";
+}
+
+function shouldShowInEventManagement(status = "") {
+    const normalized = normalizeStatus(status);
+    return [
+        "approved",
+        "confirmed",
+        "paid",
+        "upcoming",
+        "ongoing",
+        "completed",
+    ].includes(normalized);
+}
+
+function normalizeNumber(value) {
+    const num = Number(value || 0);
+    return Number.isFinite(num) ? num : 0;
+}
+
+function getBookingId(item) {
+    return (
+        item.bookingId ||
+        item.booking_code ||
+        item.bookingCode ||
+        item.referenceNumber ||
+        `BK-${item.id}`
+    );
+}
+
+function getTotalAmount(item) {
+    return normalizeNumber(
+        item.totalAmount ||
+        item.estimatedTotal ||
+        item.totalPrice ||
+        item.price ||
+        item.amount ||
+        0
+    );
+}
+
+function parseArrayField(value) {
+    if (Array.isArray(value)) return value;
+    if (!value) return [];
+    if (typeof value === "string") {
+        try {
+            const parsed = JSON.parse(value);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch {
+            return value
+                .split(",")
+                .map((item) => item.trim())
+                .filter(Boolean);
+        }
+    }
+    return [];
+}
+
+function mapQuotationToBooking(item) {
+    return {
+        ...item,
+        bookingId: getBookingId(item),
+        fullName: item.fullName || item.clientName || item.name || "",
+        contactNumber: item.contactNumber || item.phone || item.mobile || "",
+        email: item.email || item.clientEmail || item.ownerEmail || "",
+        ownerEmail: item.ownerEmail || item.email || item.clientEmail || "",
+        eventType: item.eventType || item.packageType || item.package_name || "Event",
+        eventDate:
+            item.eventDate ||
+            item.preferredDate ||
+            item.bookingDate ||
+            item.date ||
+            "",
+        eventTime: item.eventTime || item.preferredTime || item.time || "",
+        venue: item.venue || item.location || item.address || "",
+        guestCount: normalizeNumber(item.guestCount || item.guests || item.pax || 0),
+        packageType: item.packageType || item.package_name || "",
+        classicMenu: item.classicMenu || item.menu || "",
+        themePreference: item.themePreference || item.theme || "",
+        specialRequests: item.specialRequests || item.notes || item.message || "",
+        totalAmount: getTotalAmount(item),
+        assignedStaff: parseArrayField(item.assignedStaff),
+        eventOutcome: item.eventOutcome || "",
+        evaluationNotes: item.evaluationNotes || "",
+        clientSatisfaction: item.clientSatisfaction || "Satisfied",
+        staffPerformance: item.staffPerformance || "Good",
+        status: normalizeStatus(item.status || "pending"),
+    };
+}
+
+async function updateQuotationRecord(id, payload) {
+    if (typeof quotationService?.updateQuotation === "function") {
+        return quotationService.updateQuotation(id, payload);
+    }
+
+    if (typeof quotationService?.updateStatus === "function" && payload?.status) {
+        return quotationService.updateStatus(id, payload.status, payload);
+    }
+
+    throw new Error(
+        "quotationService.updateQuotation is not available. Add updateQuotation in quotationService.js."
+    );
+}
 
 function AdminEventManagement() {
-    const [refreshKey, setRefreshKey] = useState(0);
+    const [bookings, setBookings] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+
     const [staffInput, setStaffInput] = useState({});
     const [selectedBooking, setSelectedBooking] = useState(null);
     const [showEditModal, setShowEditModal] = useState(false);
@@ -38,22 +230,14 @@ function AdminEventManagement() {
         message: "",
     });
 
-    const bookings = useMemo(() => {
-        return getAllBookings().filter(
-            (item) => String(item.status || "").toLowerCase() !== "cancelled"
-        );
-    }, [refreshKey]);
-
-    const refresh = () => setRefreshKey((prev) => prev + 1);
-
-    const openPopup = (type, title, message) => {
+    const openPopup = useCallback((type, title, message) => {
         setPopup({
             open: true,
             type,
             title,
             message,
         });
-    };
+    }, []);
 
     const closePopup = () => {
         setPopup({
@@ -64,28 +248,104 @@ function AdminEventManagement() {
         });
     };
 
-    const handleAddStaff = (booking) => {
+    const loadBookings = useCallback(async () => {
+        setLoading(true);
+        try {
+            const rows = await quotationService.getQuotations();
+            const mapped = Array.isArray(rows)
+                ? rows
+                    .map(mapQuotationToBooking)
+                    .filter((item) => shouldShowInEventManagement(item.status))
+                    .filter(
+                        (item) =>
+                            normalizeStatus(item.status) !== "cancelled" &&
+                            normalizeStatus(item.status) !== "rejected"
+                    )
+                : [];
+
+            setBookings(mapped);
+        } catch (error) {
+            console.error("Failed to load event management records:", error);
+            openPopup(
+                "error",
+                "Load Failed",
+                error.message || "Failed to load event records."
+            );
+        } finally {
+            setLoading(false);
+        }
+    }, [openPopup]);
+
+    useEffect(() => {
+        loadBookings();
+    }, [loadBookings]);
+
+    const summary = useMemo(() => {
+        return {
+            active: bookings.length,
+            upcoming: bookings.filter((item) => {
+                const d = new Date(item.eventDate || "");
+                return !Number.isNaN(d.getTime());
+            }).length,
+            confirmed: bookings.filter((item) =>
+                ["confirmed", "approved", "paid"].includes(normalizeStatus(item.status))
+            ).length,
+        };
+    }, [bookings]);
+
+    const handleAddStaff = async (booking) => {
         const value = (staffInput[booking.id] || "").trim();
         if (!value) return;
 
-        updateRecordInCollection("clientBookings", booking.id, (record) => ({
-            ...record,
-            assignedStaff: [...(record.assignedStaff || []), value],
-        }));
+        const current = Array.isArray(booking.assignedStaff) ? booking.assignedStaff : [];
+        const nextAssignedStaff = [...new Set([...current, value])];
 
-        setStaffInput((prev) => ({ ...prev, [booking.id]: "" }));
-        refresh();
-        openPopup("success", "Staff Added", "The staff member was added successfully.");
+        try {
+            setSaving(true);
+            await updateQuotationRecord(booking.id, {
+                assignedStaff: nextAssignedStaff,
+            });
+
+            setStaffInput((prev) => ({ ...prev, [booking.id]: "" }));
+            await loadBookings();
+            openPopup("success", "Staff Added", "The staff member was added successfully.");
+        } catch (error) {
+            console.error("Failed to add staff:", error);
+            openPopup(
+                "error",
+                "Update Failed",
+                error.message || "Failed to add staff member."
+            );
+        } finally {
+            setSaving(false);
+        }
     };
 
-    const handleRemoveStaff = (booking, staffName) => {
-        updateRecordInCollection("clientBookings", booking.id, (record) => ({
-            ...record,
-            assignedStaff: (record.assignedStaff || []).filter((name) => name !== staffName),
-        }));
+    const handleRemoveStaff = async (booking, staffName) => {
+        try {
+            setSaving(true);
+            await updateQuotationRecord(booking.id, {
+                assignedStaff: (booking.assignedStaff || []).filter(
+                    (name) => name !== staffName
+                ),
+            });
 
-        refresh();
-        openPopup("success", "Staff Removed", "The staff member was removed successfully.");
+            await loadBookings();
+            openPopup(
+                "success",
+                "Staff Removed",
+                "The staff member was removed successfully."
+            );
+        } catch (error) {
+            console.error("Failed to remove staff:", error);
+            openPopup(
+                "error",
+                "Update Failed",
+                error.message || "Failed to remove staff member."
+            );
+        } finally {
+            setSaving(false);
+        }
     };
 
     const handleOpenEdit = (booking) => {
@@ -111,7 +371,7 @@ function AdminEventManagement() {
     const handleOpenEvaluate = (booking) => {
         setSelectedBooking(booking);
         setEvaluationForm({
-            status: capitalizeStatus(booking.status || "confirmed"),
+            status: capitalizeStatus(booking.status || "completed"),
             eventOutcome: booking.eventOutcome || "",
             evaluationNotes: booking.evaluationNotes || "",
             clientSatisfaction: booking.clientSatisfaction || "Satisfied",
@@ -148,61 +408,85 @@ function AdminEventManagement() {
         }));
     };
 
-    const handleSaveEdit = (e) => {
+    const handleSaveEdit = async (e) => {
         e.preventDefault();
         if (!selectedBooking) return;
 
-        updateRecordInCollection("clientBookings", selectedBooking.id, (record) => ({
-            ...record,
-            fullName: editForm.fullName,
-            contactNumber: editForm.contactNumber,
-            email: editForm.email,
-            ownerEmail: editForm.email || record.ownerEmail || "",
-            eventType: editForm.eventType,
-            eventDate: editForm.eventDate,
-            preferredDate: editForm.eventDate,
-            eventTime: editForm.eventTime,
-            venue: editForm.venue,
-            guestCount: Number(editForm.guestCount || 0),
-            guests: Number(editForm.guestCount || 0),
-            packageType: editForm.packageType,
-            classicMenu: editForm.classicMenu,
-            themePreference: editForm.themePreference,
-            specialRequests: editForm.specialRequests,
-            status: String(editForm.status || "Confirmed").toLowerCase(),
-            updatedAt: new Date().toLocaleString(),
-        }));
+        try {
+            setSaving(true);
 
-        refresh();
-        handleCloseEdit();
-        openPopup(
-            "success",
-            "Event Updated",
-            "The booking details were updated successfully."
-        );
+            await updateQuotationRecord(selectedBooking.id, {
+                fullName: editForm.fullName,
+                contactNumber: editForm.contactNumber,
+                email: editForm.email,
+                ownerEmail: editForm.email || selectedBooking.ownerEmail || "",
+                eventType: editForm.eventType,
+                eventDate: editForm.eventDate,
+                preferredDate: editForm.eventDate,
+                eventTime: editForm.eventTime,
+                venue: editForm.venue,
+                guestCount: normalizeNumber(editForm.guestCount),
+                guests: normalizeNumber(editForm.guestCount),
+                packageType: editForm.packageType,
+                classicMenu: editForm.classicMenu,
+                themePreference: editForm.themePreference,
+                specialRequests: editForm.specialRequests,
+                status: normalizeStatus(editForm.status || "confirmed"),
+                updatedAt: new Date().toISOString(),
+            });
+
+            await loadBookings();
+            handleCloseEdit();
+            openPopup(
+                "success",
+                "Event Updated",
+                "The booking details were updated successfully."
+            );
+        } catch (error) {
+            console.error("Failed to update event:", error);
+            openPopup(
+                "error",
+                "Update Failed",
+                error.message || "Failed to update event details."
+            );
+        } finally {
+            setSaving(false);
+        }
     };
 
-    const handleSaveEvaluation = (e) => {
+    const handleSaveEvaluation = async (e) => {
         e.preventDefault();
         if (!selectedBooking) return;
 
-        updateRecordInCollection("clientBookings", selectedBooking.id, (record) => ({
-            ...record,
-            status: String(evaluationForm.status || "Completed").toLowerCase(),
-            eventOutcome: evaluationForm.eventOutcome,
-            evaluationNotes: evaluationForm.evaluationNotes,
-            clientSatisfaction: evaluationForm.clientSatisfaction,
-            staffPerformance: evaluationForm.staffPerformance,
-            evaluatedAt: new Date().toLocaleString(),
-        }));
+        try {
+            setSaving(true);
 
-        refresh();
-        handleCloseEvaluate();
-        openPopup(
-            "success",
-            "Event Evaluated",
-            "The event evaluation was saved successfully."
-        );
+            await updateQuotationRecord(selectedBooking.id, {
+                status: normalizeStatus(evaluationForm.status || "completed"),
+                eventOutcome: evaluationForm.eventOutcome,
+                evaluationNotes: evaluationForm.evaluationNotes,
+                clientSatisfaction: evaluationForm.clientSatisfaction,
+                staffPerformance: evaluationForm.staffPerformance,
+                evaluatedAt: new Date().toISOString(),
+            });
+
+            await loadBookings();
+            handleCloseEvaluate();
+            openPopup(
+                "success",
+                "Event Evaluated",
+                "The event evaluation was saved successfully."
+            );
+        } catch (error) {
+            console.error("Failed to save evaluation:", error);
+            openPopup(
+                "error",
+                "Update Failed",
+                error.message || "Failed to save event evaluation."
+            );
+        } finally {
+            setSaving(false);
+        }
     };
 
     return (
@@ -251,37 +535,38 @@ function AdminEventManagement() {
                         <SummaryCard
                             icon={ClipboardList}
                             label="Active Events"
-                            value={bookings.length}
+                            value={summary.active}
                             delay={0.05}
                         />
                         <SummaryCard
                             icon={CalendarDays}
                             label="Upcoming Schedule"
-                            value={
-                                bookings.filter((item) => {
-                                    const d = new Date(item.eventDate || "");
-                                    return !Number.isNaN(d.getTime());
-                                }).length
-                            }
+                            value={summary.upcoming}
                             delay={0.1}
                         />
                         <SummaryCard
                             icon={BadgeCheck}
                             label="Confirmed Events"
-                            value={
-                                bookings.filter(
-                                    (item) =>
-                                        String(item.status || "").toLowerCase() === "confirmed"
-                                ).length
-                            }
+                            value={summary.confirmed}
                             delay={0.15}
                         />
                     </div>
                 </motion.section>
 
-                {bookings.length > 0 ? (
+                {loading ? (
+                    <motion.div
+                        initial={{ opacity: 0, y: 18 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="rounded-[24px] border border-gray-100 bg-white p-10 text-center text-gray-500 shadow-sm"
+                    >
+                        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#edf8f3] text-[#0f4d3c]">
+                            <LoaderCircle className="animate-spin" size={24} />
+                        </div>
+                        <p className="mt-4 font-medium">Loading event records...</p>
+                    </motion.div>
+                ) : bookings.length > 0 ? (
                     bookings.map((booking, index) => (
-                        <MotionCard key={booking.id} delay={index * 0.06}>
+                        <MotionCard key={booking.id || booking.bookingId} delay={index * 0.06}>
                             <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
                                 <div>
                                     <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -358,7 +643,7 @@ function AdminEventManagement() {
                                             <div className="space-y-2">
                                                 {booking.assignedStaff.map((staff, staffIndex) => (
                                                     <motion.div
-                                                        key={staff}
+                                                        key={`${booking.id}-${staff}-${staffIndex}`}
                                                         initial={{ opacity: 0, x: -10 }}
                                                         animate={{ opacity: 1, x: 0 }}
                                                         transition={{
@@ -374,7 +659,8 @@ function AdminEventManagement() {
                                                             onClick={() =>
                                                                 handleRemoveStaff(booking, staff)
                                                             }
-                                                            className="text-sm font-bold text-red-500 transition hover:scale-105 hover:text-red-600"
+                                                            disabled={saving}
+                                                            className="text-sm font-bold text-red-500 transition hover:scale-105 hover:text-red-600 disabled:opacity-50"
                                                         >
                                                             Remove
                                                         </button>
@@ -404,7 +690,8 @@ function AdminEventManagement() {
                                                 whileHover={{ y: -2, scale: 1.02 }}
                                                 whileTap={{ scale: 0.98 }}
                                                 onClick={() => handleAddStaff(booking)}
-                                                className="rounded-2xl bg-[#0b4a3a] px-5 py-3 font-bold text-white transition hover:bg-[#09382d]"
+                                                disabled={saving}
+                                                className="rounded-2xl bg-[#0b4a3a] px-5 py-3 font-bold text-white transition hover:bg-[#09382d] disabled:cursor-not-allowed disabled:opacity-60"
                                             >
                                                 Add Staff
                                             </motion.button>
@@ -440,7 +727,7 @@ function AdminEventManagement() {
                         animate={{ opacity: 1, y: 0 }}
                         className="rounded-[24px] border border-gray-100 bg-white p-8 text-center text-gray-500 shadow-sm"
                     >
-                        No booking records yet.
+                        No event records yet.
                     </motion.div>
                 )}
             </div>
@@ -581,7 +868,9 @@ function AdminEventManagement() {
                                             onChange={handleEditChange}
                                             options={[
                                                 "Confirmed",
+                                                "Approved",
                                                 "Pending",
+                                                "Upcoming",
                                                 "Ongoing",
                                                 "Completed",
                                                 "Cancelled",
@@ -605,7 +894,8 @@ function AdminEventManagement() {
                                             whileHover={{ y: -2, scale: 1.01 }}
                                             whileTap={{ scale: 0.98 }}
                                             type="submit"
-                                            className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[#0f4d3c] py-3.5 font-bold text-white transition hover:bg-[#0c3f31]"
+                                            disabled={saving}
+                                            className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[#0f4d3c] py-3.5 font-bold text-white transition hover:bg-[#0c3f31] disabled:cursor-not-allowed disabled:opacity-60"
                                         >
                                             Save Changes
                                             <ArrowRight size={17} />
@@ -692,7 +982,8 @@ function AdminEventManagement() {
                                         onChange={handleEvaluationChange}
                                         options={[
                                             "Confirmed",
-                                            "Pending",
+                                            "Approved",
+                                            "Upcoming",
                                             "Ongoing",
                                             "Completed",
                                             "Cancelled",
@@ -748,7 +1039,8 @@ function AdminEventManagement() {
                                             whileHover={{ y: -2, scale: 1.01 }}
                                             whileTap={{ scale: 0.98 }}
                                             type="submit"
-                                            className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[#0f4d3c] py-3.5 font-bold text-white transition hover:bg-[#0c3f31]"
+                                            disabled={saving}
+                                            className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[#0f4d3c] py-3.5 font-bold text-white transition hover:bg-[#0c3f31] disabled:cursor-not-allowed disabled:opacity-60"
                                         >
                                             Save Evaluation
                                             <Star size={17} />
@@ -925,65 +1217,6 @@ function PreviewInfo({ label, value }) {
             <p className="mt-2 text-base font-bold text-[#0f4d3c]">{value || "—"}</p>
         </div>
     );
-}
-
-function getEditInitialState() {
-    return {
-        fullName: "",
-        contactNumber: "",
-        email: "",
-        eventType: "",
-        eventDate: "",
-        eventTime: "",
-        venue: "",
-        guestCount: "",
-        packageType: "",
-        classicMenu: "",
-        themePreference: "",
-        specialRequests: "",
-        status: "Confirmed",
-    };
-}
-
-function getEvaluationInitialState() {
-    return {
-        status: "Completed",
-        eventOutcome: "",
-        evaluationNotes: "",
-        clientSatisfaction: "Satisfied",
-        staffPerformance: "Good",
-    };
-}
-
-function toInputDate(dateStr) {
-    if (!dateStr) return "";
-    const date = new Date(dateStr);
-    if (Number.isNaN(date.getTime())) return dateStr;
-    return date.toISOString().split("T")[0];
-}
-
-function capitalizeStatus(status = "") {
-    const normalized = String(status).toLowerCase();
-    if (!normalized) return "Confirmed";
-    return normalized.charAt(0).toUpperCase() + normalized.slice(1);
-}
-
-function getStatusChip(status = "") {
-    const normalized = String(status).toLowerCase();
-
-    if (normalized === "confirmed" || normalized === "completed") {
-        return "bg-[#ecf8f2] text-[#0f7a51]";
-    }
-
-    if (normalized === "pending" || normalized === "ongoing") {
-        return "bg-[#fff8e8] text-[#b07d12]";
-    }
-
-    if (normalized === "cancelled") {
-        return "bg-[#fef2f2] text-[#dc2626]";
-    }
-
-    return "bg-[#eef2f7] text-[#64748b]";
 }
 
 function Field({

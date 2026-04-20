@@ -19,8 +19,11 @@ import {
     Mail,
     Sparkles,
 } from "lucide-react";
+import { quotationService } from "../services/quotationService";
 
 const PAX_RATE = 400;
+const MANUAL_BOOKINGS_KEY = "adminManualBookings";
+const EVENT_META_KEY = "adminEventMeta";
 
 const dynamicPerPaxPackages = [
     {
@@ -144,6 +147,10 @@ function safeParse(key, fallback = []) {
     }
 }
 
+function setJson(key, value) {
+    localStorage.setItem(key, JSON.stringify(value));
+}
+
 function formatCurrency(value) {
     return `₱${Number(value || 0).toLocaleString()}`;
 }
@@ -168,21 +175,54 @@ function getMonthLabel(date) {
     });
 }
 
-function getAllScopedBookings() {
-    const keys = Object.keys(localStorage).filter((key) =>
-        key.startsWith("clientBookings_")
-    );
+function normalizeStatus(status = "") {
+    return String(status || "").trim().toLowerCase();
+}
 
-    let all = [];
+function capitalizeStatus(status = "") {
+    const normalized = normalizeStatus(status);
+    if (!normalized) return "Confirmed";
+    return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+}
 
-    keys.forEach((key) => {
-        const items = safeParse(key, []);
-        if (Array.isArray(items)) {
-            all = [...all, ...items];
-        }
-    });
+function shouldShowAsBooking(status) {
+    const normalized = normalizeStatus(status);
+    return [
+        "approved",
+        "confirmed",
+        "paid",
+        "upcoming",
+        "ongoing",
+        "completed",
+        "pending",
+    ].includes(normalized);
+}
 
-    return all;
+function getManualBookings() {
+    const items = safeParse(MANUAL_BOOKINGS_KEY, []);
+    return Array.isArray(items) ? items : [];
+}
+
+function saveManualBookings(items) {
+    setJson(MANUAL_BOOKINGS_KEY, items);
+}
+
+function getEventMetaMap() {
+    const items = safeParse(EVENT_META_KEY, {});
+    return items && typeof items === "object" ? items : {};
+}
+
+function saveEventMetaMap(map) {
+    setJson(EVENT_META_KEY, map);
+}
+
+function patchEventMeta(id, patch) {
+    const current = getEventMetaMap();
+    current[id] = {
+        ...(current[id] || {}),
+        ...patch,
+    };
+    saveEventMetaMap(current);
 }
 
 function getInitialForm(selectedDate = "") {
@@ -204,6 +244,164 @@ function getInitialForm(selectedDate = "") {
     };
 }
 
+function deriveQuotationBooking(raw, meta = {}) {
+    const id = raw.id ?? raw._id ?? raw.quotationId;
+    const guests = Number(
+        raw.guests ??
+        raw.guestCount ??
+        raw.pax ??
+        raw.numberOfGuests ??
+        0
+    );
+
+    const preferredDate =
+        raw.preferredDate ||
+        raw.eventDate ||
+        raw.date ||
+        raw.bookingDate ||
+        "";
+
+    const packageType =
+        raw.packageType ||
+        raw.packageName ||
+        raw.selectedPackage ||
+        raw.package ||
+        "";
+
+    const addOns = Array.isArray(raw.addOns)
+        ? raw.addOns
+        : Array.isArray(raw.addons)
+            ? raw.addons
+            : [];
+
+    const estimatedTotal = Number(
+        raw.estimatedTotal ??
+        raw.totalAmount ??
+        raw.total ??
+        raw.amount ??
+        0
+    );
+
+    return {
+        id: `quotation_${id}`,
+        sourceType: "quotation",
+        sourceId: id,
+        bookingId:
+            raw.bookingId ||
+            raw.quotationNumber ||
+            raw.quoteNumber ||
+            `Q${String(id)}`,
+        fullName:
+            meta.fullName ||
+            raw.fullName ||
+            raw.name ||
+            raw.clientName ||
+            raw.customerName ||
+            "Unnamed client",
+        contactNumber:
+            meta.contactNumber ||
+            raw.contactNumber ||
+            raw.phone ||
+            raw.mobile ||
+            "",
+        email:
+            meta.email ||
+            raw.email ||
+            raw.clientEmail ||
+            raw.ownerEmail ||
+            "",
+        ownerEmail:
+            meta.email ||
+            raw.email ||
+            raw.clientEmail ||
+            raw.ownerEmail ||
+            "",
+        eventType:
+            meta.eventType ||
+            raw.eventType ||
+            raw.occasion ||
+            raw.event_name ||
+            "Event",
+        preferredDate: meta.preferredDate || preferredDate,
+        eventDate: meta.preferredDate || preferredDate,
+        eventTime: meta.eventTime || raw.eventTime || raw.time || "",
+        venue: meta.venue || raw.venue || raw.location || raw.address || "",
+        guests: Number(meta.guests ?? guests),
+        guestCount: Number(meta.guestCount ?? guests),
+        packageType: meta.packageType || packageType,
+        classicMenu: meta.classicMenu || raw.classicMenu || raw.menu || "",
+        addOns: meta.addOns || addOns,
+        themePreference:
+            meta.themePreference || raw.themePreference || raw.theme || "",
+        specialRequests:
+            meta.specialRequests ||
+            raw.specialRequests ||
+            raw.notes ||
+            raw.message ||
+            "",
+        packagePrice: Number(meta.packagePrice ?? raw.packagePrice ?? 0),
+        addOnsTotal: Number(meta.addOnsTotal ?? raw.addOnsTotal ?? 0),
+        estimatedTotal: Number(meta.estimatedTotal ?? estimatedTotal),
+        totalAmount: Number(meta.totalAmount ?? estimatedTotal),
+        includedPax: meta.includedPax ?? raw.includedPax ?? null,
+        pricingType: meta.pricingType || raw.pricingType || "",
+        ratePerPax: Number(meta.ratePerPax ?? raw.ratePerPax ?? 0) || null,
+        excessGuests: Number(meta.excessGuests ?? raw.excessGuests ?? 0),
+        excessCost: Number(meta.excessCost ?? raw.excessCost ?? 0),
+        status: capitalizeStatus(meta.status || raw.status || "Pending"),
+        source: "quotation-api",
+        createdAt: raw.createdAt || "",
+        updatedAt: meta.updatedAt || raw.updatedAt || "",
+    };
+}
+
+function enrichManualBooking(item, meta = {}) {
+    return {
+        ...item,
+        ...meta,
+        id: item.id,
+        sourceType: "manual",
+        sourceId: item.id,
+        status: capitalizeStatus(meta.status || item.status || "Confirmed"),
+        fullName: meta.fullName || item.fullName || "Unnamed client",
+        email: meta.email || item.email || item.ownerEmail || "",
+        ownerEmail: meta.email || item.ownerEmail || item.email || "",
+        preferredDate: meta.preferredDate || item.preferredDate || item.eventDate || "",
+        eventDate: meta.preferredDate || item.preferredDate || item.eventDate || "",
+        guests: Number(meta.guests ?? item.guests ?? item.guestCount ?? 0),
+        guestCount: Number(meta.guestCount ?? item.guestCount ?? item.guests ?? 0),
+        estimatedTotal: Number(
+            meta.estimatedTotal ?? item.estimatedTotal ?? item.totalAmount ?? 0
+        ),
+        totalAmount: Number(
+            meta.totalAmount ?? item.totalAmount ?? item.estimatedTotal ?? 0
+        ),
+    };
+}
+
+function mergeBookings(quotations = [], manualBookings = []) {
+    const metaMap = getEventMetaMap();
+
+    const apiBookings = quotations
+        .filter((item) => shouldShowAsBooking(item.status))
+        .map((item) => {
+            const sourceId = item.id ?? item._id ?? item.quotationId;
+            return deriveQuotationBooking(item, metaMap[`quotation_${sourceId}`] || {});
+        });
+
+    const localBookings = manualBookings.map((item) =>
+        enrichManualBooking(item, metaMap[item.id] || {})
+    );
+
+    return [...apiBookings, ...localBookings]
+        .filter((item) => item.preferredDate)
+        .sort(
+            (a, b) =>
+                new Date(a.preferredDate).getTime() -
+                new Date(b.preferredDate).getTime()
+        );
+}
+
 function AdminCalendar() {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [bookings, setBookings] = useState([]);
@@ -213,17 +411,31 @@ function AdminCalendar() {
     const [showManageModal, setShowManageModal] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [form, setForm] = useState(getInitialForm());
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
-    const refreshBookings = () => {
-        const allBookings = getAllScopedBookings()
-            .filter((item) => item.preferredDate)
-            .sort(
-                (a, b) =>
-                    new Date(a.preferredDate).getTime() -
-                    new Date(b.preferredDate).getTime()
+    const refreshBookings = async () => {
+        setLoading(true);
+        setError("");
+
+        try {
+            const quotations = await quotationService.getQuotations();
+            const manualBookings = getManualBookings();
+            const merged = mergeBookings(
+                Array.isArray(quotations) ? quotations : [],
+                manualBookings
             );
+            setBookings(merged);
+        } catch (err) {
+            console.error("AdminCalendar fetch error:", err);
 
-        setBookings(allBookings);
+            const manualBookings = getManualBookings();
+            const merged = mergeBookings([], manualBookings);
+            setBookings(merged);
+            setError(err.message || "Failed to load calendar data.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     useEffect(() => {
@@ -326,7 +538,7 @@ function AdminCalendar() {
             return (
                 d.getFullYear() === year &&
                 d.getMonth() === month &&
-                booking.status !== "Cancelled"
+                normalizeStatus(booking.status) !== "cancelled"
             );
         });
     }, [bookings, year, month]);
@@ -336,7 +548,7 @@ function AdminCalendar() {
             .filter(
                 (item) =>
                     item.preferredDate &&
-                    item.status !== "Cancelled" &&
+                    normalizeStatus(item.status) !== "cancelled" &&
                     new Date(item.preferredDate).getTime() >=
                     new Date(new Date().setHours(0, 0, 0, 0)).getTime()
             )
@@ -357,10 +569,7 @@ function AdminCalendar() {
             const bookingDate = new Date(booking.preferredDate);
             const bookingKey = `${bookingDate.getFullYear()}-${String(
                 bookingDate.getMonth() + 1
-            ).padStart(2, "0")}-${String(bookingDate.getDate()).padStart(
-                2,
-                "0"
-            )}`;
+            ).padStart(2, "0")}-${String(bookingDate.getDate()).padStart(2, "0")}`;
 
             return bookingKey === dateKey;
         });
@@ -427,7 +636,7 @@ function AdminCalendar() {
         });
     };
 
-    const handleAddBooking = (e) => {
+    const handleAddBooking = async (e) => {
         e.preventDefault();
 
         if (
@@ -440,19 +649,20 @@ function AdminCalendar() {
             return;
         }
 
-        const storageEmail =
-            (form.email || "").trim().toLowerCase() || "walkin@guest.local";
-        const scopedKey = `clientBookings_${storageEmail}`;
-        const existing = safeParse(scopedKey, []);
+        const manualBookings = getManualBookings();
 
         const booking = {
-            id: `booking_${Date.now()}`,
-            bookingId: `B${String(existing.length + 1).padStart(2, "0")}`,
+            id: `manual_${Date.now()}`,
+            bookingId: `B${String(manualBookings.length + 1).padStart(2, "0")}`,
+            sourceType: "manual",
+            sourceId: `manual_${Date.now()}`,
             ownerName: form.fullName,
-            ownerEmail: storageEmail,
+            ownerEmail:
+                (form.email || "").trim().toLowerCase() || "walkin@guest.local",
             fullName: form.fullName,
             contactNumber: form.contactNumber,
-            email: storageEmail,
+            email:
+                (form.email || "").trim().toLowerCase() || "walkin@guest.local",
             eventType: form.eventType,
             preferredDate: form.preferredDate,
             eventDate: form.preferredDate,
@@ -479,72 +689,92 @@ function AdminCalendar() {
             createdAt: new Date().toLocaleString(),
         };
 
-        localStorage.setItem(scopedKey, JSON.stringify([booking, ...existing]));
-        refreshBookings();
+        saveManualBookings([booking, ...manualBookings]);
+        await refreshBookings();
         closeAddModal();
         setShowSuccessModal(true);
     };
 
-    const updateSelectedStatus = (status) => {
+    const updateSelectedStatus = async (status) => {
         if (!selectedBooking) return;
 
-        const keys = Object.keys(localStorage).filter((key) =>
-            key.startsWith("clientBookings_")
-        );
+        try {
+            if (selectedBooking.sourceType === "quotation") {
+                await quotationService.updateQuotationStatus(
+                    selectedBooking.sourceId,
+                    status
+                );
 
-        let updatedBooking = null;
+                patchEventMeta(selectedBooking.id, {
+                    status,
+                    updatedAt: new Date().toLocaleString(),
+                });
+            } else {
+                const manualBookings = getManualBookings().map((item) =>
+                    item.id === selectedBooking.id
+                        ? {
+                            ...item,
+                            status,
+                            updatedAt: new Date().toLocaleString(),
+                        }
+                        : item
+                );
+                saveManualBookings(manualBookings);
+            }
 
-        keys.forEach((key) => {
-            const items = safeParse(key, []);
-            const updatedItems = items.map((item) => {
-                if (item.id === selectedBooking.id) {
-                    updatedBooking = {
-                        ...item,
-                        status,
-                        updatedAt: new Date().toLocaleString(),
-                    };
-                    return updatedBooking;
-                }
-                return item;
-            });
+            await refreshBookings();
 
-            localStorage.setItem(key, JSON.stringify(updatedItems));
-        });
-
-        refreshBookings();
-        if (updatedBooking) {
-            setSelectedBooking(updatedBooking);
+            const updated = bookings.find((item) => item.id === selectedBooking.id);
+            if (updated) setSelectedBooking(updated);
+        } catch (err) {
+            console.error("Update booking status error:", err);
+            alert(err.message || "Failed to update booking status.");
         }
     };
 
-    const handleDeleteBooking = () => {
+    const handleDeleteBooking = async () => {
         if (!selectedBooking) return;
 
         const confirmed = window.confirm(
-            "Are you sure you want to cancel/delete this booking?"
+            selectedBooking.sourceType === "quotation"
+                ? "This will mark the quotation/event as Cancelled. Continue?"
+                : "Are you sure you want to cancel/delete this booking?"
         );
 
         if (!confirmed) return;
 
-        const keys = Object.keys(localStorage).filter((key) =>
-            key.startsWith("clientBookings_")
-        );
+        try {
+            if (selectedBooking.sourceType === "quotation") {
+                await quotationService.updateQuotationStatus(
+                    selectedBooking.sourceId,
+                    "Cancelled"
+                );
 
-        keys.forEach((key) => {
-            const items = safeParse(key, []);
-            const filtered = items.filter((item) => item.id !== selectedBooking.id);
-            localStorage.setItem(key, JSON.stringify(filtered));
-        });
+                patchEventMeta(selectedBooking.id, {
+                    status: "Cancelled",
+                    updatedAt: new Date().toLocaleString(),
+                });
+            } else {
+                const manualBookings = getManualBookings().filter(
+                    (item) => item.id !== selectedBooking.id
+                );
+                saveManualBookings(manualBookings);
+            }
 
-        refreshBookings();
-        closeManageModal();
+            await refreshBookings();
+            closeManageModal();
+        } catch (err) {
+            console.error("Delete booking error:", err);
+            alert(err.message || "Failed to update booking.");
+        }
     };
 
     const renderStatusBadge = (status) => {
+        const normalized = normalizeStatus(status);
         const baseClass =
             "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold";
 
-        if (status === "Completed") {
+        if (normalized === "completed") {
             return (
                 <span className={`${baseClass} bg-emerald-100 text-emerald-700`}>
                     Completed
@@ -552,7 +782,7 @@ function AdminCalendar() {
             );
         }
 
-        if (status === "Ongoing") {
+        if (normalized === "ongoing") {
             return (
                 <span className={`${baseClass} bg-amber-100 text-amber-700`}>
                     Ongoing
@@ -560,7 +790,7 @@ function AdminCalendar() {
             );
         }
 
-        if (status === "Cancelled") {
+        if (normalized === "cancelled") {
             return (
                 <span className={`${baseClass} bg-red-100 text-red-700`}>
                     Cancelled
@@ -568,7 +798,7 @@ function AdminCalendar() {
             );
         }
 
-        if (status === "Pending") {
+        if (normalized === "pending") {
             return (
                 <span className={`${baseClass} bg-blue-100 text-blue-700`}>
                     Pending
@@ -576,9 +806,17 @@ function AdminCalendar() {
             );
         }
 
+        if (normalized === "approved" || normalized === "paid") {
+            return (
+                <span className={`${baseClass} bg-green-100 text-green-700`}>
+                    Confirmed
+                </span>
+            );
+        }
+
         return (
             <span className={`${baseClass} bg-green-100 text-green-700`}>
-                Confirmed
+                {capitalizeStatus(status)}
             </span>
         );
     };
@@ -703,6 +941,12 @@ function AdminCalendar() {
                                 manage the status of upcoming catering events in one
                                 premium calendar workspace.
                             </p>
+
+                            {error ? (
+                                <p className="mt-3 text-sm text-amber-200">
+                                    {error} Manual/admin records are still shown.
+                                </p>
+                            ) : null}
                         </div>
 
                         <div className="grid gap-3 sm:grid-cols-2 xl:w-[420px]">
@@ -766,7 +1010,13 @@ function AdminCalendar() {
                         )}
                     </div>
 
-                    <div className="grid grid-cols-7 gap-3">{days}</div>
+                    {loading ? (
+                        <div className="py-16 text-center text-slate-500">
+                            Loading calendar data...
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-7 gap-3">{days}</div>
+                    )}
 
                     <div className="mt-6 flex flex-wrap items-center justify-center gap-6 text-sm text-[#174c3c]">
                         <div className="flex items-center gap-2">
@@ -794,7 +1044,11 @@ function AdminCalendar() {
                     </div>
 
                     <div className="space-y-4 p-5">
-                        {upcomingEvents.length === 0 ? (
+                        {loading ? (
+                            <div className="rounded-[22px] border border-dashed border-[#dfe5e3] bg-[#fafafa] px-5 py-10 text-center text-slate-500">
+                                Loading upcoming events...
+                            </div>
+                        ) : upcomingEvents.length === 0 ? (
                             <div className="rounded-[22px] border border-dashed border-[#dfe5e3] bg-[#fafafa] px-5 py-10 text-center text-slate-500">
                                 No upcoming events yet.
                             </div>
@@ -1459,7 +1713,9 @@ function AdminCalendar() {
                                         className="inline-flex items-center justify-center gap-2 rounded-[16px] bg-red-600 px-7 py-4 text-base font-bold text-white transition hover:bg-red-700"
                                     >
                                         <Trash2 size={18} />
-                                        Cancel / Delete Booking
+                                        {selectedBooking.sourceType === "quotation"
+                                            ? "Mark as Cancelled"
+                                            : "Cancel / Delete Booking"}
                                     </motion.button>
 
                                     <motion.button

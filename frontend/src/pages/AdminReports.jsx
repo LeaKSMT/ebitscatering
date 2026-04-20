@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
     FileBarChart2,
@@ -13,50 +13,263 @@ import {
     BarChart3,
     ArrowUpRight,
     Sparkles,
+    LoaderCircle,
 } from "lucide-react";
-import {
-    getAllBookings,
-    getAllPayments,
-    getAllExpenses,
-    getAllQuotations,
-    getAllInquiries,
-    getMonthlyFinancialRows,
-    getDemandForecast,
-    getBookingPaymentSummary,
-    formatCurrency,
-    formatDate,
-    normalizeStatus,
-} from "../utils/AdminData";
+import { quotationService } from "../services/quotationService.js";
 import { buildPrintableTable, openPrintWindow } from "../utils/AdminPrint";
 
+function normalizeStatus(status = "") {
+    return String(status || "").trim().toLowerCase();
+}
+
+function normalizeNumber(value) {
+    const num = Number(value || 0);
+    return Number.isFinite(num) ? num : 0;
+}
+
+function formatCurrency(value) {
+    const amount = normalizeNumber(value);
+    return new Intl.NumberFormat("en-PH", {
+        style: "currency",
+        currency: "PHP",
+        minimumFractionDigits: 2,
+    }).format(amount);
+}
+
+function formatDate(value) {
+    if (!value) return "—";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleDateString("en-PH", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+    });
+}
+
+function parseArrayField(value) {
+    if (Array.isArray(value)) return value;
+    if (!value) return [];
+    if (typeof value === "string") {
+        try {
+            const parsed = JSON.parse(value);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch {
+            return [];
+        }
+    }
+    return [];
+}
+
+function getQuotationId(item) {
+    return (
+        item.quotationId ||
+        item.quotation_code ||
+        item.referenceNumber ||
+        `Q-${item.id}`
+    );
+}
+
+function getBookingId(item) {
+    return (
+        item.bookingId ||
+        item.booking_code ||
+        item.bookingCode ||
+        item.referenceNumber ||
+        `BK-${item.id}`
+    );
+}
+
+function getTotalAmount(item) {
+    return normalizeNumber(
+        item.totalAmount ||
+        item.estimatedTotal ||
+        item.totalPrice ||
+        item.price ||
+        item.amount ||
+        0
+    );
+}
+
+function getPaymentsTotal(payments = []) {
+    return payments.reduce((sum, item) => {
+        return sum + normalizeNumber(item?.amount || item?.paymentAmount);
+    }, 0);
+}
+
+function mapRecord(item) {
+    const status = normalizeStatus(item.status || "pending");
+    const payments = parseArrayField(item.payments);
+    const expenses = parseArrayField(item.expenses);
+    const inquiries = parseArrayField(item.inquiries);
+
+    const totalAmount = getTotalAmount(item);
+    const paid = Math.min(getPaymentsTotal(payments), totalAmount);
+    const balance = Math.max(totalAmount - paid, 0);
+
+    return {
+        ...item,
+        status,
+        quotationId: getQuotationId(item),
+        bookingId: getBookingId(item),
+        fullName: item.fullName || item.clientName || item.name || "Client",
+        eventType: item.eventType || item.packageType || item.package_name || "Event",
+        preferredDate:
+            item.preferredDate ||
+            item.eventDate ||
+            item.bookingDate ||
+            item.date ||
+            "",
+        eventDate:
+            item.eventDate ||
+            item.preferredDate ||
+            item.bookingDate ||
+            item.date ||
+            "",
+        guests: normalizeNumber(item.guests || item.guestCount || item.pax || 0),
+        guestCount: normalizeNumber(item.guestCount || item.guests || item.pax || 0),
+        estimatedTotal: totalAmount,
+        totalAmount,
+        payments,
+        expenses,
+        inquiries,
+        paid,
+        balance,
+        isBookingLike: [
+            "approved",
+            "confirmed",
+            "paid",
+            "upcoming",
+            "ongoing",
+            "completed",
+        ].includes(status),
+    };
+}
+
 function AdminReports() {
-    const bookings = useMemo(() => getAllBookings(), []);
-    const payments = useMemo(() => getAllPayments(), []);
-    const expenses = useMemo(() => getAllExpenses(), []);
-    const quotations = useMemo(() => getAllQuotations(), []);
-    const inquiries = useMemo(() => getAllInquiries(), []);
-    const monthlyRows = useMemo(() => getMonthlyFinancialRows(), []);
-    const demandForecast = useMemo(() => getDemandForecast(), []);
+    const [records, setRecords] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        let isMounted = true;
+
+        async function loadReportsData() {
+            setLoading(true);
+            try {
+                const data = await quotationService.getQuotations();
+                const mapped = Array.isArray(data) ? data.map(mapRecord) : [];
+
+                if (isMounted) {
+                    setRecords(mapped);
+                }
+            } catch (error) {
+                console.error("Failed to load reports data:", error);
+                if (isMounted) {
+                    setRecords([]);
+                    alert(error.message || "Failed to load reports data.");
+                }
+            } finally {
+                if (isMounted) {
+                    setLoading(false);
+                }
+            }
+        }
+
+        loadReportsData();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
+
+    const bookings = useMemo(() => {
+        return records.filter((item) => item.isBookingLike);
+    }, [records]);
+
+    const quotations = useMemo(() => {
+        return records;
+    }, [records]);
+
+    const payments = useMemo(() => {
+        return records.flatMap((record) =>
+            (record.payments || []).map((payment, index) => ({
+                ...payment,
+                bookingId: payment.bookingId || record.bookingId,
+                clientName: payment.clientName || record.fullName,
+                paymentType: payment.paymentType || "Booking Payment",
+                paymentMethod: payment.paymentMethod || "Recorded Payment",
+                amount: normalizeNumber(payment.amount || payment.paymentAmount),
+                createdAt: payment.createdAt || payment.updatedAt || record.eventDate,
+                paymentId:
+                    payment.paymentId ||
+                    payment.referenceNumber ||
+                    `P-${record.id}-${index + 1}`,
+            }))
+        );
+    }, [records]);
+
+    const expenses = useMemo(() => {
+        return records.flatMap((record) =>
+            (record.expenses || []).map((expense, index) => ({
+                ...expense,
+                bookingId: expense.bookingId || record.bookingId || "—",
+                clientName: expense.clientName || record.fullName || "—",
+                eventType: expense.eventType || record.eventType || "—",
+                category: expense.category || expense.type || "Expense",
+                amount: normalizeNumber(expense.amount),
+                createdAt: expense.createdAt || expense.updatedAt || record.eventDate,
+                expenseId: expense.expenseId || `EXP-${record.id}-${index + 1}`,
+            }))
+        );
+    }, [records]);
+
+    const inquiries = useMemo(() => {
+        return records.flatMap((record) =>
+            (record.inquiries || []).map((inquiry, index) => ({
+                ...inquiry,
+                inquiryId:
+                    inquiry.inquiryId ||
+                    inquiry.referenceNumber ||
+                    `INQ-${record.id}-${index + 1}`,
+                fullName: inquiry.fullName || record.fullName,
+                eventType: inquiry.eventType || record.eventType || "Inquiry",
+                preferredDate:
+                    inquiry.preferredDate ||
+                    inquiry.eventDate ||
+                    record.preferredDate ||
+                    "",
+                guests: normalizeNumber(
+                    inquiry.guests || inquiry.guestCount || record.guests || 0
+                ),
+                status: normalizeStatus(inquiry.status || "recorded"),
+            }))
+        );
+    }, [records]);
 
     const summary = useMemo(() => {
         const totalRevenue = bookings.reduce(
-            (sum, item) => sum + Number(item.totalAmount || 0),
+            (sum, item) => sum + normalizeNumber(item.totalAmount),
             0
         );
+
         const totalCollected = payments.reduce(
-            (sum, item) => sum + Number(item.amount || 0),
+            (sum, item) => sum + normalizeNumber(item.amount),
             0
         );
+
         const totalExpenses = expenses.reduce(
-            (sum, item) => sum + Number(item.amount || 0),
+            (sum, item) => sum + normalizeNumber(item.amount),
             0
         );
-        const approvedQuotations = quotations.filter(
-            (item) => normalizeStatus(item.status) === "approved"
+
+        const approvedQuotations = quotations.filter((item) =>
+            ["approved", "confirmed", "paid"].includes(normalizeStatus(item.status))
         ).length;
+
         const pendingQuotations = quotations.filter(
             (item) => normalizeStatus(item.status) === "pending"
         ).length;
+
         const repliedInquiries = inquiries.filter(
             (item) => normalizeStatus(item.status) === "replied"
         ).length;
@@ -75,21 +288,17 @@ function AdminReports() {
     }, [bookings, payments, expenses, quotations, inquiries]);
 
     const bookingReportRows = useMemo(() => {
-        return bookings.map((booking) => {
-            const paymentSummary = getBookingPaymentSummary(booking);
-
-            return [
-                booking.bookingId,
-                booking.fullName,
-                booking.eventType,
-                formatDate(booking.eventDate),
-                booking.guestCount,
-                formatCurrency(booking.totalAmount),
-                formatCurrency(paymentSummary.paid),
-                formatCurrency(paymentSummary.balance),
-                booking.status,
-            ];
-        });
+        return bookings.map((booking) => [
+            booking.bookingId,
+            booking.fullName,
+            booking.eventType,
+            formatDate(booking.eventDate),
+            booking.guestCount,
+            formatCurrency(booking.totalAmount),
+            formatCurrency(booking.paid),
+            formatCurrency(booking.balance),
+            booking.status,
+        ]);
     }, [bookings]);
 
     const quotationReportRows = useMemo(() => {
@@ -137,6 +346,74 @@ function AdminReports() {
             item.status,
         ]);
     }, [inquiries]);
+
+    const monthlyRows = useMemo(() => {
+        const bucket = new Map();
+
+        records.forEach((record) => {
+            const rawDate = record.eventDate || record.preferredDate;
+            const date = new Date(rawDate);
+            if (Number.isNaN(date.getTime())) return;
+
+            const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+            const label = date.toLocaleDateString("en-PH", {
+                year: "numeric",
+                month: "long",
+            });
+
+            if (!bucket.has(key)) {
+                bucket.set(key, {
+                    key,
+                    label,
+                    revenue: 0,
+                    expenses: 0,
+                });
+            }
+
+            const row = bucket.get(key);
+
+            if (record.isBookingLike) {
+                row.revenue += normalizeNumber(record.totalAmount);
+            }
+
+            row.expenses += (record.expenses || []).reduce(
+                (sum, item) => sum + normalizeNumber(item.amount),
+                0
+            );
+        });
+
+        return [...bucket.values()]
+            .sort((a, b) => a.key.localeCompare(b.key))
+            .map((row) => {
+                const profit = row.revenue - row.expenses;
+                const margin = row.revenue > 0 ? (profit / row.revenue) * 100 : 0;
+
+                return {
+                    ...row,
+                    profit,
+                    margin,
+                };
+            });
+    }, [records]);
+
+    const demandForecast = useMemo(() => {
+        const counter = new Map();
+
+        bookings.forEach((item) => {
+            const type = item.eventType || "Other";
+            counter.set(type, (counter.get(type) || 0) + 1);
+        });
+
+        const total = bookings.length || 1;
+
+        return [...counter.entries()]
+            .map(([type, count]) => ({
+                type,
+                count,
+                percent: ((count / total) * 100).toFixed(1),
+            }))
+            .sort((a, b) => b.count - a.count);
+    }, [bookings]);
 
     const handlePrintOverview = () => {
         openPrintWindow({
@@ -490,7 +767,12 @@ function AdminReports() {
                     </div>
 
                     <div className="mt-6 space-y-5">
-                        {demandForecast.length === 0 ? (
+                        {loading ? (
+                            <div className="flex items-center gap-3 text-sm text-gray-500">
+                                <LoaderCircle className="h-4 w-4 animate-spin" />
+                                Loading demand forecast...
+                            </div>
+                        ) : demandForecast.length === 0 ? (
                             <p className="text-sm text-gray-500">No demand forecast data yet.</p>
                         ) : (
                             demandForecast.map((item) => (
@@ -532,7 +814,9 @@ function AdminReports() {
                     </p>
                 </div>
 
-                {monthlyRows.length === 0 ? (
+                {loading ? (
+                    <div className="p-6 text-gray-500">Loading monthly data...</div>
+                ) : monthlyRows.length === 0 ? (
                     <div className="p-6 text-gray-500">No monthly data yet.</div>
                 ) : (
                     <div className="overflow-x-auto">
