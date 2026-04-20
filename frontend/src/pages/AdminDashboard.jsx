@@ -1105,3 +1105,4 @@ function EmptyListState({ message }) {
         </div>
     );
 }
+export default AdminDashboard;
