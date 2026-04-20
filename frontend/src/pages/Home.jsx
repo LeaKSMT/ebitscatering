@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
     UtensilsCrossed,
     CalendarDays,
@@ -24,6 +24,8 @@ import {
     PartyPopper,
     BadgeCheck,
     Quote,
+    Eye,
+    Shield,
 } from "lucide-react";
 
 import hero from "../assets/hero.jpg";
@@ -66,6 +68,34 @@ const staggerWrap = {
     },
 };
 
+function Counter({ end, suffix = "", duration = 1600 }) {
+    const [count, setCount] = useState(0);
+
+    useEffect(() => {
+        let start = 0;
+        const increment = end / (duration / 16);
+
+        const timer = setInterval(() => {
+            start += increment;
+            if (start >= end) {
+                setCount(end);
+                clearInterval(timer);
+            } else {
+                setCount(Math.floor(start));
+            }
+        }, 16);
+
+        return () => clearInterval(timer);
+    }, [end, duration]);
+
+    return (
+        <span>
+            {count}
+            {suffix}
+        </span>
+    );
+}
+
 function Home() {
     const location = useLocation();
     const navigate = useNavigate();
@@ -78,6 +108,8 @@ function Home() {
     const [contactStatus, setContactStatus] = useState("");
     const [activeSection, setActiveSection] = useState("home");
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [scrollProgress, setScrollProgress] = useState(0);
+    const [selectedGallery, setSelectedGallery] = useState(null);
 
     const featuredPackages = useMemo(
         () => [
@@ -191,6 +223,30 @@ function Home() {
         },
     ];
 
+    const stats = [
+        { value: 100, suffix: "+", label: "Elegant Setups" },
+        { value: 50, suffix: "+", label: "Premium Events" },
+        { value: 100, suffix: "%", label: "Service Focus" },
+    ];
+
+    const testimonials = [
+        {
+            name: "Client Experience",
+            role: "Wedding Celebration",
+            text: "The setup looked elegant and the service felt organized from start to finish. Everything looked premium.",
+        },
+        {
+            name: "Event Impression",
+            role: "Debut Celebration",
+            text: "The food presentation, styling, and coordination made the event feel smooth and memorable.",
+        },
+        {
+            name: "Celebration Feedback",
+            role: "Birthday Occasion",
+            text: "Professional team, beautiful arrangement, and a very polished overall event experience.",
+        },
+    ];
+
     const handleGetQuotation = () => {
         const clientUser = JSON.parse(localStorage.getItem("clientUser") || "null");
         const isClientLoggedIn = localStorage.getItem("isClientLoggedIn") === "true";
@@ -228,6 +284,11 @@ function Home() {
             });
 
             setActiveSection(currentSection);
+
+            const totalHeight =
+                document.documentElement.scrollHeight - window.innerHeight;
+            const progress = totalHeight > 0 ? (window.scrollY / totalHeight) * 100 : 0;
+            setScrollProgress(progress);
         };
 
         handleScroll();
@@ -235,6 +296,13 @@ function Home() {
 
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
+
+    useEffect(() => {
+        document.body.style.overflow = selectedGallery ? "hidden" : "";
+        return () => {
+            document.body.style.overflow = "";
+        };
+    }, [selectedGallery]);
 
     const handleContactChange = (e) => {
         const { name, value } = e.target;
@@ -297,6 +365,10 @@ function Home() {
 
     return (
         <div className="min-h-screen bg-[#f8f7f2] text-green-950">
+            <div className="fixed left-0 top-0 z-[60] h-[3px] bg-yellow-400 transition-all duration-150"
+                style={{ width: `${scrollProgress}%` }}
+            />
+
             <nav className="sticky top-0 z-50 flex h-[82px] items-center justify-between border-b border-white/10 bg-[#0b4d3b]/85 px-5 text-white shadow-[0_10px_30px_rgba(0,0,0,0.08)] backdrop-blur-xl md:px-10 lg:px-14">
                 <div className="leading-none">
                     <h1 className="text-[21px] font-extrabold tracking-tight text-yellow-400 md:text-[25px]">
@@ -495,17 +567,13 @@ function Home() {
                             variants={fadeUp}
                             className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-3"
                         >
-                            {[
-                                { value: "Premium", label: "Presentation" },
-                                { value: "Trusted", label: "Coordination" },
-                                { value: "Elegant", label: "Celebrations" },
-                            ].map((item, index) => (
+                            {stats.map((item, index) => (
                                 <div
                                     key={index}
                                     className="rounded-[24px] border border-white/12 bg-white/10 px-5 py-4 text-left backdrop-blur-md shadow-[0_14px_30px_rgba(0,0,0,0.08)]"
                                 >
                                     <p className="text-base font-bold text-yellow-400 md:text-lg">
-                                        {item.value}
+                                        <Counter end={item.value} suffix={item.suffix} />
                                     </p>
                                     <p className="mt-1 text-sm text-white/78">
                                         {item.label}
@@ -521,7 +589,7 @@ function Home() {
                         variants={softScale}
                         className="hidden lg:block"
                     >
-                        <div className="relative mx-auto max-w-[480px] rounded-[36px] border border-white/10 bg-white/10 p-4 shadow-[0_32px_90px_rgba(0,0,0,0.22)] backdrop-blur-xl">
+                        <div className="relative mx-auto max-w-[500px] rounded-[36px] border border-white/10 bg-white/10 p-4 shadow-[0_32px_90px_rgba(0,0,0,0.22)] backdrop-blur-xl">
                             <div className="pointer-events-none absolute inset-0 rounded-[36px] bg-gradient-to-br from-white/10 via-transparent to-yellow-300/5" />
 
                             <div className="relative rounded-[30px] bg-gradient-to-br from-[#12533f] via-[#0b4d3b] to-[#06291f] p-7 text-white">
@@ -542,21 +610,30 @@ function Home() {
 
                                 <div className="space-y-4">
                                     {[
-                                        "Elegant setup and stylish presentation",
-                                        "Fresh, quality food for special occasions",
-                                        "Professional staff and smooth coordination",
-                                        "Curated packages for memorable celebrations",
+                                        {
+                                            icon: <CheckCircle2 size={17} className="mt-0.5 shrink-0 text-yellow-400" />,
+                                            text: "Elegant setup and stylish presentation",
+                                        },
+                                        {
+                                            icon: <UtensilsCrossed size={17} className="mt-0.5 shrink-0 text-yellow-400" />,
+                                            text: "Fresh, quality food for special occasions",
+                                        },
+                                        {
+                                            icon: <Shield size={17} className="mt-0.5 shrink-0 text-yellow-400" />,
+                                            text: "Professional staff and smooth coordination",
+                                        },
+                                        {
+                                            icon: <Star size={17} className="mt-0.5 shrink-0 text-yellow-400" />,
+                                            text: "Curated packages for memorable celebrations",
+                                        },
                                     ].map((item, index) => (
                                         <div
                                             key={index}
                                             className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/8 p-4 transition hover:border-yellow-300/25 hover:bg-white/10"
                                         >
-                                            <CheckCircle2
-                                                size={17}
-                                                className="mt-0.5 shrink-0 text-yellow-400"
-                                            />
+                                            {item.icon}
                                             <p className="text-sm leading-7 text-white/88">
-                                                {item}
+                                                {item.text}
                                             </p>
                                         </div>
                                     ))}
@@ -676,7 +753,7 @@ function Home() {
                                 custom={index}
                                 variants={fadeUp}
                                 className={`group relative overflow-hidden rounded-[30px] border bg-[#fffdf8] p-6 text-[#0b4d3b] shadow-sm transition duration-300 hover:-translate-y-2 hover:shadow-2xl ${index === 1
-                                        ? "package-featured border-[#e4bc41] ring-1 ring-[#e4bc41]/40"
+                                        ? "package-featured border-[#e4bc41] ring-1 ring-[#e4bc41]/40 scale-[1.02]"
                                         : "border-transparent"
                                     }`}
                             >
@@ -714,6 +791,12 @@ function Home() {
                                 <p className="min-h-[92px] text-[15px] leading-7 text-slate-600">
                                     {item.desc}
                                 </p>
+
+                                {index === 1 && (
+                                    <div className="mt-4 rounded-2xl border border-[#f4d46f] bg-[#fff8de] px-4 py-3 text-sm text-[#7b5f0d]">
+                                        Best balance of elegance, service, and value for milestone celebrations.
+                                    </div>
+                                )}
 
                                 <button
                                     onClick={() => handlePackageQuote(item)}
@@ -946,6 +1029,47 @@ function Home() {
                 </motion.div>
             </section>
 
+            <section className="bg-[#f8f7f2] px-5 pb-16 md:px-10 md:pb-20 lg:px-20">
+                {sectionTitle(
+                    "Client Impression",
+                    "Trusted",
+                    "Experience",
+                    "A refined event service that feels polished, organized, and premium from start to finish."
+                )}
+
+                <motion.div
+                    variants={staggerWrap}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.18 }}
+                    className="mx-auto grid max-w-6xl gap-5 md:grid-cols-3"
+                >
+                    {testimonials.map((item, index) => (
+                        <motion.div
+                            key={index}
+                            custom={index}
+                            variants={fadeUp}
+                            className="rounded-[30px] border border-[#ece6d8] bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1.5 hover:shadow-xl"
+                        >
+                            <div className="mb-4 flex items-center gap-1 text-yellow-400">
+                                {[...Array(5)].map((_, i) => (
+                                    <Star key={i} className="h-4 w-4 fill-current" />
+                                ))}
+                            </div>
+
+                            <p className="text-[15px] leading-7 text-slate-600">
+                                “{item.text}”
+                            </p>
+
+                            <div className="mt-5 border-t border-[#ece6d8] pt-4">
+                                <p className="font-bold text-[#0b4d3b]">{item.name}</p>
+                                <p className="text-sm text-slate-500">{item.role}</p>
+                            </div>
+                        </motion.div>
+                    ))}
+                </motion.div>
+            </section>
+
             <section
                 id="gallery"
                 className="scroll-mt-24 bg-[#f8f7f2] px-5 py-16 md:scroll-mt-28 md:px-10 md:py-20 lg:px-20"
@@ -965,11 +1089,13 @@ function Home() {
                     className="mx-auto grid max-w-5xl gap-6 md:grid-cols-3"
                 >
                     {galleryItems.map((item, index) => (
-                        <motion.div
+                        <motion.button
+                            type="button"
                             key={index}
                             custom={index}
                             variants={fadeUp}
-                            className="group gallery-card relative overflow-hidden rounded-[30px] shadow-md"
+                            onClick={() => setSelectedGallery(item)}
+                            className="group gallery-card relative overflow-hidden rounded-[30px] text-left shadow-md"
                         >
                             <img
                                 src={item.src}
@@ -978,15 +1104,18 @@ function Home() {
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
                             <div className="gallery-hover-overlay absolute inset-0 opacity-0 transition duration-500 group-hover:opacity-100" />
+                            <div className="absolute right-4 top-4 rounded-full bg-white/15 p-2 text-white backdrop-blur-md">
+                                <Eye className="h-4 w-4" />
+                            </div>
                             <div className="absolute bottom-0 left-0 right-0 p-4">
                                 <p className="text-base font-semibold text-white md:text-lg">
                                     {item.title}
                                 </p>
                                 <p className="mt-1 translate-y-2 text-sm text-white/0 transition duration-500 group-hover:translate-y-0 group-hover:text-white/75">
-                                    Premium celebration styling and elegant event setup.
+                                    Click to preview this setup.
                                 </p>
                             </div>
-                        </motion.div>
+                        </motion.button>
                     ))}
                 </motion.div>
             </section>
@@ -1138,6 +1267,50 @@ function Home() {
                 </div>
             </section>
 
+            <section className="bg-[#f8f7f2] px-5 pb-16 md:px-10 md:pb-20 lg:px-20">
+                <motion.div
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.2 }}
+                    variants={softScale}
+                    className="mx-auto max-w-6xl overflow-hidden rounded-[36px] bg-gradient-to-br from-[#114f3d] via-[#0b4d3b] to-[#072e24] px-6 py-10 text-white shadow-[0_24px_50px_rgba(0,0,0,0.14)] md:px-10"
+                >
+                    <div className="grid items-center gap-8 lg:grid-cols-[1fr_auto]">
+                        <div>
+                            <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/65">
+                                Ready to Begin
+                            </p>
+                            <h3 className="mt-3 text-[30px] font-extrabold leading-tight md:text-[42px]">
+                                Let’s make your celebration
+                                <span className="text-yellow-400"> unforgettable</span>
+                            </h3>
+                            <p className="mt-4 max-w-2xl text-[15px] leading-7 text-white/80 md:text-[16px]">
+                                Explore our packages or request a quotation to start planning
+                                an elegant and organized event experience.
+                            </p>
+                        </div>
+
+                        <div className="flex flex-wrap gap-3">
+                            <Link
+                                to="/packages"
+                                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 font-semibold text-[#0b4d3b] transition hover:-translate-y-1 hover:bg-[#fff8e6]"
+                            >
+                                View Packages
+                                <ChevronRight size={18} />
+                            </Link>
+
+                            <button
+                                onClick={handleGetQuotation}
+                                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-yellow-400 px-5 py-3 font-semibold text-green-950 transition hover:-translate-y-1 hover:bg-yellow-300"
+                            >
+                                Get Quotation
+                                <ArrowRight size={18} />
+                            </button>
+                        </div>
+                    </div>
+                </motion.div>
+            </section>
+
             <footer className="relative overflow-hidden bg-[#0c5a43] px-5 py-12 text-white md:px-10 lg:px-20">
                 <div className="absolute left-0 top-0 h-44 w-44 rounded-full bg-yellow-300/8 blur-3xl" />
                 <div className="absolute right-0 bottom-0 h-44 w-44 rounded-full bg-white/5 blur-3xl" />
@@ -1199,6 +1372,50 @@ function Home() {
                     © 2026 Ebit&apos;s Catering. All rights reserved.
                 </div>
             </footer>
+
+            <AnimatePresence>
+                {selectedGallery && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+                        onClick={() => setSelectedGallery(null)}
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.92, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.92, y: 20 }}
+                            transition={{ duration: 0.25 }}
+                            className="relative w-full max-w-4xl overflow-hidden rounded-[28px] bg-white shadow-2xl"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <button
+                                type="button"
+                                onClick={() => setSelectedGallery(null)}
+                                className="absolute right-4 top-4 z-10 rounded-full bg-black/55 p-2 text-white transition hover:bg-black/75"
+                            >
+                                <X className="h-5 w-5" />
+                            </button>
+
+                            <img
+                                src={selectedGallery.src}
+                                alt={selectedGallery.title}
+                                className="max-h-[75vh] w-full object-cover"
+                            />
+
+                            <div className="border-t border-slate-200 px-6 py-5">
+                                <h4 className="text-[22px] font-bold text-[#0b4d3b]">
+                                    {selectedGallery.title}
+                                </h4>
+                                <p className="mt-2 text-[15px] leading-7 text-slate-600">
+                                    Elegant celebration styling and premium event presentation.
+                                </p>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <ChatBot />
         </div>
