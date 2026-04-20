@@ -17,6 +17,7 @@ import {
     HeartHandshake,
     ShieldCheck,
     Gem,
+    Stars,
 } from "lucide-react";
 
 const weddingPackages = [
@@ -296,28 +297,42 @@ const addOns = [
 ];
 
 const fadeUp = {
-    hidden: { opacity: 0, y: 30 },
+    hidden: { opacity: 0, y: 34 },
     visible: (i = 0) => ({
         opacity: 1,
         y: 0,
         transition: {
-            duration: 0.65,
-            delay: i * 0.08,
+            duration: 0.7,
+            delay: i * 0.07,
             ease: [0.22, 1, 0.36, 1],
         },
     }),
 };
 
 const softScale = {
-    hidden: { opacity: 0, scale: 0.96 },
+    hidden: { opacity: 0, scale: 0.965 },
     visible: {
         opacity: 1,
         scale: 1,
         transition: {
-            duration: 0.55,
+            duration: 0.6,
             ease: [0.22, 1, 0.36, 1],
         },
     },
+};
+
+const cardReveal = {
+    hidden: { opacity: 0, y: 24, scale: 0.98 },
+    visible: (i = 0) => ({
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        transition: {
+            duration: 0.6,
+            delay: i * 0.05,
+            ease: [0.22, 1, 0.36, 1],
+        },
+    }),
 };
 
 function SectionTitle({ eyebrow, title, highlight, desc, light = false }) {
@@ -360,7 +375,7 @@ function FloatingOrb({ className, delay = 0, duration = 8 }) {
     return (
         <motion.div
             className={className}
-            animate={{ y: [0, -18, 0], x: [0, 10, 0] }}
+            animate={{ y: [0, -18, 0], x: [0, 12, 0], scale: [1, 1.05, 1] }}
             transition={{
                 duration,
                 repeat: Infinity,
@@ -369,6 +384,38 @@ function FloatingOrb({ className, delay = 0, duration = 8 }) {
                 delay,
             }}
         />
+    );
+}
+
+function HeroParticle({ className, delay = 0, duration = 7 }) {
+    return (
+        <motion.div
+            className={className}
+            animate={{ y: [0, -24, 0], opacity: [0.2, 0.7, 0.2] }}
+            transition={{
+                duration,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay,
+            }}
+        />
+    );
+}
+
+function GlowButton({ children, onClick, icon }) {
+    return (
+        <motion.button
+            whileHover={{ y: -3, scale: 1.01 }}
+            whileTap={{ scale: 0.985 }}
+            onClick={onClick}
+            className="group relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-2xl bg-[#f2bf2f] px-7 py-4 font-bold text-[#0b4d3b] shadow-[0_18px_36px_rgba(0,0,0,0.22)] transition"
+        >
+            <span className="pointer-events-none absolute inset-0 opacity-0 transition duration-500 group-hover:opacity-100">
+                <span className="absolute -left-10 top-0 h-full w-16 rotate-[20deg] bg-white/35 blur-md transition duration-700 group-hover:left-[110%]" />
+            </span>
+            <span className="relative z-10">{children}</span>
+            {icon ? <span className="relative z-10">{icon}</span> : null}
+        </motion.button>
     );
 }
 
@@ -382,18 +429,19 @@ function PackageCard({ item, onQuote, badge, featured = false, dark = false }) {
             whileInView="visible"
             viewport={{ once: true, amount: 0.15 }}
             variants={softScale}
-            whileHover={{ y: -8 }}
+            whileHover={{ y: -10 }}
             className={`group relative flex h-full flex-col overflow-hidden rounded-[32px] border p-6 transition duration-300 md:p-7 ${featured
                     ? dark
-                        ? "border-[#f2bf2f]/35 bg-white text-[#0b4d3b] shadow-[0_22px_60px_rgba(0,0,0,0.22)]"
-                        : "border-[#f2bf2f]/40 bg-[linear-gradient(180deg,#fffdf8_0%,#fff8e8_100%)] text-[#0b4d3b] shadow-[0_22px_60px_rgba(191,151,39,0.14)]"
+                        ? "border-[#f2bf2f]/35 bg-white text-[#0b4d3b] shadow-[0_26px_70px_rgba(0,0,0,0.22)]"
+                        : "border-[#f2bf2f]/40 bg-[linear-gradient(180deg,#fffdf8_0%,#fff8e8_100%)] text-[#0b4d3b] shadow-[0_24px_64px_rgba(191,151,39,0.14)]"
                     : dark
-                        ? "border-white/10 bg-white text-[#0b4d3b] shadow-[0_14px_34px_rgba(0,0,0,0.18)]"
-                        : "border-[#e7dfd1] bg-white text-[#0b4d3b] shadow-[0_12px_36px_rgba(15,23,42,0.06)]"
+                        ? "border-white/10 bg-white text-[#0b4d3b] shadow-[0_16px_38px_rgba(0,0,0,0.18)]"
+                        : "border-[#e7dfd1] bg-white text-[#0b4d3b] shadow-[0_14px_40px_rgba(15,23,42,0.06)]"
                 }`}
         >
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(212,165,20,0.12),transparent_26%),radial-gradient(circle_at_bottom_left,rgba(11,77,59,0.06),transparent_22%)] opacity-0 transition duration-300 group-hover:opacity-100" />
             <div className="pointer-events-none absolute right-0 top-0 h-28 w-28 translate-x-8 -translate-y-8 rounded-full bg-[#f2bf2f]/10 blur-2xl" />
+            <div className="pointer-events-none absolute left-[-35%] top-0 h-full w-[30%] rotate-[18deg] bg-white/20 opacity-0 blur-xl transition duration-700 group-hover:left-[115%] group-hover:opacity-100" />
 
             <div className="relative z-10 flex items-start justify-between gap-4">
                 <div className="min-w-0">
@@ -460,18 +508,41 @@ function PackageCard({ item, onQuote, badge, featured = false, dark = false }) {
             </ul>
 
             <div className="relative z-10 mt-7 flex flex-col gap-3 sm:flex-row">
-                <button
-                    onClick={() => onQuote(item)}
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#f2bf2f] px-5 py-3.5 text-sm font-bold text-[#0b4d3b] shadow-[0_12px_24px_rgba(242,191,47,0.24)] transition hover:-translate-y-0.5 hover:bg-[#f7c93c]"
-                >
+                <GlowButton onClick={() => onQuote(item)} icon={<ArrowRight className="h-4 w-4" />}>
                     Get Quotation
-                    <ArrowRight className="h-4 w-4" />
-                </button>
+                </GlowButton>
 
                 <div className="inline-flex items-center justify-center rounded-2xl border border-[#e8dfce] bg-[#faf8f2] px-4 py-3 text-sm font-semibold text-[#0b4d3b]/70">
                     Best for {item.eventType}
                 </div>
             </div>
+        </motion.div>
+    );
+}
+
+function StatCard({ item, index, featured = false }) {
+    return (
+        <motion.div
+            custom={index}
+            variants={cardReveal}
+            initial="hidden"
+            animate="visible"
+            whileHover={{ y: -4, scale: 1.01 }}
+            className={`relative overflow-hidden rounded-[24px] border px-5 py-5 ${featured
+                    ? "border-[#f2bf2f]/25 bg-[#fff9e6]/95 text-[#0b4d3b] shadow-[0_10px_20px_rgba(242,191,47,0.06)]"
+                    : "border-white/12 bg-white/12 text-white"
+                }`}
+        >
+            <div className="absolute right-0 top-0 h-20 w-20 translate-x-5 -translate-y-5 rounded-full bg-[#f2bf2f]/10 blur-2xl" />
+            <p className={`relative z-10 text-sm ${featured ? "text-[#0b4d3b]/65" : "text-white/65"}`}>
+                {item.label}
+            </p>
+            <p
+                className={`relative z-10 mt-2 text-[22px] font-black leading-tight md:text-[26px] ${featured ? "text-[#0b4d3b]" : "text-[#f2bf2f]"
+                    }`}
+            >
+                {item.value}
+            </p>
         </motion.div>
     );
 }
@@ -599,7 +670,7 @@ function Packages() {
                 </AnimatePresence>
             </header>
 
-            <section className="relative isolate overflow-hidden bg-[linear-gradient(135deg,#072f25_0%,#0b4d3b_45%,#10624a_100%)] px-5 pb-18 pt-14 md:px-10 md:pb-24 md:pt-20 lg:px-20">
+            <section className="relative isolate overflow-hidden bg-[linear-gradient(135deg,#072f25_0%,#0b4d3b_45%,#10624a_100%)] px-5 pb-20 pt-14 md:px-10 md:pb-24 md:pt-20 lg:px-20">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(242,191,47,0.16),transparent_24%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.07),transparent_20%)]" />
                 <div className="absolute inset-0 opacity-[0.06] [background-image:linear-gradient(rgba(255,255,255,0.55)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.55)_1px,transparent_1px)] [background-size:34px_34px]" />
                 <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.02),transparent,rgba(0,0,0,0.08))]" />
@@ -615,6 +686,11 @@ function Packages() {
                     delay={0.7}
                     duration={9}
                 />
+
+                <HeroParticle className="absolute left-[18%] top-[22%] h-2 w-2 rounded-full bg-white/50" delay={0.4} />
+                <HeroParticle className="absolute left-[30%] top-[14%] h-1.5 w-1.5 rounded-full bg-[#f2bf2f]/70" delay={1} duration={6} />
+                <HeroParticle className="absolute right-[24%] top-[26%] h-2 w-2 rounded-full bg-white/50" delay={0.7} duration={8} />
+                <HeroParticle className="absolute right-[14%] bottom-[22%] h-1.5 w-1.5 rounded-full bg-[#f2bf2f]/70" delay={0.3} duration={7} />
 
                 <div className="relative z-10 mx-auto max-w-7xl">
                     <div className="grid items-center gap-10 lg:grid-cols-[1.08fr_.92fr]">
@@ -633,12 +709,17 @@ function Packages() {
                                 Ebit&apos;s Catering Collection
                             </p>
 
-                            <h2 className="mt-4 max-w-4xl text-[38px] font-black leading-[0.98] sm:text-[52px] md:text-[68px]">
+                            <motion.h2
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.75, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+                                className="mt-4 max-w-4xl text-[38px] font-black leading-[0.98] sm:text-[52px] md:text-[68px]"
+                            >
                                 Luxury Event
                                 <span className="mt-1 block bg-gradient-to-r from-[#f8d35a] via-[#f2bf2f] to-[#d4a514] bg-clip-text text-transparent">
                                     Packages That Impress
                                 </span>
-                            </h2>
+                            </motion.h2>
 
                             <p className="mt-6 max-w-2xl text-[15px] leading-8 text-white/82 md:text-[17px]">
                                 Discover beautifully curated wedding and debut packages with
@@ -647,18 +728,17 @@ function Packages() {
                             </p>
 
                             <div className="mt-9">
-                                <button
+                                <GlowButton
                                     onClick={() =>
                                         handleGetQuotation({
                                             id: "general-quotation",
                                             title: "General Package Inquiry",
                                         })
                                     }
-                                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#f2bf2f] px-7 py-4 font-bold text-[#0b4d3b] shadow-[0_18px_36px_rgba(0,0,0,0.22)] transition hover:-translate-y-0.5 hover:bg-[#f7c93c]"
+                                    icon={<ChevronRight size={18} />}
                                 >
                                     Request Quotation
-                                    <ChevronRight size={18} />
-                                </button>
+                                </GlowButton>
                             </div>
 
                             <div className="mt-10 grid gap-4 sm:grid-cols-3">
@@ -666,9 +746,10 @@ function Packages() {
                                     <motion.div
                                         key={item.label}
                                         custom={index}
-                                        variants={fadeUp}
+                                        variants={cardReveal}
                                         initial="hidden"
                                         animate="visible"
+                                        whileHover={{ y: -4, scale: 1.01 }}
                                         className="rounded-[24px] border border-white/12 bg-white/10 px-5 py-4 shadow-[0_10px_24px_rgba(0,0,0,0.12)] backdrop-blur-lg"
                                     >
                                         <div className="mb-3">{item.icon}</div>
@@ -689,7 +770,11 @@ function Packages() {
                             <div className="absolute -left-8 -top-8 h-32 w-32 rounded-full bg-[#f2bf2f]/16 blur-3xl" />
                             <div className="absolute -bottom-8 -right-8 h-32 w-32 rounded-full bg-white/12 blur-3xl" />
 
-                            <div className="relative rounded-[36px] border border-white/12 bg-white/10 p-4 shadow-[0_30px_70px_rgba(0,0,0,0.28)] backdrop-blur-2xl">
+                            <motion.div
+                                animate={{ y: [0, -6, 0] }}
+                                transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut" }}
+                                className="relative rounded-[36px] border border-white/12 bg-white/10 p-4 shadow-[0_30px_70px_rgba(0,0,0,0.28)] backdrop-blur-2xl"
+                            >
                                 <div className="rounded-[30px] border border-white/12 bg-[linear-gradient(180deg,rgba(255,255,255,0.16),rgba(255,255,255,0.08))] p-5 md:p-6">
                                     <div className="flex items-center justify-between gap-4">
                                         <div>
@@ -711,38 +796,19 @@ function Packages() {
 
                                     <div className="mt-6 grid gap-4 sm:grid-cols-2">
                                         {stats.map((item, index) => (
-                                            <motion.div
+                                            <StatCard
                                                 key={item.label}
-                                                custom={index}
-                                                variants={fadeUp}
-                                                initial="hidden"
-                                                animate="visible"
-                                                className={`rounded-[24px] border px-5 py-5 ${index === 0 || index === 3
-                                                        ? "border-[#f2bf2f]/25 bg-[#fff9e6]/95 text-[#0b4d3b] shadow-[0_10px_20px_rgba(242,191,47,0.06)]"
-                                                        : "border-white/12 bg-white/12 text-white"
-                                                    }`}
-                                            >
-                                                <p
-                                                    className={`text-sm ${index === 0 || index === 3
-                                                            ? "text-[#0b4d3b]/65"
-                                                            : "text-white/65"
-                                                        }`}
-                                                >
-                                                    {item.label}
-                                                </p>
-                                                <p
-                                                    className={`mt-2 text-[22px] font-black leading-tight md:text-[26px] ${index === 0 || index === 3
-                                                            ? "text-[#0b4d3b]"
-                                                            : "text-[#f2bf2f]"
-                                                        }`}
-                                                >
-                                                    {item.value}
-                                                </p>
-                                            </motion.div>
+                                                item={item}
+                                                index={index}
+                                                featured={index === 0 || index === 3}
+                                            />
                                         ))}
                                     </div>
 
-                                    <div className="mt-5 rounded-[24px] border border-white/12 bg-[#082f25]/45 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+                                    <motion.div
+                                        whileHover={{ y: -2 }}
+                                        className="mt-5 rounded-[24px] border border-white/12 bg-[#082f25]/45 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+                                    >
                                         <div className="flex items-center gap-3">
                                             <div className="rounded-2xl bg-[#f2bf2f]/15 p-3">
                                                 <Star className="h-5 w-5 text-[#f2bf2f]" />
@@ -757,9 +823,9 @@ function Packages() {
                                                 </p>
                                             </div>
                                         </div>
-                                    </div>
+                                    </motion.div>
                                 </div>
-                            </div>
+                            </motion.div>
                         </motion.div>
                     </div>
                 </div>
@@ -786,14 +852,15 @@ function Packages() {
                                 whileInView="visible"
                                 viewport={{ once: true, amount: 0.2 }}
                                 custom={index}
-                                variants={fadeUp}
-                                whileHover={{ y: -6 }}
+                                variants={cardReveal}
+                                whileHover={{ y: -7, scale: 1.01 }}
                                 className={`relative overflow-hidden rounded-[30px] border p-7 text-center transition ${index === 1
                                         ? "border-transparent bg-[linear-gradient(180deg,#0b4d3b_0%,#08392d_100%)] text-white shadow-[0_20px_50px_rgba(11,77,59,0.25)]"
                                         : "border-[#e8dfd1] bg-white text-[#0b4d3b] shadow-[0_12px_30px_rgba(15,23,42,0.05)]"
                                     }`}
                             >
                                 <div className="absolute right-0 top-0 h-28 w-28 translate-x-6 -translate-y-6 rounded-full bg-[#f2bf2f]/10 blur-2xl" />
+                                <div className="absolute left-[-30%] top-0 h-full w-[24%] rotate-[18deg] bg-white/15 opacity-0 blur-xl transition duration-700 hover:left-[110%] hover:opacity-100" />
 
                                 <p className="relative z-10 text-sm font-semibold uppercase tracking-[0.28em] opacity-70">
                                     Guest Count
@@ -934,11 +1001,12 @@ function Packages() {
                                 whileInView="visible"
                                 viewport={{ once: true, amount: 0.2 }}
                                 custom={index}
-                                variants={fadeUp}
-                                whileHover={{ y: -6 }}
+                                variants={cardReveal}
+                                whileHover={{ y: -7, scale: 1.01 }}
                                 className="group relative overflow-hidden rounded-[26px] border border-[#e8e2d6] bg-white p-6 shadow-[0_10px_28px_rgba(0,0,0,0.05)] transition hover:shadow-[0_18px_40px_rgba(0,0,0,0.09)]"
                             >
                                 <div className="absolute right-0 top-0 h-24 w-24 translate-x-6 -translate-y-6 rounded-full bg-[#f2bf2f]/10 blur-2xl" />
+                                <div className="absolute left-[-35%] top-0 h-full w-[30%] rotate-[18deg] bg-white/30 opacity-0 blur-xl transition duration-700 group-hover:left-[115%] group-hover:opacity-100" />
 
                                 <div className="relative z-10 mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#fbf4df] text-[#c99d1a]">
                                     {addon.icon}
@@ -984,18 +1052,17 @@ function Packages() {
                         </p>
                     </div>
 
-                    <button
+                    <GlowButton
                         onClick={() =>
                             handleGetQuotation({
                                 id: "general-quotation",
                                 title: "General Package Inquiry",
                             })
                         }
-                        className="inline-flex items-center gap-2 rounded-2xl bg-[#f2bf2f] px-6 py-3.5 font-bold text-[#0b4d3b] shadow-[0_14px_30px_rgba(0,0,0,0.2)] transition hover:-translate-y-0.5 hover:bg-[#f7c93c]"
+                        icon={<ChevronRight size={18} />}
                     >
                         Request Quotation
-                        <ChevronRight size={18} />
-                    </button>
+                    </GlowButton>
                 </motion.div>
             </section>
         </div>
