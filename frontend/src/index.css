@@ -46,16 +46,16 @@ textarea {
   background: rgba(15, 77, 60, 0.4);
 }
 
-/* HERO PREMIUM CINEMATIC BACKGROUND */
+/* HERO */
 .hero-luxury-overlay {
   background:
     linear-gradient(105deg,
-      rgba(3, 19, 15, 0.84) 0%,
-      rgba(6, 37, 30, 0.72) 20%,
-      rgba(8, 44, 35, 0.45) 42%,
-      rgba(8, 38, 31, 0.38) 58%,
-      rgba(4, 20, 17, 0.64) 100%),
-    radial-gradient(circle at 20% 30%, rgba(212, 175, 55, 0.11), transparent 28%),
+      rgba(3, 19, 15, 0.86) 0%,
+      rgba(6, 37, 30, 0.76) 20%,
+      rgba(8, 44, 35, 0.48) 42%,
+      rgba(8, 38, 31, 0.40) 58%,
+      rgba(4, 20, 17, 0.66) 100%),
+    radial-gradient(circle at 20% 30%, rgba(212, 175, 55, 0.12), transparent 28%),
     radial-gradient(circle at 78% 20%, rgba(255, 255, 255, 0.05), transparent 16%),
     radial-gradient(circle at 82% 78%, rgba(28, 170, 123, 0.08), transparent 24%);
 }
@@ -64,17 +64,8 @@ textarea {
   background:
     radial-gradient(circle at center,
       rgba(0, 0, 0, 0.02) 24%,
-      rgba(0, 0, 0, 0.14) 62%,
-      rgba(0, 0, 0, 0.42) 100%);
-}
-
-.hero-photo-filter {
-  background:
-    linear-gradient(180deg,
-      rgba(8, 18, 14, 0.08) 0%,
-      rgba(8, 18, 14, 0.20) 100%);
-  backdrop-filter: brightness(0.72) saturate(0.88) contrast(1.02);
-  -webkit-backdrop-filter: brightness(0.72) saturate(0.88) contrast(1.02);
+      rgba(0, 0, 0, 0.16) 62%,
+      rgba(0, 0, 0, 0.45) 100%);
 }
 
 .hero-mesh {
@@ -88,12 +79,27 @@ textarea {
   -webkit-mask-image: radial-gradient(circle at center, black 44%, transparent 100%);
 }
 
+.hero-noise {
+  opacity: 0.07;
+  mix-blend-mode: soft-light;
+  background-image:
+    radial-gradient(rgba(255, 255, 255, 0.16) 0.7px, transparent 0.7px);
+  background-size: 14px 14px;
+}
+
+.hero-gold-text {
+  background: linear-gradient(180deg, #f8dc7d 0%, #f5c94a 42%, #d4a514 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
 .hero-glow {
   position: absolute;
   border-radius: 9999px;
   filter: blur(95px);
   pointer-events: none;
-  opacity: 0.7;
+  opacity: 0.72;
 }
 
 .hero-glow-1 {
@@ -132,13 +138,87 @@ textarea {
   background: linear-gradient(90deg,
       transparent 0%,
       rgba(255, 255, 255, 0.00) 20%,
-      rgba(255, 255, 255, 0.045) 45%,
+      rgba(255, 255, 255, 0.05) 45%,
       rgba(255, 255, 255, 0.00) 72%,
       transparent 100%);
   animation: heroShineMove 10s ease-in-out infinite;
   pointer-events: none;
 }
 
+/* PREMIUM CARDS */
+.premium-card {
+  position: relative;
+  transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+}
+
+.premium-card:hover {
+  transform: translateY(-10px);
+  box-shadow:
+    0 24px 50px rgba(0, 0, 0, 0.08),
+    0 10px 24px rgba(11, 77, 59, 0.06);
+  border-color: rgba(212, 165, 20, 0.25);
+}
+
+.premium-card-shine {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.0) 32%,
+      rgba(255, 255, 255, 0.45) 50%,
+      rgba(255, 255, 255, 0.0) 68%,
+      transparent 100%);
+  transform: translateX(-130%);
+  transition: transform 0.8s ease;
+  pointer-events: none;
+}
+
+.premium-card:hover .premium-card-shine {
+  transform: translateX(130%);
+}
+
+/* PACKAGE CARD */
+.package-featured {
+  position: relative;
+  overflow: hidden;
+}
+
+.package-featured::before {
+  content: "";
+  position: absolute;
+  inset: -40% auto auto -20%;
+  width: 90%;
+  height: 120%;
+  background: radial-gradient(circle, rgba(212, 165, 20, 0.18) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+.package-card-glow {
+  position: absolute;
+  right: -24px;
+  top: -24px;
+  width: 120px;
+  height: 120px;
+  background: radial-gradient(circle, rgba(212, 165, 20, 0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* GALLERY */
+.gallery-card {
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+}
+
+.gallery-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.12);
+}
+
+.gallery-hover-overlay {
+  background:
+    linear-gradient(180deg, rgba(11, 77, 59, 0.05) 0%, rgba(11, 77, 59, 0.24) 100%);
+}
+
+/* ANIMATIONS */
 @keyframes heroFloatOne {
 
   0%,
@@ -193,11 +273,6 @@ textarea {
   .hero-mesh {
     opacity: 0.10;
     background-size: 80px 80px;
-  }
-
-  .hero-photo-filter {
-    backdrop-filter: brightness(0.66) saturate(0.86) contrast(1.01);
-    -webkit-backdrop-filter: brightness(0.66) saturate(0.86) contrast(1.01);
   }
 
   .hero-glow-1,
