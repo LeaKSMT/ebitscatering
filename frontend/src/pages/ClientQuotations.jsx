@@ -7,7 +7,6 @@ import {
     Users,
     Sparkles,
     BadgeCheck,
-    Wallet,
     Clock3,
     Mail,
     Phone,
@@ -16,7 +15,6 @@ import {
     Layers3,
     ShieldCheck,
     Star,
-    ReceiptText,
 } from "lucide-react";
 
 function getClientUser() {
@@ -136,28 +134,6 @@ function getStatusClasses(status) {
     }
 
     return "bg-amber-100 text-amber-700 border border-amber-200";
-}
-
-function getStatusMessage(status) {
-    const normalized = (status || "pending").toLowerCase();
-
-    if (
-        normalized === "approved" ||
-        normalized === "confirmed" ||
-        normalized === "paid"
-    ) {
-        return "Your quotation has been approved. Please monitor your booking and payment updates for the next steps.";
-    }
-
-    if (normalized === "rejected" || normalized === "declined") {
-        return "Your quotation was not approved at the moment. You may submit a new request with updated event details.";
-    }
-
-    if (normalized === "processing") {
-        return "Your quotation is currently under review. Please wait for the admin confirmation and system update.";
-    }
-
-    return "Your quotation is pending review. The admin will evaluate your request and update the status soon.";
 }
 
 function normalizeQuotation(item) {
@@ -450,7 +426,7 @@ function ClientQuotations() {
                                     initial="hidden"
                                     animate="show"
                                     exit={{ opacity: 0, y: 20 }}
-                                    whileHover={{ y: -5, scale: 1.003 }}
+                                    whileHover={{ y: -4 }}
                                     className="portal-card-premium overflow-hidden transition"
                                 >
                                     <div className="border-b border-[#edf2ef] bg-[linear-gradient(90deg,#f3fbf8_0%,#fffaf0_100%)] px-6 py-5">
@@ -476,15 +452,10 @@ function ClientQuotations() {
                                                     </span>
                                                 </p>
                                             </div>
-
-                                            <div className="inline-flex items-center gap-2 rounded-full bg-[#eef8f3] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-[#0d5c46]">
-                                                <ReceiptText size={13} />
-                                                Client quotation record
-                                            </div>
                                         </div>
                                     </div>
 
-                                    <div className="grid gap-6 px-6 py-6 xl:grid-cols-[1.55fr_1fr]">
+                                    <div className="grid gap-6 px-6 py-6 xl:grid-cols-[1.75fr_0.9fr]">
                                         <div className="space-y-5">
                                             <div className="grid gap-4 sm:grid-cols-2">
                                                 <div className="rounded-[26px] bg-[#f8fbfa] px-4 py-4">
@@ -635,7 +606,7 @@ function ClientQuotations() {
                                         </div>
 
                                         <div className="space-y-4">
-                                            <div className="rounded-[30px] bg-[linear-gradient(135deg,#fffaf0_0%,#fff3d0_100%)] px-5 py-5 text-right shadow-sm">
+                                            <div className="rounded-[30px] bg-[linear-gradient(135deg,#fffaf0_0%,#fff3d0_100%)] px-5 py-6 text-right shadow-sm">
                                                 <div className="flex items-center justify-end gap-2 text-[#b99117]">
                                                     <CircleDollarSign size={18} />
                                                     <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
@@ -644,56 +615,6 @@ function ClientQuotations() {
                                                 </div>
                                                 <p className="mt-2 text-3xl font-extrabold tracking-tight text-[#b9911f]">
                                                     {formatCurrency(quote.estimatedTotal)}
-                                                </p>
-                                            </div>
-
-                                            <div className="rounded-[30px] border border-[#e3ebe7] bg-[#f8fbfa] px-5 py-5">
-                                                <p className="text-sm font-bold text-slate-800">
-                                                    Status Overview
-                                                </p>
-                                                <p className="mt-2 text-sm leading-6 text-slate-600">
-                                                    {getStatusMessage(quote.status)}
-                                                </p>
-                                            </div>
-
-                                            <div className="rounded-[30px] border border-dashed border-emerald-200 bg-emerald-50 px-5 py-5">
-                                                <p className="text-sm font-bold text-emerald-800">
-                                                    Smart Reminder
-                                                </p>
-                                                <p className="mt-2 text-sm leading-6 text-emerald-700">
-                                                    Final pricing may still change depending on
-                                                    your guest count, selected add-ons, and event
-                                                    requirements.
-                                                </p>
-                                            </div>
-
-                                            <div className="rounded-[30px] border border-[#e3ebe7] bg-white px-5 py-5">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#edf8f3] text-[#0d5c46]">
-                                                        <Wallet size={20} />
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-sm font-bold text-slate-800">
-                                                            Next Recommended Step
-                                                        </p>
-                                                        <p className="mt-1 text-sm leading-6 text-slate-600">
-                                                            Keep checking this quotation page for
-                                                            approval and booking progress updates.
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div className="rounded-[26px] border border-[#e3ebe7] bg-white p-4">
-                                                <div className="flex items-center gap-2 text-[#0d5c46]">
-                                                    <ShieldCheck size={16} />
-                                                    <span className="text-sm font-bold">
-                                                        Premium Record Status
-                                                    </span>
-                                                </div>
-                                                <p className="mt-2 text-sm text-slate-600">
-                                                    This quotation is displayed in a cleaner,
-                                                    defense-ready view for easier review.
                                                 </p>
                                             </div>
                                         </div>

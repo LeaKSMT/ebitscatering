@@ -13,6 +13,7 @@ import {
     CheckCircle2,
     CalendarClock,
     ShieldCheck,
+    CalendarRange,
 } from "lucide-react";
 
 function getClientUser() {
@@ -82,6 +83,18 @@ function formatDate(dateStr) {
         year: "numeric",
         month: "long",
         day: "numeric",
+    });
+}
+
+function formatShortDate(dateStr) {
+    if (!dateStr) return "Not specified";
+    const date = new Date(dateStr);
+    if (Number.isNaN(date.getTime())) return dateStr;
+
+    return date.toLocaleDateString("en-PH", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
     });
 }
 
@@ -302,9 +315,17 @@ export default function ClientCalendar() {
             .slice(0, 6);
     }, [bookings]);
 
-    const totalBookedDays = useMemo(() => {
-        return Object.keys(bookingMap).length;
-    }, [bookingMap]);
+    const totalBookedDays = useMemo(() => Object.keys(bookingMap).length, [bookingMap]);
+
+    const selectedDateKey = selectedDate ? toDateKey(selectedDate) : "";
+    const selectedDateLabel = selectedDate
+        ? selectedDate.toLocaleDateString("en-PH", {
+            weekday: "long",
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+        })
+        : "No date selected";
 
     const monthLabel = currentDate.toLocaleDateString("en-PH", {
         month: "long",
@@ -329,6 +350,28 @@ export default function ClientCalendar() {
         setSelectedDate(parsed);
     };
 
+    const StatCard = ({ icon: Icon, label, value, subtext }) => (
+        <div className="rounded-[26px] border border-white/10 bg-white/10 p-4 backdrop-blur-md md:p-5">
+            <div className="flex items-start justify-between gap-3">
+                <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">
+                        {label}
+                    </p>
+                    <p className="mt-3 text-2xl font-extrabold leading-none text-white md:text-3xl">
+                        {value}
+                    </p>
+                    <p className="mt-2 text-xs leading-5 text-white/75 md:text-sm">
+                        {subtext}
+                    </p>
+                </div>
+
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/12 text-white">
+                    <Icon size={18} />
+                </div>
+            </div>
+        </div>
+    );
+
     return (
         <motion.div
             variants={staggerContainer}
@@ -346,7 +389,7 @@ export default function ClientCalendar() {
                 </div>
 
                 <div className="relative bg-[linear-gradient(135deg,#0a5a43_0%,#0f6d51_55%,#138062_100%)] px-6 py-8 text-white md:px-8 md:py-10">
-                    <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+                    <div className="flex flex-col gap-7 xl:flex-row xl:items-end xl:justify-between">
                         <div className="max-w-3xl">
                             <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.24em] text-white/80 backdrop-blur">
                                 <Sparkles size={14} />
@@ -359,48 +402,39 @@ export default function ClientCalendar() {
 
                             <p className="mt-3 max-w-2xl text-sm leading-7 text-white/85 md:text-base">
                                 View your scheduled event dates, upcoming bookings, and
-                                booking details in a premium calendar experience with
-                                cleaner focus and better presentation.
+                                selected schedule details with a cleaner and more polished
+                                calendar experience.
                             </p>
                         </div>
 
-                        <div className="grid gap-3 sm:grid-cols-3 lg:w-[440px] lg:grid-cols-3">
-                            <div className="rounded-[24px] border border-white/10 bg-white/10 p-4 backdrop-blur-md">
-                                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">
-                                    Upcoming Events
-                                </p>
-                                <p className="mt-2 text-3xl font-extrabold text-white">
-                                    {loading ? "..." : upcomingBookings.length}
-                                </p>
-                            </div>
+                        <div className="grid w-full gap-3 sm:grid-cols-2 xl:w-[520px] xl:grid-cols-3">
+                            <StatCard
+                                icon={CalendarClock}
+                                label="Upcoming Events"
+                                value={loading ? "..." : upcomingBookings.length}
+                                subtext="Your next confirmed or pending schedules."
+                            />
 
-                            <div className="rounded-[24px] border border-white/10 bg-white/10 p-4 backdrop-blur-md">
-                                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">
-                                    Booked Days
-                                </p>
-                                <p className="mt-2 text-3xl font-extrabold text-white">
-                                    {loading ? "..." : totalBookedDays}
-                                </p>
-                            </div>
+                            <StatCard
+                                icon={CheckCircle2}
+                                label="Booked Days"
+                                value={loading ? "..." : totalBookedDays}
+                                subtext="Total dates already marked on your calendar."
+                            />
 
-                            <div className="rounded-[24px] border border-white/10 bg-white/10 p-4 backdrop-blur-md">
-                                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">
-                                    Selected Date
-                                </p>
-                                <p className="mt-2 text-base font-bold text-white">
-                                    {selectedDate
-                                        ? selectedDate.getDate()
-                                        : "None"}
-                                </p>
-                                <p className="mt-1 text-sm text-white/75">
-                                    {selectedDate
+                            <StatCard
+                                icon={CalendarRange}
+                                label="Selected Date"
+                                value={selectedDate ? selectedDate.getDate() : "--"}
+                                subtext={
+                                    selectedDate
                                         ? selectedDate.toLocaleDateString("en-PH", {
                                             month: "short",
                                             year: "numeric",
                                         })
-                                        : "Choose a day"}
-                                </p>
-                            </div>
+                                        : "Choose a calendar day"
+                                }
+                            />
                         </div>
                     </div>
                 </div>
@@ -435,7 +469,7 @@ export default function ClientCalendar() {
                                 Previous
                             </motion.button>
 
-                            <h2 className="text-center text-xl font-extrabold md:text-3xl">
+                            <h2 className="text-center text-lg font-extrabold md:text-3xl">
                                 {monthLabel}
                             </h2>
 
@@ -452,7 +486,7 @@ export default function ClientCalendar() {
                     </div>
 
                     <div className="p-4 md:p-6">
-                        <div className="mb-4 grid grid-cols-7 gap-2 text-center text-[11px] font-bold uppercase tracking-[0.18em] text-[#0d5c46] md:gap-3 md:text-sm">
+                        <div className="mb-5 grid grid-cols-7 gap-2 text-center text-[11px] font-bold uppercase tracking-[0.18em] text-[#0d5c46] md:gap-3 md:text-sm">
                             {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
                                 <div key={day}>{day}</div>
                             ))}
@@ -528,6 +562,47 @@ export default function ClientCalendar() {
                                 Selected
                             </div>
                         </div>
+
+                        <div className="mt-6 rounded-[26px] border border-[#e3ebe7] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-4 md:p-5">
+                            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                                <div>
+                                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#0d5c46]/70">
+                                        Selected Date
+                                    </p>
+                                    <h3 className="mt-1 text-lg font-extrabold text-[#0d5c46] md:text-2xl">
+                                        {selectedDateLabel}
+                                    </h3>
+                                    <p className="mt-1 text-sm text-slate-500">
+                                        {selectedDate
+                                            ? `${selectedBookings.length} booking${selectedBookings.length === 1 ? "" : "s"
+                                            } found on this day.`
+                                            : "Choose a date from the calendar to view its details."}
+                                    </p>
+                                </div>
+
+                                <div className="flex flex-wrap gap-3">
+                                    <div className="min-w-[120px] rounded-[20px] border border-[#e8efeb] bg-[#f8fbfa] px-4 py-3">
+                                        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                                            Date Key
+                                        </p>
+                                        <p className="mt-1 text-sm font-bold text-[#0d5c46]">
+                                            {selectedDateKey || "--"}
+                                        </p>
+                                    </div>
+
+                                    <div className="min-w-[120px] rounded-[20px] border border-[#e8efeb] bg-[#f8fbfa] px-4 py-3">
+                                        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                                            Status
+                                        </p>
+                                        <p className="mt-1 text-sm font-bold text-[#0d5c46]">
+                                            {selectedBookings.length > 0
+                                                ? "Booked Day"
+                                                : "No Booking"}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </motion.section>
 
@@ -572,8 +647,8 @@ export default function ClientCalendar() {
                                             className="w-full rounded-[24px] border border-[#e3ebe7] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-4 text-left shadow-sm transition hover:border-[#22b47d]/40 hover:shadow-md"
                                         >
                                             <div className="flex items-start justify-between gap-3">
-                                                <div>
-                                                    <h4 className="text-base font-bold text-[#0d5c46]">
+                                                <div className="min-w-0">
+                                                    <h4 className="truncate text-base font-bold text-[#0d5c46]">
                                                         {booking.eventType || "Event Booking"}
                                                     </h4>
                                                     <p className="mt-1 text-sm text-slate-600">
@@ -582,7 +657,7 @@ export default function ClientCalendar() {
                                                 </div>
 
                                                 <span
-                                                    className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold ${getStatusClasses(
+                                                    className={`inline-flex shrink-0 items-center rounded-full border px-3 py-1 text-xs font-bold ${getStatusClasses(
                                                         booking.status
                                                     )}`}
                                                 >
@@ -590,7 +665,7 @@ export default function ClientCalendar() {
                                                 </span>
                                             </div>
 
-                                            <div className="mt-4 space-y-2 text-sm text-slate-700">
+                                            <div className="mt-4 grid gap-2 text-sm text-slate-700">
                                                 <p>
                                                     <span className="font-semibold">Venue:</span>{" "}
                                                     {booking.venue || "Not specified"}
@@ -654,119 +729,116 @@ export default function ClientCalendar() {
                                                 exit={{ opacity: 0, y: 8 }}
                                                 className="rounded-[26px] border border-[#e3ebe7] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-5 shadow-sm"
                                             >
-                                                <div className="flex items-start justify-between gap-3">
-                                                    <div>
-                                                        <h4 className="text-lg font-bold text-[#0d5c46]">
-                                                            {booking.eventType || "Event Booking"}
-                                                        </h4>
-                                                        <p className="mt-1 text-sm text-slate-500">
-                                                            Scheduled event detail
-                                                        </p>
-                                                    </div>
+                                                <div className="flex flex-col gap-4">
+                                                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                                        <div>
+                                                            <h4 className="text-lg font-bold text-[#0d5c46]">
+                                                                {booking.eventType || "Event Booking"}
+                                                            </h4>
+                                                            <p className="mt-1 text-sm text-slate-500">
+                                                                {formatShortDate(booking.date)} •{" "}
+                                                                {formatTime(booking.time)}
+                                                            </p>
+                                                        </div>
 
-                                                    <span
-                                                        className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold ${getStatusClasses(
-                                                            booking.status
-                                                        )}`}
-                                                    >
-                                                        {booking.status || "Booked"}
-                                                    </span>
-                                                </div>
-
-                                                <div className="mt-5 grid gap-3 text-sm text-slate-700">
-                                                    <div className="flex items-center gap-2">
-                                                        <CalendarDays
-                                                            size={16}
-                                                            className="text-[#0d5c46]"
-                                                        />
-                                                        <span>
-                                                            <span className="font-semibold">
-                                                                Date:
-                                                            </span>{" "}
-                                                            {formatDate(booking.date)}
+                                                        <span
+                                                            className={`inline-flex items-center self-start rounded-full border px-3 py-1 text-xs font-bold ${getStatusClasses(
+                                                                booking.status
+                                                            )}`}
+                                                        >
+                                                            {booking.status || "Booked"}
                                                         </span>
                                                     </div>
 
-                                                    <div className="flex items-center gap-2">
-                                                        <Clock3
-                                                            size={16}
-                                                            className="text-[#0d5c46]"
-                                                        />
-                                                        <span>
-                                                            <span className="font-semibold">
-                                                                Time:
-                                                            </span>{" "}
-                                                            {formatTime(booking.time)}
-                                                        </span>
+                                                    <div className="grid gap-3 sm:grid-cols-2">
+                                                        <div className="rounded-[22px] border border-[#e8efeb] bg-[#f8fbfa] p-4">
+                                                            <div className="flex items-center gap-2 text-[#0d5c46]">
+                                                                <CalendarDays size={16} />
+                                                                <span className="text-sm font-semibold">
+                                                                    Event Date
+                                                                </span>
+                                                            </div>
+                                                            <p className="mt-2 text-sm text-slate-700">
+                                                                {formatDate(booking.date)}
+                                                            </p>
+                                                        </div>
+
+                                                        <div className="rounded-[22px] border border-[#e8efeb] bg-[#f8fbfa] p-4">
+                                                            <div className="flex items-center gap-2 text-[#0d5c46]">
+                                                                <Clock3 size={16} />
+                                                                <span className="text-sm font-semibold">
+                                                                    Event Time
+                                                                </span>
+                                                            </div>
+                                                            <p className="mt-2 text-sm text-slate-700">
+                                                                {formatTime(booking.time)}
+                                                            </p>
+                                                        </div>
+
+                                                        <div className="rounded-[22px] border border-[#e8efeb] bg-[#f8fbfa] p-4">
+                                                            <div className="flex items-center gap-2 text-[#0d5c46]">
+                                                                <MapPin size={16} />
+                                                                <span className="text-sm font-semibold">
+                                                                    Venue
+                                                                </span>
+                                                            </div>
+                                                            <p className="mt-2 text-sm text-slate-700">
+                                                                {booking.venue || "Not specified"}
+                                                            </p>
+                                                        </div>
+
+                                                        <div className="rounded-[22px] border border-[#e8efeb] bg-[#f8fbfa] p-4">
+                                                            <div className="flex items-center gap-2 text-[#0d5c46]">
+                                                                <Users size={16} />
+                                                                <span className="text-sm font-semibold">
+                                                                    Guests
+                                                                </span>
+                                                            </div>
+                                                            <p className="mt-2 text-sm text-slate-700">
+                                                                {booking.guests || 0}
+                                                            </p>
+                                                        </div>
+
+                                                        <div className="rounded-[22px] border border-[#e8efeb] bg-[#f8fbfa] p-4">
+                                                            <div className="flex items-center gap-2 text-[#0d5c46]">
+                                                                <Package size={16} />
+                                                                <span className="text-sm font-semibold">
+                                                                    Package
+                                                                </span>
+                                                            </div>
+                                                            <p className="mt-2 text-sm text-slate-700">
+                                                                {booking.packageName || "Not specified"}
+                                                            </p>
+                                                        </div>
+
+                                                        <div className="rounded-[22px] border border-[#e8efeb] bg-[#f8fbfa] p-4">
+                                                            <div className="flex items-center gap-2 text-[#0d5c46]">
+                                                                <Wallet size={16} />
+                                                                <span className="text-sm font-semibold">
+                                                                    Total Amount
+                                                                </span>
+                                                            </div>
+                                                            <p className="mt-2 text-sm font-bold text-[#0d5c46]">
+                                                                {formatCurrency(booking.totalAmount)}
+                                                            </p>
+                                                        </div>
                                                     </div>
 
-                                                    <div className="flex items-center gap-2">
-                                                        <MapPin
-                                                            size={16}
-                                                            className="text-[#0d5c46]"
-                                                        />
-                                                        <span>
-                                                            <span className="font-semibold">
-                                                                Venue:
-                                                            </span>{" "}
-                                                            {booking.venue || "Not specified"}
-                                                        </span>
-                                                    </div>
+                                                    {booking.classicMenu ? (
+                                                        <div className="rounded-[22px] border border-[#e3ebe7] bg-white p-4 text-sm text-slate-700">
+                                                            <p className="font-semibold text-[#0d5c46]">
+                                                                Classic Menu / Notes
+                                                            </p>
+                                                            <p className="mt-2 leading-6">
+                                                                {booking.classicMenu}
+                                                            </p>
+                                                        </div>
+                                                    ) : null}
 
-                                                    <div className="flex items-center gap-2">
-                                                        <Users
-                                                            size={16}
-                                                            className="text-[#0d5c46]"
-                                                        />
-                                                        <span>
-                                                            <span className="font-semibold">
-                                                                Guests:
-                                                            </span>{" "}
-                                                            {booking.guests || 0}
-                                                        </span>
+                                                    <div className="inline-flex items-center gap-2 self-start rounded-full bg-[#eef9f5] px-3 py-1.5 text-xs font-semibold text-[#0d5c46]">
+                                                        <CheckCircle2 size={14} />
+                                                        Keep monitoring this booking for updates
                                                     </div>
-
-                                                    <div className="flex items-center gap-2">
-                                                        <Package
-                                                            size={16}
-                                                            className="text-[#0d5c46]"
-                                                        />
-                                                        <span>
-                                                            <span className="font-semibold">
-                                                                Package:
-                                                            </span>{" "}
-                                                            {booking.packageName || "Not specified"}
-                                                        </span>
-                                                    </div>
-
-                                                    <div className="flex items-center gap-2">
-                                                        <Wallet
-                                                            size={16}
-                                                            className="text-[#0d5c46]"
-                                                        />
-                                                        <span>
-                                                            <span className="font-semibold">
-                                                                Total:
-                                                            </span>{" "}
-                                                            {formatCurrency(booking.totalAmount)}
-                                                        </span>
-                                                    </div>
-                                                </div>
-
-                                                {booking.classicMenu ? (
-                                                    <div className="mt-4 rounded-[22px] border border-[#e3ebe7] bg-white p-4 text-sm text-slate-700">
-                                                        <p className="font-semibold text-[#0d5c46]">
-                                                            Classic Menu / Notes
-                                                        </p>
-                                                        <p className="mt-2 leading-6">
-                                                            {booking.classicMenu}
-                                                        </p>
-                                                    </div>
-                                                ) : null}
-
-                                                <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#eef9f5] px-3 py-1.5 text-xs font-semibold text-[#0d5c46]">
-                                                    <CheckCircle2 size={14} />
-                                                    Keep monitoring this booking for updates
                                                 </div>
                                             </motion.div>
                                         ))}

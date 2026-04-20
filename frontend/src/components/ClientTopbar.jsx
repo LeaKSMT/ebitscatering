@@ -17,7 +17,6 @@ import {
     Moon,
     Sun,
     User,
-    Settings,
     CheckCircle2,
 } from "lucide-react";
 
@@ -78,7 +77,6 @@ function buildNotifications({ quotations, bookings, inquiries }) {
     quotations.slice(0, 3).forEach((item) => {
         notificationItems.push({
             id: `quotation-${item.id}-${item.createdAt || ""}`,
-            type: "quotation",
             title: "Quotation update",
             message:
                 item?.eventType ||
@@ -93,12 +91,11 @@ function buildNotifications({ quotations, bookings, inquiries }) {
 
     bookings.slice(0, 3).forEach((item) => {
         notificationItems.push({
-            id: `booking-${item.id}-${item.createdAt || item.eventDate || ""}`,
-            type: "booking",
+            id: `booking-${item.id}-${item.createdAt || item.date || ""}`,
             title: "Booking activity",
             message: item?.eventType || item?.packageName || "Booking record",
             meta: item?.status || "Pending",
-            createdAt: item?.createdAt || item?.eventDate || new Date().toISOString(),
+            createdAt: item?.createdAt || item?.date || new Date().toISOString(),
             to: "/client/bookings",
         });
     });
@@ -110,7 +107,6 @@ function buildNotifications({ quotations, bookings, inquiries }) {
         .forEach((item, index) => {
             notificationItems.push({
                 id: `inquiry-${item.id || index}`,
-                type: "inquiry",
                 title: "Admin reply received",
                 message: String(item?.text || "New reply").slice(0, 72),
                 meta: "Support",
@@ -147,14 +143,12 @@ function ClientTopbar() {
     useEffect(() => {
         localStorage.setItem("clientPortalTheme", theme);
         document.documentElement.setAttribute("data-theme", theme);
+        window.dispatchEvent(new Event("client-theme-change"));
     }, [theme]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (
-                profileRef.current &&
-                !profileRef.current.contains(event.target)
-            ) {
+            if (profileRef.current && !profileRef.current.contains(event.target)) {
                 setShowProfileDropdown(false);
             }
 
@@ -238,7 +232,7 @@ function ClientTopbar() {
                 </div>
 
                 <div className="relative mx-auto max-w-[1380px] px-3 sm:px-5 lg:px-6">
-                    <div className="flex items-center justify-between gap-3 py-4 xl:py-5">
+                    <div className="flex min-h-[76px] items-center justify-between gap-3 py-3 xl:min-h-[84px] xl:py-4">
                         <motion.div
                             initial={{ opacity: 0, x: -18 }}
                             animate={{ opacity: 1, x: 0 }}
@@ -262,8 +256,8 @@ function ClientTopbar() {
                             </div>
                         </motion.div>
 
-                        <div className="hidden min-w-0 flex-1 justify-center px-2 min-[1450px]:flex">
-                            <nav className="rounded-full border border-white/10 bg-white/8 p-2 shadow-[0_14px_35px_rgba(0,0,0,0.12)] backdrop-blur-xl">
+                        <div className="hidden min-w-0 flex-1 items-center justify-center px-3 min-[1450px]:flex">
+                            <nav className="flex h-[54px] items-center rounded-full border border-white/10 bg-white/8 px-2 shadow-[0_14px_35px_rgba(0,0,0,0.12)] backdrop-blur-xl">
                                 <div className="flex items-center gap-1.5">
                                     {navItems.map(({ to, label, icon: Icon }) => (
                                         <NavLink key={to} to={to} className={navClass}>
@@ -279,7 +273,7 @@ function ClientTopbar() {
                             initial={{ opacity: 0, x: 18 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.45 }}
-                            className="hidden items-center gap-2.5 pl-2 min-[1450px]:flex"
+                            className="hidden items-center self-center gap-2.5 pl-2 min-[1450px]:flex"
                         >
                             <div ref={notificationsRef} className="relative">
                                 <button
@@ -287,7 +281,7 @@ function ClientTopbar() {
                                         setShowNotifications((prev) => !prev);
                                         setShowProfileDropdown(false);
                                     }}
-                                    className="relative inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-white shadow-[0_10px_22px_rgba(0,0,0,0.12)] transition hover:bg-white/15"
+                                    className="relative inline-flex h-[50px] w-[50px] items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-white shadow-[0_10px_22px_rgba(0,0,0,0.12)] transition hover:bg-white/15"
                                 >
                                     <Bell size={18} />
                                     {unreadCount > 0 ? (
@@ -380,7 +374,7 @@ function ClientTopbar() {
 
                             <button
                                 onClick={toggleTheme}
-                                className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-white shadow-[0_10px_22px_rgba(0,0,0,0.12)] transition hover:bg-white/15"
+                                className="inline-flex h-[50px] w-[50px] items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-white shadow-[0_10px_22px_rgba(0,0,0,0.12)] transition hover:bg-white/15"
                                 title={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
                             >
                                 {theme === "light" ? <Moon size={18} /> : <Sun size={18} />}
@@ -392,7 +386,7 @@ function ClientTopbar() {
                                         setShowProfileDropdown((prev) => !prev);
                                         setShowNotifications(false);
                                     }}
-                                    className="flex max-w-[210px] items-center gap-2 rounded-2xl border border-white/10 bg-white/95 px-4 py-2.5 text-sm font-bold text-[#0b5a43] shadow-[0_14px_30px_rgba(0,0,0,0.08)]"
+                                    className="flex h-[50px] max-w-[210px] items-center gap-2 rounded-2xl border border-white/10 bg-white/95 px-4 py-2.5 text-sm font-bold text-[#0b5a43] shadow-[0_14px_30px_rgba(0,0,0,0.08)]"
                                 >
                                     <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[linear-gradient(135deg,#0b5a43_0%,#0f6d51_100%)] text-xs font-extrabold text-white">
                                         {String(clientUser?.name || "C").charAt(0).toUpperCase()}
@@ -400,7 +394,8 @@ function ClientTopbar() {
                                     <span className="truncate">{clientUser?.name || "Client"}</span>
                                     <ChevronRight
                                         size={15}
-                                        className={`shrink-0 transition ${showProfileDropdown ? "rotate-90" : ""}`}
+                                        className={`shrink-0 transition ${showProfileDropdown ? "rotate-90" : ""
+                                            }`}
                                     />
                                 </button>
 
@@ -443,13 +438,21 @@ function ClientTopbar() {
 
                                                 <button
                                                     onClick={() => {
+                                                        toggleTheme();
                                                         setShowProfileDropdown(false);
-                                                        navigate("/client/dashboard");
                                                     }}
                                                     className="mt-1 flex w-full items-center gap-3 rounded-[20px] px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-[#f7fbf9]"
                                                 >
-                                                    <Settings size={17} className="text-[#0d5c46]" />
-                                                    <span>Settings</span>
+                                                    {theme === "light" ? (
+                                                        <Moon size={17} className="text-[#0d5c46]" />
+                                                    ) : (
+                                                        <Sun size={17} className="text-[#0d5c46]" />
+                                                    )}
+                                                    <span>
+                                                        {theme === "light"
+                                                            ? "Switch to Dark Mode"
+                                                            : "Switch to Light Mode"}
+                                                    </span>
                                                 </button>
 
                                                 <button
@@ -603,14 +606,6 @@ function ClientTopbar() {
                                     </div>
                                 </div>
 
-                                <button
-                                    onClick={() => setShowLogoutModal(true)}
-                                    className="mt-5 flex w-full items-center justify-center gap-2 rounded-[22px] bg-[linear-gradient(135deg,#0b5a43_0%,#0f6d51_100%)] px-4 py-3.5 font-bold text-white shadow-[0_14px_26px_rgba(11,90,67,0.18)] transition hover:-translate-y-0.5 hover:bg-[#084633]"
-                                >
-                                    <LogOut size={18} />
-                                    Logout
-                                </button>
-
                                 {showNotifications ? (
                                     <div className="mt-5 rounded-[24px] border border-[#e3ebe7] bg-white p-3 shadow-sm">
                                         <p className="px-2 pt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
@@ -647,6 +642,14 @@ function ClientTopbar() {
                                         </div>
                                     </div>
                                 ) : null}
+
+                                <button
+                                    onClick={() => setShowLogoutModal(true)}
+                                    className="mt-5 flex w-full items-center justify-center gap-2 rounded-[22px] bg-[linear-gradient(135deg,#0b5a43_0%,#0f6d51_100%)] px-4 py-3.5 font-bold text-white shadow-[0_14px_26px_rgba(11,90,67,0.18)] transition hover:-translate-y-0.5 hover:bg-[#084633]"
+                                >
+                                    <LogOut size={18} />
+                                    Logout
+                                </button>
                             </div>
                         </motion.div>
                     </>

@@ -16,9 +16,18 @@ function ClientPortalLayout() {
         };
 
         applyTheme();
-        window.addEventListener("storage", applyTheme);
 
-        return () => window.removeEventListener("storage", applyTheme);
+        const handleThemeChange = () => {
+            applyTheme();
+        };
+
+        window.addEventListener("storage", applyTheme);
+        window.addEventListener("client-theme-change", handleThemeChange);
+
+        return () => {
+            window.removeEventListener("storage", applyTheme);
+            window.removeEventListener("client-theme-change", handleThemeChange);
+        };
     }, []);
 
     return (
