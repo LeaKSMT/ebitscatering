@@ -168,6 +168,33 @@ function formatDate(dateStr) {
     });
 }
 
+function getDateValue(item = {}) {
+    return (
+        item.preferredDate ||
+        item.preferred_date ||
+        item.eventDate ||
+        item.event_date ||
+        item.bookingDate ||
+        item.booking_date ||
+        item.date ||
+        ""
+    );
+}
+
+function getValidDate(value) {
+    if (!value) return null;
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function toDateKey(value) {
+    const date = getValidDate(value);
+    if (!date) return "";
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
+        date.getDate()
+    ).padStart(2, "0")}`;
+}
+
 function getMonthLabel(date) {
     return date.toLocaleDateString("en-PH", {
         month: "long",
@@ -245,25 +272,24 @@ function getInitialForm(selectedDate = "") {
 }
 
 function deriveQuotationBooking(raw, meta = {}) {
-    const id = raw.id ?? raw._id ?? raw.quotationId;
+    const id = raw.id ?? raw._id ?? raw.quotationId ?? raw.quotation_id;
+
     const guests = Number(
         raw.guests ??
         raw.guestCount ??
+        raw.guest_count ??
         raw.pax ??
         raw.numberOfGuests ??
         0
     );
 
-    const preferredDate =
-        raw.preferredDate ||
-        raw.eventDate ||
-        raw.date ||
-        raw.bookingDate ||
-        "";
+    const preferredDate = getDateValue(raw);
 
     const packageType =
         raw.packageType ||
+        raw.package_type ||
         raw.packageName ||
+        raw.package_name ||
         raw.selectedPackage ||
         raw.package ||
         "";
@@ -276,9 +302,13 @@ function deriveQuotationBooking(raw, meta = {}) {
 
     const estimatedTotal = Number(
         raw.estimatedTotal ??
+        raw.estimated_total ??
         raw.totalAmount ??
+        raw.total_amount ??
         raw.total ??
         raw.amount ??
+        raw.totalPrice ??
+        raw.total_price ??
         0
     );
 
@@ -288,19 +318,29 @@ function deriveQuotationBooking(raw, meta = {}) {
         sourceId: id,
         bookingId:
             raw.bookingId ||
+            raw.booking_id ||
+            raw.bookingCode ||
+            raw.booking_code ||
             raw.quotationNumber ||
-            raw.quoteNumber ||
+            raw.quotation_number ||
+            raw.quotationId ||
+            raw.quotation_id ||
             `Q${String(id)}`,
         fullName:
             meta.fullName ||
             raw.fullName ||
+            raw.full_name ||
             raw.name ||
             raw.clientName ||
+            raw.client_name ||
             raw.customerName ||
+            raw.ownerName ||
+            raw.owner_name ||
             "Unnamed client",
         contactNumber:
             meta.contactNumber ||
             raw.contactNumber ||
+            raw.contact_number ||
             raw.phone ||
             raw.mobile ||
             "",
@@ -308,50 +348,90 @@ function deriveQuotationBooking(raw, meta = {}) {
             meta.email ||
             raw.email ||
             raw.clientEmail ||
+            raw.client_email ||
             raw.ownerEmail ||
+            raw.owner_email ||
             "",
         ownerEmail:
             meta.email ||
             raw.email ||
             raw.clientEmail ||
+            raw.client_email ||
             raw.ownerEmail ||
+            raw.owner_email ||
             "",
         eventType:
             meta.eventType ||
             raw.eventType ||
+            raw.event_type ||
             raw.occasion ||
             raw.event_name ||
             "Event",
         preferredDate: meta.preferredDate || preferredDate,
         eventDate: meta.preferredDate || preferredDate,
-        eventTime: meta.eventTime || raw.eventTime || raw.time || "",
-        venue: meta.venue || raw.venue || raw.location || raw.address || "",
+        eventTime:
+            meta.eventTime ||
+            raw.eventTime ||
+            raw.event_time ||
+            raw.time ||
+            "",
+        venue:
+            meta.venue ||
+            raw.venue ||
+            raw.location ||
+            raw.address ||
+            "",
         guests: Number(meta.guests ?? guests),
         guestCount: Number(meta.guestCount ?? guests),
         packageType: meta.packageType || packageType,
-        classicMenu: meta.classicMenu || raw.classicMenu || raw.menu || "",
+        classicMenu:
+            meta.classicMenu ||
+            raw.classicMenu ||
+            raw.classic_menu ||
+            raw.menu ||
+            "",
         addOns: meta.addOns || addOns,
         themePreference:
-            meta.themePreference || raw.themePreference || raw.theme || "",
+            meta.themePreference ||
+            raw.themePreference ||
+            raw.theme_preference ||
+            raw.theme ||
+            "",
         specialRequests:
             meta.specialRequests ||
             raw.specialRequests ||
+            raw.special_requests ||
             raw.notes ||
             raw.message ||
             "",
-        packagePrice: Number(meta.packagePrice ?? raw.packagePrice ?? 0),
-        addOnsTotal: Number(meta.addOnsTotal ?? raw.addOnsTotal ?? 0),
+        packagePrice: Number(
+            meta.packagePrice ??
+            raw.packagePrice ??
+            raw.package_price ??
+            0
+        ),
+        addOnsTotal: Number(
+            meta.addOnsTotal ??
+            raw.addOnsTotal ??
+            raw.add_ons_total ??
+            0
+        ),
         estimatedTotal: Number(meta.estimatedTotal ?? estimatedTotal),
         totalAmount: Number(meta.totalAmount ?? estimatedTotal),
-        includedPax: meta.includedPax ?? raw.includedPax ?? null,
-        pricingType: meta.pricingType || raw.pricingType || "",
-        ratePerPax: Number(meta.ratePerPax ?? raw.ratePerPax ?? 0) || null,
-        excessGuests: Number(meta.excessGuests ?? raw.excessGuests ?? 0),
-        excessCost: Number(meta.excessCost ?? raw.excessCost ?? 0),
+        includedPax: meta.includedPax ?? raw.includedPax ?? raw.included_pax ?? null,
+        pricingType: meta.pricingType || raw.pricingType || raw.pricing_type || "",
+        ratePerPax:
+            Number(meta.ratePerPax ?? raw.ratePerPax ?? raw.rate_per_pax ?? 0) || null,
+        excessGuests: Number(
+            meta.excessGuests ?? raw.excessGuests ?? raw.excess_guests ?? 0
+        ),
+        excessCost: Number(
+            meta.excessCost ?? raw.excessCost ?? raw.excess_cost ?? 0
+        ),
         status: capitalizeStatus(meta.status || raw.status || "Pending"),
         source: "quotation-api",
-        createdAt: raw.createdAt || "",
-        updatedAt: meta.updatedAt || raw.updatedAt || "",
+        createdAt: raw.createdAt || raw.created_at || "",
+        updatedAt: meta.updatedAt || raw.updatedAt || raw.updated_at || "",
     };
 }
 
@@ -385,8 +465,12 @@ function mergeBookings(quotations = [], manualBookings = []) {
     const apiBookings = quotations
         .filter((item) => shouldShowAsBooking(item.status))
         .map((item) => {
-            const sourceId = item.id ?? item._id ?? item.quotationId;
-            return deriveQuotationBooking(item, metaMap[`quotation_${sourceId}`] || {});
+            const sourceId =
+                item.id ?? item._id ?? item.quotationId ?? item.quotation_id;
+            return deriveQuotationBooking(
+                item,
+                metaMap[`quotation_${sourceId}`] || {}
+            );
         });
 
     const localBookings = manualBookings.map((item) =>
@@ -394,12 +478,12 @@ function mergeBookings(quotations = [], manualBookings = []) {
     );
 
     return [...apiBookings, ...localBookings]
-        .filter((item) => item.preferredDate)
-        .sort(
-            (a, b) =>
-                new Date(a.preferredDate).getTime() -
-                new Date(b.preferredDate).getTime()
-        );
+        .filter((item) => toDateKey(item.preferredDate))
+        .sort((a, b) => {
+            const aTime = getValidDate(a.preferredDate)?.getTime() || 0;
+            const bTime = getValidDate(b.preferredDate)?.getTime() || 0;
+            return aTime - bTime;
+        });
 }
 
 function AdminCalendar() {
@@ -425,6 +509,10 @@ function AdminCalendar() {
                 Array.isArray(quotations) ? quotations : [],
                 manualBookings
             );
+
+            console.log("QUOTATIONS FROM API:", quotations);
+            console.log("MERGED BOOKINGS:", merged);
+
             setBookings(merged);
         } catch (err) {
             console.error("AdminCalendar fetch error:", err);
@@ -534,7 +622,9 @@ function AdminCalendar() {
 
     const currentMonthBookings = useMemo(() => {
         return bookings.filter((booking) => {
-            const d = new Date(booking.preferredDate);
+            const d = getValidDate(booking.preferredDate);
+            if (!d) return false;
+
             return (
                 d.getFullYear() === year &&
                 d.getMonth() === month &&
@@ -544,19 +634,23 @@ function AdminCalendar() {
     }, [bookings, year, month]);
 
     const upcomingEvents = useMemo(() => {
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+
         return [...bookings]
-            .filter(
-                (item) =>
-                    item.preferredDate &&
+            .filter((item) => {
+                const d = getValidDate(item.preferredDate);
+                return (
+                    d &&
                     normalizeStatus(item.status) !== "cancelled" &&
-                    new Date(item.preferredDate).getTime() >=
-                    new Date(new Date().setHours(0, 0, 0, 0)).getTime()
-            )
-            .sort(
-                (a, b) =>
-                    new Date(a.preferredDate).getTime() -
-                    new Date(b.preferredDate).getTime()
-            )
+                    d.getTime() >= todayStart.getTime()
+                );
+            })
+            .sort((a, b) => {
+                const aTime = getValidDate(a.preferredDate)?.getTime() || 0;
+                const bTime = getValidDate(b.preferredDate)?.getTime() || 0;
+                return aTime - bTime;
+            })
             .slice(0, 6);
     }, [bookings]);
 
@@ -566,12 +660,7 @@ function AdminCalendar() {
         ).padStart(2, "0")}`;
 
         return currentMonthBookings.filter((booking) => {
-            const bookingDate = new Date(booking.preferredDate);
-            const bookingKey = `${bookingDate.getFullYear()}-${String(
-                bookingDate.getMonth() + 1
-            ).padStart(2, "0")}-${String(bookingDate.getDate()).padStart(2, "0")}`;
-
-            return bookingKey === dateKey;
+            return toDateKey(booking.preferredDate) === dateKey;
         });
     };
 
@@ -650,12 +739,13 @@ function AdminCalendar() {
         }
 
         const manualBookings = getManualBookings();
+        const generatedId = `manual_${Date.now()}`;
 
         const booking = {
-            id: `manual_${Date.now()}`,
+            id: generatedId,
             bookingId: `B${String(manualBookings.length + 1).padStart(2, "0")}`,
             sourceType: "manual",
-            sourceId: `manual_${Date.now()}`,
+            sourceId: generatedId,
             ownerName: form.fullName,
             ownerEmail:
                 (form.email || "").trim().toLowerCase() || "walkin@guest.local",
@@ -724,8 +814,28 @@ function AdminCalendar() {
 
             await refreshBookings();
 
-            const updated = bookings.find((item) => item.id === selectedBooking.id);
-            if (updated) setSelectedBooking(updated);
+            setSelectedBooking((prev) => {
+                if (!prev) return null;
+                const latestMeta = getEventMetaMap();
+                const refreshedBooking =
+                    bookings.find((item) => item.id === prev.id) ||
+                    null;
+
+                if (refreshedBooking) return refreshedBooking;
+
+                if (prev.sourceType === "quotation") {
+                    return {
+                        ...prev,
+                        ...(latestMeta[prev.id] || {}),
+                        status,
+                    };
+                }
+
+                return {
+                    ...prev,
+                    status,
+                };
+            });
         } catch (err) {
             console.error("Update booking status error:", err);
             alert(err.message || "Failed to update booking status.");
