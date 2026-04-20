@@ -1,4 +1,4 @@
-const BASE_URL = "https://ebitscatering.onrender.com";
+const BASE_URL = import.meta.env.VITE_API_URL || "https://ebitscatering-production.up.railway.app";
 
 class ApiClient {
   constructor(baseURL = BASE_URL) {

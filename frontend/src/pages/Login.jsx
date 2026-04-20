@@ -33,7 +33,6 @@ function Login() {
     };
 
     const clearSession = () => {
-        localStorage.removeItem("token");
         localStorage.removeItem("user");
         localStorage.removeItem("clientUser");
         localStorage.removeItem("clientName");
@@ -43,12 +42,13 @@ function Login() {
         localStorage.removeItem("isClientLoggedIn");
         localStorage.removeItem("adminAuth");
         localStorage.removeItem("adminUser");
+        localStorage.removeItem("token");
+        localStorage.removeItem("clientToken");
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("adminToken");
     };
 
-    const saveClientSession = (
-        { id = null, name, email, photo = "" },
-        token = ""
-    ) => {
+    const saveClientSession = ({ id = null, name, email, photo = "" }) => {
         const safeEmail = email?.trim().toLowerCase() || "";
         const finalName = name?.trim() || safeEmail.split("@")[0] || "Client";
 
@@ -68,13 +68,9 @@ function Login() {
         localStorage.setItem("currentClientName", finalName);
         localStorage.setItem("currentClientEmail", safeEmail);
         localStorage.setItem("isClientLoggedIn", "true");
-
-        if (token) {
-            localStorage.setItem("token", token);
-        }
     };
 
-    const saveAdminSession = ({ id = null, name, email, photo = "" }, token = "") => {
+    const saveAdminSession = ({ id = null, name, email, photo = "" }) => {
         const safeEmail = email?.trim().toLowerCase() || "";
         const finalName = name?.trim() || safeEmail.split("@")[0] || "Admin";
 
@@ -90,10 +86,6 @@ function Login() {
         localStorage.setItem("user", JSON.stringify(userData));
         localStorage.setItem("adminUser", JSON.stringify(userData));
         localStorage.setItem("adminAuth", "true");
-
-        if (token) {
-            localStorage.setItem("token", token);
-        }
     };
 
     const showErrorPopup = (message) => {
@@ -145,20 +137,17 @@ function Login() {
                 });
 
                 if (data.user.role === "admin") {
-                    saveAdminSession(data.user, data.token);
+                    saveAdminSession(data.user);
                     setTimeout(() => navigate(getRedirectAfterLogin("admin")), 1000);
                     return;
                 }
 
-                saveClientSession(
-                    {
-                        id: data.user.id || null,
-                        name: data.user.name || "",
-                        email: data.user.email,
-                        photo: "",
-                    },
-                    data.token || ""
-                );
+                saveClientSession({
+                    id: data.user.id || null,
+                    name: data.user.name || "",
+                    email: data.user.email,
+                    photo: "",
+                });
 
                 setTimeout(() => navigate(getRedirectAfterLogin("client")), 1000);
                 return;

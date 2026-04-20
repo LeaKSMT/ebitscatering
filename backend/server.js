@@ -8,56 +8,36 @@ const app = express();
 
 console.log("🔥 COOKIE AUTH VERSION LOADED");
 
-app.set("trust proxy", true);
+app.set("trust proxy", 1);
 
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 const { httpLogger } = require("./utils/logger");
 
-const allowedOrigins = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "https://ebitscatering.vercel.app",
-];
-
-if (process.env.FRONTEND_URL) {
-    allowedOrigins.push(process.env.FRONTEND_URL.trim());
-}
-
 app.use(compression());
 app.use(cookieParser());
 
-app.use(
-    cors({
-        origin(origin, callback) {
-            if (!origin) return callback(null, true);
+// IMPORTANT: exact frontend origin for Vercel and Railway
+const corsOptions = {
+    origin: ["https://ebitscatering.vercel.app", "https://ebitscatering-production.up.railway.app"],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+};
 
-            if (allowedOrigins.includes(origin)) {
-                return callback(null, true);
-            }
+app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "https://ebitscatering.vercel.app, https://ebitscatering-production.up.railway.app");
+    res.header("Access-Control-Allow-Credentials", "true");
+    res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
-            return callback(new Error(`CORS blocked for origin: ${origin}`));
-        },
-        credentials: true,
-        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        allowedHeaders: ["Content-Type", "Authorization"],
-    })
-);
+    if (req.method === "OPTIONS") {
+        return res.sendStatus(204);
+    }
 
-app.options(
-    /.*/,
-    cors({
-        origin(origin, callback) {
-            if (!origin) return callback(null, true);
+    next();
+});
 
-            if (allowedOrigins.includes(origin)) {
-                return callback(null, true);
-            }
-
-            return callback(new Error(`CORS blocked for origin: ${origin}`));
-        },
-        credentials: true,
-    })
-);
+app.use(cors(corsOptions));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
