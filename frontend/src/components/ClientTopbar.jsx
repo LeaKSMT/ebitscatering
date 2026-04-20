@@ -372,14 +372,6 @@ function ClientTopbar() {
                                 </AnimatePresence>
                             </div>
 
-                            <button
-                                onClick={toggleTheme}
-                                className="inline-flex h-[50px] w-[50px] items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-white shadow-[0_10px_22px_rgba(0,0,0,0.12)] transition hover:bg-white/15"
-                                title={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
-                            >
-                                {theme === "light" ? <Moon size={18} /> : <Sun size={18} />}
-                            </button>
-
                             <div ref={profileRef} className="relative">
                                 <button
                                     onClick={() => {
@@ -533,15 +525,7 @@ function ClientTopbar() {
                                     </p>
                                 </div>
 
-                                <div className="mt-4 flex items-center gap-3">
-                                    <button
-                                        onClick={toggleTheme}
-                                        className="flex flex-1 items-center justify-center gap-2 rounded-[18px] border border-white/10 bg-white/10 px-4 py-3 font-semibold text-white"
-                                    >
-                                        {theme === "light" ? <Moon size={16} /> : <Sun size={16} />}
-                                        <span>{theme === "light" ? "Dark Mode" : "Light Mode"}</span>
-                                    </button>
-
+                                <div className="mt-4 flex items-center justify-end">
                                     <button
                                         onClick={() => {
                                             setShowNotifications((prev) => !prev);
@@ -642,6 +626,24 @@ function ClientTopbar() {
                                         </div>
                                     </div>
                                 ) : null}
+
+                                <div className="mt-5 rounded-[24px] border border-[#e3ebe7] bg-white p-3 shadow-sm">
+                                    <button
+                                        onClick={toggleTheme}
+                                        className="flex w-full items-center gap-3 rounded-[18px] px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-[#f7fbf9]"
+                                    >
+                                        {theme === "light" ? (
+                                            <Moon size={17} className="text-[#0d5c46]" />
+                                        ) : (
+                                            <Sun size={17} className="text-[#0d5c46]" />
+                                        )}
+                                        <span>
+                                            {theme === "light"
+                                                ? "Switch to Dark Mode"
+                                                : "Switch to Light Mode"}
+                                        </span>
+                                    </button>
+                                </div>
 
                                 <button
                                     onClick={() => setShowLogoutModal(true)}

@@ -1,7 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
-
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 96px;
@@ -27,7 +26,6 @@ textarea {
   transition: all 0.2s ease;
 }
 
-
 * {
   scrollbar-width: thin;
   scrollbar-color: rgba(15, 77, 60, 0.28) transparent;
@@ -46,7 +44,6 @@ textarea {
 *::-webkit-scrollbar-track {
   background: transparent;
 }
-
 
 .client-portal-shell {
   background:
@@ -124,7 +121,7 @@ textarea {
   background:
     radial-gradient(circle at top, rgba(212, 175, 55, 0.1), transparent 18%),
     linear-gradient(180deg, #071c16 0%, #0a241d 45%, #102d24 100%);
-  color: #e8f2ee;
+  color: #eef7f3;
 }
 
 .client-theme-dark .client-grid-overlay {
@@ -139,9 +136,9 @@ textarea {
 }
 
 .client-theme-dark .portal-card-premium {
-  border-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.1);
   background:
-    linear-gradient(180deg, rgba(15, 34, 28, 0.96) 0%, rgba(18, 40, 33, 0.96) 100%);
+    linear-gradient(180deg, rgba(15, 34, 28, 0.97) 0%, rgba(18, 40, 33, 0.97) 100%);
   box-shadow: 0 14px 40px rgba(0, 0, 0, 0.24);
 }
 
@@ -155,22 +152,50 @@ textarea {
   box-shadow: 0 20px 45px rgba(0, 0, 0, 0.3);
 }
 
-.client-theme-dark .text-slate-400,
+.client-theme-dark .text-slate-300,
+.client-theme-dark .text-slate-400 {
+  color: rgb(210 225 219 / 0.92) !important;
+}
+
 .client-theme-dark .text-slate-500,
 .client-theme-dark .text-slate-600 {
-  color: rgb(179 196 190 / 0.92) !important;
+  color: rgb(197 216 209 / 0.95) !important;
 }
 
 .client-theme-dark .text-slate-700,
 .client-theme-dark .text-slate-800,
-.client-theme-dark .text-gray-700,
+.client-theme-dark .text-gray-500,
 .client-theme-dark .text-gray-600,
-.client-theme-dark .text-gray-500 {
-  color: rgb(232 242 238 / 0.96) !important;
+.client-theme-dark .text-gray-700,
+.client-theme-dark .text-gray-800 {
+  color: rgb(238 247 243 / 0.98) !important;
+}
+
+.client-theme-dark .text-white\/70 {
+  color: rgba(240, 248, 244, 0.78) !important;
+}
+
+.client-theme-dark .text-white\/75,
+.client-theme-dark .text-white\/80,
+.client-theme-dark .text-white\/85,
+.client-theme-dark .text-white\/90 {
+  color: rgba(245, 250, 248, 0.9) !important;
 }
 
 .client-theme-dark .bg-white {
-  background-color: rgba(18, 40, 33, 0.96) !important;
+  background-color: rgba(16, 35, 29, 0.98) !important;
+}
+
+.client-theme-dark .bg-white\/95 {
+  background-color: rgba(245, 250, 248, 0.96) !important;
+}
+
+.client-theme-dark .bg-white\/10 {
+  background-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.client-theme-dark .bg-white\/8 {
+  background-color: rgba(255, 255, 255, 0.08) !important;
 }
 
 .client-theme-dark .bg-\[\#f8fbfa\],
@@ -179,7 +204,7 @@ textarea {
 .client-theme-dark .bg-\[\#fafafa\],
 .client-theme-dark .bg-\[\#fcfdfd\],
 .client-theme-dark .bg-\[\#f6f7f9\] {
-  background: rgba(20, 44, 36, 0.92) !important;
+  background: rgba(18, 40, 33, 0.96) !important;
 }
 
 .client-theme-dark .border-\[\#e3ebe7\],
@@ -188,28 +213,45 @@ textarea {
 .client-theme-dark .border-\[\#dbe6e1\],
 .client-theme-dark .border-\[\#edf2ef\],
 .client-theme-dark .border-\[\#e8efeb\] {
-  border-color: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.client-theme-dark .border-white\/10 {
+  border-color: rgba(255, 255, 255, 0.14) !important;
 }
 
 .client-theme-dark .bg-\[\#eef8f3\] {
-  background: rgba(26, 76, 60, 0.65) !important;
+  background: rgba(26, 76, 60, 0.72) !important;
+}
+
+.client-theme-dark .bg-\[\#eef9f5\] {
+  background: rgba(21, 64, 50, 0.78) !important;
+}
+
+.client-theme-dark .bg-\[\#edf8f3\] {
+  background: rgba(24, 70, 56, 0.82) !important;
+}
+
+.client-theme-dark .bg-\[\#f1f7f4\] {
+  background: rgba(23, 60, 49, 0.86) !important;
 }
 
 .client-theme-dark .bg-\[\#fff8e6\],
 .client-theme-dark .bg-\[\#fffaf0\],
 .client-theme-dark .bg-\[\#fff3d0\],
 .client-theme-dark .bg-\[\#fff2c5\] {
-  background: rgba(76, 58, 18, 0.35) !important;
+  background: rgba(97, 76, 24, 0.4) !important;
 }
 
 .client-theme-dark .text-\[\#0d5c46\],
 .client-theme-dark .text-\[\#0b5a43\] {
-  color: #8ee1c1 !important;
+  color: #98efcc !important;
 }
 
 .client-theme-dark .text-\[\#b99117\],
-.client-theme-dark .text-\[\#8f6a0f\] {
-  color: #f0cb58 !important;
+.client-theme-dark .text-\[\#8f6a0f\],
+.client-theme-dark .text-\[\#8a6710\] {
+  color: #f5cf67 !important;
 }
 
 .client-theme-dark .bg-\[\#0d5c46\],
@@ -217,13 +259,18 @@ textarea {
   background: linear-gradient(135deg, #0d5c46 0%, #0f6d51 100%) !important;
 }
 
-.client-theme-dark .bg-\[\#eef9f5\] {
-  background: rgba(21, 64, 50, 0.72) !important;
-}
-
 .client-theme-dark .shadow-sm,
 .client-theme-dark .shadow-md {
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.16) !important;
+}
+
+.client-theme-dark .line-clamp-2,
+.client-theme-dark p,
+.client-theme-dark span,
+.client-theme-dark small,
+.client-theme-dark label,
+.client-theme-dark li {
+  text-rendering: optimizeLegibility;
 }
 
 .client-topbar-link {
@@ -289,7 +336,6 @@ textarea {
   transform: translateY(-4px);
   box-shadow: 0 20px 45px rgba(14, 61, 47, 0.1);
 }
-
 
 .hero-luxury-overlay {
   background:
@@ -404,7 +450,6 @@ textarea {
   background: linear-gradient(180deg, rgba(11, 77, 59, 0.1), rgba(11, 77, 59, 0.4));
 }
 
-
 @keyframes float1 {
 
   0%,
@@ -466,7 +511,6 @@ textarea {
     transform: translateY(18px) translateX(8px);
   }
 }
-
 
 @media (max-width: 768px) {
   html {
