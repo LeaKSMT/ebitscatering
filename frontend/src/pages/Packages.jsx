@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -404,7 +404,7 @@ function HeroParticle({ className, delay = 0, duration = 7 }) {
 function GlowButton({ children, onClick, icon, full = false }) {
     return (
         <motion.button
-            whileHover={{ y: -3, scale: 1.015 }}
+            whileHover={{ y: -3, scale: 1.02 }}
             whileTap={{ scale: 0.985 }}
             onClick={onClick}
             className={`group relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-2xl bg-[#f2bf2f] px-7 py-4 font-bold text-[#0b4d3b] shadow-[0_18px_36px_rgba(0,0,0,0.22)] transition ${full ? "w-full" : ""
@@ -430,11 +430,14 @@ function PackageCard({ item, onQuote, badge, featured = false, dark = false }) {
             whileInView="visible"
             viewport={{ once: true, amount: 0.15 }}
             variants={softScale}
-            whileHover={{ y: -10 }}
+            whileHover={{
+                y: -12,
+                scale: featured ? 1.025 : 1.012,
+            }}
             className={`group relative flex h-full flex-col overflow-hidden rounded-[32px] border p-6 transition duration-300 md:p-7 ${featured
                     ? dark
-                        ? "border-[#f2bf2f]/35 bg-white text-[#0b4d3b] shadow-[0_26px_70px_rgba(0,0,0,0.22)]"
-                        : "border-[#f2bf2f]/40 bg-[linear-gradient(180deg,#fffdf8_0%,#fff7e3_100%)] text-[#0b4d3b] shadow-[0_24px_64px_rgba(191,151,39,0.16)]"
+                        ? "border-[#f2bf2f]/35 bg-white text-[#0b4d3b] shadow-[0_28px_80px_rgba(0,0,0,0.24)] ring-1 ring-[#f2bf2f]/25"
+                        : "border-[#f2bf2f]/40 bg-[linear-gradient(180deg,#fffdf8_0%,#fff7e3_100%)] text-[#0b4d3b] shadow-[0_28px_78px_rgba(191,151,39,0.18)] ring-1 ring-[#f2bf2f]/25"
                     : dark
                         ? "border-white/10 bg-white text-[#0b4d3b] shadow-[0_18px_40px_rgba(0,0,0,0.18)]"
                         : "border-[#e7dfd1] bg-white text-[#0b4d3b] shadow-[0_14px_40px_rgba(15,23,42,0.06)]"
@@ -555,14 +558,13 @@ function StatCard({ item, index, featured = false }) {
 function AddOnCard({ addon, index }) {
     return (
         <motion.div
-            key={addon.name}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, amount: 0.2 }}
             custom={index}
             variants={cardReveal}
-            whileHover={{ y: -7, scale: 1.01 }}
-            className="group relative overflow-hidden rounded-[28px] border border-[#e8e2d6] bg-white p-6 shadow-[0_10px_28px_rgba(0,0,0,0.05)] transition hover:shadow-[0_18px_40px_rgba(0,0,0,0.09)]"
+            whileHover={{ y: -8, scale: 1.015 }}
+            className="group relative overflow-hidden rounded-[28px] border border-[#e8e2d6] bg-white p-6 shadow-[0_10px_28px_rgba(0,0,0,0.05)] transition hover:shadow-[0_22px_60px_rgba(212,165,20,0.18)]"
         >
             <div className="absolute right-0 top-0 h-24 w-24 translate-x-6 -translate-y-6 rounded-full bg-[#f2bf2f]/10 blur-2xl" />
             <div className="absolute left-[-35%] top-0 h-full w-[30%] rotate-[18deg] bg-white/30 opacity-0 blur-xl transition duration-700 group-hover:left-[115%] group-hover:opacity-100" />
@@ -588,6 +590,11 @@ function AddOnCard({ addon, index }) {
 function Packages() {
     const navigate = useNavigate();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState("wedding");
+
+    const weddingRef = useRef(null);
+    const debutRef = useRef(null);
+    const addonsRef = useRef(null);
 
     const stats = useMemo(
         () => [
@@ -631,8 +638,64 @@ function Packages() {
         }
     };
 
+    const scrollToSection = (section) => {
+        const map = {
+            wedding: weddingRef,
+            debut: debutRef,
+            addons: addonsRef,
+        };
+
+        const target = map[section]?.current;
+        if (!target) return;
+
+        setActiveTab(section);
+
+        const top = target.getBoundingClientRect().top + window.scrollY - 130;
+        window.scrollTo({
+            top,
+            behavior: "smooth",
+        });
+    };
+
+    useEffect(() => {
+        const sections = [
+            { key: "wedding", ref: weddingRef },
+            { key: "debut", ref: debutRef },
+            { key: "addons", ref: addonsRef },
+        ];
+
+        const handleScroll = () => {
+            const scrollPosition = window.scrollY + 180;
+
+            let current = "wedding";
+
+            for (const section of sections) {
+                const el = section.ref.current;
+                if (!el) continue;
+
+                const top = el.offsetTop;
+                if (scrollPosition >= top) {
+                    current = section.key;
+                }
+            }
+
+            setActiveTab(current);
+        };
+
+        window.addEventListener("scroll", handleScroll, { passive: true });
+        handleScroll();
+
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
+
     const mobileLinkClass =
         "block rounded-2xl px-4 py-3 text-base font-semibold text-white transition hover:bg-white/10";
+
+    const navTabs = [
+        { key: "wedding", label: "Wedding" },
+        { key: "debut", label: "Debut" },
+        { key: "addons", label: "Add-ons" },
+    ];
 
     return (
         <div className="min-h-screen overflow-x-hidden bg-[#f6f3ec] text-[#0b4d3b]">
@@ -877,7 +940,28 @@ function Packages() {
                 </div>
             </section>
 
-            <section className="relative bg-[linear-gradient(180deg,#f6f3ec_0%,#f0f4f1_100%)] px-5 py-16 md:px-10 md:py-20 lg:px-20">
+            <section className="sticky top-[72px] z-40 border-b border-[#e7dfd1] bg-[#f6f3ec]/85 backdrop-blur-xl">
+                <div className="mx-auto flex max-w-7xl gap-3 overflow-x-auto px-5 py-3 md:px-8">
+                    {navTabs.map((tab) => {
+                        const active = activeTab === tab.key;
+                        return (
+                            <button
+                                key={tab.key}
+                                type="button"
+                                onClick={() => scrollToSection(tab.key)}
+                                className={`whitespace-nowrap rounded-full px-4 py-2.5 text-sm font-bold transition ${active
+                                        ? "bg-[#0b4d3b] text-white shadow-[0_12px_24px_rgba(11,77,59,0.22)]"
+                                        : "border border-[#dfd6c7] bg-white text-[#0b4d3b] hover:-translate-y-0.5 hover:border-[#d4a514]/40 hover:text-[#0b4d3b]"
+                                    }`}
+                            >
+                                {tab.label}
+                            </button>
+                        );
+                    })}
+                </div>
+            </section>
+
+            <section className="relative bg-[linear-gradient(180deg,#f6f3ec_0%,#f0f4f1_100%)] px-5 py-20 md:px-10 md:py-24 lg:px-20">
                 <div className="mx-auto max-w-6xl">
                     <SectionTitle
                         eyebrow="Quick Rate Guide"
@@ -899,7 +983,7 @@ function Packages() {
                                 viewport={{ once: true, amount: 0.2 }}
                                 custom={index}
                                 variants={cardReveal}
-                                whileHover={{ y: -7, scale: 1.01 }}
+                                whileHover={{ y: -8, scale: 1.015 }}
                                 className={`relative overflow-hidden rounded-[30px] border p-7 text-center transition ${index === 1
                                         ? "border-transparent bg-[linear-gradient(180deg,#0b4d3b_0%,#08392d_100%)] text-white shadow-[0_20px_50px_rgba(11,77,59,0.25)]"
                                         : "border-[#e8dfd1] bg-white text-[#0b4d3b] shadow-[0_12px_30px_rgba(15,23,42,0.05)]"
@@ -929,7 +1013,7 @@ function Packages() {
                 </div>
             </section>
 
-            <section className="bg-[#f0f4f1] px-5 pb-16 md:px-10 md:pb-20 lg:px-20">
+            <section className="bg-[#f0f4f1] px-5 pb-20 md:px-10 md:pb-24 lg:px-20">
                 <motion.div
                     initial="hidden"
                     whileInView="visible"
@@ -966,7 +1050,10 @@ function Packages() {
                 </motion.div>
             </section>
 
-            <section className="bg-white px-5 py-16 md:px-10 md:py-20 lg:px-20">
+            <section
+                ref={weddingRef}
+                className="bg-white px-5 py-20 md:px-10 md:py-24 lg:px-20"
+            >
                 <div className="mx-auto max-w-7xl">
                     <SectionTitle
                         eyebrow="Wedding Collection"
@@ -995,7 +1082,10 @@ function Packages() {
                 </div>
             </section>
 
-            <section className="relative overflow-hidden bg-[linear-gradient(180deg,#0b4d3b_0%,#082f25_100%)] px-5 py-16 md:px-10 md:py-20 lg:px-20">
+            <section
+                ref={debutRef}
+                className="relative overflow-hidden bg-[linear-gradient(180deg,#0b4d3b_0%,#082f25_100%)] px-5 py-20 md:px-10 md:py-24 lg:px-20"
+            >
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(242,191,47,0.12),transparent_24%),radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.06),transparent_18%)]" />
                 <div className="absolute inset-0 opacity-[0.06] [background-image:linear-gradient(rgba(255,255,255,0.7)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.7)_1px,transparent_1px)] [background-size:42px_42px]" />
 
@@ -1029,7 +1119,10 @@ function Packages() {
                 </div>
             </section>
 
-            <section className="bg-[#f6f3ec] px-5 py-16 md:px-10 md:py-20 lg:px-20">
+            <section
+                ref={addonsRef}
+                className="bg-[#f6f3ec] px-5 py-20 md:px-10 md:py-24 lg:px-20"
+            >
                 <div className="mx-auto max-w-6xl">
                     <SectionTitle
                         eyebrow="Optional Services"
