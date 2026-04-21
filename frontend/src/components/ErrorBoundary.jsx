@@ -16,12 +16,12 @@ class ErrorBoundary extends React.Component {
       errorInfo: errorInfo
     });
 
-    // Log error to monitoring service
+
     if (window.Sentry) {
       window.Sentry.captureException(error, { contexts: { react: { componentStack: errorInfo.componentStack } } });
     }
 
-    // Log to console in development
+
     if (process.env.NODE_ENV === 'development') {
       console.error('ErrorBoundary caught an error:', error, errorInfo);
     }

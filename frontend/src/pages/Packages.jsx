@@ -296,12 +296,12 @@ const addOns = [
 ];
 
 const fadeUp = {
-    hidden: { opacity: 0, y: 34 },
+    hidden: { opacity: 0, y: 36 },
     visible: (i = 0) => ({
         opacity: 1,
         y: 0,
         transition: {
-            duration: 0.7,
+            duration: 0.8,
             delay: i * 0.07,
             ease: [0.22, 1, 0.36, 1],
         },
@@ -314,20 +314,20 @@ const softScale = {
         opacity: 1,
         scale: 1,
         transition: {
-            duration: 0.6,
+            duration: 0.75,
             ease: [0.22, 1, 0.36, 1],
         },
     },
 };
 
 const cardReveal = {
-    hidden: { opacity: 0, y: 24, scale: 0.98 },
+    hidden: { opacity: 0, y: 26, scale: 0.98 },
     visible: (i = 0) => ({
         opacity: 1,
         y: 0,
         scale: 1,
         transition: {
-            duration: 0.6,
+            duration: 0.7,
             delay: i * 0.05,
             ease: [0.22, 1, 0.36, 1],
         },
@@ -354,7 +354,7 @@ function SectionTitle({ eyebrow, title, highlight, desc, light = false }) {
             </div>
 
             <h2
-                className={`mt-5 text-[32px] font-black leading-tight sm:text-[40px] md:text-[52px] ${light ? "text-white" : "text-[#0b4d3b]"
+                className={`mt-5 text-[32px] font-black leading-tight sm:text-[40px] md:text-[54px] ${light ? "text-white" : "text-[#0b4d3b]"
                     }`}
             >
                 {title} <span className="text-[#d4a514]">{highlight}</span>
@@ -401,17 +401,19 @@ function HeroParticle({ className, delay = 0, duration = 7 }) {
     );
 }
 
-function GlowButton({ children, onClick, icon }) {
+function GlowButton({ children, onClick, icon, full = false }) {
     return (
         <motion.button
-            whileHover={{ y: -3, scale: 1.01 }}
+            whileHover={{ y: -3, scale: 1.015 }}
             whileTap={{ scale: 0.985 }}
             onClick={onClick}
-            className="group relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-2xl bg-[#f2bf2f] px-7 py-4 font-bold text-[#0b4d3b] shadow-[0_18px_36px_rgba(0,0,0,0.22)] transition"
+            className={`group relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-2xl bg-[#f2bf2f] px-7 py-4 font-bold text-[#0b4d3b] shadow-[0_18px_36px_rgba(0,0,0,0.22)] transition ${full ? "w-full" : ""
+                }`}
         >
             <span className="pointer-events-none absolute inset-0 opacity-0 transition duration-500 group-hover:opacity-100">
                 <span className="absolute -left-10 top-0 h-full w-16 rotate-[20deg] bg-white/35 blur-md transition duration-700 group-hover:left-[110%]" />
             </span>
+            <span className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-white/10" />
             <span className="relative z-10">{children}</span>
             {icon ? <span className="relative z-10">{icon}</span> : null}
         </motion.button>
@@ -432,20 +434,21 @@ function PackageCard({ item, onQuote, badge, featured = false, dark = false }) {
             className={`group relative flex h-full flex-col overflow-hidden rounded-[32px] border p-6 transition duration-300 md:p-7 ${featured
                     ? dark
                         ? "border-[#f2bf2f]/35 bg-white text-[#0b4d3b] shadow-[0_26px_70px_rgba(0,0,0,0.22)]"
-                        : "border-[#f2bf2f]/40 bg-[linear-gradient(180deg,#fffdf8_0%,#fff8e8_100%)] text-[#0b4d3b] shadow-[0_24px_64px_rgba(191,151,39,0.14)]"
+                        : "border-[#f2bf2f]/40 bg-[linear-gradient(180deg,#fffdf8_0%,#fff7e3_100%)] text-[#0b4d3b] shadow-[0_24px_64px_rgba(191,151,39,0.16)]"
                     : dark
-                        ? "border-white/10 bg-white text-[#0b4d3b] shadow-[0_16px_38px_rgba(0,0,0,0.18)]"
+                        ? "border-white/10 bg-white text-[#0b4d3b] shadow-[0_18px_40px_rgba(0,0,0,0.18)]"
                         : "border-[#e7dfd1] bg-white text-[#0b4d3b] shadow-[0_14px_40px_rgba(15,23,42,0.06)]"
                 }`}
         >
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(212,165,20,0.12),transparent_26%),radial-gradient(circle_at_bottom_left,rgba(11,77,59,0.06),transparent_22%)] opacity-0 transition duration-300 group-hover:opacity-100" />
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(212,165,20,0.14),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(11,77,59,0.08),transparent_24%)] opacity-0 transition duration-300 group-hover:opacity-100" />
             <div className="pointer-events-none absolute right-0 top-0 h-28 w-28 translate-x-8 -translate-y-8 rounded-full bg-[#f2bf2f]/10 blur-2xl" />
-            <div className="pointer-events-none absolute left-[-35%] top-0 h-full w-[30%] rotate-[18deg] bg-white/20 opacity-0 blur-xl transition duration-700 group-hover:left-[115%] group-hover:opacity-100" />
+            <div className="pointer-events-none absolute left-[-35%] top-0 h-full w-[30%] rotate-[18deg] bg-white/25 opacity-0 blur-xl transition duration-700 group-hover:left-[115%] group-hover:opacity-100" />
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent opacity-50" />
 
             <div className="relative z-10 flex items-start justify-between gap-4">
                 <div className="min-w-0">
                     {badge ? (
-                        <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-[#fff3c8] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-[#9b7510]">
+                        <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-[#fff3c8] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-[#9b7510] shadow-[0_10px_18px_rgba(212,165,20,0.10)]">
                             <Crown className="h-3.5 w-3.5" />
                             {badge}
                         </div>
@@ -492,7 +495,7 @@ function PackageCard({ item, onQuote, badge, featured = false, dark = false }) {
                         key={index}
                         className="flex items-start gap-3 text-[14px] text-slate-700 md:text-[15px]"
                     >
-                        <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#fff3cf]">
+                        <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#fff3cf] shadow-[0_4px_10px_rgba(212,165,20,0.12)]">
                             <CheckCircle2 className="h-3.5 w-3.5 text-[#c99d1a]" />
                         </div>
                         <span>{feature}</span>
@@ -507,11 +510,14 @@ function PackageCard({ item, onQuote, badge, featured = false, dark = false }) {
             </ul>
 
             <div className="relative z-10 mt-7 flex flex-col gap-3 sm:flex-row">
-                <GlowButton onClick={() => onQuote(item)} icon={<ArrowRight className="h-4 w-4" />}>
+                <GlowButton
+                    onClick={() => onQuote(item)}
+                    icon={<ArrowRight className="h-4 w-4" />}
+                >
                     Get Quotation
                 </GlowButton>
 
-                <div className="inline-flex items-center justify-center rounded-2xl border border-[#e8dfce] bg-[#faf8f2] px-4 py-3 text-sm font-semibold text-[#0b4d3b]/70">
+                <div className="inline-flex items-center justify-center rounded-2xl border border-[#e8dfce] bg-[#faf8f2] px-4 py-3 text-sm font-semibold text-[#0b4d3b]/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
                     Best for {item.eventType}
                 </div>
             </div>
@@ -541,6 +547,39 @@ function StatCard({ item, index, featured = false }) {
                     }`}
             >
                 {item.value}
+            </p>
+        </motion.div>
+    );
+}
+
+function AddOnCard({ addon, index }) {
+    return (
+        <motion.div
+            key={addon.name}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }}
+            custom={index}
+            variants={cardReveal}
+            whileHover={{ y: -7, scale: 1.01 }}
+            className="group relative overflow-hidden rounded-[28px] border border-[#e8e2d6] bg-white p-6 shadow-[0_10px_28px_rgba(0,0,0,0.05)] transition hover:shadow-[0_18px_40px_rgba(0,0,0,0.09)]"
+        >
+            <div className="absolute right-0 top-0 h-24 w-24 translate-x-6 -translate-y-6 rounded-full bg-[#f2bf2f]/10 blur-2xl" />
+            <div className="absolute left-[-35%] top-0 h-full w-[30%] rotate-[18deg] bg-white/30 opacity-0 blur-xl transition duration-700 group-hover:left-[115%] group-hover:opacity-100" />
+
+            <div className="relative z-10 mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#fbf4df] text-[#c99d1a] shadow-[0_8px_20px_rgba(212,165,20,0.08)]">
+                {addon.icon}
+            </div>
+
+            <h3 className="relative z-10 text-lg font-black text-[#0b4d3b] md:text-xl">
+                {addon.name}
+            </h3>
+            <p className="relative z-10 mt-3 text-[28px] font-black text-[#d1a31d]">
+                {addon.price}
+            </p>
+            <p className="relative z-10 mt-3 text-sm leading-6 text-slate-500">
+                A premium add-on that enhances the event atmosphere and guest
+                experience.
             </p>
         </motion.div>
     );
@@ -712,7 +751,7 @@ function Packages() {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.75, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-                                className="mt-4 max-w-4xl text-[38px] font-black leading-[0.98] sm:text-[52px] md:text-[68px]"
+                                className="mt-4 max-w-4xl text-[38px] font-black leading-[0.98] sm:text-[52px] md:text-[70px]"
                             >
                                 Luxury Event
                                 <span className="mt-1 block bg-gradient-to-r from-[#f8d35a] via-[#f2bf2f] to-[#d4a514] bg-clip-text text-transparent">
@@ -1001,85 +1040,10 @@ function Packages() {
 
                     <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                         {addOns.map((addon, index) => (
-                            <motion.div
-                                key={addon.name}
-                                initial="hidden"
-                                whileInView="visible"
-                                viewport={{ once: true, amount: 0.2 }}
-                                custom={index}
-                                variants={cardReveal}
-                                whileHover={{ y: -7, scale: 1.01 }}
-                                className="group relative overflow-hidden rounded-[26px] border border-[#e8e2d6] bg-white p-6 shadow-[0_10px_28px_rgba(0,0,0,0.05)] transition hover:shadow-[0_18px_40px_rgba(0,0,0,0.09)]"
-                            >
-                                <div className="absolute right-0 top-0 h-24 w-24 translate-x-6 -translate-y-6 rounded-full bg-[#f2bf2f]/10 blur-2xl" />
-                                <div className="absolute left-[-35%] top-0 h-full w-[30%] rotate-[18deg] bg-white/30 opacity-0 blur-xl transition duration-700 group-hover:left-[115%] group-hover:opacity-100" />
-
-                                <div className="relative z-10 mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#fbf4df] text-[#c99d1a]">
-                                    {addon.icon}
-                                </div>
-
-                                <h3 className="relative z-10 text-lg font-black text-[#0b4d3b] md:text-xl">
-                                    {addon.name}
-                                </h3>
-                                <p className="relative z-10 mt-3 text-[28px] font-black text-[#d1a31d]">
-                                    {addon.price}
-                                </p>
-                                <p className="relative z-10 mt-3 text-sm leading-6 text-slate-500">
-                                    A premium add-on that enhances the event atmosphere and guest
-                                    experience.
-                                </p>
-                            </motion.div>
+                            <AddOnCard key={addon.name} addon={addon} index={index} />
                         ))}
                     </div>
                 </div>
-            </section>
-
-            <section className="relative overflow-hidden bg-[linear-gradient(135deg,#082f25_0%,#0b4d3b_55%,#0f6b50_100%)] px-5 py-14 md:px-10 md:py-16 lg:px-20">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(242,191,47,0.12),transparent_24%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.05),transparent_18%)]" />
-
-                <motion.div
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={{ once: true, amount: 0.2 }}
-                    variants={fadeUp}
-                    className="relative z-10 mx-auto flex max-w-6xl flex-col items-start justify-between gap-6 rounded-[32px] border border-white/10 bg-white/10 p-7 backdrop-blur-xl md:flex-row md:items-center md:p-8"
-                >
-                    <div className="text-white">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/70 md:text-xs">
-                            Ready to Book
-                        </p>
-                        <h3 className="mt-3 text-[30px] font-black leading-tight md:text-[42px]">
-                            Plan your event with{" "}
-                            <span className="text-[#f2bf2f]">Ebit&apos;s Catering</span>
-                        </h3>
-                        <p className="mt-3 max-w-2xl leading-7 text-white/80">
-                            Choose your preferred package and request a quotation for your
-                            celebration. Elegant, polished, and ready for presentation.
-                        </p>
-                    </div>
-
-                    <div className="flex flex-wrap gap-4">
-                        <GlowButton
-                            onClick={() =>
-                                handleGetQuotation({
-                                    id: "general-quotation",
-                                    title: "General Package Inquiry",
-                                })
-                            }
-                            icon={<ArrowRight size={18} />}
-                        >
-                            Get Quotation
-                        </GlowButton>
-
-                        <Link
-                            to="/"
-                            className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-6 py-4 font-bold text-white backdrop-blur-sm transition hover:-translate-y-1 hover:bg-white/15"
-                        >
-                            Back to Home
-                            <ChevronRight size={18} />
-                        </Link>
-                    </div>
-                </motion.div>
             </section>
         </div>
     );
