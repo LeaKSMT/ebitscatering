@@ -21,6 +21,15 @@ function Login() {
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
+    const getSafeJson = (key) => {
+        try {
+            const raw = localStorage.getItem(key);
+            return raw ? JSON.parse(raw) : null;
+        } catch {
+            return null;
+        }
+    };
+
     const getRedirectAfterLogin = (role) => {
         const redirectPath = localStorage.getItem("redirectAfterLogin");
 
@@ -61,6 +70,7 @@ function Login() {
         };
 
         clearSession();
+
         localStorage.setItem("user", JSON.stringify(userData));
         localStorage.setItem("clientUser", JSON.stringify(userData));
         localStorage.setItem("clientName", finalName);
@@ -89,6 +99,7 @@ function Login() {
         };
 
         clearSession();
+
         localStorage.setItem("user", JSON.stringify(userData));
         localStorage.setItem("adminUser", JSON.stringify(userData));
         localStorage.setItem("adminAuth", "true");
@@ -150,7 +161,7 @@ function Login() {
             },
         });
 
-        setTimeout(() => navigate(getRedirectAfterLogin("client")), 1000);
+        setTimeout(() => navigate(getRedirectAfterLogin("client"), { replace: true }), 1000);
     };
 
     useEffect(() => {
@@ -171,6 +182,22 @@ function Login() {
         resolveRedirectLogin();
     }, []);
 
+    useEffect(() => {
+        const adminAuth = localStorage.getItem("adminAuth") === "true";
+        const adminUser = getSafeJson("adminUser");
+        const clientLoggedIn = localStorage.getItem("isClientLoggedIn") === "true";
+        const clientUser = getSafeJson("clientUser");
+
+        if (adminAuth && adminUser?.role === "admin") {
+            navigate("/admin/dashboard", { replace: true });
+            return;
+        }
+
+        if (clientLoggedIn && clientUser?.role === "client") {
+            navigate("/client/dashboard", { replace: true });
+        }
+    }, [navigate]);
+
     const handleLogin = async (e) => {
         e.preventDefault();
 
@@ -187,12 +214,25 @@ function Login() {
                 password.trim()
             );
 
-            if (data?.user) {
-                Swal.fire({
+            if (!data?.user) {
+                showErrorPopup("Login failed.");
+                return;
+            }
+
+            if (data.user.role === "admin") {
+                saveAdminSession({
+                    id: data.user.id || null,
+                    name: data.user.name || "",
+                    email: data.user.email || "",
+                    photo: data.user.photo || "",
+                    token: data.token || "",
+                });
+
+                await Swal.fire({
                     icon: "success",
                     title: "Welcome Back!",
-                    text: `Hello ${data.user.name || "User"} 👋`,
-                    timer: 1500,
+                    text: `Hello ${data.user.name || "Admin"} 👋`,
+                    timer: 1200,
                     showConfirmButton: false,
                     background: "#ffffff",
                     color: "#1f2937",
@@ -202,28 +242,33 @@ function Login() {
                     },
                 });
 
-                if (data.user.role === "admin") {
-                    saveAdminSession({
-                        ...data.user,
-                        token: data.token || "",
-                    });
-                    setTimeout(() => navigate(getRedirectAfterLogin("admin")), 1000);
-                    return;
-                }
-
-                saveClientSession({
-                    id: data.user.id || null,
-                    name: data.user.name || "",
-                    email: data.user.email,
-                    photo: data.user.photo || "",
-                    token: data.token || "",
-                });
-
-                setTimeout(() => navigate(getRedirectAfterLogin("client")), 1000);
+                navigate("/admin/dashboard", { replace: true });
                 return;
             }
 
-            showErrorPopup("Login failed.");
+            saveClientSession({
+                id: data.user.id || null,
+                name: data.user.name || "",
+                email: data.user.email || "",
+                photo: data.user.photo || "",
+                token: data.token || "",
+            });
+
+            await Swal.fire({
+                icon: "success",
+                title: "Welcome Back!",
+                text: `Hello ${data.user.name || "User"} 👋`,
+                timer: 1200,
+                showConfirmButton: false,
+                background: "#ffffff",
+                color: "#1f2937",
+                customClass: {
+                    popup: "rounded-[24px] shadow-2xl",
+                    title: "text-2xl font-bold",
+                },
+            });
+
+            navigate(getRedirectAfterLogin("client"), { replace: true });
         } catch (err) {
             showErrorPopup(err.message || "Login failed. Please try again.");
         } finally {
