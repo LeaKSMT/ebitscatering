@@ -293,7 +293,7 @@ function Login() {
             variants={pageVariants}
             initial="hidden"
             animate="visible"
-            className="relative min-h-screen overflow-x-hidden bg-gradient-to-br from-[#08392d] via-[#0f4d3c] to-[#169b62]"
+            className="login-page relative min-h-screen overflow-x-hidden bg-gradient-to-br from-[#08392d] via-[#0f4d3c] to-[#169b62]"
         >
             <div className="absolute inset-0 pointer-events-none">
                 <div className="absolute -top-20 -left-20 h-72 w-72 rounded-full bg-[#d4af37]/20 blur-3xl" />
@@ -411,7 +411,8 @@ function Login() {
                                         placeholder="Enter your email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
-                                        className="w-full min-w-0 rounded-2xl border border-gray-300 bg-[#fafafa] px-4 py-3.5 text-sm outline-none transition focus:border-[#d4af37] focus:ring-4 focus:ring-[#d4af37]/15 sm:text-base"
+                                        className="w-full min-w-0 rounded-2xl border border-gray-300 bg-[#fafafa] px-4 py-3.5 text-sm text-[#0f172a] placeholder:text-gray-400 caret-[#0f4d3c] outline-none transition focus:border-[#d4af37] focus:ring-4 focus:ring-[#d4af37]/15 sm:text-base"
+                                        style={{ WebkitTextFillColor: "#0f172a" }}
                                         required
                                     />
                                 </motion.div>
@@ -427,7 +428,8 @@ function Login() {
                                             placeholder="Enter your password"
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
-                                            className="w-full min-w-0 rounded-2xl border border-gray-300 bg-[#fafafa] px-4 py-3.5 pr-12 text-sm outline-none transition focus:border-[#d4af37] focus:ring-4 focus:ring-[#d4af37]/15 sm:text-base"
+                                            className="w-full min-w-0 rounded-2xl border border-gray-300 bg-[#fafafa] px-4 py-3.5 pr-12 text-sm text-[#0f172a] placeholder:text-gray-400 caret-[#0f4d3c] outline-none transition focus:border-[#d4af37] focus:ring-4 focus:ring-[#d4af37]/15 sm:text-base"
+                                            style={{ WebkitTextFillColor: "#0f172a" }}
                                             required
                                         />
 

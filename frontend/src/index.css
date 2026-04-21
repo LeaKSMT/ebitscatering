@@ -685,6 +685,34 @@ body[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator {
   pointer-events: none;
 }
 
+/* LOGIN PAGE FIX */
+.login-page input,
+.login-page textarea,
+.login-page select {
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  caret-color: #0f4d3c !important;
+}
+
+.login-page input::placeholder,
+.login-page textarea::placeholder,
+.login-page select::placeholder {
+  color: #9ca3af !important;
+  -webkit-text-fill-color: #9ca3af !important;
+  opacity: 1 !important;
+}
+
+.login-page input:-webkit-autofill,
+.login-page input:-webkit-autofill:hover,
+.login-page input:-webkit-autofill:focus,
+.login-page textarea:-webkit-autofill,
+.login-page select:-webkit-autofill {
+  -webkit-text-fill-color: #0f172a !important;
+  caret-color: #0f4d3c !important;
+  transition: background-color 9999s ease-in-out 0s;
+  box-shadow: 0 0 0px 1000px #fafafa inset !important;
+}
+
 /* ANIMATIONS */
 @keyframes float1 {
 
@@ -795,6 +823,13 @@ body[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator {
 
   .package-featured {
     transform: none;
+  }
+}
+
+@media (max-width: 640px) {
+  body {
+    min-width: 320px;
+    overflow-x: hidden;
   }
 }
 
