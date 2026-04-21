@@ -230,7 +230,6 @@ Once you send those details, I’ll acknowledge them and guide you on the next s
             hasAny(msg, [
                 "quotation",
                 "quote",
-                "request quotation",
                 "get quotation",
                 "quotation form",
             ])
@@ -960,8 +959,8 @@ If you're on desktop, you can copy the number from the popup.`;
                                             >
                                                 <div
                                                     className={`whitespace-pre-line rounded-[22px] px-4 py-3 text-[14px] leading-7 sm:text-[15px] ${msg.sender === "bot"
-                                                            ? "border border-[#e5e7eb] bg-white text-slate-700 shadow-[0_10px_25px_rgba(0,0,0,0.06)]"
-                                                            : "bg-[linear-gradient(135deg,#d4af37_0%,#f4d56a_100%)] text-[#0b4f3a] shadow-[0_12px_30px_rgba(212,175,55,0.30)]"
+                                                        ? "border border-[#e5e7eb] bg-white text-slate-700 shadow-[0_10px_25px_rgba(0,0,0,0.06)]"
+                                                        : "bg-[linear-gradient(135deg,#d4af37_0%,#f4d56a_100%)] text-[#0b4f3a] shadow-[0_12px_30px_rgba(212,175,55,0.30)]"
                                                         }`}
                                                 >
                                                     {msg.text}

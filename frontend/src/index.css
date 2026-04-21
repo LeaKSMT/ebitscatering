@@ -31,6 +31,13 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+body[data-theme="dark"] {
+  background:
+    radial-gradient(circle at top, rgba(212, 175, 55, 0.08), transparent 18%),
+    linear-gradient(180deg, #071c16 0%, #0a241d 45%, #102d24 100%);
+  color: #eef7f3;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -215,7 +222,7 @@ img {
 }
 
 .client-theme-dark .bg-white\/95 {
-  background-color: rgba(245, 250, 248, 0.96) !important;
+  background-color: rgba(10, 33, 27, 0.96) !important;
 }
 
 .client-theme-dark .bg-white\/10 {
@@ -409,6 +416,37 @@ img {
 .client-theme-dark input::placeholder,
 .client-theme-dark textarea::placeholder {
   color: rgba(220, 232, 227, 0.4);
+}
+
+/* quotation page input polish */
+input[type="date"],
+input[type="time"],
+select {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  opacity: 0.7;
+  cursor: pointer;
+}
+
+body[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator,
+body[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(1.2);
+  opacity: 0.85;
+}
+
+.client-theme-dark input,
+.client-theme-dark textarea,
+.client-theme-dark select {
+  caret-color: #f5cf67;
+}
+
+.client-theme-dark option {
+  background: #0d241d;
+  color: #eef7f3;
 }
 
 .client-topbar-link {

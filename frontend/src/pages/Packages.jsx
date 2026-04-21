@@ -346,8 +346,8 @@ function SectionTitle({ eyebrow, title, highlight, desc, light = false }) {
         >
             <div
                 className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.28em] ${light
-                        ? "border-white/15 bg-white/10 text-white/80"
-                        : "border-[#e7dcc6] bg-[#fffaf0] text-[#0b4d3b]/70"
+                    ? "border-white/15 bg-white/10 text-white/80"
+                    : "border-[#e7dcc6] bg-[#fffaf0] text-[#0b4d3b]/70"
                     }`}
             >
                 <Sparkles className="h-3.5 w-3.5 text-[#d4a514]" />
@@ -431,12 +431,12 @@ function PackageCard({ item, onQuote, badge, featured = false, dark = false }) {
             variants={softScale}
             whileHover={{ y: -10 }}
             className={`group relative flex h-full flex-col overflow-hidden rounded-[32px] border p-6 transition duration-300 md:p-7 ${featured
-                    ? dark
-                        ? "border-[#f2bf2f]/35 bg-white text-[#0b4d3b] shadow-[0_26px_70px_rgba(0,0,0,0.22)]"
-                        : "border-[#f2bf2f]/40 bg-[linear-gradient(180deg,#fffdf8_0%,#fff8e8_100%)] text-[#0b4d3b] shadow-[0_24px_64px_rgba(191,151,39,0.14)]"
-                    : dark
-                        ? "border-white/10 bg-white text-[#0b4d3b] shadow-[0_16px_38px_rgba(0,0,0,0.18)]"
-                        : "border-[#e7dfd1] bg-white text-[#0b4d3b] shadow-[0_14px_40px_rgba(15,23,42,0.06)]"
+                ? dark
+                    ? "border-[#f2bf2f]/35 bg-white text-[#0b4d3b] shadow-[0_26px_70px_rgba(0,0,0,0.22)]"
+                    : "border-[#f2bf2f]/40 bg-[linear-gradient(180deg,#fffdf8_0%,#fff8e8_100%)] text-[#0b4d3b] shadow-[0_24px_64px_rgba(191,151,39,0.14)]"
+                : dark
+                    ? "border-white/10 bg-white text-[#0b4d3b] shadow-[0_16px_38px_rgba(0,0,0,0.18)]"
+                    : "border-[#e7dfd1] bg-white text-[#0b4d3b] shadow-[0_14px_40px_rgba(15,23,42,0.06)]"
                 }`}
         >
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(212,165,20,0.12),transparent_26%),radial-gradient(circle_at_bottom_left,rgba(11,77,59,0.06),transparent_22%)] opacity-0 transition duration-300 group-hover:opacity-100" />
@@ -529,8 +529,8 @@ function StatCard({ item, index, featured = false }) {
             animate="visible"
             whileHover={{ y: -4, scale: 1.01 }}
             className={`relative overflow-hidden rounded-[24px] border px-5 py-5 ${featured
-                    ? "border-[#f2bf2f]/25 bg-[#fff9e6]/95 text-[#0b4d3b] shadow-[0_10px_20px_rgba(242,191,47,0.06)]"
-                    : "border-white/12 bg-white/12 text-white"
+                ? "border-[#f2bf2f]/25 bg-[#fff9e6]/95 text-[#0b4d3b] shadow-[0_10px_20px_rgba(242,191,47,0.06)]"
+                : "border-white/12 bg-white/12 text-white"
                 }`}
         >
             <div className="absolute right-0 top-0 h-20 w-20 translate-x-5 -translate-y-5 rounded-full bg-[#f2bf2f]/10 blur-2xl" />
@@ -737,7 +737,7 @@ function Packages() {
                                     }
                                     icon={<ChevronRight size={18} />}
                                 >
-                                    Request Quotation
+
                                 </GlowButton>
                             </div>
 
@@ -855,8 +855,8 @@ function Packages() {
                                 variants={cardReveal}
                                 whileHover={{ y: -7, scale: 1.01 }}
                                 className={`relative overflow-hidden rounded-[30px] border p-7 text-center transition ${index === 1
-                                        ? "border-transparent bg-[linear-gradient(180deg,#0b4d3b_0%,#08392d_100%)] text-white shadow-[0_20px_50px_rgba(11,77,59,0.25)]"
-                                        : "border-[#e8dfd1] bg-white text-[#0b4d3b] shadow-[0_12px_30px_rgba(15,23,42,0.05)]"
+                                    ? "border-transparent bg-[linear-gradient(180deg,#0b4d3b_0%,#08392d_100%)] text-white shadow-[0_20px_50px_rgba(11,77,59,0.25)]"
+                                    : "border-[#e8dfd1] bg-white text-[#0b4d3b] shadow-[0_12px_30px_rgba(15,23,42,0.05)]"
                                     }`}
                             >
                                 <div className="absolute right-0 top-0 h-28 w-28 translate-x-6 -translate-y-6 rounded-full bg-[#f2bf2f]/10 blur-2xl" />
@@ -1061,7 +1061,7 @@ function Packages() {
                         }
                         icon={<ChevronRight size={18} />}
                     >
-                        Request Quotation
+
                     </GlowButton>
                 </motion.div>
             </section>
