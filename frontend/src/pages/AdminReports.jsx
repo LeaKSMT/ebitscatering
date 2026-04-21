@@ -11,7 +11,6 @@ import {
     MessageSquareQuote,
     TrendingUp,
     BarChart3,
-    Sparkles,
     LoaderCircle,
     CheckCircle2,
     Clock3,
@@ -34,7 +33,8 @@ function formatCurrency(value) {
     return new Intl.NumberFormat("en-PH", {
         style: "currency",
         currency: "PHP",
-        minimumFractionDigits: 2,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
     }).format(amount);
 }
 
@@ -97,7 +97,12 @@ function getTotalAmount(item) {
 
 function getPaymentsTotal(payments = []) {
     return payments.reduce((sum, item) => {
-        return sum + normalizeNumber(item?.amount || item?.paymentAmount || item?.payment_amount);
+        return (
+            sum +
+            normalizeNumber(
+                item?.amount || item?.paymentAmount || item?.payment_amount
+            )
+        );
     }, 0);
 }
 
@@ -147,7 +152,9 @@ function mapRecord(item) {
             item.date ||
             "",
         guests: normalizeNumber(item.guests || item.guestCount || item.pax || 0),
-        guestCount: normalizeNumber(item.guestCount || item.guests || item.pax || 0),
+        guestCount: normalizeNumber(
+            item.guestCount || item.guests || item.pax || 0
+        ),
         totalAmount,
         estimatedTotal: totalAmount,
         payments,
@@ -215,8 +222,13 @@ function AdminReports() {
                 clientName: payment.clientName || record.fullName,
                 paymentType: payment.paymentType || "Booking Payment",
                 paymentMethod: payment.paymentMethod || "Recorded Payment",
-                amount: normalizeNumber(payment.amount || payment.paymentAmount || payment.payment_amount),
-                createdAt: payment.createdAt || payment.updatedAt || record.eventDate,
+                amount: normalizeNumber(
+                    payment.amount ||
+                    payment.paymentAmount ||
+                    payment.payment_amount
+                ),
+                createdAt:
+                    payment.createdAt || payment.updatedAt || record.eventDate,
                 paymentId:
                     payment.paymentId ||
                     payment.referenceNumber ||
@@ -234,7 +246,8 @@ function AdminReports() {
                 eventType: expense.eventType || record.eventType || "—",
                 category: expense.category || expense.type || "Expense",
                 amount: normalizeNumber(expense.amount),
-                createdAt: expense.createdAt || expense.updatedAt || record.eventDate,
+                createdAt:
+                    expense.createdAt || expense.updatedAt || record.eventDate,
                 expenseId: expense.expenseId || `EXP-${record.id}-${index + 1}`,
             }))
         );
@@ -280,7 +293,9 @@ function AdminReports() {
         );
 
         const approvedQuotations = quotations.filter((item) =>
-            ["approved", "confirmed", "paid"].includes(normalizeStatus(item.status))
+            ["approved", "confirmed", "paid"].includes(
+                normalizeStatus(item.status)
+            )
         ).length;
 
         const pendingQuotations = quotations.filter(
@@ -372,7 +387,9 @@ function AdminReports() {
             const date = new Date(rawDate);
             if (Number.isNaN(date.getTime())) return;
 
-            const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+            const key = `${date.getFullYear()}-${String(
+                date.getMonth() + 1
+            ).padStart(2, "0")}`;
             const label = date.toLocaleDateString("en-PH", {
                 year: "numeric",
                 month: "long",
@@ -435,7 +452,8 @@ function AdminReports() {
     const handlePrintOverview = () => {
         openPrintWindow({
             title: "Business Overview Report",
-            subtitle: "Summary of bookings, revenue, quotations, inquiries, and profit",
+            subtitle:
+                "Summary of bookings, revenue, quotations, inquiries, and profit",
             summaryCards: [
                 { label: "Bookings", value: summary.totalBookings },
                 { label: "Revenue", value: formatCurrency(summary.totalRevenue) },
@@ -562,7 +580,10 @@ function AdminReports() {
             subtitle: "All admin-recorded expenses currently saved in the system",
             summaryCards: [
                 { label: "Expenses", value: expenses.length },
-                { label: "Total Expenses", value: formatCurrency(summary.totalExpenses) },
+                {
+                    label: "Total Expenses",
+                    value: formatCurrency(summary.totalExpenses),
+                },
                 { label: "Revenue", value: formatCurrency(summary.totalRevenue) },
                 { label: "Net Profit", value: formatCurrency(summary.netProfit) },
             ],
@@ -738,8 +759,9 @@ function AdminReports() {
                             Admin Reports
                         </h1>
                         <p className="mt-3 max-w-xl text-sm leading-6 text-white/75 md:text-base">
-                            Generate clean printable reports from your current system data.
-                            This page is focused on report export, not payment management.
+                            Generate clean printable reports from your current
+                            system data. This page is focused on report export,
+                            not payment management.
                         </p>
                     </div>
 
@@ -754,10 +776,30 @@ function AdminReports() {
             </motion.section>
 
             <section className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
-                <SummaryCard title="Total Bookings" value={summary.totalBookings} icon={CalendarRange} delay={0.05} />
-                <SummaryCard title="Total Revenue" value={formatCurrency(summary.totalRevenue)} icon={Wallet} delay={0.1} />
-                <SummaryCard title="Total Inquiries" value={summary.totalInquiries} icon={Users} delay={0.15} />
-                <SummaryCard title="Net Profit" value={formatCurrency(summary.netProfit)} icon={TrendingUp} delay={0.2} />
+                <SummaryCard
+                    title="Total Bookings"
+                    value={summary.totalBookings}
+                    icon={CalendarRange}
+                    delay={0.05}
+                />
+                <SummaryCard
+                    title="Total Revenue"
+                    value={formatCurrency(summary.totalRevenue)}
+                    icon={Wallet}
+                    delay={0.1}
+                />
+                <SummaryCard
+                    title="Total Inquiries"
+                    value={summary.totalInquiries}
+                    icon={Users}
+                    delay={0.15}
+                />
+                <SummaryCard
+                    title="Net Profit"
+                    value={formatCurrency(summary.netProfit)}
+                    icon={TrendingUp}
+                    delay={0.2}
+                />
             </section>
 
             <motion.section
@@ -780,7 +822,9 @@ function AdminReports() {
                         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#ecfdf5]">
                             <LoaderCircle className="h-8 w-8 animate-spin text-[#0f766e]" />
                         </div>
-                        <p className="mt-4 text-sm text-gray-500">Loading report data...</p>
+                        <p className="mt-4 text-sm text-gray-500">
+                            Loading report data...
+                        </p>
                     </div>
                 ) : (
                     <div className="grid gap-4 p-6 md:grid-cols-2 xl:grid-cols-4">
@@ -820,11 +864,26 @@ function AdminReports() {
                     </div>
 
                     <div className="mt-6 space-y-4">
-                        <SummaryLine label="Approved Quotations" value={summary.approvedQuotations} />
-                        <SummaryLine label="Pending Quotations" value={summary.pendingQuotations} />
-                        <SummaryLine label="Total Collected" value={formatCurrency(summary.totalCollected)} />
-                        <SummaryLine label="Total Expenses" value={formatCurrency(summary.totalExpenses)} />
-                        <SummaryLine label="Replied Inquiries" value={summary.repliedInquiries} />
+                        <SummaryLine
+                            label="Approved Quotations"
+                            value={summary.approvedQuotations}
+                        />
+                        <SummaryLine
+                            label="Pending Quotations"
+                            value={summary.pendingQuotations}
+                        />
+                        <SummaryLine
+                            label="Total Collected"
+                            value={formatCurrency(summary.totalCollected)}
+                        />
+                        <SummaryLine
+                            label="Total Expenses"
+                            value={formatCurrency(summary.totalExpenses)}
+                        />
+                        <SummaryLine
+                            label="Replied Inquiries"
+                            value={summary.repliedInquiries}
+                        />
                     </div>
                 </motion.div>
 
@@ -843,7 +902,8 @@ function AdminReports() {
                                 Demand Forecast Snapshot
                             </h2>
                             <p className="text-sm text-gray-500">
-                                Event type distribution based on current bookings.
+                                Event type distribution based on current
+                                bookings.
                             </p>
                         </div>
                     </div>
@@ -855,12 +915,16 @@ function AdminReports() {
                                 Loading demand forecast...
                             </div>
                         ) : demandForecast.length === 0 ? (
-                            <p className="text-sm text-gray-500">No demand forecast data yet.</p>
+                            <p className="text-sm text-gray-500">
+                                No demand forecast data yet.
+                            </p>
                         ) : (
                             demandForecast.map((item) => (
                                 <div key={item.type}>
                                     <div className="mb-2 flex items-center justify-between gap-3 text-sm">
-                                        <span className="font-bold text-[#0f4d3c]">{item.type}</span>
+                                        <span className="font-bold text-[#0f4d3c]">
+                                            {item.type}
+                                        </span>
                                         <span className="text-gray-500">
                                             {item.count} • {item.percent}%
                                         </span>
@@ -895,7 +959,9 @@ function SummaryCard({ title, value, icon: Icon, delay = 0 }) {
             <div className="flex items-start justify-between gap-4">
                 <div>
                     <p className="text-sm font-medium text-gray-500">{title}</p>
-                    <h2 className="mt-3 text-3xl font-black text-[#0f4d3c]">{value}</h2>
+                    <h2 className="mt-3 text-3xl font-black text-[#0f4d3c]">
+                        {value}
+                    </h2>
                 </div>
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,rgba(212,175,55,0.16),rgba(255,248,230,1))] text-[#b99117] ring-1 ring-[#ecd891]">
                     <Icon className="h-6 w-6" />
@@ -928,7 +994,9 @@ function ReportButton({ label, description, onClick, icon: Icon, delay = 0 }) {
                     <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#0f4d3c] text-white transition group-hover:bg-[#d4af37] group-hover:text-[#0f2c24]">
                         <Icon className="h-5 w-5" />
                     </div>
-                    <h3 className="mt-4 text-base font-black text-[#0f4d3c]">{label}</h3>
+                    <h3 className="mt-4 text-base font-black text-[#0f4d3c]">
+                        {label}
+                    </h3>
                     <p className="mt-1 text-xs leading-5 text-gray-500">
                         {description}
                     </p>

@@ -17,6 +17,8 @@ import {
     Search,
     Clock3,
     Filter,
+    ShieldCheck,
+    AlertTriangle,
 } from "lucide-react";
 import { quotationService } from "../services/quotationService";
 
@@ -182,7 +184,7 @@ function PopupModal({ popup, closePopup }) {
                         exit={{ opacity: 0, y: 18, scale: 0.96 }}
                         transition={{ type: "spring", stiffness: 260, damping: 22 }}
                         onClick={(e) => e.stopPropagation()}
-                        className="w-full max-w-md overflow-hidden rounded-[28px] border border-gray-100 bg-white shadow-[0_25px_60px_rgba(0,0,0,0.25)]"
+                        className="w-full max-w-md overflow-hidden rounded-[30px] border border-white/70 bg-white shadow-[0_30px_80px_rgba(0,0,0,0.28)]"
                     >
                         <div
                             className={`px-6 py-5 text-white ${popup.type === "success"
@@ -243,6 +245,108 @@ function PopupModal({ popup, closePopup }) {
     );
 }
 
+function ConfirmModal({ confirmState, closeConfirm, onConfirm, loading }) {
+    if (typeof document === "undefined") return null;
+
+    const isApprove = confirmState.action === "approve";
+
+    return createPortal(
+        <AnimatePresence>
+            {confirmState.open && (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.18 }}
+                    className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 p-4 backdrop-blur-[6px]"
+                    onClick={loading ? undefined : closeConfirm}
+                >
+                    <motion.div
+                        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 14, scale: 0.97 }}
+                        transition={{ type: "spring", stiffness: 260, damping: 24 }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-full max-w-lg overflow-hidden rounded-[30px] border border-white/70 bg-white shadow-[0_30px_80px_rgba(0,0,0,0.3)]"
+                    >
+                        <div className="border-b border-[#eef2ef] bg-[linear-gradient(180deg,#ffffff_0%,#f8fbfa_100%)] px-6 py-6">
+                            <div className="flex items-start gap-4">
+                                <div
+                                    className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl ${isApprove
+                                            ? "bg-emerald-100 text-emerald-700"
+                                            : "bg-red-100 text-red-600"
+                                        }`}
+                                >
+                                    {isApprove ? <ShieldCheck size={28} /> : <AlertTriangle size={28} />}
+                                </div>
+
+                                <div className="min-w-0">
+                                    <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">
+                                        Confirmation Required
+                                    </p>
+                                    <h3 className="mt-1 text-2xl font-extrabold text-[#0f4d3c]">
+                                        {confirmState.title}
+                                    </h3>
+                                    <p className="mt-2 text-sm leading-7 text-slate-600">
+                                        {confirmState.message}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {confirmState.quotation && (
+                            <div className="grid gap-3 border-b border-[#eef2ef] bg-[#fbfdfc] px-6 py-5 sm:grid-cols-2">
+                                <ConfirmMeta
+                                    label="Quotation No."
+                                    value={confirmState.quotation.displayQuotationId}
+                                />
+                                <ConfirmMeta
+                                    label="Client"
+                                    value={confirmState.quotation.fullName || "—"}
+                                />
+                                <ConfirmMeta
+                                    label="Event"
+                                    value={confirmState.quotation.eventType || "—"}
+                                />
+                                <ConfirmMeta
+                                    label="Estimated Total"
+                                    value={formatCurrency(confirmState.quotation.estimatedTotal || 0)}
+                                />
+                            </div>
+                        )}
+
+                        <div className="flex flex-col gap-3 px-6 py-6 sm:flex-row">
+                            <button
+                                onClick={closeConfirm}
+                                disabled={loading}
+                                className="flex-1 rounded-2xl border border-[#dce7e2] bg-white px-5 py-3.5 font-bold text-[#0f4d3c] transition hover:bg-[#f7fbf9] disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                onClick={onConfirm}
+                                disabled={loading}
+                                className={`flex-1 rounded-2xl px-5 py-3.5 font-bold text-white transition disabled:cursor-not-allowed disabled:opacity-70 ${isApprove
+                                        ? "bg-[#0f4d3c] hover:bg-[#0c3f31]"
+                                        : "bg-red-500 hover:bg-red-600"
+                                    }`}
+                            >
+                                {loading
+                                    ? "Processing..."
+                                    : isApprove
+                                        ? "Yes, Approve"
+                                        : "Yes, Reject"}
+                            </button>
+                        </div>
+                    </motion.div>
+                </motion.div>
+            )}
+        </AnimatePresence>,
+        document.body
+    );
+}
+
 function AdminQuotations() {
     const [refreshKey, setRefreshKey] = useState(0);
     const [expandedId, setExpandedId] = useState(null);
@@ -254,6 +358,13 @@ function AdminQuotations() {
     const [popup, setPopup] = useState({
         open: false,
         type: "success",
+        title: "",
+        message: "",
+    });
+    const [confirmState, setConfirmState] = useState({
+        open: false,
+        action: null,
+        quotation: null,
         title: "",
         message: "",
     });
@@ -278,11 +389,38 @@ function AdminQuotations() {
         });
     };
 
+    const openConfirm = (action, quotation) => {
+        const isApprove = action === "approve";
+
+        setConfirmState({
+            open: true,
+            action,
+            quotation,
+            title: isApprove ? "Approve this quotation?" : "Reject this quotation?",
+            message: isApprove
+                ? "This will approve the request and may automatically create a booking record for the client."
+                : "This will reject the quotation request. This action will not create any booking record.",
+        });
+    };
+
+    const closeConfirm = () => {
+        if (actionLoadingId) return;
+
+        setConfirmState({
+            open: false,
+            action: null,
+            quotation: null,
+            title: "",
+            message: "",
+        });
+    };
+
     useEffect(() => {
         const previousHtmlOverflow = document.documentElement.style.overflow;
         const previousBodyOverflow = document.body.style.overflow;
+        const hasActiveModal = popup.open || confirmState.open;
 
-        if (popup.open) {
+        if (hasActiveModal) {
             document.documentElement.style.overflow = "hidden";
             document.body.style.overflow = "hidden";
         } else {
@@ -294,7 +432,25 @@ function AdminQuotations() {
             document.documentElement.style.overflow = previousHtmlOverflow || "";
             document.body.style.overflow = previousBodyOverflow || "";
         };
-    }, [popup.open]);
+    }, [popup.open, confirmState.open]);
+
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key !== "Escape") return;
+
+            if (confirmState.open && !actionLoadingId) {
+                closeConfirm();
+                return;
+            }
+
+            if (popup.open) {
+                closePopup();
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [popup.open, confirmState.open, actionLoadingId]);
 
     useEffect(() => {
         const fetchQuotations = async () => {
@@ -347,6 +503,10 @@ function AdminQuotations() {
         ).length;
     }, [quotations]);
 
+    const totalQuotationValue = useMemo(() => {
+        return quotations.reduce((sum, item) => sum + Number(item.estimatedTotal || 0), 0);
+    }, [quotations]);
+
     const filteredQuotations = useMemo(() => {
         const term = searchTerm.trim().toLowerCase();
 
@@ -392,6 +552,7 @@ function AdminQuotations() {
                 "Approved"
             );
 
+            closeConfirm();
             refresh();
             openPopup(
                 "success",
@@ -418,6 +579,7 @@ function AdminQuotations() {
 
             await quotationService.updateQuotationStatus(quotation.id, "Rejected");
 
+            closeConfirm();
             refresh();
             openPopup(
                 "error",
@@ -433,6 +595,19 @@ function AdminQuotations() {
             );
         } finally {
             setActionLoadingId(null);
+        }
+    };
+
+    const handleConfirmAction = async () => {
+        if (!confirmState.quotation || !confirmState.action) return;
+
+        if (confirmState.action === "approve") {
+            await handleApprove(confirmState.quotation);
+            return;
+        }
+
+        if (confirmState.action === "reject") {
+            await handleReject(confirmState.quotation);
         }
     };
 
@@ -483,7 +658,7 @@ function AdminQuotations() {
                                 </p>
                             </div>
 
-                            <div className="grid gap-3 sm:grid-cols-3 xl:min-w-[480px]">
+                            <div className="grid gap-3 sm:grid-cols-3 xl:min-w-[520px]">
                                 <MiniStat label="Total" value={quotations.length} />
                                 <MiniStat label="Pending" value={pendingCount} />
                                 <MiniStat label="Approved" value={approvedCount} />
@@ -542,7 +717,7 @@ function AdminQuotations() {
                     </div>
                 </motion.section>
 
-                <motion.div variants={fadeUp} className="grid gap-4 md:grid-cols-3">
+                <motion.div variants={fadeUp} className="grid gap-4 md:grid-cols-4">
                     <SummaryCard
                         icon={ClipboardList}
                         label="Total Quotations"
@@ -557,6 +732,11 @@ function AdminQuotations() {
                         icon={BadgeCheck}
                         label="Approved Requests"
                         value={approvedCount}
+                    />
+                    <SummaryCard
+                        icon={ShieldCheck}
+                        label="Quotation Value"
+                        value={formatCurrency(totalQuotationValue)}
                     />
                 </motion.div>
 
@@ -606,7 +786,7 @@ function AdminQuotations() {
                                         animate="show"
                                         exit="exit"
                                         transition={{ type: "spring", stiffness: 220, damping: 20 }}
-                                        className="overflow-hidden rounded-[26px] border border-[#dce7e2] bg-white shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
+                                        className="overflow-hidden rounded-[28px] border border-[#dce7e2] bg-white shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
                                     >
                                         <div className="p-4 md:p-5">
                                             <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
@@ -659,75 +839,80 @@ function AdminQuotations() {
                                                     </div>
                                                 </div>
 
-                                                <div className="xl:min-w-[220px] xl:text-right">
-                                                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                                                <div className="rounded-[22px] border border-[#f0e2a8] bg-[linear-gradient(180deg,#fffdf5_0%,#fff7da_100%)] px-5 py-4 xl:min-w-[240px] xl:text-right">
+                                                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8d7632]">
                                                         Estimated Total
                                                     </p>
-                                                    <p className="mt-1 text-3xl font-extrabold text-[#d4af37]">
+                                                    <p className="mt-1 text-3xl font-extrabold text-[#b99117]">
                                                         {formatCurrency(quote.estimatedTotal || 0)}
+                                                    </p>
+                                                    <p className="mt-2 text-xs text-[#8d7632]">
+                                                        Package + add-ons summary
                                                     </p>
                                                 </div>
                                             </div>
 
-                                            <div className="mt-4 flex flex-col gap-3 lg:flex-row">
-                                                {isPending ? (
-                                                    <>
-                                                        <motion.button
-                                                            whileTap={{ scale: 0.985 }}
-                                                            onClick={() => handleApprove(quote)}
-                                                            disabled={isActing}
-                                                            className={`flex-1 inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 font-bold text-white transition ${isActing
-                                                                    ? "cursor-not-allowed bg-[#0f4d3c]/70"
-                                                                    : "bg-[#0f4d3c] hover:bg-[#0c3f31]"
-                                                                }`}
-                                                        >
-                                                            <CheckCircle2 size={18} />
-                                                            {isActing
-                                                                ? "Processing..."
-                                                                : "Approve & Create Booking"}
-                                                        </motion.button>
+                                            <div className="mt-4 rounded-[24px] border border-[#edf2ef] bg-[#fbfdfc] p-3">
+                                                <div className="flex flex-col gap-3 lg:flex-row">
+                                                    {isPending ? (
+                                                        <>
+                                                            <motion.button
+                                                                whileTap={{ scale: 0.985 }}
+                                                                onClick={() => openConfirm("approve", quote)}
+                                                                disabled={isActing}
+                                                                className={`flex-1 inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3.5 font-bold text-white transition ${isActing
+                                                                        ? "cursor-not-allowed bg-[#0f4d3c]/70"
+                                                                        : "bg-[#0f4d3c] hover:bg-[#0c3f31]"
+                                                                    }`}
+                                                            >
+                                                                <CheckCircle2 size={18} />
+                                                                {isActing
+                                                                    ? "Processing..."
+                                                                    : "Approve & Create Booking"}
+                                                            </motion.button>
 
-                                                        <motion.button
-                                                            whileTap={{ scale: 0.985 }}
-                                                            onClick={() => handleReject(quote)}
-                                                            disabled={isActing}
-                                                            className={`flex-1 inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 font-bold text-white transition ${isActing
-                                                                    ? "cursor-not-allowed bg-red-400"
-                                                                    : "bg-red-500 hover:bg-red-600"
-                                                                }`}
+                                                            <motion.button
+                                                                whileTap={{ scale: 0.985 }}
+                                                                onClick={() => openConfirm("reject", quote)}
+                                                                disabled={isActing}
+                                                                className={`flex-1 inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3.5 font-bold text-white transition ${isActing
+                                                                        ? "cursor-not-allowed bg-red-400"
+                                                                        : "bg-red-500 hover:bg-red-600"
+                                                                    }`}
+                                                            >
+                                                                <XCircle size={18} />
+                                                                Reject
+                                                            </motion.button>
+                                                        </>
+                                                    ) : (
+                                                        <button
+                                                            disabled
+                                                            className="flex-1 cursor-not-allowed rounded-2xl bg-gray-100 px-5 py-3.5 font-bold text-gray-500"
                                                         >
-                                                            <XCircle size={18} />
-                                                            Reject
-                                                        </motion.button>
-                                                    </>
-                                                ) : (
-                                                    <button
-                                                        disabled
-                                                        className="flex-1 cursor-not-allowed rounded-2xl bg-gray-100 px-5 py-3 font-bold text-gray-500"
-                                                    >
-                                                        This quotation is already {status.toLowerCase()}
-                                                    </button>
-                                                )}
+                                                            This quotation is already {status.toLowerCase()}
+                                                        </button>
+                                                    )}
 
-                                                <motion.button
-                                                    whileTap={{ scale: 0.985 }}
-                                                    onClick={() =>
-                                                        setExpandedId(isExpanded ? null : currentId)
-                                                    }
-                                                    className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#d4af37] bg-[#fff8e6] px-5 py-3 font-bold text-[#0f4d3c] transition hover:bg-[#ffefbd] lg:w-[220px]"
-                                                >
-                                                    <motion.span
-                                                        animate={{ rotate: isExpanded ? 180 : 0 }}
-                                                        transition={{ duration: 0.28, ease: "easeInOut" }}
+                                                    <motion.button
+                                                        whileTap={{ scale: 0.985 }}
+                                                        onClick={() =>
+                                                            setExpandedId(isExpanded ? null : currentId)
+                                                        }
+                                                        className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#d4af37] bg-[#fff8e6] px-5 py-3.5 font-bold text-[#0f4d3c] transition hover:bg-[#ffefbd] lg:w-[230px]"
                                                     >
-                                                        {isExpanded ? (
-                                                            <ChevronUp size={18} />
-                                                        ) : (
-                                                            <ChevronDown size={18} />
-                                                        )}
-                                                    </motion.span>
-                                                    {isExpanded ? "Hide Details" : "View Full Details"}
-                                                </motion.button>
+                                                        <motion.span
+                                                            animate={{ rotate: isExpanded ? 180 : 0 }}
+                                                            transition={{ duration: 0.28, ease: "easeInOut" }}
+                                                        >
+                                                            {isExpanded ? (
+                                                                <ChevronUp size={18} />
+                                                            ) : (
+                                                                <ChevronDown size={18} />
+                                                            )}
+                                                        </motion.span>
+                                                        {isExpanded ? "Hide Details" : "View Full Details"}
+                                                    </motion.button>
+                                                </div>
                                             </div>
                                         </div>
 
@@ -879,6 +1064,17 @@ function AdminQuotations() {
                 )}
             </motion.div>
 
+            <ConfirmModal
+                confirmState={confirmState}
+                closeConfirm={closeConfirm}
+                onConfirm={handleConfirmAction}
+                loading={
+                    !!actionLoadingId &&
+                    confirmState.quotation &&
+                    actionLoadingId === confirmState.quotation.id
+                }
+            />
+
             <PopupModal popup={popup} closePopup={closePopup} />
         </>
     );
@@ -906,7 +1102,7 @@ function SummaryCard({ icon: Icon, label, value }) {
                 <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#edf8f3_0%,#dff1e8_100%)] text-[#0f4d3c]">
                     <Icon size={20} />
                 </div>
-                <div>
+                <div className="min-w-0">
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
                         {label}
                     </p>
@@ -949,6 +1145,19 @@ function DetailItem({ label, value }) {
         <div>
             <p className="text-slate-500">{label}</p>
             <p className="mt-1 break-words font-semibold text-[#0f4d3c]">
+                {value || "—"}
+            </p>
+        </div>
+    );
+}
+
+function ConfirmMeta({ label, value }) {
+    return (
+        <div className="rounded-2xl border border-[#e3ece7] bg-white px-4 py-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+                {label}
+            </p>
+            <p className="mt-1 text-sm font-bold text-[#0f4d3c]">
                 {value || "—"}
             </p>
         </div>

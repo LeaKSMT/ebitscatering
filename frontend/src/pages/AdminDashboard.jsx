@@ -22,21 +22,15 @@ import {
     CalendarRange,
     ClipboardList,
     Users,
-    Sparkles,
-    ArrowUpRight,
     BadgeDollarSign,
     CalendarClock,
     FileClock,
     CheckCircle2,
-    Crown,
     TrendingUp,
-    Activity,
     BriefcaseBusiness,
     ReceiptText,
     CalendarDays,
     CircleDollarSign,
-    Target,
-    PartyPopper,
 } from "lucide-react";
 
 const CHART_COLORS = ["#0f4d3c", "#d4af37", "#22b67f", "#ef4444", "#64748b"];
@@ -417,19 +411,9 @@ function AdminDashboard() {
         );
     }, [stats.totalCollected, stats.totalRevenue]);
 
-    const completionRate = useMemo(() => {
-        if (stats.totalBookings <= 0) return 0;
-        return Math.round((stats.completedEvents / stats.totalBookings) * 100);
-    }, [stats.completedEvents, stats.totalBookings]);
-
-    const confirmationRate = useMemo(() => {
-        if (stats.totalBookings <= 0) return 0;
-        return Math.round((stats.confirmedBookings / stats.totalBookings) * 100);
-    }, [stats.confirmedBookings, stats.totalBookings]);
-
     return (
         <motion.div
-            data-build="premium-admin-dashboard-v6-api"
+            data-build="premium-admin-dashboard-v7-clean"
             initial="hidden"
             animate="show"
             transition={{ staggerChildren: 0.1 }}
@@ -446,7 +430,7 @@ function AdminDashboard() {
                     <div className="absolute top-1/2 right-1/3 h-32 w-32 rounded-full bg-white/10 blur-3xl" />
                 </div>
 
-                <div className="relative overflow-hidden bg-[linear-gradient(135deg,#07382d_0%,#0c4d3d_34%,#0f6b52_68%,#18a06c_100%)] px-6 py-7 text-white md:px-8 md:py-8">
+                <div className="relative overflow-hidden bg-[linear-gradient(135deg,#07382d_0%,#0c4d3d_34%,#0f6b52_68%,#18a06c_100%)] px-6 py-8 text-white md:px-8 md:py-10">
                     <motion.div
                         animate={{ y: [0, -5, 0] }}
                         transition={{ duration: 4.8, repeat: Infinity, ease: "easeInOut" }}
@@ -464,70 +448,28 @@ function AdminDashboard() {
                         className="pointer-events-none absolute inset-y-0 left-[-30%] w-[28%] rotate-[18deg] bg-gradient-to-r from-transparent via-white/10 to-transparent"
                     />
 
-                    <div className="grid gap-5 xl:grid-cols-[1.25fr_0.75fr] xl:items-end">
-                        <div>
-                            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.22em] text-white/80">
-                                <Sparkles size={13} />
-                                Executive Overview
-                            </div>
-
-                            <h2 className="mt-4 text-3xl font-extrabold md:text-[46px] md:leading-[1.05]">
-                                Premium Admin Dashboard
-                            </h2>
-
-                            <p className="mt-3 max-w-3xl text-sm leading-7 text-white/85 md:text-[15px]">
-                                Monitor bookings, quotations, payments, revenue, and operational
-                                performance through a polished executive workspace designed for
-                                presentation, control, and visibility.
-                            </p>
-
-                            <div className="mt-5 flex flex-wrap gap-3">
-                                <HeroBadge
-                                    icon={CircleDollarSign}
-                                    label={`Collected ${collectionRate}% of revenue`}
-                                />
-                                <HeroBadge
-                                    icon={Target}
-                                    label={`Confirmation rate ${confirmationRate}%`}
-                                />
-                                <HeroBadge
-                                    icon={PartyPopper}
-                                    label={`${stats.upcomingEvents} upcoming events`}
-                                />
-                            </div>
+                    <div className="relative max-w-4xl">
+                        <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.22em] text-white/80">
+                            Dashboard Overview
                         </div>
 
-                        <motion.div
-                            whileHover={{ y: -3, scale: 1.012 }}
-                            transition={{ duration: 0.22, ease: "easeOut" }}
-                            className="rounded-[28px] border border-white/10 bg-white/10 p-5 backdrop-blur-md shadow-[0_15px_35px_rgba(0,0,0,0.12)]"
-                        >
-                            <div className="flex items-center justify-between gap-3">
-                                <div>
-                                    <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">
-                                        <Crown size={13} className="text-[#f3d57a]" />
-                                        Business Health
-                                    </div>
-                                    <p className="mt-2 text-3xl font-extrabold text-white">
-                                        {loading ? "Loading..." : "Stable"}
-                                    </p>
-                                    <div className="mt-2 flex items-center gap-2 text-sm text-white/80">
-                                        <ArrowUpRight size={15} />
-                                        Strong visibility across active operations
-                                    </div>
-                                </div>
+                        <h2 className="mt-4 text-3xl font-extrabold md:text-[44px] md:leading-[1.05]">
+                            Admin Dashboard
+                        </h2>
 
-                                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 text-[#f5d36a]">
-                                    <Activity size={26} />
-                                </div>
-                            </div>
+                        <p className="mt-3 max-w-3xl text-sm leading-7 text-white/85 md:text-[15px]">
+                            Monitor bookings, quotations, payments, revenue, and overall
+                            catering operations from one organized workspace.
+                        </p>
 
-                            <div className="mt-5 space-y-3">
-                                <ProgressRow label="Collection Performance" value={collectionRate} />
-                                <ProgressRow label="Booking Completion" value={completionRate} />
-                                <ProgressRow label="Booking Confirmation" value={confirmationRate} />
-                            </div>
-                        </motion.div>
+                        <div className="mt-5 flex flex-wrap gap-3 text-sm text-white/80">
+                            <span className="rounded-full bg-white/10 px-4 py-2 backdrop-blur-md">
+                                {loading ? "Loading data..." : `${stats.totalBookings} total bookings`}
+                            </span>
+                            <span className="rounded-full bg-white/10 px-4 py-2 backdrop-blur-md">
+                                {loading ? "Loading..." : `${stats.upcomingEvents} upcoming events`}
+                            </span>
+                        </div>
                     </div>
                 </div>
 
@@ -909,36 +851,6 @@ function DashboardCard({ title, subtitle, children, variants }) {
     );
 }
 
-function HeroBadge({ icon: Icon, label }) {
-    return (
-        <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/10 px-4 py-2 text-xs font-semibold text-white/90 backdrop-blur-md">
-            <Icon size={14} className="text-[#f4d36d]" />
-            <span>{label}</span>
-        </div>
-    );
-}
-
-function ProgressRow({ label, value }) {
-    return (
-        <div>
-            <div className="mb-1.5 flex items-center justify-between gap-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/70">
-                    {label}
-                </p>
-                <p className="text-xs font-bold text-white">{value}%</p>
-            </div>
-            <div className="h-2.5 overflow-hidden rounded-full bg-white/10">
-                <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${value}%` }}
-                    transition={{ duration: 0.9, ease: "easeOut" }}
-                    className="h-full rounded-full bg-[linear-gradient(90deg,#f6df96_0%,#d4af37_100%)]"
-                />
-            </div>
-        </div>
-    );
-}
-
 function StatCard({
     title,
     value,
@@ -1105,4 +1017,5 @@ function EmptyListState({ message }) {
         </div>
     );
 }
+
 export default AdminDashboard;
