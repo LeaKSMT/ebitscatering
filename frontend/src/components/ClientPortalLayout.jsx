@@ -13,6 +13,7 @@ function ClientPortalLayout() {
             const stored = localStorage.getItem("clientPortalTheme") || "light";
             setTheme(stored);
             document.documentElement.setAttribute("data-theme", stored);
+            document.body.setAttribute("data-theme", stored);
         };
 
         applyTheme();

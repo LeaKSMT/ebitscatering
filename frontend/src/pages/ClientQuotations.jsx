@@ -301,12 +301,12 @@ function ClientQuotations() {
         : "border border-[#e3ebe7] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] shadow-sm";
 
     const softBlock = isDark
-        ? "border border-white/10 bg-[linear-gradient(180deg,rgba(12,38,30,0.96)_0%,rgba(15,43,35,0.96)_100%)]"
+        ? "border border-white/10 bg-[linear-gradient(180deg,rgba(12,38,30,0.96)_0%,rgba(15,43,35,0.96)_100%)] shadow-[0_10px_22px_rgba(0,0,0,0.16)]"
         : "border border-[#e3ebe7] bg-[#f8fbfa]";
 
     const labelCard = isDark
-        ? "border border-white/10 bg-[linear-gradient(180deg,rgba(12,38,30,0.96)_0%,rgba(15,43,35,0.96)_100%)]"
-        : "bg-[#f8fbfa]";
+        ? "border border-white/10 bg-[linear-gradient(180deg,rgba(12,38,30,0.96)_0%,rgba(15,43,35,0.96)_100%)] shadow-[0_8px_18px_rgba(0,0,0,0.14)]"
+        : "bg-[#f8fbfa] border border-[#e3ebe7]";
 
     const summaryCard = isDark
         ? "border border-white/10 bg-[linear-gradient(180deg,rgba(11,35,28,0.98)_0%,rgba(15,42,34,0.98)_100%)]"
@@ -403,10 +403,10 @@ function ClientQuotations() {
 
                 <div className="grid gap-4 px-6 py-6 sm:grid-cols-2 xl:grid-cols-4 md:px-8">
                     {[
-                        { label: "Total", value: summary.total },
-                        { label: "Pending", value: summary.pending },
-                        { label: "Approved", value: summary.approved },
-                        { label: "Rejected", value: summary.rejected },
+                        { label: "Total", value: summary.total, color: "text-[#98efcc]" },
+                        { label: "Pending", value: summary.pending, color: "text-[#f5cf67]" },
+                        { label: "Approved", value: summary.approved, color: "text-[#8df0bf]" },
+                        { label: "Rejected", value: summary.rejected, color: "text-[#ff9bb0]" },
                     ].map((item) => (
                         <div
                             key={item.label}
@@ -415,7 +415,7 @@ function ClientQuotations() {
                             <p className={`text-xs font-semibold uppercase tracking-[0.18em] ${softText}`}>
                                 {item.label}
                             </p>
-                            <p className="mt-2 text-3xl font-extrabold tracking-tight text-[#98efcc]">
+                            <p className={`mt-2 text-3xl font-extrabold tracking-tight ${item.color}`}>
                                 {item.value}
                             </p>
                         </div>
@@ -643,7 +643,7 @@ function ClientQuotations() {
                                                                 <span
                                                                     key={`${addon}-${addonIndex}`}
                                                                     className={`rounded-full px-3 py-1 text-sm font-medium ${isDark
-                                                                        ? "bg-[rgba(21,90,60,0.3)] text-[#98efcc]"
+                                                                        ? "bg-[rgba(21,90,60,0.3)] text-[#98efcc] border border-emerald-400/15"
                                                                         : "bg-emerald-50 text-emerald-700"
                                                                         }`}
                                                                 >
@@ -673,7 +673,7 @@ function ClientQuotations() {
                                             <div
                                                 className={`rounded-[30px] px-5 py-6 text-right ${isDark
                                                     ? "border border-[rgba(97,76,24,0.34)] bg-[linear-gradient(135deg,rgba(88,67,20,0.3)_0%,rgba(120,91,27,0.24)_100%)] shadow-[0_10px_22px_rgba(0,0,0,0.18)]"
-                                                    : "bg-[linear-gradient(135deg,#fffaf0_0%,#fff3d0_100%)] shadow-sm"
+                                                    : "bg-[linear-gradient(135deg,#fffaf0_0%,#fff3d0_100%)] shadow-sm border border-[#f2e1aa]"
                                                     }`}
                                             >
                                                 <div className="flex items-center justify-end gap-2 text-[#f5cf67]">
