@@ -23,7 +23,7 @@ const corsOptions = {
     origin(origin, callback) {
         if (!origin) return callback(null, true);
         if (allowedOrigins.has(origin)) return callback(null, true);
-        return callback(null, true);
+        return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -42,6 +42,8 @@ app.use((req, res, next) => {
         res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
     }
 
+    res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+
     if (req.method === "OPTIONS") {
         return res.sendStatus(204);
     }
@@ -50,12 +52,6 @@ app.use((req, res, next) => {
 });
 
 app.use(cors(corsOptions));
-
-app.use((req, res, next) => {
-    res.setHeader("Cross-Origin-Opener-Policy", "unsafe-none");
-    next();
-});
-
 app.use(compression());
 app.use(cookieParser());
 app.use(express.json({ limit: "10mb" }));

@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { signInWithPopup } from "firebase/auth";
+import { signInWithPopup, signInWithRedirect, getRedirectResult } from "firebase/auth";
 import {
     Eye,
     EyeOff,
@@ -117,6 +117,60 @@ function Login() {
         });
     };
 
+    const finishGoogleLogin = async (googleUser) => {
+        const data = await authService.googleLogin({
+            email: googleUser.email,
+            name: googleUser.displayName,
+            photo: googleUser.photoURL,
+        });
+
+        if (!data?.user) {
+            throw new Error("Google login failed.");
+        }
+
+        saveClientSession({
+            id: data.user.id || null,
+            name: data.user.name || googleUser.displayName || "",
+            email: data.user.email || googleUser.email || "",
+            photo: data.user.photo || googleUser.photoURL || "",
+            token: data.token || "",
+        });
+
+        Swal.fire({
+            icon: "success",
+            title: "Google Login Successful",
+            text: "You are now signed in.",
+            timer: 1400,
+            showConfirmButton: false,
+            background: "#ffffff",
+            color: "#1f2937",
+            customClass: {
+                popup: "rounded-[24px] shadow-2xl",
+                title: "text-2xl font-bold",
+            },
+        });
+
+        setTimeout(() => navigate(getRedirectAfterLogin("client")), 1000);
+    };
+
+    useEffect(() => {
+        const resolveRedirectLogin = async () => {
+            try {
+                const result = await getRedirectResult(auth);
+                if (result?.user) {
+                    setIsLoading(true);
+                    await finishGoogleLogin(result.user);
+                }
+            } catch (err) {
+                console.error("Google redirect login error:", err);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        resolveRedirectLogin();
+    }, []);
+
     const handleLogin = async (e) => {
         e.preventDefault();
 
@@ -181,46 +235,17 @@ function Login() {
         try {
             setIsLoading(true);
 
-            const result = await signInWithPopup(auth, googleProvider);
-            const googleUser = result.user;
-
-            const data = await authService.googleLogin({
-                email: googleUser.email,
-                name: googleUser.displayName,
-                photo: googleUser.photoURL,
-            });
-
-            if (!data?.user) {
-                throw new Error("Google login failed.");
+            try {
+                const result = await signInWithPopup(auth, googleProvider);
+                const googleUser = result.user;
+                await finishGoogleLogin(googleUser);
+            } catch (popupErr) {
+                console.error("Google popup login error:", popupErr);
+                await signInWithRedirect(auth, googleProvider);
             }
-
-            saveClientSession({
-                id: data.user.id || null,
-                name: data.user.name || googleUser.displayName || "",
-                email: data.user.email || googleUser.email || "",
-                photo: data.user.photo || googleUser.photoURL || "",
-                token: data.token || "",
-            });
-
-            Swal.fire({
-                icon: "success",
-                title: "Google Login Successful",
-                text: "You are now signed in.",
-                timer: 1400,
-                showConfirmButton: false,
-                background: "#ffffff",
-                color: "#1f2937",
-                customClass: {
-                    popup: "rounded-[24px] shadow-2xl",
-                    title: "text-2xl font-bold",
-                },
-            });
-
-            setTimeout(() => navigate(getRedirectAfterLogin("client")), 1000);
         } catch (err) {
             console.error("Google login error:", err);
             showErrorPopup(err.message || "Google login failed.");
-        } finally {
             setIsLoading(false);
         }
     };
@@ -268,7 +293,7 @@ function Login() {
             variants={pageVariants}
             initial="hidden"
             animate="visible"
-            className="min-h-screen bg-gradient-to-br from-[#08392d] via-[#0f4d3c] to-[#169b62] relative overflow-hidden"
+            className="relative min-h-screen overflow-x-hidden bg-gradient-to-br from-[#08392d] via-[#0f4d3c] to-[#169b62]"
         >
             <div className="absolute inset-0 pointer-events-none">
                 <div className="absolute -top-20 -left-20 h-72 w-72 rounded-full bg-[#d4af37]/20 blur-3xl" />
@@ -278,22 +303,22 @@ function Login() {
 
             <motion.div
                 variants={itemVariants}
-                className="relative z-10 px-4 sm:px-8 pt-6"
+                className="relative z-10 px-4 pt-4 sm:px-6 sm:pt-6"
             >
                 <Link
                     to="/"
-                    className="inline-flex items-center gap-2 text-white/90 font-semibold hover:text-[#f5c94a] transition"
+                    className="inline-flex items-center gap-2 text-sm font-semibold text-white/90 transition hover:text-[#f5c94a] sm:text-base"
                 >
                     <span>←</span>
                     <span>Back to Home</span>
                 </Link>
             </motion.div>
 
-            <div className="relative z-10 min-h-[calc(100vh-72px)] flex items-center justify-center px-4 py-8">
-                <div className="w-full max-w-6xl grid lg:grid-cols-2 rounded-[32px] overflow-hidden shadow-[0_25px_80px_rgba(0,0,0,0.30)] border border-white/10 bg-white/10 backdrop-blur-md">
+            <div className="relative z-10 flex min-h-[calc(100vh-56px)] items-start justify-center px-3 pb-6 pt-3 sm:min-h-[calc(100vh-72px)] sm:px-4 sm:py-8 md:items-center">
+                <div className="grid w-full max-w-6xl overflow-hidden rounded-[28px] border border-white/10 bg-white/10 shadow-[0_25px_80px_rgba(0,0,0,0.30)] backdrop-blur-md lg:grid-cols-2 lg:rounded-[32px]">
                     <motion.div
                         variants={leftPanelVariants}
-                        className="hidden lg:flex flex-col justify-between p-10 xl:p-14 bg-gradient-to-br from-[#0b3d31]/95 via-[#0f4d3c]/90 to-[#136f50]/85 text-white relative"
+                        className="relative hidden flex-col justify-between bg-gradient-to-br from-[#0b3d31]/95 via-[#0f4d3c]/90 to-[#136f50]/85 p-10 text-white lg:flex xl:p-14"
                     >
                         <div>
                             <motion.div
@@ -314,7 +339,7 @@ function Login() {
 
                             <motion.p
                                 variants={itemVariants}
-                                className="mt-5 max-w-lg text-white/80 text-lg leading-8"
+                                className="mt-5 max-w-lg text-lg leading-8 text-white/80"
                             >
                                 Sign in to manage bookings, quotations, client services,
                                 and admin operations in one elegant catering platform.
@@ -325,7 +350,7 @@ function Login() {
                             <motion.div
                                 variants={itemVariants}
                                 whileHover={{ y: -4, scale: 1.01 }}
-                                className="rounded-2xl bg-white/10 border border-white/10 p-4 flex items-start gap-3"
+                                className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/10 p-4"
                             >
                                 <UtensilsCrossed className="mt-1 text-[#f5c94a]" size={20} />
                                 <div>
@@ -339,7 +364,7 @@ function Login() {
                             <motion.div
                                 variants={itemVariants}
                                 whileHover={{ y: -4, scale: 1.01 }}
-                                className="rounded-2xl bg-white/10 border border-white/10 p-4 flex items-start gap-3"
+                                className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/10 p-4"
                             >
                                 <ShieldCheck className="mt-1 text-[#f5c94a]" size={20} />
                                 <div>
@@ -354,20 +379,20 @@ function Login() {
 
                     <motion.div
                         variants={rightPanelVariants}
-                        className="bg-white px-6 py-8 sm:px-10 sm:py-10 lg:px-12 lg:py-12"
+                        className="flex min-w-0 items-center justify-center bg-white px-4 py-7 sm:px-8 sm:py-10 lg:px-12 lg:py-12"
                     >
-                        <div className="mx-auto w-full max-w-md">
+                        <div className="w-full max-w-md min-w-0">
                             <motion.div
                                 variants={itemVariants}
-                                className="text-center lg:text-left mb-8"
+                                className="mb-7 text-center lg:text-left"
                             >
-                                <p className="text-sm font-semibold tracking-[0.18em] text-[#d4af37] uppercase">
+                                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#d4af37] sm:text-sm">
                                     Sign In
                                 </p>
-                                <h2 className="mt-2 text-4xl font-extrabold text-[#0f172a]">
+                                <h2 className="mt-2 text-3xl font-extrabold leading-tight text-[#0f172a] sm:text-4xl">
                                     Access Your Account
                                 </h2>
-                                <p className="mt-3 text-gray-500">
+                                <p className="mt-3 text-sm text-gray-500 sm:text-base">
                                     Login to continue to the catering management system.
                                 </p>
                             </motion.div>
@@ -378,7 +403,7 @@ function Login() {
                                 className="space-y-5"
                             >
                                 <motion.div variants={itemVariants}>
-                                    <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
+                                    <label className="mb-2 block text-sm font-semibold text-[#0f4d3c]">
                                         Email
                                     </label>
                                     <input
@@ -386,23 +411,23 @@ function Login() {
                                         placeholder="Enter your email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
-                                        className="w-full rounded-2xl border border-gray-300 bg-[#fafafa] px-4 py-3.5 outline-none focus:border-[#d4af37] focus:ring-4 focus:ring-[#d4af37]/15 transition"
+                                        className="w-full min-w-0 rounded-2xl border border-gray-300 bg-[#fafafa] px-4 py-3.5 text-sm outline-none transition focus:border-[#d4af37] focus:ring-4 focus:ring-[#d4af37]/15 sm:text-base"
                                         required
                                     />
                                 </motion.div>
 
                                 <motion.div variants={itemVariants}>
-                                    <label className="block text-sm font-semibold text-[#0f4d3c] mb-2">
+                                    <label className="mb-2 block text-sm font-semibold text-[#0f4d3c]">
                                         Password
                                     </label>
 
-                                    <div className="relative">
+                                    <div className="relative min-w-0">
                                         <input
                                             type={showPassword ? "text" : "password"}
                                             placeholder="Enter your password"
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
-                                            className="w-full rounded-2xl border border-gray-300 bg-[#fafafa] px-4 py-3.5 pr-12 outline-none focus:border-[#d4af37] focus:ring-4 focus:ring-[#d4af37]/15 transition"
+                                            className="w-full min-w-0 rounded-2xl border border-gray-300 bg-[#fafafa] px-4 py-3.5 pr-12 text-sm outline-none transition focus:border-[#d4af37] focus:ring-4 focus:ring-[#d4af37]/15 sm:text-base"
                                             required
                                         />
 
@@ -422,11 +447,11 @@ function Login() {
                                     whileTap={{ scale: 0.98 }}
                                     type="submit"
                                     disabled={isLoading}
-                                    className="w-full rounded-2xl bg-gradient-to-r from-[#0f4d3c] via-[#11634b] to-[#18a06c] text-white py-3.5 font-semibold shadow-lg hover:shadow-xl transition disabled:opacity-70 flex items-center justify-center gap-2"
+                                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#0f4d3c] via-[#11634b] to-[#18a06c] py-3.5 font-semibold text-white shadow-lg transition hover:shadow-xl disabled:opacity-70"
                                 >
                                     {isLoading ? (
                                         <>
-                                            <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                                            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
                                             Signing In...
                                         </>
                                     ) : (
@@ -453,9 +478,9 @@ function Login() {
                                 type="button"
                                 onClick={handleGoogleLogin}
                                 disabled={isLoading}
-                                className="w-full rounded-2xl border border-gray-300 bg-white py-3.5 px-4 font-medium text-gray-700 flex items-center justify-center gap-3 hover:border-[#d4af37] hover:shadow-sm transition disabled:opacity-70"
+                                className="flex w-full items-center justify-center gap-3 rounded-2xl border border-gray-300 bg-white px-4 py-3.5 font-medium text-gray-700 transition hover:border-[#d4af37] hover:shadow-sm disabled:opacity-70"
                             >
-                                <svg className="w-5 h-5" viewBox="0 0 48 48" aria-hidden="true">
+                                <svg className="h-5 w-5" viewBox="0 0 48 48" aria-hidden="true">
                                     <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303C33.659 32.657 29.219 36 24 36c-6.627 0-12-5.373-12-12S17.373 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.278 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917Z" />
                                     <path fill="#FF3D00" d="M6.306 14.691 12.88 19.51C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.278 4 24 4c-7.682 0-14.347 4.337-17.694 10.691Z" />
                                     <path fill="#4CAF50" d="M24 44c5.176 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.143 35.091 26.715 36 24 36c-5.198 0-9.625-3.317-11.288-7.946l-6.525 5.025C9.5 39.556 16.227 44 24 44Z" />
@@ -472,7 +497,7 @@ function Login() {
                                     Don&apos;t have an account?{" "}
                                     <Link
                                         to="/register"
-                                        className="font-semibold text-[#b99117] hover:text-[#8f6f0c] transition"
+                                        className="font-semibold text-[#b99117] transition hover:text-[#8f6f0c]"
                                     >
                                         Register here
                                     </Link>
