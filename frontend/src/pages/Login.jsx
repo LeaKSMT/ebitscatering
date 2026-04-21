@@ -21,15 +21,6 @@ function Login() {
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
-    const getSafeJson = (key) => {
-        try {
-            const raw = localStorage.getItem(key);
-            return raw ? JSON.parse(raw) : null;
-        } catch {
-            return null;
-        }
-    };
-
     const getRedirectAfterLogin = (role) => {
         const redirectPath = localStorage.getItem("redirectAfterLogin");
 
@@ -192,22 +183,6 @@ function Login() {
 
         resolveRedirectLogin();
     }, []);
-
-    useEffect(() => {
-        const adminAuth = localStorage.getItem("adminAuth") === "true";
-        const adminUser = getSafeJson("adminUser");
-        const clientLoggedIn = localStorage.getItem("isClientLoggedIn") === "true";
-        const clientUser = getSafeJson("clientUser");
-
-        if (adminAuth && adminUser?.role === "admin") {
-            navigate("/admin/dashboard", { replace: true });
-            return;
-        }
-
-        if (clientLoggedIn && clientUser?.role === "client") {
-            navigate("/client/dashboard", { replace: true });
-        }
-    }, [navigate]);
 
     const handleLogin = async (e) => {
         e.preventDefault();
