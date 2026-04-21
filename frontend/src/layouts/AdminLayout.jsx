@@ -4,14 +4,29 @@ import AdminSidebar from "../components/AdminSidebar";
 import AdminTopbar from "../components/AdminTopbar";
 
 function AdminLayout() {
-    const isAdminAuth = localStorage.getItem("adminAuth") === "true";
-    const savedUser =
-        JSON.parse(localStorage.getItem("user") || "null") ||
-        JSON.parse(localStorage.getItem("adminUser") || "null");
-    const isAdminUser = savedUser?.role === "admin" || !!savedUser;
     const location = useLocation();
 
-    if (!isAdminAuth || !isAdminUser) {
+    const getSafeJson = (key) => {
+        try {
+            const raw = localStorage.getItem(key);
+            return raw ? JSON.parse(raw) : null;
+        } catch {
+            return null;
+        }
+    };
+
+    const adminAuth = localStorage.getItem("adminAuth") === "true";
+    const adminUser = getSafeJson("adminUser");
+    const genericUser = getSafeJson("user");
+
+    const isAdmin =
+        adminAuth &&
+        (
+            adminUser?.role === "admin" ||
+            genericUser?.role === "admin"
+        );
+
+    if (!isAdmin) {
         return <Navigate to="/login" replace />;
     }
 

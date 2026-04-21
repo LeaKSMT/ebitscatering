@@ -57,6 +57,13 @@ function Login() {
         localStorage.removeItem("adminToken");
     };
 
+    const forceLightLoginTheme = () => {
+        document.body.setAttribute("data-theme", "light");
+        document.documentElement.style.colorScheme = "light";
+        document.body.classList.remove("dark");
+        document.documentElement.classList.remove("dark");
+    };
+
     const saveClientSession = ({ id = null, name, email, photo = "", token = "" }) => {
         const safeEmail = email?.trim().toLowerCase() || "";
         const finalName = name?.trim() || safeEmail.split("@")[0] || "Client";
@@ -163,6 +170,10 @@ function Login() {
 
         setTimeout(() => navigate(getRedirectAfterLogin("client"), { replace: true }), 1000);
     };
+
+    useEffect(() => {
+        forceLightLoginTheme();
+    }, []);
 
     useEffect(() => {
         const resolveRedirectLogin = async () => {
@@ -446,13 +457,17 @@ function Login() {
                                 variants={pageVariants}
                                 onSubmit={handleLogin}
                                 className="space-y-5"
+                                autoComplete="off"
                             >
                                 <motion.div variants={itemVariants}>
                                     <label className="mb-2 block text-sm font-semibold text-[#0f4d3c]">
                                         Email
                                     </label>
                                     <input
+                                        key="login-email"
                                         type="email"
+                                        name="login_email"
+                                        autoComplete="off"
                                         placeholder="Enter your email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
@@ -469,7 +484,10 @@ function Login() {
 
                                     <div className="relative min-w-0">
                                         <input
+                                            key="login-password"
                                             type={showPassword ? "text" : "password"}
+                                            name="login_password"
+                                            autoComplete="new-password"
                                             placeholder="Enter your password"
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
