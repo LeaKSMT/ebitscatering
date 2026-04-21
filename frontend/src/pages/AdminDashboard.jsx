@@ -66,6 +66,25 @@ function normalizeStatus(status) {
     return String(status || "").trim().toLowerCase();
 }
 
+function normalizeNumber(value) {
+    const num = Number(value || 0);
+    return Number.isFinite(num) ? num : 0;
+}
+
+function parseArrayField(value) {
+    if (Array.isArray(value)) return value;
+    if (!value) return [];
+    if (typeof value === "string") {
+        try {
+            const parsed = JSON.parse(value);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch {
+            return [];
+        }
+    }
+    return [];
+}
+
 function normalizeQuotation(item) {
     if (!item || typeof item !== "object") return null;
 
@@ -79,6 +98,15 @@ function normalizeQuotation(item) {
         createdAt: item.created_at || "",
         estimatedTotal: Number(item.estimated_total || 0),
         eventType: item.event_type || "",
+        eventDate:
+            item.preferred_date ||
+            item.event_date ||
+            item.preferredDate ||
+            "",
+        payments: item.payments || item.payment_records || [],
+        payment_records: item.payment_records || item.payments || [],
+        estimated_total: item.estimated_total || 0,
+        total_price: item.total_price || 0,
     };
 }
 
@@ -111,25 +139,39 @@ function normalizePayment(item) {
     };
 }
 
-function getBookingPaymentSummary(booking, payments) {
-    const relatedPayments = payments.filter(
-        (payment) => String(payment.bookingId || "") === String(booking.id || "")
-    );
+function getQuotationPaymentSummary(item) {
+    const payments = parseArrayField(item.payments || item.payment_records);
 
-    const totalPaid = relatedPayments.reduce(
-        (sum, item) => sum + Number(item.amount || 0),
+    const totalAmount = normalizeNumber(
+        item.estimated_total ||
+        item.total_price ||
+        item.totalAmount ||
+        item.estimatedTotal ||
         0
     );
 
-    const totalAmount = Number(booking.totalAmount || 0);
+    const totalPaidRaw = payments.reduce((sum, payment) => {
+        return (
+            sum +
+            normalizeNumber(
+                payment?.amount ||
+                payment?.paymentAmount ||
+                payment?.payment_amount
+            )
+        );
+    }, 0);
+
+    const totalPaid = Math.min(totalPaidRaw, totalAmount);
+    const balance = Math.max(totalAmount - totalPaid, 0);
 
     let paymentStatus = "unpaid";
-    if (totalPaid > 0 && totalPaid < totalAmount) paymentStatus = "partial";
-    if (totalAmount > 0 && totalPaid >= totalAmount) paymentStatus = "paid";
+    if (totalPaid > 0 && balance > 0) paymentStatus = "partial";
+    if (totalAmount > 0 && balance <= 0) paymentStatus = "paid";
 
     return {
-        totalPaid,
         totalAmount,
+        totalPaid,
+        balance,
         paymentStatus,
     };
 }
@@ -232,8 +274,10 @@ function AdminDashboard() {
     const monthlyRows = useMemo(() => {
         const map = new Map();
 
-        bookings.forEach((booking) => {
-            const date = new Date(booking.eventDate || booking.createdAt || "");
+        quotations.forEach((quotation) => {
+            const date = new Date(
+                quotation.eventDate || quotation.createdAt || ""
+            );
             if (Number.isNaN(date.getTime())) return;
 
             const key = `${date.getFullYear()}-${date.getMonth()}`;
@@ -251,41 +295,42 @@ function AdminDashboard() {
                 });
             }
 
-            map.get(key).revenue += Number(booking.totalAmount || 0);
+            const summary = getQuotationPaymentSummary(quotation);
+            map.get(key).revenue += Number(summary.totalAmount || 0);
         });
 
         return [...map.values()].sort((a, b) => a.key.localeCompare(b.key));
-    }, [bookings]);
+    }, [quotations]);
 
     const demandForecast = useMemo(() => {
         const counts = {};
 
-        bookings.forEach((booking) => {
-            const type = booking.eventType || "Other";
+        quotations.forEach((quotation) => {
+            const type = quotation.eventType || "Other";
             counts[type] = (counts[type] || 0) + 1;
         });
 
         return Object.entries(counts).map(([type, count]) => ({ type, count }));
-    }, [bookings]);
+    }, [quotations]);
 
     const stats = useMemo(() => {
-        const totalRevenue = bookings.reduce(
-            (sum, booking) => sum + Number(booking.totalAmount || 0),
-            0
-        );
+        const totalRevenue = quotations.reduce((sum, quotation) => {
+            const summary = getQuotationPaymentSummary(quotation);
+            return sum + summary.totalAmount;
+        }, 0);
 
-        const totalCollected = payments.reduce(
-            (sum, payment) => sum + Number(payment.amount || 0),
-            0
-        );
+        const totalCollected = quotations.reduce((sum, quotation) => {
+            const summary = getQuotationPaymentSummary(quotation);
+            return sum + summary.totalPaid;
+        }, 0);
 
-        const totalBookings = bookings.length;
+        const totalBookings = quotations.length;
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        const upcomingEvents = bookings.filter((booking) => {
-            const eventDate = new Date(booking.eventDate || "");
+        const upcomingEvents = quotations.filter((quotation) => {
+            const eventDate = new Date(quotation.eventDate || "");
             if (Number.isNaN(eventDate.getTime())) return false;
             eventDate.setHours(0, 0, 0, 0);
             return eventDate >= today;
@@ -318,7 +363,7 @@ function AdminDashboard() {
             confirmedBookings,
             completedEvents,
         };
-    }, [bookings, payments, quotations]);
+    }, [bookings, quotations]);
 
     const eventTypeChartData = useMemo(() => {
         return demandForecast
@@ -332,8 +377,10 @@ function AdminDashboard() {
     const monthlyBookingTrend = useMemo(() => {
         const map = new Map();
 
-        bookings.forEach((booking) => {
-            const date = new Date(booking.eventDate || booking.createdAt || "");
+        quotations.forEach((quotation) => {
+            const date = new Date(
+                quotation.eventDate || quotation.createdAt || ""
+            );
             if (Number.isNaN(date.getTime())) return;
 
             const label = date.toLocaleDateString("en-PH", {
@@ -349,7 +396,7 @@ function AdminDashboard() {
         });
 
         return [...map.values()];
-    }, [bookings]);
+    }, [quotations]);
 
     const paymentStatusChartData = useMemo(() => {
         const summary = {
@@ -358,9 +405,11 @@ function AdminDashboard() {
             Unpaid: 0,
         };
 
-        bookings.forEach((booking) => {
-            const paymentSummary = getBookingPaymentSummary(booking, payments);
-            const status = String(paymentSummary.paymentStatus || "unpaid").toLowerCase();
+        quotations.forEach((quotation) => {
+            const paymentSummary = getQuotationPaymentSummary(quotation);
+            const status = String(
+                paymentSummary.paymentStatus || "unpaid"
+            ).toLowerCase();
 
             if (status === "paid") summary.Paid += 1;
             else if (status === "partial") summary.Partial += 1;
@@ -372,15 +421,15 @@ function AdminDashboard() {
             { name: "Partial", value: summary.Partial },
             { name: "Unpaid", value: summary.Unpaid },
         ].filter((item) => item.value > 0);
-    }, [bookings, payments]);
+    }, [quotations]);
 
     const upcomingEventList = useMemo(() => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        return [...bookings]
-            .filter((booking) => {
-                const eventDate = new Date(booking.eventDate || "");
+        return [...quotations]
+            .filter((quotation) => {
+                const eventDate = new Date(quotation.eventDate || "");
                 if (Number.isNaN(eventDate.getTime())) return false;
                 eventDate.setHours(0, 0, 0, 0);
                 return eventDate >= today;
@@ -391,7 +440,7 @@ function AdminDashboard() {
                 return aDate - bDate;
             })
             .slice(0, 5);
-    }, [bookings]);
+    }, [quotations]);
 
     const recentQuotations = useMemo(() => {
         return [...quotations]
@@ -477,7 +526,7 @@ function AdminDashboard() {
                     <StatCard
                         title="Total Revenue"
                         value={formatCurrency(stats.totalRevenue)}
-                        subtitle="Approved and confirmed booking totals"
+                        subtitle="Quotation-based total booking amounts"
                         icon={Wallet}
                         accent="gold"
                         delay={0.04}
@@ -485,7 +534,7 @@ function AdminDashboard() {
                     <StatCard
                         title="Total Bookings"
                         value={stats.totalBookings}
-                        subtitle="All booking records in the system"
+                        subtitle="All quotation records in the system"
                         icon={ClipboardList}
                         delay={0.1}
                     />
@@ -543,7 +592,7 @@ function AdminDashboard() {
             <div className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
                 <DashboardCard
                     title="Monthly Revenue Trend"
-                    subtitle="Revenue and expenses based on real booking totals."
+                    subtitle="Revenue and expenses based on real quotation totals."
                     variants={fadeUp}
                 >
                     <div className="h-[310px]">
@@ -792,13 +841,13 @@ function AdminDashboard() {
                         <EmptyListState message="No upcoming events available yet." />
                     ) : (
                         <div className="space-y-3">
-                            {upcomingEventList.map((booking, index) => (
+                            {upcomingEventList.map((quotation, index) => (
                                 <ListRow
-                                    key={booking.id || `${booking.clientName}-${index}`}
-                                    title={booking.clientName || "Client Event"}
-                                    metaLeft={booking.eventType || "Event"}
-                                    metaRight={formatEventDate(booking.eventDate)}
-                                    status={booking.status || "Pending"}
+                                    key={quotation.id || `${quotation.fullName}-${index}`}
+                                    title={quotation.fullName || "Client Event"}
+                                    metaLeft={quotation.eventType || "Event"}
+                                    metaRight={formatEventDate(quotation.eventDate)}
+                                    status={quotation.status || "Pending"}
                                     delay={index * 0.04}
                                 />
                             ))}
@@ -823,7 +872,11 @@ function AdminDashboard() {
                                         quotation.email ||
                                         "Quotation Request"
                                     }
-                                    metaLeft={quotation.packageName || quotation.packageType || "Quotation"}
+                                    metaLeft={
+                                        quotation.packageName ||
+                                        quotation.packageType ||
+                                        "Quotation"
+                                    }
                                     metaRight={formatEventDate(quotation.createdAt)}
                                     status={quotation.status || "Pending"}
                                     delay={index * 0.04}
@@ -955,7 +1008,9 @@ function InsightTile({ icon: Icon, label, value, tone = "green" }) {
 function ListRow({ title, metaLeft, metaRight, status, delay = 0 }) {
     const normalized = normalizeStatus(status);
     const statusClass =
-        normalized === "confirmed" || normalized === "approved" || normalized === "completed"
+        normalized === "confirmed" ||
+            normalized === "approved" ||
+            normalized === "completed"
             ? "bg-[#ecf8f2] text-[#0f7a51]"
             : normalized === "pending"
                 ? "bg-[#fff8e8] text-[#b07d12]"
