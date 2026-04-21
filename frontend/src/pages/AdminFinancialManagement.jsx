@@ -1,12 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-    getAllBookings,
     getAllPayments,
     getAllExpenses,
     getBookingPaymentSummary,
-    getMonthlyFinancialRows,
-    getDemandForecast,
     formatCurrency,
     formatDate,
 } from "../utils/AdminData";
@@ -148,7 +145,12 @@ function normalizeBookingRecord(item, index = 0) {
             item.status ||
             item.booking_status ||
             item.paymentStatus ||
+            item.payment_status ||
             "Pending",
+        createdAt:
+            item.createdAt ||
+            item.created_at ||
+            "",
     };
 }
 
@@ -225,6 +227,7 @@ function getFallbackBookings() {
                         item.preferred_date ||
                         item.preferredDate,
                     status: item.status,
+                    createdAt: item.createdAt || item.created_at,
                 },
                 index
             )
@@ -249,8 +252,89 @@ function getFallbackBookings() {
     );
 }
 
+function getApiBaseUrl() {
+    const envUrl = import.meta.env.VITE_API_URL?.trim();
+
+    if (!envUrl) {
+        return "https://ebitscatering-production.up.railway.app/api";
+    }
+
+    const cleaned = envUrl.replace(/\/+$/, "");
+    return cleaned.endsWith("/api") ? cleaned : `${cleaned}/api`;
+}
+
+function getStoredToken() {
+    return (
+        localStorage.getItem("adminToken") ||
+        localStorage.getItem("clientToken") ||
+        localStorage.getItem("token") ||
+        ""
+    );
+}
+
+function HeaderMiniCard({ icon: Icon, label, value }) {
+    return (
+        <motion.div
+            whileHover={{ y: -3 }}
+            transition={{ type: "spring", stiffness: 220, damping: 18 }}
+            className="rounded-[22px] border border-white/10 bg-white/10 p-4 backdrop-blur-md"
+        >
+            <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 text-white">
+                    <Icon size={18} />
+                </div>
+                <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">
+                        {label}
+                    </p>
+                    <p className="mt-1 text-lg font-extrabold text-white">{value}</p>
+                </div>
+            </div>
+        </motion.div>
+    );
+}
+
+function SummaryCard({ icon: Icon, title, value, subtitle }) {
+    return (
+        <motion.div
+            whileHover={{ y: -4, scale: 1.01 }}
+            transition={{ type: "spring", stiffness: 220, damping: 18 }}
+            className="rounded-[24px] border border-[#dce7e2] bg-white p-5 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
+        >
+            <div className="flex items-start justify-between gap-3">
+                <div>
+                    <p className="text-sm text-slate-500">{title}</p>
+                    <h2 className="mt-2 text-3xl font-extrabold text-[#0f4d3c]">
+                        {value}
+                    </h2>
+                    <p className="mt-2 text-xs text-slate-400">{subtitle}</p>
+                </div>
+
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#edf8f3_0%,#dff1e8_100%)] text-[#0f4d3c]">
+                    <Icon size={22} />
+                </div>
+            </div>
+        </motion.div>
+    );
+}
+
+function EmptyState({ title, description }) {
+    return (
+        <div className="rounded-[24px] border border-dashed border-[#d9e5e0] bg-[#fbfdfc] px-6 py-12 text-center">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#edf8f3] text-[#0f4d3c]">
+                <CircleDollarSign className="h-8 w-8" />
+            </div>
+            <h3 className="mt-4 text-2xl font-extrabold text-[#0f4d3c]">{title}</h3>
+            <p className="mx-auto mt-2 max-w-2xl text-sm leading-7 text-slate-500">
+                {description}
+            </p>
+        </div>
+    );
+}
+
 function AdminFinancialManagement() {
     const [refreshKey, setRefreshKey] = useState(0);
+    const [apiBookings, setApiBookings] = useState([]);
     const [expenseForm, setExpenseForm] = useState({
         bookingId: "",
         clientName: "",
@@ -263,6 +347,9 @@ function AdminFinancialManagement() {
         title: "",
         message: "",
     });
+
+    const API_BASE_URL = getApiBaseUrl();
+    const token = getStoredToken();
 
     useEffect(() => {
         const refreshData = () => setRefreshKey((prev) => prev + 1);
@@ -278,44 +365,98 @@ function AdminFinancialManagement() {
         };
     }, []);
 
+    useEffect(() => {
+        let isMounted = true;
+
+        const fetchBookings = async () => {
+            try {
+                const res = await fetch(`${API_BASE_URL}/bookings`, {
+                    method: "GET",
+                    credentials: "include",
+                    headers: {
+                        "Content-Type": "application/json",
+                        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                    },
+                });
+
+                const data = await res.json().catch(() => []);
+
+                if (!res.ok) {
+                    throw new Error(data?.message || "Failed to fetch bookings.");
+                }
+
+                const normalized = Array.isArray(data)
+                    ? data
+                        .map((item, index) => normalizeBookingRecord(item, index))
+                        .filter(Boolean)
+                    : [];
+
+                if (isMounted) {
+                    setApiBookings(normalized);
+                }
+            } catch (error) {
+                console.error("Financial bookings fetch error:", error);
+                if (isMounted) {
+                    setApiBookings([]);
+                }
+            }
+        };
+
+        fetchBookings();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [API_BASE_URL, token, refreshKey]);
+
     const bookings = useMemo(() => {
-        const primary = (getAllBookings() || [])
-            .map((item, index) => normalizeBookingRecord(item, index))
-            .filter(Boolean);
-
         const fallback = getFallbackBookings();
-
         const map = new Map();
 
-        [...primary, ...fallback].forEach((item) => {
-            const key = String(item.bookingId || item.id);
+        [...apiBookings, ...fallback].forEach((item) => {
+            const normalized = normalizeBookingRecord(item);
+            if (!normalized) return;
+
+            const key = String(normalized.bookingId || normalized.id);
             const existing = map.get(key);
 
             if (!existing) {
-                map.set(key, item);
+                map.set(key, normalized);
                 return;
             }
 
             const existingApproved = isApprovedLikeStatus(existing.status);
-            const currentApproved = isApprovedLikeStatus(item.status);
+            const currentApproved = isApprovedLikeStatus(normalized.status);
 
             if (!existingApproved && currentApproved) {
-                map.set(key, item);
+                map.set(key, normalized);
                 return;
             }
 
             const existingAmount = Number(existing.totalAmount || 0);
-            const currentAmount = Number(item.totalAmount || 0);
+            const currentAmount = Number(normalized.totalAmount || 0);
 
             if (currentAmount > existingAmount) {
-                map.set(key, item);
+                map.set(key, normalized);
+                return;
+            }
+
+            const existingCreated = new Date(
+                existing.createdAt || existing.date || 0
+            ).getTime();
+            const currentCreated = new Date(
+                normalized.createdAt || normalized.date || 0
+            ).getTime();
+
+            if (currentCreated > existingCreated) {
+                map.set(key, normalized);
             }
         });
 
         return Array.from(map.values()).filter((item) =>
             isApprovedLikeStatus(item.status)
         );
-    }, [refreshKey]);
+    }, [apiBookings, refreshKey]);
 
     const payments = useMemo(() => getAllPayments(), [refreshKey]);
     const expenses = useMemo(() => getAllExpenses(), [refreshKey]);
@@ -376,12 +517,66 @@ function AdminFinancialManagement() {
         };
     }, [financialRows, payments, expenses]);
 
-    const monthlyRows = useMemo(
-        () => getMonthlyFinancialRows(),
-        [expenses, bookings]
-    );
+    const monthlyRows = useMemo(() => {
+        const monthsMap = new Map();
 
-    const demandForecast = useMemo(() => getDemandForecast(), [bookings]);
+        bookings.forEach((booking) => {
+            const rawDate = booking.date || booking.createdAt;
+            const date = new Date(rawDate);
+            if (Number.isNaN(date.getTime())) return;
+
+            const key = `${date.getFullYear()}-${date.getMonth()}`;
+            const label = date.toLocaleDateString("en-PH", {
+                month: "short",
+                year: "numeric",
+            });
+
+            if (!monthsMap.has(key)) {
+                monthsMap.set(key, { label, revenue: 0, expenses: 0 });
+            }
+
+            monthsMap.get(key).revenue += Number(booking.totalAmount || 0);
+        });
+
+        expenses.forEach((expense) => {
+            const date = new Date(expense.createdAt);
+            if (Number.isNaN(date.getTime())) return;
+
+            const key = `${date.getFullYear()}-${date.getMonth()}`;
+            const label = date.toLocaleDateString("en-PH", {
+                month: "short",
+                year: "numeric",
+            });
+
+            if (!monthsMap.has(key)) {
+                monthsMap.set(key, { label, revenue: 0, expenses: 0 });
+            }
+
+            monthsMap.get(key).expenses += Number(expense.amount || 0);
+        });
+
+        return [...monthsMap.values()].map((row) => {
+            const profit = row.revenue - row.expenses;
+            const margin = row.revenue > 0 ? (profit / row.revenue) * 100 : 0;
+
+            return {
+                ...row,
+                profit,
+                margin,
+            };
+        });
+    }, [bookings, expenses]);
+
+    const demandForecast = useMemo(() => {
+        const total = bookings.length;
+        const eventTypes = ["Birthday", "Wedding", "Debut", "Baptismal", "Anniversary"];
+
+        return eventTypes.map((type) => {
+            const count = bookings.filter((item) => item.eventType === type).length;
+            const percent = total > 0 ? Math.round((count / total) * 100) : 0;
+            return { type, count, percent };
+        });
+    }, [bookings]);
 
     const handleExpenseChange = (e) => {
         const { name, value } = e.target;
@@ -547,8 +742,7 @@ function AdminFinancialManagement() {
                             <HeaderMiniCard
                                 icon={FileSpreadsheet}
                                 label="Records"
-                                value={`${financialRows.length} Event${financialRows.length === 1 ? "" : "s"
-                                    }`}
+                                value={`${financialRows.length} Event${financialRows.length === 1 ? "" : "s"}`}
                             />
                         </div>
                     </div>
@@ -1052,66 +1246,6 @@ function AdminFinancialManagement() {
                 )}
             </AnimatePresence>
         </motion.div>
-    );
-}
-
-function HeaderMiniCard({ icon: Icon, label, value }) {
-    return (
-        <motion.div
-            whileHover={{ y: -3 }}
-            transition={{ type: "spring", stiffness: 220, damping: 18 }}
-            className="rounded-[22px] border border-white/10 bg-white/10 p-4 backdrop-blur-md"
-        >
-            <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 text-white">
-                    <Icon size={18} />
-                </div>
-                <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">
-                        {label}
-                    </p>
-                    <p className="mt-1 text-lg font-extrabold text-white">{value}</p>
-                </div>
-            </div>
-        </motion.div>
-    );
-}
-
-function SummaryCard({ icon: Icon, title, value, subtitle }) {
-    return (
-        <motion.div
-            whileHover={{ y: -4, scale: 1.01 }}
-            transition={{ type: "spring", stiffness: 220, damping: 18 }}
-            className="rounded-[24px] border border-[#dce7e2] bg-white p-5 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
-        >
-            <div className="flex items-start justify-between gap-3">
-                <div>
-                    <p className="text-sm text-slate-500">{title}</p>
-                    <h2 className="mt-2 text-3xl font-extrabold text-[#0f4d3c]">
-                        {value}
-                    </h2>
-                    <p className="mt-2 text-xs text-slate-400">{subtitle}</p>
-                </div>
-
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#edf8f3_0%,#dff1e8_100%)] text-[#0f4d3c]">
-                    <Icon size={22} />
-                </div>
-            </div>
-        </motion.div>
-    );
-}
-
-function EmptyState({ title, description }) {
-    return (
-        <div className="rounded-[24px] border border-dashed border-[#d9e5e0] bg-[#fbfdfc] px-6 py-12 text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#edf8f3] text-[#0f4d3c]">
-                <CircleDollarSign className="h-8 w-8" />
-            </div>
-            <h3 className="mt-4 text-2xl font-extrabold text-[#0f4d3c]">{title}</h3>
-            <p className="mx-auto mt-2 max-w-2xl text-sm leading-7 text-slate-500">
-                {description}
-            </p>
-        </div>
     );
 }
 

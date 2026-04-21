@@ -15,7 +15,9 @@ const API_BASE_URL = getApiBaseUrl();
 function getStoredToken() {
   return (
     localStorage.getItem("clientToken") ||
+    localStorage.getItem("adminToken") ||
     localStorage.getItem("token") ||
+    localStorage.getItem("authToken") ||
     ""
   );
 }
@@ -86,7 +88,10 @@ export const authService = {
         "Content-Type": "application/json",
       },
       credentials: "include",
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({
+        email: String(email || "").trim().toLowerCase(),
+        password: String(password || "").trim(),
+      }),
     });
 
     const data = await handleResponse(response);
@@ -132,10 +137,10 @@ export const authService = {
       },
       credentials: "include",
       body: JSON.stringify({
-        name,
-        email,
-        password,
-        contactNumber,
+        name: String(name || "").trim(),
+        email: String(email || "").trim().toLowerCase(),
+        password: String(password || ""),
+        contactNumber: String(contactNumber || "").trim(),
       }),
     });
 
@@ -173,6 +178,8 @@ export const authService = {
 
     return handleResponse(response);
   },
+
+  clearStoredAuth,
 };
 
 export { API_BASE_URL };
