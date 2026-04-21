@@ -8,6 +8,7 @@ import {
     Check,
     CheckCircle2,
     ChevronDown,
+    ChevronLeft,
     ChevronRight,
     Clock3,
     Mail,
@@ -372,6 +373,59 @@ function formatTimeDisplay(value) {
     });
 }
 
+function parseDateParts(value) {
+    if (!value) return null;
+    const [year, month, day] = value.split("-").map(Number);
+    if (!year || !month || !day) return null;
+    return { year, month, day };
+}
+
+function dateFromInputValue(value) {
+    const parts = parseDateParts(value);
+    if (!parts) return null;
+    return new Date(parts.year, parts.month - 1, parts.day);
+}
+
+function toInputDateValue(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+}
+
+function formatDateDisplay(value) {
+    const date = dateFromInputValue(value);
+    if (!date) return "Select preferred date";
+    return date.toLocaleDateString("en-PH", {
+        month: "2-digit",
+        day: "2-digit",
+        year: "numeric",
+    });
+}
+
+function isSameDay(a, b) {
+    return (
+        a.getFullYear() === b.getFullYear() &&
+        a.getMonth() === b.getMonth() &&
+        a.getDate() === b.getDate()
+    );
+}
+
+function getCalendarDays(viewDate) {
+    const year = viewDate.getFullYear();
+    const month = viewDate.getMonth();
+
+    const firstDay = new Date(year, month, 1);
+    const startDayIndex = firstDay.getDay();
+    const startDate = new Date(year, month, 1 - startDayIndex);
+
+    return Array.from({ length: 42 }, (_, index) => {
+        const date = new Date(startDate);
+        date.setDate(startDate.getDate() + index);
+        return date;
+    });
+}
+
 const containerVariants = {
     hidden: {},
     show: {
@@ -611,17 +665,16 @@ function Quotation({ mode = "public" }) {
         ? "mt-6 rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(12,36,29,0.98)_0%,rgba(16,44,35,0.98)_100%)] p-5"
         : "mt-6 rounded-[28px] border border-[#e8efeb] bg-[linear-gradient(180deg,#fbfdfc_0%,#f7faf8_100%)] p-5";
 
-    const actionAltButton = isDark
-        ? "inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#e1b93e_0%,#d4af37_100%)] py-3.5 text-center font-bold text-[#0b4a3a] shadow-sm transition hover:-translate-y-0.5 hover:brightness-95"
-        : "inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#e1b93e_0%,#d4af37_100%)] py-3.5 text-center font-bold text-[#0b4a3a] shadow-sm transition hover:-translate-y-0.5 hover:brightness-95";
+    const actionAltButton =
+        "inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#e1b93e_0%,#d4af37_100%)] py-3.5 text-center font-bold text-[#0b4a3a] shadow-sm transition hover:-translate-y-0.5 hover:brightness-95";
 
     const inputClass = isDark
         ? "w-full rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(11,35,28,0.98)_0%,rgba(15,43,35,0.98)_100%)] px-4 py-3.5 text-[15px] text-white outline-none transition placeholder:text-white/35 focus:border-[#d4af37] focus:ring-4 focus:ring-[#d4af37]/15"
-        : "w-full rounded-2xl border border-[#d7e1dc] bg-white/95 px-4 py-3.5 text-[15px] text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#d4af37] focus:ring-4 focus:ring-[#d4af37]/15";
+        : "w-full rounded-2xl border border-[#d7e1dc] bg-[linear-gradient(180deg,#fbfdfc_0%,#f3f8f5_100%)] px-4 py-3.5 text-[15px] text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#d4af37] focus:ring-4 focus:ring-[#d4af37]/15 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]";
 
     const textareaClass = isDark
         ? "w-full rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(11,35,28,0.98)_0%,rgba(15,43,35,0.98)_100%)] px-4 py-3.5 text-[15px] text-white outline-none transition placeholder:text-white/35 focus:border-[#d4af37] focus:ring-4 focus:ring-[#d4af37]/15 resize-none"
-        : "w-full rounded-2xl border border-[#d7e1dc] bg-white/95 px-4 py-3.5 text-[15px] text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#d4af37] focus:ring-4 focus:ring-[#d4af37]/15 resize-none";
+        : "w-full rounded-2xl border border-[#d7e1dc] bg-[linear-gradient(180deg,#fbfdfc_0%,#f3f8f5_100%)] px-4 py-3.5 text-[15px] text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#d4af37] focus:ring-4 focus:ring-[#d4af37]/15 resize-none shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]";
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -657,6 +710,13 @@ function Quotation({ mode = "public" }) {
         setFormData((prev) => ({
             ...prev,
             eventTime: value,
+        }));
+    };
+
+    const handleDateChange = (value) => {
+        setFormData((prev) => ({
+            ...prev,
+            preferredDate: value,
         }));
     };
 
@@ -1105,30 +1165,33 @@ function Quotation({ mode = "public" }) {
                                     </Field>
 
                                     <Field label="Event Type" required filled={!!formData.eventType} isDark={isDark}>
-                                        <select
-                                            name="eventType"
-                                            value={formData.eventType}
-                                            onChange={handleChange}
-                                            className={inputClass}
-                                            required
-                                        >
-                                            <option value="">Select event type</option>
-                                            <option value="Wedding">Wedding</option>
-                                            <option value="Debut">Debut</option>
-                                            <option value="Birthday">Birthday</option>
-                                            <option value="Anniversary">Anniversary</option>
-                                            <option value="Baptismal">Baptismal</option>
-                                        </select>
+                                        <div className="relative">
+                                            <select
+                                                name="eventType"
+                                                value={formData.eventType}
+                                                onChange={handleChange}
+                                                className={`${inputClass} appearance-none pr-12`}
+                                                required
+                                            >
+                                                <option value="">Select event type</option>
+                                                <option value="Wedding">Wedding</option>
+                                                <option value="Debut">Debut</option>
+                                                <option value="Birthday">Birthday</option>
+                                                <option value="Anniversary">Anniversary</option>
+                                                <option value="Baptismal">Baptismal</option>
+                                            </select>
+                                            <ChevronDown
+                                                size={18}
+                                                className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 ${isDark ? "text-white/60" : "text-slate-500"}`}
+                                            />
+                                        </div>
                                     </Field>
 
                                     <Field label="Preferred Date" required filled={!!formData.preferredDate} isDark={isDark}>
-                                        <input
-                                            type="date"
-                                            name="preferredDate"
+                                        <PremiumDatePicker
                                             value={formData.preferredDate}
-                                            onChange={handleChange}
-                                            className={inputClass}
-                                            required
+                                            onChange={handleDateChange}
+                                            isDark={isDark}
                                         />
                                     </Field>
 
@@ -1166,45 +1229,57 @@ function Quotation({ mode = "public" }) {
                                     </Field>
 
                                     <Field label="Preferred Package" required filled={!!formData.packageType} isDark={isDark}>
-                                        <select
-                                            name="packageType"
-                                            value={formData.packageType}
-                                            onChange={handleChange}
-                                            className={inputClass}
-                                            required
-                                            disabled={!formData.eventType}
-                                        >
-                                            <option value="">
-                                                {formData.eventType ? "Select package" : "Select event type first"}
-                                            </option>
-
-                                            {availablePackages.map((pkg, index) => (
-                                                <option
-                                                    key={`${pkg.eventType}-${pkg.name}-${index}`}
-                                                    value={pkg.name}
-                                                >
-                                                    {pkg.pricingType === "perPax"
-                                                        ? `${pkg.name} (₱${pkg.ratePerPax}/pax)`
-                                                        : `${pkg.name} (${formatCurrency(pkg.price)} • ${pkg.includedPax} pax included)`}
+                                        <div className="relative">
+                                            <select
+                                                name="packageType"
+                                                value={formData.packageType}
+                                                onChange={handleChange}
+                                                className={`${inputClass} appearance-none pr-12`}
+                                                required
+                                                disabled={!formData.eventType}
+                                            >
+                                                <option value="">
+                                                    {formData.eventType ? "Select package" : "Select event type first"}
                                                 </option>
-                                            ))}
-                                        </select>
+
+                                                {availablePackages.map((pkg, index) => (
+                                                    <option
+                                                        key={`${pkg.eventType}-${pkg.name}-${index}`}
+                                                        value={pkg.name}
+                                                    >
+                                                        {pkg.pricingType === "perPax"
+                                                            ? `${pkg.name} (₱${pkg.ratePerPax}/pax)`
+                                                            : `${pkg.name} (${formatCurrency(pkg.price)} • ${pkg.includedPax} pax included)`}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <ChevronDown
+                                                size={18}
+                                                className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 ${isDark ? "text-white/60" : "text-slate-500"}`}
+                                            />
+                                        </div>
                                     </Field>
 
                                     <Field label="Classic Menu" filled={!!formData.classicMenu} isDark={isDark}>
-                                        <select
-                                            name="classicMenu"
-                                            value={formData.classicMenu}
-                                            onChange={handleChange}
-                                            className={inputClass}
-                                        >
-                                            <option value="">Select classic menu</option>
-                                            {classicMenus.map((menu) => (
-                                                <option key={menu} value={menu}>
-                                                    {menu}
-                                                </option>
-                                            ))}
-                                        </select>
+                                        <div className="relative">
+                                            <select
+                                                name="classicMenu"
+                                                value={formData.classicMenu}
+                                                onChange={handleChange}
+                                                className={`${inputClass} appearance-none pr-12`}
+                                            >
+                                                <option value="">Select classic menu</option>
+                                                {classicMenus.map((menu) => (
+                                                    <option key={menu} value={menu}>
+                                                        {menu}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <ChevronDown
+                                                size={18}
+                                                className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 ${isDark ? "text-white/60" : "text-slate-500"}`}
+                                            />
+                                        </div>
                                     </Field>
 
                                     <div className="md:col-span-2">
@@ -1226,12 +1301,12 @@ function Quotation({ mode = "public" }) {
                                                             transition={{ duration: 0.24, delay: index * 0.02 }}
                                                             whileHover={{ y: -2 }}
                                                             className={`flex cursor-pointer items-center justify-between gap-3 rounded-2xl border px-4 py-3.5 shadow-sm transition ${checked
-                                                                    ? isDark
-                                                                        ? "border-[#d4af37] bg-[linear-gradient(180deg,rgba(97,76,24,0.22)_0%,rgba(120,91,27,0.15)_100%)]"
-                                                                        : "border-[#d4af37] bg-[linear-gradient(180deg,#fffaf0_0%,#fff4d8_100%)]"
-                                                                    : isDark
-                                                                        ? "border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.98)_0%,rgba(13,40,32,0.98)_100%)] hover:border-[#d4af37]"
-                                                                        : "border-[#e4ebe7] bg-white hover:border-[#d4af37]"
+                                                                ? isDark
+                                                                    ? "border-[#d4af37] bg-[linear-gradient(180deg,rgba(97,76,24,0.22)_0%,rgba(120,91,27,0.15)_100%)]"
+                                                                    : "border-[#d4af37] bg-[linear-gradient(180deg,#fffaf0_0%,#fff4d8_100%)]"
+                                                                : isDark
+                                                                    ? "border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.98)_0%,rgba(13,40,32,0.98)_100%)] hover:border-[#d4af37]"
+                                                                    : "border-[#e4ebe7] bg-[linear-gradient(180deg,#fbfdfc_0%,#f4f8f6_100%)] hover:border-[#d4af37]"
                                                                 }`}
                                                         >
                                                             <div className="flex items-center gap-3">
@@ -1366,8 +1441,8 @@ function Quotation({ mode = "public" }) {
                                         type="submit"
                                         disabled={isSubmitting}
                                         className={`inline-flex flex-1 items-center justify-center gap-2 rounded-2xl py-3.5 font-bold text-white shadow-[0_12px_30px_rgba(15,77,60,0.18)] transition ${isSubmitting
-                                                ? "cursor-not-allowed bg-[#0f4d3c]/70"
-                                                : "bg-[linear-gradient(135deg,#0f4d3c_0%,#126650_100%)] hover:-translate-y-0.5"
+                                            ? "cursor-not-allowed bg-[#0f4d3c]/70"
+                                            : "bg-[linear-gradient(135deg,#0f4d3c_0%,#126650_100%)] hover:-translate-y-0.5"
                                             }`}
                                     >
                                         {isSubmitting ? "Submitting..." : "Submit Request"}
@@ -1545,6 +1620,210 @@ function Quotation({ mode = "public" }) {
     );
 }
 
+function PremiumDatePicker({ value, onChange, isDark }) {
+    const [open, setOpen] = useState(false);
+    const rootRef = useRef(null);
+
+    const today = useMemo(() => {
+        const now = new Date();
+        return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    }, []);
+
+    const selectedDate = useMemo(() => dateFromInputValue(value), [value]);
+
+    const [viewDate, setViewDate] = useState(selectedDate || today);
+
+    useEffect(() => {
+        if (selectedDate) {
+            setViewDate(selectedDate);
+        }
+    }, [selectedDate]);
+
+    useEffect(() => {
+        const handleOutside = (event) => {
+            if (rootRef.current && !rootRef.current.contains(event.target)) {
+                setOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleOutside);
+        return () => document.removeEventListener("mousedown", handleOutside);
+    }, []);
+
+    const days = useMemo(() => getCalendarDays(viewDate), [viewDate]);
+    const monthLabel = viewDate.toLocaleDateString("en-PH", {
+        month: "long",
+        year: "numeric",
+    });
+
+    const pickerButtonClass = isDark
+        ? "flex w-full items-center justify-between rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(11,35,28,0.98)_0%,rgba(15,43,35,0.98)_100%)] px-4 py-3.5 text-left text-white shadow-sm transition hover:border-[#d4af37] focus:border-[#d4af37]"
+        : "flex w-full items-center justify-between rounded-2xl border border-[#d7e1dc] bg-[linear-gradient(180deg,#fbfdfc_0%,#f3f8f5_100%)] px-4 py-3.5 text-left text-slate-800 shadow-sm transition hover:border-[#d4af37] focus:border-[#d4af37]";
+
+    const dropdownClass = isDark
+        ? "absolute left-0 top-[calc(100%+10px)] z-30 w-full rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.99)_0%,rgba(13,40,32,0.99)_100%)] p-4 shadow-[0_24px_54px_rgba(0,0,0,0.28)]"
+        : "absolute left-0 top-[calc(100%+10px)] z-30 w-full rounded-[24px] border border-[#dce7e2] bg-[linear-gradient(180deg,#ffffff_0%,#f7fbf9_100%)] p-4 shadow-[0_24px_54px_rgba(14,61,47,0.12)]";
+
+    const weekdayLabelClass = isDark
+        ? "text-center text-[11px] font-semibold uppercase tracking-[0.14em] text-white/45"
+        : "text-center text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400";
+
+    const defaultDayClass = isDark
+        ? "h-11 rounded-2xl text-sm font-semibold text-white/82 transition hover:bg-white/8"
+        : "h-11 rounded-2xl text-sm font-semibold text-slate-700 transition hover:bg-[#edf8f3]";
+
+    return (
+        <div className="relative" ref={rootRef}>
+            <button
+                type="button"
+                onClick={() => setOpen((prev) => !prev)}
+                className={pickerButtonClass}
+            >
+                <div className="flex items-center gap-3">
+                    <CalendarDays size={17} className="text-[#b99117]" />
+                    <span className={value ? "" : isDark ? "text-white/35" : "text-slate-400"}>
+                        {formatDateDisplay(value)}
+                    </span>
+                </div>
+                <ChevronDown
+                    size={18}
+                    className={`transition ${open ? "rotate-180" : ""} ${isDark ? "text-white/65" : "text-slate-500"}`}
+                />
+            </button>
+
+            <AnimatePresence>
+                {open && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 6, scale: 0.98 }}
+                        transition={{ duration: 0.18 }}
+                        className={dropdownClass}
+                    >
+                        <div className="mb-4 flex items-center justify-between gap-3">
+                            <div>
+                                <p className={`text-xs font-semibold uppercase tracking-[0.18em] ${isDark ? "text-white/50" : "text-slate-400"}`}>
+                                    Preferred Date
+                                </p>
+                                <p className={`mt-1 text-sm font-bold ${isDark ? "text-white" : "text-[#0f4d3c]"}`}>
+                                    {formatDateDisplay(value)}
+                                </p>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                {value ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => onChange("")}
+                                        className={isDark
+                                            ? "rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-white/80 transition hover:bg-white/10"
+                                            : "rounded-full border border-[#e3ebe7] bg-[#fbfdfc] px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-[#f3fbf7]"
+                                        }
+                                    >
+                                        Clear
+                                    </button>
+                                ) : null}
+
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setViewDate(today);
+                                        onChange(toInputDateValue(today));
+                                    }}
+                                    className={isDark
+                                        ? "rounded-full border border-[rgba(212,175,55,0.24)] bg-[rgba(97,76,24,0.22)] px-3 py-1 text-xs font-semibold text-[#f5cf67] transition hover:brightness-110"
+                                        : "rounded-full border border-[#ecd88d] bg-[#fff8e6] px-3 py-1 text-xs font-semibold text-[#9b7400] transition hover:brightness-95"
+                                    }
+                                >
+                                    Today
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="mb-4 flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-3 py-3">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const next = new Date(viewDate);
+                                    next.setMonth(viewDate.getMonth() - 1);
+                                    setViewDate(next);
+                                }}
+                                className={isDark
+                                    ? "flex h-10 w-10 items-center justify-center rounded-xl text-white/80 transition hover:bg-white/10"
+                                    : "flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 transition hover:bg-white"
+                                }
+                            >
+                                <ChevronLeft size={18} />
+                            </button>
+
+                            <div className={`text-sm font-extrabold ${isDark ? "text-white" : "text-[#0f4d3c]"}`}>
+                                {monthLabel}
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const next = new Date(viewDate);
+                                    next.setMonth(viewDate.getMonth() + 1);
+                                    setViewDate(next);
+                                }}
+                                className={isDark
+                                    ? "flex h-10 w-10 items-center justify-center rounded-xl text-white/80 transition hover:bg-white/10"
+                                    : "flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 transition hover:bg-white"
+                                }
+                            >
+                                <ChevronRight size={18} />
+                            </button>
+                        </div>
+
+                        <div className="grid grid-cols-7 gap-2">
+                            {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
+                                <div key={day} className={weekdayLabelClass}>
+                                    {day}
+                                </div>
+                            ))}
+
+                            {days.map((date) => {
+                                const inCurrentMonth = date.getMonth() === viewDate.getMonth();
+                                const selected = selectedDate ? isSameDay(date, selectedDate) : false;
+                                const todayMatch = isSameDay(date, today);
+
+                                let dayClass = defaultDayClass;
+
+                                if (selected) {
+                                    dayClass = "h-11 rounded-2xl bg-[linear-gradient(135deg,#0f4d3c_0%,#126650_100%)] text-sm font-bold text-white shadow-sm";
+                                } else if (!inCurrentMonth) {
+                                    dayClass = isDark
+                                        ? "h-11 rounded-2xl text-sm font-medium text-white/28 transition hover:bg-white/5"
+                                        : "h-11 rounded-2xl text-sm font-medium text-slate-300 transition hover:bg-[#f5f8f7]";
+                                } else if (todayMatch) {
+                                    dayClass = isDark
+                                        ? "h-11 rounded-2xl border border-[rgba(212,175,55,0.28)] bg-[rgba(97,76,24,0.18)] text-sm font-bold text-[#f5cf67] transition hover:brightness-110"
+                                        : "h-11 rounded-2xl border border-[#ecd88d] bg-[#fff8e6] text-sm font-bold text-[#9b7400] transition hover:brightness-95";
+                                }
+
+                                return (
+                                    <button
+                                        key={date.toISOString()}
+                                        type="button"
+                                        onClick={() => {
+                                            onChange(toInputDateValue(date));
+                                            setOpen(false);
+                                        }}
+                                        className={dayClass}
+                                    >
+                                        {date.getDate()}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+}
+
 function PremiumTimePicker({ value, onChange, isDark }) {
     const [open, setOpen] = useState(false);
     const rootRef = useRef(null);
@@ -1603,11 +1882,11 @@ function PremiumTimePicker({ value, onChange, isDark }) {
 
     const pickerButtonClass = isDark
         ? "flex w-full items-center justify-between rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(11,35,28,0.98)_0%,rgba(15,43,35,0.98)_100%)] px-4 py-3.5 text-left text-white shadow-sm transition hover:border-[#d4af37] focus:border-[#d4af37]"
-        : "flex w-full items-center justify-between rounded-2xl border border-[#d7e1dc] bg-white/95 px-4 py-3.5 text-left text-slate-800 shadow-sm transition hover:border-[#d4af37] focus:border-[#d4af37]";
+        : "flex w-full items-center justify-between rounded-2xl border border-[#d7e1dc] bg-[linear-gradient(180deg,#fbfdfc_0%,#f3f8f5_100%)] px-4 py-3.5 text-left text-slate-800 shadow-sm transition hover:border-[#d4af37] focus:border-[#d4af37]";
 
     const dropdownClass = isDark
         ? "absolute left-0 top-[calc(100%+10px)] z-30 w-full rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.99)_0%,rgba(13,40,32,0.99)_100%)] p-4 shadow-[0_24px_54px_rgba(0,0,0,0.28)]"
-        : "absolute left-0 top-[calc(100%+10px)] z-30 w-full rounded-[24px] border border-[#dce7e2] bg-white p-4 shadow-[0_24px_54px_rgba(14,61,47,0.12)]";
+        : "absolute left-0 top-[calc(100%+10px)] z-30 w-full rounded-[24px] border border-[#dce7e2] bg-[linear-gradient(180deg,#ffffff_0%,#f7fbf9_100%)] p-4 shadow-[0_24px_54px_rgba(14,61,47,0.12)]";
 
     const columnClass = isDark
         ? "max-h-48 space-y-2 overflow-y-auto rounded-2xl border border-white/10 bg-white/5 p-2"
@@ -1809,20 +2088,20 @@ function ProgressTag({ active, label, isDark }) {
     return (
         <div
             className={`flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm ${active
-                    ? isDark
-                        ? "border-[rgba(21,90,60,0.32)] bg-[rgba(21,90,60,0.14)] text-white"
-                        : "border-[#cfe4d9] bg-[#f3fbf7] text-[#0f4d3c]"
-                    : isDark
-                        ? "border-white/10 bg-white/5 text-white/60"
-                        : "border-[#e9efec] bg-[#fafcfa] text-slate-500"
+                ? isDark
+                    ? "border-[rgba(21,90,60,0.32)] bg-[rgba(21,90,60,0.14)] text-white"
+                    : "border-[#cfe4d9] bg-[#f3fbf7] text-[#0f4d3c]"
+                : isDark
+                    ? "border-white/10 bg-white/5 text-white/60"
+                    : "border-[#e9efec] bg-[#fafcfa] text-slate-500"
                 }`}
         >
             <span
                 className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${active
-                        ? "bg-[#0f4d3c] text-white"
-                        : isDark
-                            ? "bg-white/10 text-white/45"
-                            : "bg-[#edf2ef] text-slate-400"
+                    ? "bg-[#0f4d3c] text-white"
+                    : isDark
+                        ? "bg-white/10 text-white/45"
+                        : "bg-[#edf2ef] text-slate-400"
                     }`}
             >
                 {active ? <Check size={14} /> : "•"}

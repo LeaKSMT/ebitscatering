@@ -14,7 +14,6 @@ import {
     X,
     ChevronRight,
     Sparkles,
-    HeartHandshake,
     ArrowRight,
     Crown,
     Star,
@@ -26,7 +25,6 @@ import {
     Eye,
     Shield,
     Wand2,
-    Salad,
     Music4,
     Camera,
 } from "lucide-react";
@@ -793,7 +791,8 @@ function Home() {
 
                                 {index === 1 && (
                                     <div className="mt-4 rounded-2xl border border-[#f4d46f] bg-[#fff8de] px-4 py-3 text-sm text-[#7b5f0d]">
-                                        Best balance of elegance, service, and value for milestone celebrations.
+                                        Best balance of elegance, service, and value for
+                                        milestone celebrations.
                                     </div>
                                 )}
 
@@ -1225,50 +1224,6 @@ function Home() {
                         </div>
                     </motion.form>
                 </div>
-            </section>
-
-            <section className="bg-[#f7f4ee] px-5 pb-16 md:px-10 md:pb-20 lg:px-20">
-                <motion.div
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={{ once: true, amount: 0.2 }}
-                    variants={softScale}
-                    className="cta-surface mx-auto max-w-6xl overflow-hidden rounded-[38px] px-6 py-10 text-white shadow-[0_28px_60px_rgba(0,0,0,0.16)] md:px-10 md:py-12"
-                >
-                    <div className="grid items-center gap-8 lg:grid-cols-[1fr_auto]">
-                        <div>
-                            <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/65">
-                                Ready to Begin
-                            </p>
-                            <h3 className="mt-3 text-[30px] font-extrabold leading-tight md:text-[46px]">
-                                Let’s make your celebration
-                                <span className="text-yellow-400"> unforgettable</span>
-                            </h3>
-                            <p className="mt-4 max-w-2xl text-[15px] leading-7 text-white/80 md:text-[16px]">
-                                Explore our packages or request a quotation to start planning
-                                an elegant and organized event experience.
-                            </p>
-                        </div>
-
-                        <div className="flex flex-wrap gap-3">
-                            <Link
-                                to="/packages"
-                                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 font-semibold text-[#0b4d3b] transition hover:-translate-y-1 hover:bg-[#fff8e6]"
-                            >
-                                View Packages
-                                <ChevronRight size={18} />
-                            </Link>
-
-                            <button
-                                onClick={handleGetQuotation}
-                                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-yellow-400 px-5 py-3 font-semibold text-green-950 transition hover:-translate-y-1 hover:bg-yellow-300"
-                            >
-                                Get Quotation
-                                <ArrowRight size={18} />
-                            </button>
-                        </div>
-                    </div>
-                </motion.div>
             </section>
 
             <footer className="relative overflow-hidden bg-[#0b4d3b] px-5 py-14 text-white md:px-10 lg:px-20">
