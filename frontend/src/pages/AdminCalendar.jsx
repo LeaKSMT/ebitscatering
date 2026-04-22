@@ -963,7 +963,7 @@ function AdminCalendar() {
                 whileHover={{ y: -3 }}
                 className={`group relative min-h-[140px] rounded-[22px] border p-3 transition-all duration-200 ${hasBooking
                         ? "border-[#d5b33f] bg-[linear-gradient(180deg,#fff6cf_0%,#f5dea0_100%)] text-[#174c3c] shadow-sm"
-                        : "border-[#e8eceb] bg-[#f8faf9] text-[#174c3c] hover:border-[#22b67f]/40 hover:shadow-sm"
+                        : "border-[#e8eceb] bg-[#f8fbfa] text-[#174c3c] hover:border-[#22b67f]/40 hover:shadow-sm"
                     } ${isToday ? "ring-2 ring-[#0f5b46]/60" : ""}`}
             >
                 <div className="flex items-start justify-between">
@@ -1012,7 +1012,7 @@ function AdminCalendar() {
             initial="hidden"
             animate="show"
             transition={{ staggerChildren: 0.1 }}
-            className="space-y-6"
+            className="admin-dashboard space-y-6"
         >
             <motion.section
                 variants={fadeUp}
@@ -1134,7 +1134,7 @@ function AdminCalendar() {
                             <span>Booked</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <span className="h-4 w-4 rounded border border-[#e5e7eb] bg-[#f8faf9]" />
+                            <span className="h-4 w-4 rounded border border-[#e5e7eb] bg-[#f8fbfa]" />
                             <span>Available</span>
                         </div>
                         <div className="flex items-center gap-2">
@@ -1155,11 +1155,11 @@ function AdminCalendar() {
 
                     <div className="space-y-4 p-5">
                         {loading ? (
-                            <div className="rounded-[22px] border border-dashed border-[#dfe5e3] bg-[#fafafa] px-5 py-10 text-center text-slate-500">
+                            <div className="rounded-[22px] border border-dashed border-[#dfe5e3] bg-[#f8fbfa] px-5 py-10 text-center text-slate-500">
                                 Loading upcoming events...
                             </div>
                         ) : upcomingEvents.length === 0 ? (
-                            <div className="rounded-[22px] border border-dashed border-[#dfe5e3] bg-[#fafafa] px-5 py-10 text-center text-slate-500">
+                            <div className="rounded-[22px] border border-dashed border-[#dfe5e3] bg-[#f8fbfa] px-5 py-10 text-center text-slate-500">
                                 No upcoming events yet.
                             </div>
                         ) : (
@@ -1176,7 +1176,7 @@ function AdminCalendar() {
                                     type="button"
                                     key={event.id}
                                     onClick={() => openManageModal(event)}
-                                    className="w-full rounded-[22px] border border-[#e7ecea] bg-[#f8f9f9] p-5 text-left transition hover:shadow-sm"
+                                    className="w-full rounded-[22px] border border-[#e7ecea] bg-[#f8fbfa] p-5 text-left transition hover:shadow-sm"
                                 >
                                     <div className="flex items-start justify-between gap-3">
                                         <div>
@@ -1212,9 +1212,9 @@ function AdminCalendar() {
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 20, scale: 0.97 }}
                             transition={{ duration: 0.28, ease: "easeOut" }}
-                            className="max-h-[92vh] w-full max-w-6xl overflow-y-auto rounded-[30px] bg-[#f6f1e7] shadow-2xl"
+                            className="max-h-[92vh] w-full max-w-6xl overflow-y-auto rounded-[30px] border border-[#e8efeb] bg-white shadow-2xl"
                         >
-                            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[#eadfc4] bg-[#f6f1e7] px-8 py-6">
+                            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[#edf2ef] bg-white px-8 py-6">
                                 <div>
                                     <h2 className="text-4xl font-extrabold text-[#22b67f]">
                                         Add Booking
@@ -1227,7 +1227,7 @@ function AdminCalendar() {
                                 <button
                                     type="button"
                                     onClick={closeAddModal}
-                                    className="rounded-full p-2 text-slate-500 transition hover:bg-white/70"
+                                    className="rounded-full p-2 text-slate-500 transition hover:bg-slate-50"
                                 >
                                     <X size={24} />
                                 </button>
@@ -1241,7 +1241,7 @@ function AdminCalendar() {
                                     className="rounded-[28px] bg-gradient-to-br from-[#0b5a43] via-[#0c6048] to-[#094534] p-6 text-white shadow-[0_18px_45px_rgba(11,90,67,0.18)]"
                                 >
                                     <div className="mb-5 flex items-center gap-3">
-                                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#d4af37] text-[#0f4d3c] text-xl font-extrabold">
+                                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#d4af37] text-xl font-extrabold text-[#0f4d3c]">
                                             ✦
                                         </div>
                                         <div>
@@ -1254,7 +1254,7 @@ function AdminCalendar() {
                                         </div>
                                     </div>
 
-                                    <p className="mb-6 text-white/90 leading-8">
+                                    <p className="mb-6 leading-8 text-white/90">
                                         Select the actual package, classic menu, and add-ons so
                                         the total booking amount is automatically computed.
                                     </p>
@@ -1333,7 +1333,7 @@ function AdminCalendar() {
                                             )}
 
                                             <div className="flex items-center justify-between gap-4 border-t border-white/20 pt-4">
-                                                <span className="font-bold text-base">
+                                                <span className="text-base font-bold">
                                                     Estimated Total
                                                 </span>
                                                 <span className="text-xl font-extrabold text-[#f5c94a]">
@@ -1345,7 +1345,7 @@ function AdminCalendar() {
                                         </div>
                                     </div>
 
-                                    <div className="rounded-[22px] border-2 border-[#efd67a] bg-[#fff9ea] p-5 text-[#0f4d3c]">
+                                    <div className="rounded-[22px] border border-[#efe2a9] bg-[linear-gradient(180deg,#fffdf6_0%,#fff8e8_100%)] p-5 text-[#143c2f]">
                                         <p className="mb-2 text-xs font-semibold uppercase tracking-[0.22em] text-[#b99117]">
                                             Pricing Note
                                         </p>
@@ -1362,7 +1362,7 @@ function AdminCalendar() {
                                     initial={{ opacity: 0, x: 14 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     transition={{ duration: 0.42, ease: "easeOut" }}
-                                    className="rounded-[28px] border border-[#ece4d4] bg-white p-7 shadow-[0_18px_45px_rgba(0,0,0,0.06)]"
+                                    className="rounded-[28px] border border-[#e3ebe7] bg-white p-7 shadow-[0_18px_45px_rgba(0,0,0,0.06)]"
                                 >
                                     <div className="mb-8 flex items-center justify-between gap-4">
                                         <div>
@@ -1374,7 +1374,7 @@ function AdminCalendar() {
                                             </h3>
                                         </div>
 
-                                        <div className="hidden items-center gap-2 rounded-full border border-[#ecd88d] bg-[#f8f3e4] px-4 py-2 md:flex">
+                                        <div className="hidden items-center gap-2 rounded-full border border-[#efe2a9] bg-[linear-gradient(180deg,#fffdf6_0%,#fff8e8_100%)] px-4 py-2 md:flex">
                                             <span className="h-2.5 w-2.5 rounded-full bg-[#0f8a61]" />
                                             <span className="text-sm font-medium text-[#0f4d3c]">
                                                 Ready to submit
@@ -1514,7 +1514,7 @@ function AdminCalendar() {
                                                                         ease: "easeOut",
                                                                     }}
                                                                     className={`flex cursor-pointer items-center justify-between gap-3 rounded-2xl border px-4 py-3.5 transition ${checked
-                                                                            ? "border-[#d4af37] bg-[#fff8e6] shadow-sm"
+                                                                            ? "border-[#efe2a9] bg-[linear-gradient(180deg,#fffdf6_0%,#fff8e8_100%)] shadow-sm"
                                                                             : "border-gray-200 bg-white hover:border-[#d4af37]"
                                                                         }`}
                                                                 >
@@ -1606,7 +1606,7 @@ function AdminCalendar() {
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 20, scale: 0.97 }}
                             transition={{ duration: 0.28, ease: "easeOut" }}
-                            className="max-h-[92vh] w-full max-w-5xl overflow-y-auto rounded-[30px] bg-white shadow-2xl"
+                            className="max-h-[92vh] w-full max-w-5xl overflow-y-auto rounded-[30px] border border-[#e8efeb] bg-white shadow-2xl"
                         >
                             <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100 bg-white px-8 py-6">
                                 <div>
@@ -1628,7 +1628,7 @@ function AdminCalendar() {
                             </div>
 
                             <div className="p-8">
-                                <div className="rounded-[24px] bg-[#f8faf9] p-6">
+                                <div className="rounded-[24px] border border-[#e8efeb] bg-[#f8fbfa] p-6">
                                     <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                                         <div>
                                             <h3 className="text-3xl font-extrabold text-[#174c3c]">
@@ -1961,7 +1961,7 @@ function Field({
                 onChange={onChange}
                 placeholder={placeholder}
                 required={required}
-                className="w-full rounded-2xl border border-gray-300 px-4 py-3.5 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
+                className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3.5 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
             />
         </div>
     );
@@ -1988,7 +1988,7 @@ function SelectField({
                 onChange={onChange}
                 required={required}
                 disabled={disabled}
-                className="w-full rounded-2xl border border-gray-300 px-4 py-3.5 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 disabled:bg-gray-100"
+                className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3.5 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 disabled:bg-gray-100"
             >
                 <option value="">
                     {emptyLabel || `Select ${label.toLowerCase()}`}
@@ -2022,7 +2022,7 @@ function TextAreaField({
                 onChange={onChange}
                 placeholder={placeholder}
                 rows={rows}
-                className="w-full resize-none rounded-2xl border border-gray-300 px-4 py-3.5 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
+                className="w-full resize-none rounded-2xl border border-gray-300 bg-white px-4 py-3.5 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
             />
         </div>
     );
