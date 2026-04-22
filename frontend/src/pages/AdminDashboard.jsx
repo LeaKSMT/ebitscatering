@@ -33,7 +33,7 @@ import {
     CircleDollarSign,
 } from "lucide-react";
 
-const CHART_COLORS = ["#0f4d3c", "#d4af37", "#22b67f", "#ef4444", "#64748b"];
+const CHART_COLORS = ["#22c58b", "#d4af37", "#34d399", "#ef4444", "#94a3b8"];
 
 const fadeUp = {
     hidden: { opacity: 0, y: 18 },
@@ -458,21 +458,21 @@ function AdminDashboard() {
 
     return (
         <motion.div
-            data-build="premium-admin-dashboard-v7-clean"
+            data-build="premium-admin-dashboard-v8-dark"
             initial="hidden"
             animate="show"
             transition={{ staggerChildren: 0.1 }}
-            className="admin-dashboard space-y-5"
+            className="admin-dashboard space-y-5 text-[#eef7f3]"
         >
             <motion.section
                 variants={fadeUp}
                 transition={{ duration: 0.46, ease: "easeOut" }}
-                className="relative overflow-hidden rounded-[34px] border border-[#dbe7e2] bg-white shadow-[0_22px_60px_rgba(14,61,47,0.08)]"
+                className="relative overflow-hidden rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(8,28,22,0.96)_0%,rgba(9,34,26,0.96)_100%)] shadow-[0_22px_60px_rgba(0,0,0,0.24)]"
             >
                 <div className="pointer-events-none absolute inset-0">
-                    <div className="absolute -top-16 right-[-40px] h-52 w-52 rounded-full bg-[#d4af37]/20 blur-3xl" />
-                    <div className="absolute bottom-[-36px] left-[-24px] h-40 w-40 rounded-full bg-[#cde6dc]/35 blur-3xl" />
-                    <div className="absolute top-1/2 right-1/3 h-32 w-32 rounded-full bg-white/10 blur-3xl" />
+                    <div className="absolute -top-16 right-[-40px] h-52 w-52 rounded-full bg-[#d4af37]/12 blur-3xl" />
+                    <div className="absolute bottom-[-36px] left-[-24px] h-40 w-40 rounded-full bg-[#0f6d51]/18 blur-3xl" />
+                    <div className="absolute top-1/2 right-1/3 h-32 w-32 rounded-full bg-white/5 blur-3xl" />
                 </div>
 
                 <div className="relative overflow-hidden bg-[linear-gradient(135deg,#07382d_0%,#0c4d3d_34%,#0f6b52_68%,#18a06c_100%)] px-6 py-8 text-white md:px-8 md:py-10">
@@ -508,10 +508,10 @@ function AdminDashboard() {
                         </p>
 
                         <div className="mt-5 flex flex-wrap gap-3 text-sm text-white/80">
-                            <span className="rounded-full bg-white/10 px-4 py-2 backdrop-blur-md">
+                            <span className="rounded-full border border-white/10 bg-white/10 px-4 py-2 backdrop-blur-md">
                                 {loading ? "Loading data..." : `${stats.totalBookings} total bookings`}
                             </span>
-                            <span className="rounded-full bg-white/10 px-4 py-2 backdrop-blur-md">
+                            <span className="rounded-full border border-white/10 bg-white/10 px-4 py-2 backdrop-blur-md">
                                 {loading ? "Loading..." : `${stats.upcomingEvents} upcoming events`}
                             </span>
                         </div>
@@ -597,24 +597,27 @@ function AdminDashboard() {
                         ) : (
                             <ResponsiveContainer width="100%" height="100%">
                                 <LineChart data={monthlyRows}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                                    <XAxis dataKey="label" stroke="#64748b" />
-                                    <YAxis stroke="#64748b" />
+                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
+                                    <XAxis dataKey="label" stroke="#cfe2db" />
+                                    <YAxis stroke="#cfe2db" />
                                     <Tooltip
                                         formatter={(value) => formatCurrency(value)}
                                         contentStyle={{
                                             borderRadius: "16px",
-                                            border: "1px solid #e5e7eb",
+                                            border: "1px solid rgba(255,255,255,0.10)",
+                                            background: "rgba(10,33,27,0.98)",
+                                            color: "#eef7f3",
                                         }}
+                                        labelStyle={{ color: "#eef7f3" }}
                                     />
                                     <Legend />
                                     <Line
                                         type="monotone"
                                         dataKey="revenue"
                                         name="Revenue"
-                                        stroke="#0f4d3c"
+                                        stroke="#22c58b"
                                         strokeWidth={3}
-                                        dot={{ r: 4 }}
+                                        dot={{ r: 4, fill: "#22c58b" }}
                                     />
                                     <Line
                                         type="monotone"
@@ -622,7 +625,7 @@ function AdminDashboard() {
                                         name="Expenses"
                                         stroke="#d4af37"
                                         strokeWidth={3}
-                                        dot={{ r: 4 }}
+                                        dot={{ r: 4, fill: "#d4af37" }}
                                     />
                                 </LineChart>
                             </ResponsiveContainer>
@@ -662,8 +665,11 @@ function AdminDashboard() {
                                         formatter={(value, name) => [`${value} booking(s)`, name]}
                                         contentStyle={{
                                             borderRadius: "16px",
-                                            border: "1px solid #e5e7eb",
+                                            border: "1px solid rgba(255,255,255,0.10)",
+                                            background: "rgba(10,33,27,0.98)",
+                                            color: "#eef7f3",
                                         }}
+                                        labelStyle={{ color: "#eef7f3" }}
                                     />
                                     <Legend />
                                 </PieChart>
@@ -685,22 +691,25 @@ function AdminDashboard() {
                         ) : (
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={monthlyBookingTrend}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                                    <XAxis dataKey="month" stroke="#64748b" />
-                                    <YAxis stroke="#64748b" allowDecimals={false} />
+                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
+                                    <XAxis dataKey="month" stroke="#cfe2db" />
+                                    <YAxis stroke="#cfe2db" allowDecimals={false} />
                                     <Tooltip
                                         formatter={(value) => [`${value} booking(s)`, "Bookings"]}
                                         contentStyle={{
                                             borderRadius: "16px",
-                                            border: "1px solid #e5e7eb",
+                                            border: "1px solid rgba(255,255,255,0.10)",
+                                            background: "rgba(10,33,27,0.98)",
+                                            color: "#eef7f3",
                                         }}
+                                        labelStyle={{ color: "#eef7f3" }}
                                     />
                                     <Legend />
                                     <Bar
                                         dataKey="bookings"
                                         name="Bookings"
                                         radius={[10, 10, 0, 0]}
-                                        fill="#0f4d3c"
+                                        fill="#158f67"
                                     />
                                 </BarChart>
                             </ResponsiveContainer>
@@ -740,8 +749,11 @@ function AdminDashboard() {
                                         formatter={(value, name) => [`${value} booking(s)`, name]}
                                         contentStyle={{
                                             borderRadius: "16px",
-                                            border: "1px solid #e5e7eb",
+                                            border: "1px solid rgba(255,255,255,0.10)",
+                                            background: "rgba(10,33,27,0.98)",
+                                            color: "#eef7f3",
                                         }}
+                                        labelStyle={{ color: "#eef7f3" }}
                                     />
                                     <Legend />
                                 </PieChart>
@@ -765,25 +777,28 @@ function AdminDashboard() {
                                 <AreaChart data={monthlyRows}>
                                     <defs>
                                         <linearGradient id="revFill" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#0f4d3c" stopOpacity={0.35} />
-                                            <stop offset="95%" stopColor="#0f4d3c" stopOpacity={0.03} />
+                                            <stop offset="5%" stopColor="#22c58b" stopOpacity={0.35} />
+                                            <stop offset="95%" stopColor="#22c58b" stopOpacity={0.03} />
                                         </linearGradient>
                                     </defs>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                                    <XAxis dataKey="label" stroke="#64748b" />
-                                    <YAxis stroke="#64748b" />
+                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
+                                    <XAxis dataKey="label" stroke="#cfe2db" />
+                                    <YAxis stroke="#cfe2db" />
                                     <Tooltip
                                         formatter={(value) => formatCurrency(value)}
                                         contentStyle={{
                                             borderRadius: "16px",
-                                            border: "1px solid #e5e7eb",
+                                            border: "1px solid rgba(255,255,255,0.10)",
+                                            background: "rgba(10,33,27,0.98)",
+                                            color: "#eef7f3",
                                         }}
+                                        labelStyle={{ color: "#eef7f3" }}
                                     />
                                     <Area
                                         type="monotone"
                                         dataKey="revenue"
                                         name="Revenue Flow"
-                                        stroke="#0f4d3c"
+                                        stroke="#22c58b"
                                         fill="url(#revFill)"
                                         strokeWidth={3}
                                     />
@@ -892,7 +907,7 @@ function DashboardCard({ title, subtitle, children, variants }) {
             variants={variants}
             transition={{ duration: 0.46, ease: "easeOut" }}
             whileHover={{ y: -4 }}
-            className="rounded-[28px] border border-[#dce7e2] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-5 shadow-[0_12px_30px_rgba(14,61,47,0.06)] transition-shadow hover:shadow-[0_18px_38px_rgba(14,61,47,0.10)]"
+            className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(8,28,22,0.96)_0%,rgba(9,34,26,0.96)_100%)] p-5 shadow-[0_16px_34px_rgba(0,0,0,0.22)] transition-shadow hover:shadow-[0_22px_40px_rgba(0,0,0,0.28)]"
         >
             <SectionHeader title={title} subtitle={subtitle} />
             {children}
@@ -910,8 +925,8 @@ function StatCard({
 }) {
     const iconStyle =
         accent === "gold"
-            ? "bg-gradient-to-br from-[#fff8e3] to-[#ffefbf] text-[#b99117]"
-            : "bg-gradient-to-br from-[#edf8f3] to-[#dff1e8] text-[#0f4d3c]";
+            ? "bg-[linear-gradient(135deg,rgba(111,85,21,0.45)_0%,rgba(161,121,30,0.30)_100%)] text-[#f5cf67] border border-[#d4af37]/25"
+            : "bg-[linear-gradient(135deg,rgba(16,96,69,0.45)_0%,rgba(22,146,102,0.24)_100%)] text-[#98efcc] border border-[#22c58b]/20";
 
     return (
         <motion.div
@@ -919,20 +934,20 @@ function StatCard({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.42, delay, ease: "easeOut" }}
             whileHover={{ y: -6, scale: 1.012 }}
-            className="group rounded-[24px] border border-[#e3ebe7] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-5 shadow-sm transition hover:shadow-[0_20px_40px_rgba(15,77,60,0.12)]"
+            className="group rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] p-5 shadow-[0_12px_24px_rgba(0,0,0,0.22)] transition hover:shadow-[0_20px_40px_rgba(0,0,0,0.30)]"
         >
             <div className="flex items-start justify-between gap-4">
                 <div>
-                    <p className="text-sm font-semibold text-slate-500">{title}</p>
+                    <p className="text-sm font-semibold text-[#cfe2db]">{title}</p>
                     <motion.h3
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.4, delay: delay + 0.04, ease: "easeOut" }}
-                        className="mt-3 text-3xl font-extrabold text-[#0f4d3c]"
+                        className="mt-3 text-3xl font-extrabold text-white"
                     >
                         {value}
                     </motion.h3>
-                    <p className="mt-2 text-xs leading-5 text-slate-400">{subtitle}</p>
+                    <p className="mt-2 text-xs leading-5 text-[#9fb8af]">{subtitle}</p>
                 </div>
 
                 <motion.div
@@ -952,20 +967,20 @@ function MiniMetricCard({ title, value, icon: Icon }) {
         <motion.div
             whileHover={{ y: -5, scale: 1.012 }}
             transition={{ duration: 0.22, ease: "easeOut" }}
-            className="rounded-[24px] border border-[#dfe9e4] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-4 shadow-[0_10px_24px_rgba(14,61,47,0.05)] transition hover:shadow-[0_16px_34px_rgba(15,77,60,0.10)]"
+            className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] p-4 shadow-[0_10px_24px_rgba(0,0,0,0.22)] transition hover:shadow-[0_16px_34px_rgba(0,0,0,0.28)]"
         >
             <div className="flex items-center gap-3">
                 <motion.div
                     whileHover={{ rotate: -8, scale: 1.05 }}
                     transition={{ duration: 0.22, ease: "easeOut" }}
-                    className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#edf8f3_0%,#dff1e8_100%)] text-[#0f4d3c] shadow-sm"
+                    className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[#22c58b]/18 bg-[linear-gradient(135deg,rgba(16,96,69,0.45)_0%,rgba(22,146,102,0.24)_100%)] text-[#98efcc] shadow-sm"
                 >
                     <Icon size={20} />
                 </motion.div>
 
                 <div className="min-w-0">
-                    <p className="text-sm font-semibold text-slate-500">{title}</p>
-                    <h3 className="mt-1 text-2xl font-extrabold text-[#0f4d3c]">
+                    <p className="text-sm font-semibold text-[#cfe2db]">{title}</p>
+                    <h3 className="mt-1 text-2xl font-extrabold text-white">
                         {value}
                     </h3>
                 </div>
@@ -977,8 +992,8 @@ function MiniMetricCard({ title, value, icon: Icon }) {
 function InsightTile({ icon: Icon, label, value, tone = "green" }) {
     const styles =
         tone === "gold"
-            ? "border-[#f1e3b0] bg-[linear-gradient(180deg,#fffdf6_0%,#fff8e7_100%)] text-[#9b7510]"
-            : "border-[#dfe9e4] bg-[linear-gradient(180deg,#f8fcfa_0%,#f1f8f5_100%)] text-[#0f4d3c]";
+            ? "border-[#d4af37]/22 bg-[linear-gradient(180deg,rgba(74,58,17,0.28)_0%,rgba(55,42,11,0.18)_100%)] text-[#f5cf67]"
+            : "border-[#22c58b]/18 bg-[linear-gradient(180deg,rgba(11,61,45,0.56)_0%,rgba(10,43,32,0.42)_100%)] text-[#eef7f3]";
 
     return (
         <motion.div
@@ -988,12 +1003,12 @@ function InsightTile({ icon: Icon, label, value, tone = "green" }) {
         >
             <div className="flex items-start justify-between gap-3">
                 <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] opacity-70">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] opacity-75">
                         {label}
                     </p>
                     <h4 className="mt-2 text-3xl font-extrabold">{value}</h4>
                 </div>
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/70 shadow-sm">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 shadow-sm">
                     <Icon size={20} />
                 </div>
             </div>
@@ -1007,10 +1022,10 @@ function ListRow({ title, metaLeft, metaRight, status, delay = 0 }) {
         normalized === "confirmed" ||
             normalized === "approved" ||
             normalized === "completed"
-            ? "bg-[#ecf8f2] text-[#0f7a51]"
+            ? "bg-[rgba(16,131,94,0.24)] text-[#98efcc] border border-[#22c58b]/18"
             : normalized === "pending"
-                ? "bg-[#fff8e8] text-[#b07d12]"
-                : "bg-[#f1f5f9] text-[#64748b]";
+                ? "bg-[rgba(133,102,26,0.24)] text-[#f5cf67] border border-[#d4af37]/18"
+                : "bg-[rgba(148,163,184,0.18)] text-[#d5e1dd] border border-white/10";
 
     return (
         <motion.div
@@ -1018,11 +1033,11 @@ function ListRow({ title, metaLeft, metaRight, status, delay = 0 }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.38, delay, ease: "easeOut" }}
             whileHover={{ y: -3 }}
-            className="flex flex-col gap-3 rounded-[22px] border border-[#e4ece8] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-4 shadow-sm transition-shadow hover:shadow-md sm:flex-row sm:items-center sm:justify-between"
+            className="flex flex-col gap-3 rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] p-4 shadow-sm transition-shadow hover:shadow-md sm:flex-row sm:items-center sm:justify-between"
         >
             <div className="min-w-0">
-                <h4 className="truncate text-base font-bold text-[#0f4d3c]">{title}</h4>
-                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-500">
+                <h4 className="truncate text-base font-bold text-white">{title}</h4>
+                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[#b9cdc5]">
                     <span>{metaLeft}</span>
                     <span className="hidden sm:inline">•</span>
                     <span>{metaRight}</span>
@@ -1041,21 +1056,21 @@ function ListRow({ title, metaLeft, metaRight, status, delay = 0 }) {
 function SectionHeader({ title, subtitle }) {
     return (
         <div className="mb-4">
-            <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-[#e7efea] bg-[#f8fbf9] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-[#7a8f88]">
+            <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-[#b8d5ca]">
                 <TrendingUp size={12} />
                 Insights
             </div>
-            <h2 className="text-[26px] font-extrabold text-[#0f4d3c] sm:text-[28px]">
+            <h2 className="text-[26px] font-extrabold text-white sm:text-[28px]">
                 {title}
             </h2>
-            <p className="mt-1 text-sm text-gray-500">{subtitle}</p>
+            <p className="mt-1 text-sm text-[#b4c8c0]">{subtitle}</p>
         </div>
     );
 }
 
 function EmptyChartState({ message }) {
     return (
-        <div className="flex h-full items-center justify-center rounded-2xl bg-[#f8fafc] text-sm text-gray-500">
+        <div className="flex h-full items-center justify-center rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] text-sm text-[#b4c8c0]">
             {message}
         </div>
     );
@@ -1063,7 +1078,7 @@ function EmptyChartState({ message }) {
 
 function EmptyListState({ message }) {
     return (
-        <div className="flex min-h-[220px] items-center justify-center rounded-[24px] border border-dashed border-[#dce7e2] bg-[#f8fbf9] p-6 text-center text-sm text-slate-500">
+        <div className="flex min-h-[220px] items-center justify-center rounded-[24px] border border-dashed border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] p-6 text-center text-sm text-[#b4c8c0]">
             {message}
         </div>
     );

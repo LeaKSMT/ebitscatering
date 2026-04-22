@@ -67,19 +67,28 @@ function AdminLayout() {
                     <motion.div
                         initial={{ opacity: 0, y: 20, scale: 0.98 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
-                        transition={{ duration: 0.5, ease: "easeOut" }}
-                        className="admin-main-surface relative min-w-0 overflow-visible rounded-[30px] border shadow-[0_25px_60px_rgba(15,77,60,0.10)] backdrop-blur-xl"
+                        transition={{ duration: 0.45, ease: "easeOut" }}
+                        className={`admin-main-surface relative min-w-0 overflow-visible rounded-[30px] border backdrop-blur-xl ${theme === "dark"
+                                ? "border-white/10 bg-[linear-gradient(180deg,rgba(8,28,22,0.82)_0%,rgba(9,34,26,0.82)_100%)] shadow-[0_25px_60px_rgba(0,0,0,0.30)]"
+                                : "border-white/70 bg-white/70 shadow-[0_25px_60px_rgba(15,77,60,0.10)]"
+                            }`}
                     >
                         <div className="pointer-events-none absolute inset-0">
                             <motion.div
                                 animate={{ y: [0, -10, 0] }}
                                 transition={{ duration: 6, repeat: Infinity }}
-                                className="absolute -top-10 right-10 h-40 w-40 rounded-full bg-[#d4af37]/12 blur-3xl"
+                                className={`absolute -top-10 right-10 h-40 w-40 rounded-full blur-3xl ${theme === "dark"
+                                        ? "bg-[#d4af37]/10"
+                                        : "bg-[#d4af37]/12"
+                                    }`}
                             />
                             <motion.div
                                 animate={{ y: [0, 10, 0] }}
                                 transition={{ duration: 7, repeat: Infinity }}
-                                className="absolute bottom-0 left-0 h-32 w-32 rounded-full bg-[#0f4d3c]/8 blur-3xl"
+                                className={`absolute bottom-0 left-0 h-32 w-32 rounded-full blur-3xl ${theme === "dark"
+                                        ? "bg-[#0f6d51]/14"
+                                        : "bg-[#0f4d3c]/8"
+                                    }`}
                             />
                         </div>
 

@@ -18,7 +18,6 @@ import {
     UserRound,
     BarChart3,
     X,
-    Sparkles,
     Menu,
     ChevronRight,
 } from "lucide-react";
@@ -45,36 +44,25 @@ function AdminSidebar() {
     ];
 
     const navContent = (
-        <div className="admin-sidebar relative flex h-full flex-col overflow-hidden border-r text-white shadow-[18px_0_45px_rgba(8,45,35,0.20)]">
+        <div className="admin-sidebar relative flex h-full flex-col overflow-hidden border-r text-white">
+
+            {/* BACKGROUND EFFECT */}
             <div className="pointer-events-none absolute inset-0">
-                <div className="absolute -top-16 right-[-50px] h-44 w-44 rounded-full bg-[#f5c94a]/18 blur-3xl" />
-                <div className="absolute bottom-[-40px] left-[-25px] h-32 w-32 rounded-full bg-white/8 blur-3xl" />
-                <div className="absolute left-[-20px] top-[28%] h-20 w-20 rounded-full bg-white/6 blur-2xl" />
+                <div className="absolute -top-16 right-[-50px] h-44 w-44 rounded-full bg-[#f5c94a]/20 blur-3xl" />
+                <div className="absolute bottom-[-40px] left-[-25px] h-32 w-32 rounded-full bg-white/10 blur-3xl" />
             </div>
 
-            <div className="relative shrink-0 border-b border-white/10 px-4 pb-4 pt-5">
-                <motion.div
-                    initial={{ opacity: 0, y: -12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4 }}
-                >
-                    <div className="flex items-center gap-2">
-                        <Sparkles size={14} className="text-[#f5c94a]" />
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/65">
-                            Premium Panel
-                        </p>
-                    </div>
-
-                    <h1 className="mt-2 text-[20px] font-extrabold leading-tight tracking-tight text-[#f5d36a]">
-                        Ebit&apos;s Catering
-                    </h1>
-
-                    <p className="mt-1 text-xs text-white/75">
-                        Executive Admin Workspace
-                    </p>
-                </motion.div>
+            {/* HEADER */}
+            <div className="relative shrink-0 border-b border-white/10 px-5 py-5">
+                <h1 className="text-[20px] font-extrabold tracking-tight text-[#f5d36a]">
+                    Ebit's Catering
+                </h1>
+                <p className="mt-1 text-xs text-white/70">
+                    Admin Workspace
+                </p>
             </div>
 
+            {/* NAV */}
             <nav className="relative flex-1 space-y-1.5 overflow-y-auto px-3 py-4">
                 {navItems.map((item, index) => {
                     const Icon = item.icon;
@@ -82,42 +70,43 @@ function AdminSidebar() {
                     return (
                         <motion.div
                             key={item.path}
-                            initial={{ opacity: 0, x: -14 }}
+                            initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.03 * index, duration: 0.28 }}
+                            transition={{ delay: index * 0.03 }}
                         >
                             <NavLink
                                 to={item.path}
                                 onClick={() => setMobileOpen(false)}
                                 className={({ isActive }) =>
-                                    `group flex items-center gap-3 rounded-[18px] px-3 py-3 text-[14px] font-medium transition-all duration-200 ${isActive
-                                        ? "bg-[linear-gradient(135deg,#fff3c8_0%,#f4db86_100%)] text-[#0b4a3a] shadow-[0_14px_30px_rgba(212,175,55,0.22)]"
-                                        : "text-white/88 hover:translate-x-[3px] hover:bg-white/10 hover:text-white"
+                                    `group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${isActive
+                                        ? "bg-gradient-to-r from-[#fff3c8] to-[#f4db86] text-[#0b4a3a] shadow-md"
+                                        : "text-white/85 hover:bg-white/10 hover:text-white"
                                     }`
                                 }
                             >
                                 {({ isActive }) => (
                                     <>
+                                        {/* ICON */}
                                         <div
-                                            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl transition ${isActive
-                                                    ? "bg-white/55 text-[#0b4a3a] shadow-sm"
-                                                    : "bg-white/8 text-white/90 group-hover:bg-white/12"
+                                            className={`flex h-9 w-9 items-center justify-center rounded-xl ${isActive
+                                                    ? "bg-white text-[#0b4a3a]"
+                                                    : "bg-white/10 group-hover:bg-white/15"
                                                 }`}
                                         >
-                                            <Icon size={17} />
+                                            <Icon size={16} />
                                         </div>
 
-                                        <div className="min-w-0 flex-1">
-                                            <span className="block truncate leading-5">
-                                                {item.label}
-                                            </span>
-                                        </div>
+                                        {/* TEXT */}
+                                        <span className="flex-1 truncate">
+                                            {item.label}
+                                        </span>
 
+                                        {/* ARROW */}
                                         <ChevronRight
-                                            size={15}
+                                            size={14}
                                             className={`transition ${isActive
-                                                    ? "translate-x-0 text-[#0b4a3a]"
-                                                    : "-translate-x-1 text-white/45 opacity-0 group-hover:translate-x-0 group-hover:opacity-100"
+                                                    ? "text-[#0b4a3a]"
+                                                    : "opacity-0 group-hover:opacity-100"
                                                 }`}
                                         />
                                     </>
@@ -132,45 +121,48 @@ function AdminSidebar() {
 
     return (
         <>
-            <motion.button
-                whileTap={{ scale: 0.92 }}
+            {/* MOBILE BUTTON */}
+            <button
                 onClick={() => setMobileOpen(true)}
-                className="fixed left-4 top-4 z-40 inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/70 bg-white/90 text-[#0b4a3a] shadow-[0_10px_24px_rgba(15,77,60,0.12)] backdrop-blur-md lg:hidden"
+                className="fixed left-4 top-4 z-40 flex h-10 w-10 items-center justify-center rounded-xl bg-white text-[#0b4a3a] shadow lg:hidden"
             >
-                <Menu size={19} />
-            </motion.button>
+                <Menu size={18} />
+            </button>
 
+            {/* DESKTOP */}
             <aside className="fixed left-0 top-0 z-40 hidden h-screen w-[240px] lg:block">
                 {navContent}
             </aside>
 
+            {/* MOBILE */}
             <AnimatePresence>
                 {mobileOpen && (
                     <>
+                        {/* OVERLAY */}
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={() => setMobileOpen(false)}
-                            className="fixed inset-0 z-50 bg-black/45 backdrop-blur-[3px] lg:hidden"
+                            className="fixed inset-0 z-50 bg-black/40"
                         />
 
+                        {/* SIDEBAR */}
                         <motion.aside
                             initial={{ x: "-100%" }}
                             animate={{ x: 0 }}
                             exit={{ x: "-100%" }}
-                            transition={{ duration: 0.28, ease: "easeOut" }}
-                            className="fixed left-0 top-0 z-[60] h-screen w-[82%] max-w-[300px] lg:hidden"
+                            transition={{ duration: 0.25 }}
+                            className="fixed left-0 top-0 z-[60] h-screen w-[80%] max-w-[280px]"
                         >
-                            <div className="relative h-full">
-                                <button
-                                    onClick={() => setMobileOpen(false)}
-                                    className="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20"
-                                >
-                                    <X size={17} />
-                                </button>
-                                {navContent}
-                            </div>
+                            <button
+                                onClick={() => setMobileOpen(false)}
+                                className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white"
+                            >
+                                <X size={16} />
+                            </button>
+
+                            {navContent}
                         </motion.aside>
                     </>
                 )}

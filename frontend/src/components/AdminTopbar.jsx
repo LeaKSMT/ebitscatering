@@ -10,7 +10,6 @@ import {
     Moon,
     SunMedium,
     LogOut,
-    UserCircle2,
     X,
 } from "lucide-react";
 
@@ -25,7 +24,6 @@ function AdminTopbar({ currentPath = "", theme = "light", onToggleTheme }) {
         JSON.parse(localStorage.getItem("adminUser") || "null") ||
         JSON.parse(localStorage.getItem("user") || "null") || {
             name: "Admin User",
-            email: "admin@example.com",
         };
 
     const pageTitles = {
@@ -188,7 +186,7 @@ function AdminTopbar({ currentPath = "", theme = "light", onToggleTheme }) {
                                             whileTap={{ scale: 0.985 }}
                                             transition={{ duration: 0.2 }}
                                             onClick={() => setProfileOpen((prev) => !prev)}
-                                            className="admin-profile-trigger flex min-w-[220px] items-center gap-3 rounded-[18px] border px-3.5 py-2.5 text-left shadow-[0_14px_30px_rgba(0,0,0,0.10)]"
+                                            className="admin-profile-trigger flex min-w-[230px] items-center gap-3 rounded-[18px] border px-3.5 py-2.5 text-left shadow-[0_14px_30px_rgba(0,0,0,0.10)]"
                                         >
                                             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#fff3c8_0%,#f2cf63_100%)] text-[#8a6710] shadow-sm">
                                                 <ShieldCheck size={18} />
@@ -235,7 +233,7 @@ function AdminTopbar({ currentPath = "", theme = "light", onToggleTheme }) {
                                                                     {adminUser.name || "Admin User"}
                                                                 </p>
                                                                 <p className="mt-0.5 truncate text-xs opacity-85">
-                                                                    {adminUser.email || "Administrator Access"}
+                                                                    Administrator Access
                                                                 </p>
                                                             </div>
                                                         </div>
@@ -243,14 +241,6 @@ function AdminTopbar({ currentPath = "", theme = "light", onToggleTheme }) {
 
                                                     <div className="px-3 pb-3 pt-2">
                                                         <div className="space-y-1.5">
-                                                            <button
-                                                                type="button"
-                                                                className="admin-dropdown-item flex w-full items-center gap-3 rounded-[16px] px-4 py-3 text-left text-sm font-semibold"
-                                                            >
-                                                                <UserCircle2 size={18} />
-                                                                <span>Profile Overview</span>
-                                                            </button>
-
                                                             <button
                                                                 type="button"
                                                                 onClick={() => {
