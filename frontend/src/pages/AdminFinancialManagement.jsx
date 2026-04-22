@@ -147,10 +147,7 @@ function normalizeBookingRecord(item, index = 0) {
             item.paymentStatus ||
             item.payment_status ||
             "Pending",
-        createdAt:
-            item.createdAt ||
-            item.created_at ||
-            "",
+        createdAt: item.createdAt || item.created_at || "",
     };
 }
 
@@ -272,6 +269,34 @@ function getStoredToken() {
     );
 }
 
+function useAdminTheme() {
+    const getTheme = () => {
+        if (typeof document === "undefined") return "light";
+        return document.body.getAttribute("data-theme") === "dark" ? "dark" : "light";
+    };
+
+    const [theme, setTheme] = useState(getTheme);
+
+    useEffect(() => {
+        if (typeof document === "undefined") return;
+
+        const observer = new MutationObserver(() => {
+            setTheme(getTheme());
+        });
+
+        observer.observe(document.body, {
+            attributes: true,
+            attributeFilter: ["data-theme"],
+        });
+
+        setTheme(getTheme());
+
+        return () => observer.disconnect();
+    }, []);
+
+    return theme;
+}
+
 function HeaderMiniCard({ icon: Icon, label, value }) {
     return (
         <motion.div
@@ -294,23 +319,41 @@ function HeaderMiniCard({ icon: Icon, label, value }) {
     );
 }
 
-function SummaryCard({ icon: Icon, title, value, subtitle }) {
+function SummaryCard({ icon: Icon, title, value, subtitle, isDark }) {
     return (
         <motion.div
             whileHover={{ y: -4, scale: 1.01 }}
             transition={{ type: "spring", stiffness: 220, damping: 18 }}
-            className="rounded-[24px] border border-[#dce7e2] bg-white p-5 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
+            className={`rounded-[24px] border p-5 ${isDark
+                    ? "border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] shadow-[0_14px_36px_rgba(0,0,0,0.22)]"
+                    : "border-[#dce7e2] bg-white shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
+                }`}
         >
             <div className="flex items-start justify-between gap-3">
                 <div>
-                    <p className="text-sm text-slate-500">{title}</p>
-                    <h2 className="mt-2 text-3xl font-extrabold text-[#0f4d3c]">
+                    <p className={`text-sm ${isDark ? "text-[#b7cbc3]" : "text-slate-500"}`}>
+                        {title}
+                    </p>
+                    <h2
+                        className={`mt-2 text-3xl font-extrabold ${isDark ? "text-white" : "text-[#0f4d3c]"
+                            }`}
+                    >
                         {value}
                     </h2>
-                    <p className="mt-2 text-xs text-slate-400">{subtitle}</p>
+                    <p
+                        className={`mt-2 text-xs ${isDark ? "text-white/35" : "text-slate-400"
+                            }`}
+                    >
+                        {subtitle}
+                    </p>
                 </div>
 
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#edf8f3_0%,#dff1e8_100%)] text-[#0f4d3c]">
+                <div
+                    className={`flex h-12 w-12 items-center justify-center rounded-2xl ${isDark
+                            ? "border border-[#22c58b]/18 bg-[linear-gradient(135deg,rgba(16,96,69,0.45)_0%,rgba(22,146,102,0.24)_100%)] text-[#98efcc]"
+                            : "bg-[linear-gradient(135deg,#edf8f3_0%,#dff1e8_100%)] text-[#0f4d3c]"
+                        }`}
+                >
                     <Icon size={22} />
                 </div>
             </div>
@@ -318,14 +361,30 @@ function SummaryCard({ icon: Icon, title, value, subtitle }) {
     );
 }
 
-function EmptyState({ title, description }) {
+function EmptyState({ title, description, isDark }) {
     return (
-        <div className="rounded-[24px] border border-dashed border-[#d9e5e0] bg-[#fbfdfc] px-6 py-12 text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#edf8f3] text-[#0f4d3c]">
+        <div
+            className={`rounded-[24px] border border-dashed px-6 py-12 text-center ${isDark
+                    ? "border-white/10 bg-[rgba(255,255,255,0.02)]"
+                    : "border-[#d9e5e0] bg-[#fbfdfc]"
+                }`}
+        >
+            <div
+                className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full ${isDark ? "bg-white/10 text-[#98efcc]" : "bg-[#edf8f3] text-[#0f4d3c]"
+                    }`}
+            >
                 <CircleDollarSign className="h-8 w-8" />
             </div>
-            <h3 className="mt-4 text-2xl font-extrabold text-[#0f4d3c]">{title}</h3>
-            <p className="mx-auto mt-2 max-w-2xl text-sm leading-7 text-slate-500">
+            <h3
+                className={`mt-4 text-2xl font-extrabold ${isDark ? "text-white" : "text-[#0f4d3c]"
+                    }`}
+            >
+                {title}
+            </h3>
+            <p
+                className={`mx-auto mt-2 max-w-2xl text-sm leading-7 ${isDark ? "text-[#b7cbc3]" : "text-slate-500"
+                    }`}
+            >
                 {description}
             </p>
         </div>
@@ -333,6 +392,9 @@ function EmptyState({ title, description }) {
 }
 
 function AdminFinancialManagement() {
+    const theme = useAdminTheme();
+    const isDark = theme === "dark";
+
     const [refreshKey, setRefreshKey] = useState(0);
     const [apiBookings, setApiBookings] = useState([]);
     const [expenseForm, setExpenseForm] = useState({
@@ -687,6 +749,22 @@ function AdminFinancialManagement() {
         });
     };
 
+    const sectionCardClass = isDark
+        ? "rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] p-6 shadow-[0_14px_36px_rgba(0,0,0,0.22)]"
+        : "rounded-[28px] border border-[#dce7e2] bg-white p-6 shadow-[0_14px_36px_rgba(14,61,47,0.06)]";
+
+    const tableHeadClass = isDark
+        ? "border-b border-white/10 text-left text-[#b7cbc3]"
+        : "border-b border-[#e8efeb] text-left text-slate-500";
+
+    const tableRowClass = isDark
+        ? "border-b border-white/10 transition hover:bg-white/[0.03]"
+        : "border-b border-[#f1f5f3] transition hover:bg-[#fbfdfc]";
+
+    const inputClass = isDark
+        ? "w-full rounded-2xl border border-white/10 bg-[rgba(255,255,255,0.03)] px-4 py-3 text-white outline-none transition placeholder:text-white/35 focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
+        : "w-full rounded-2xl border border-gray-300 px-4 py-3 text-[#0f4d3c] outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20";
+
     return (
         <motion.div
             variants={containerVariants}
@@ -696,7 +774,10 @@ function AdminFinancialManagement() {
         >
             <motion.section
                 variants={fadeUp}
-                className="overflow-hidden rounded-[30px] border border-[#dce7e2] bg-white shadow-[0_18px_50px_rgba(14,61,47,0.07)]"
+                className={`overflow-hidden rounded-[30px] border ${isDark
+                        ? "border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] shadow-[0_18px_50px_rgba(0,0,0,0.25)]"
+                        : "border-[#dce7e2] bg-white shadow-[0_18px_50px_rgba(14,61,47,0.07)]"
+                    }`}
             >
                 <div className="relative overflow-hidden bg-[linear-gradient(135deg,#07382d_0%,#0c4d3d_34%,#0f6b52_68%,#18a06c_100%)] px-6 py-7 text-white md:px-8">
                     <div className="pointer-events-none absolute inset-0">
@@ -742,7 +823,8 @@ function AdminFinancialManagement() {
                             <HeaderMiniCard
                                 icon={FileSpreadsheet}
                                 label="Records"
-                                value={`${financialRows.length} Event${financialRows.length === 1 ? "" : "s"}`}
+                                value={`${financialRows.length} Event${financialRows.length === 1 ? "" : "s"
+                                    }`}
                             />
                         </div>
                     </div>
@@ -758,40 +840,50 @@ function AdminFinancialManagement() {
                     title="Total Revenue"
                     value={formatCurrency(summary.totalRevenue)}
                     subtitle="Based on booking totals"
+                    isDark={isDark}
                 />
                 <SummaryCard
                     icon={BadgeDollarSign}
                     title="Total Collected"
                     value={formatCurrency(summary.totalCollected)}
                     subtitle="Based on recorded payments"
+                    isDark={isDark}
                 />
                 <SummaryCard
                     icon={ReceiptText}
                     title="Total Expenses"
                     value={formatCurrency(summary.totalExpenses)}
                     subtitle="Admin-recorded expenses"
+                    isDark={isDark}
                 />
                 <SummaryCard
                     icon={Landmark}
                     title="Net Profit"
                     value={formatCurrency(summary.netProfit)}
                     subtitle="Revenue minus expenses"
+                    isDark={isDark}
                 />
             </motion.section>
 
-            <motion.section
-                variants={fadeUp}
-                className="rounded-[28px] border border-[#dce7e2] bg-white p-6 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
-            >
+            <motion.section variants={fadeUp} className={sectionCardClass}>
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                     <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#b99117]">
+                        <p
+                            className={`text-xs font-semibold uppercase tracking-[0.18em] ${isDark ? "text-[#f5cf67]" : "text-[#b99117]"
+                                }`}
+                        >
                             Financial Overview
                         </p>
-                        <h2 className="mt-1 text-2xl font-extrabold text-[#0f4d3c]">
+                        <h2
+                            className={`mt-1 text-2xl font-extrabold ${isDark ? "text-white" : "text-[#0f4d3c]"
+                                }`}
+                        >
                             Revenue and Profit Snapshot
                         </h2>
-                        <p className="mt-2 text-sm text-slate-500">
+                        <p
+                            className={`mt-2 text-sm ${isDark ? "text-[#b7cbc3]" : "text-slate-500"
+                                }`}
+                        >
                             Real-time financial summary based on your current booking,
                             payment, and expense records.
                         </p>
@@ -809,19 +901,27 @@ function AdminFinancialManagement() {
             </motion.section>
 
             <section className="grid grid-cols-1 gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-                <motion.div
-                    variants={fadeUp}
-                    className="rounded-[28px] border border-[#dce7e2] bg-white p-6 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
-                >
+                <motion.div variants={fadeUp} className={sectionCardClass}>
                     <div className="mb-5 flex items-center gap-3">
-                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#edf8f3] text-[#0f4d3c]">
+                        <div
+                            className={`flex h-11 w-11 items-center justify-center rounded-2xl ${isDark
+                                    ? "border border-[#22c58b]/18 bg-[linear-gradient(135deg,rgba(16,96,69,0.45)_0%,rgba(22,146,102,0.24)_100%)] text-[#98efcc]"
+                                    : "bg-[#edf8f3] text-[#0f4d3c]"
+                                }`}
+                        >
                             <BarChart3 size={20} />
                         </div>
                         <div>
-                            <h2 className="text-2xl font-extrabold text-[#0f4d3c]">
+                            <h2
+                                className={`text-2xl font-extrabold ${isDark ? "text-white" : "text-[#0f4d3c]"
+                                    }`}
+                            >
                                 Profit Analysis Per Event
                             </h2>
-                            <p className="text-sm text-slate-500">
+                            <p
+                                className={`text-sm ${isDark ? "text-[#b7cbc3]" : "text-slate-500"
+                                    }`}
+                            >
                                 Revenue, expenses, collections, and computed margin per booking
                             </p>
                         </div>
@@ -831,12 +931,13 @@ function AdminFinancialManagement() {
                         <EmptyState
                             title="No financial records yet"
                             description="Approved bookings and recorded expenses will appear here once your financial data becomes available."
+                            isDark={isDark}
                         />
                     ) : (
                         <div className="overflow-x-auto">
                             <table className="w-full min-w-[1050px] text-sm">
                                 <thead>
-                                    <tr className="border-b border-[#e8efeb] text-left text-slate-500">
+                                    <tr className={tableHeadClass}>
                                         <th className="py-3 font-semibold">Booking ID</th>
                                         <th className="py-3 font-semibold">Client</th>
                                         <th className="py-3 font-semibold">Event</th>
@@ -854,27 +955,51 @@ function AdminFinancialManagement() {
                                             initial={{ opacity: 0, y: 12 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ duration: 0.3 }}
-                                            className="border-b border-[#f1f5f3] transition hover:bg-[#fbfdfc]"
+                                            className={tableRowClass}
                                         >
-                                            <td className="py-4 font-bold text-[#0f4d3c]">
+                                            <td
+                                                className={`py-4 font-bold ${isDark ? "text-white" : "text-[#0f4d3c]"
+                                                    }`}
+                                            >
                                                 {row.bookingId}
                                             </td>
-                                            <td className="py-4 text-slate-700">{row.fullName}</td>
-                                            <td className="py-4 text-slate-700">{row.eventType}</td>
-                                            <td className="py-4 font-bold text-[#0f4d3c]">
+                                            <td
+                                                className={`py-4 ${isDark ? "text-[#dce9e4]" : "text-slate-700"
+                                                    }`}
+                                            >
+                                                {row.fullName}
+                                            </td>
+                                            <td
+                                                className={`py-4 ${isDark ? "text-[#dce9e4]" : "text-slate-700"
+                                                    }`}
+                                            >
+                                                {row.eventType}
+                                            </td>
+                                            <td
+                                                className={`py-4 font-bold ${isDark ? "text-white" : "text-[#0f4d3c]"
+                                                    }`}
+                                            >
                                                 {formatCurrency(row.totalAmount)}
                                             </td>
-                                            <td className="py-4 font-bold text-emerald-600">
+                                            <td className="py-4 font-bold text-emerald-400">
                                                 {formatCurrency(row.paid)}
                                             </td>
-                                            <td className="py-4 font-bold text-[#c79f23]">
+                                            <td
+                                                className={`py-4 font-bold ${isDark ? "text-[#f5cf67]" : "text-[#c79f23]"
+                                                    }`}
+                                            >
                                                 {formatCurrency(row.totalExpenses)}
                                             </td>
-                                            <td className="py-4 font-bold text-[#0f7a51]">
+                                            <td className="py-4 font-bold text-[#22c58b]">
                                                 {formatCurrency(row.profit)}
                                             </td>
                                             <td className="py-4">
-                                                <span className="inline-flex rounded-full bg-[#fff8e6] px-3 py-1 text-xs font-semibold text-[#b99117]">
+                                                <span
+                                                    className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${isDark
+                                                            ? "border border-[#d4af37]/18 bg-[rgba(133,102,26,0.24)] text-[#f5cf67]"
+                                                            : "bg-[#fff8e6] text-[#b99117]"
+                                                        }`}
+                                                >
                                                     {row.margin}%
                                                 </span>
                                             </td>
@@ -887,19 +1012,27 @@ function AdminFinancialManagement() {
                 </motion.div>
 
                 <div className="space-y-6">
-                    <motion.div
-                        variants={fadeUp}
-                        className="rounded-[28px] border border-[#dce7e2] bg-white p-6 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
-                    >
+                    <motion.div variants={fadeUp} className={sectionCardClass}>
                         <div className="mb-5 flex items-center gap-3">
-                            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#fff7e3] text-[#b99117]">
+                            <div
+                                className={`flex h-11 w-11 items-center justify-center rounded-2xl ${isDark
+                                        ? "border border-[#d4af37]/18 bg-[rgba(133,102,26,0.24)] text-[#f5cf67]"
+                                        : "bg-[#fff7e3] text-[#b99117]"
+                                    }`}
+                            >
                                 <PlusCircle size={20} />
                             </div>
                             <div>
-                                <h2 className="text-2xl font-extrabold text-[#0f4d3c]">
+                                <h2
+                                    className={`text-2xl font-extrabold ${isDark ? "text-white" : "text-[#0f4d3c]"
+                                        }`}
+                                >
                                     Add Expense
                                 </h2>
-                                <p className="text-sm text-slate-500">
+                                <p
+                                    className={`text-sm ${isDark ? "text-[#b7cbc3]" : "text-slate-500"
+                                        }`}
+                                >
                                     Record operational or event-based expenses
                                 </p>
                             </div>
@@ -907,13 +1040,16 @@ function AdminFinancialManagement() {
 
                         <form onSubmit={handleAddExpense} className="space-y-4">
                             <div>
-                                <label className="mb-2 block text-sm font-semibold text-[#0f4d3c]">
+                                <label
+                                    className={`mb-2 block text-sm font-semibold ${isDark ? "text-[#dce9e4]" : "text-[#0f4d3c]"
+                                        }`}
+                                >
                                     Booking ID
                                 </label>
                                 <select
                                     value={expenseForm.bookingId}
                                     onChange={handleBookingSelect}
-                                    className="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
+                                    className={inputClass}
                                     required
                                 >
                                     <option value="">
@@ -930,7 +1066,10 @@ function AdminFinancialManagement() {
                             </div>
 
                             <div>
-                                <label className="mb-2 block text-sm font-semibold text-[#0f4d3c]">
+                                <label
+                                    className={`mb-2 block text-sm font-semibold ${isDark ? "text-[#dce9e4]" : "text-[#0f4d3c]"
+                                        }`}
+                                >
                                     Client Name
                                 </label>
                                 <input
@@ -938,13 +1077,16 @@ function AdminFinancialManagement() {
                                     name="clientName"
                                     value={expenseForm.clientName}
                                     onChange={handleExpenseChange}
-                                    className="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
+                                    className={inputClass}
                                     required
                                 />
                             </div>
 
                             <div>
-                                <label className="mb-2 block text-sm font-semibold text-[#0f4d3c]">
+                                <label
+                                    className={`mb-2 block text-sm font-semibold ${isDark ? "text-[#dce9e4]" : "text-[#0f4d3c]"
+                                        }`}
+                                >
                                     Event Type
                                 </label>
                                 <input
@@ -952,13 +1094,16 @@ function AdminFinancialManagement() {
                                     name="eventType"
                                     value={expenseForm.eventType}
                                     onChange={handleExpenseChange}
-                                    className="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
+                                    className={inputClass}
                                     required
                                 />
                             </div>
 
                             <div>
-                                <label className="mb-2 block text-sm font-semibold text-[#0f4d3c]">
+                                <label
+                                    className={`mb-2 block text-sm font-semibold ${isDark ? "text-[#dce9e4]" : "text-[#0f4d3c]"
+                                        }`}
+                                >
                                     Expense Category
                                 </label>
                                 <input
@@ -967,13 +1112,16 @@ function AdminFinancialManagement() {
                                     value={expenseForm.category}
                                     onChange={handleExpenseChange}
                                     placeholder="Food, transportation, decoration, etc."
-                                    className="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
+                                    className={inputClass}
                                     required
                                 />
                             </div>
 
                             <div>
-                                <label className="mb-2 block text-sm font-semibold text-[#0f4d3c]">
+                                <label
+                                    className={`mb-2 block text-sm font-semibold ${isDark ? "text-[#dce9e4]" : "text-[#0f4d3c]"
+                                        }`}
+                                >
                                     Amount
                                 </label>
                                 <input
@@ -982,7 +1130,7 @@ function AdminFinancialManagement() {
                                     name="amount"
                                     value={expenseForm.amount}
                                     onChange={handleExpenseChange}
-                                    className="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
+                                    className={inputClass}
                                     required
                                 />
                             </div>
@@ -997,19 +1145,27 @@ function AdminFinancialManagement() {
                         </form>
                     </motion.div>
 
-                    <motion.div
-                        variants={fadeUp}
-                        className="rounded-[28px] border border-[#dce7e2] bg-white p-6 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
-                    >
+                    <motion.div variants={fadeUp} className={sectionCardClass}>
                         <div className="mb-5 flex items-center gap-3">
-                            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#edf8f3] text-[#0f4d3c]">
+                            <div
+                                className={`flex h-11 w-11 items-center justify-center rounded-2xl ${isDark
+                                        ? "border border-[#22c58b]/18 bg-[linear-gradient(135deg,rgba(16,96,69,0.45)_0%,rgba(22,146,102,0.24)_100%)] text-[#98efcc]"
+                                        : "bg-[#edf8f3] text-[#0f4d3c]"
+                                    }`}
+                            >
                                 <TrendingUp size={20} />
                             </div>
                             <div>
-                                <h2 className="text-2xl font-extrabold text-[#0f4d3c]">
+                                <h2
+                                    className={`text-2xl font-extrabold ${isDark ? "text-white" : "text-[#0f4d3c]"
+                                        }`}
+                                >
                                     Demand Forecast
                                 </h2>
-                                <p className="text-sm text-slate-500">
+                                <p
+                                    className={`text-sm ${isDark ? "text-[#b7cbc3]" : "text-slate-500"
+                                        }`}
+                                >
                                     Event demand based on current booking distribution
                                 </p>
                             </div>
@@ -1024,15 +1180,24 @@ function AdminFinancialManagement() {
                                     transition={{ duration: 0.3, delay: index * 0.05 }}
                                 >
                                     <div className="mb-2 flex items-center justify-between text-sm">
-                                        <span className="font-semibold text-[#0f4d3c]">
+                                        <span
+                                            className={`font-semibold ${isDark ? "text-white" : "text-[#0f4d3c]"
+                                                }`}
+                                        >
                                             {item.type}
                                         </span>
-                                        <span className="text-slate-500">
+                                        <span
+                                            className={`${isDark ? "text-[#b7cbc3]" : "text-slate-500"
+                                                }`}
+                                        >
                                             {item.count} booking(s) • {item.percent}%
                                         </span>
                                     </div>
 
-                                    <div className="h-3 overflow-hidden rounded-full bg-[#edf2ef]">
+                                    <div
+                                        className={`h-3 overflow-hidden rounded-full ${isDark ? "bg-white/10" : "bg-[#edf2ef]"
+                                            }`}
+                                    >
                                         <motion.div
                                             initial={{ width: 0 }}
                                             animate={{ width: `${item.percent}%` }}
@@ -1051,19 +1216,27 @@ function AdminFinancialManagement() {
                 </div>
             </section>
 
-            <motion.section
-                variants={fadeUp}
-                className="rounded-[28px] border border-[#dce7e2] bg-white p-6 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
-            >
+            <motion.section variants={fadeUp} className={sectionCardClass}>
                 <div className="mb-5 flex items-center gap-3">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#edf8f3] text-[#0f4d3c]">
+                    <div
+                        className={`flex h-11 w-11 items-center justify-center rounded-2xl ${isDark
+                                ? "border border-[#22c58b]/18 bg-[linear-gradient(135deg,rgba(16,96,69,0.45)_0%,rgba(22,146,102,0.24)_100%)] text-[#98efcc]"
+                                : "bg-[#edf8f3] text-[#0f4d3c]"
+                            }`}
+                    >
                         <CalendarRange size={20} />
                     </div>
                     <div>
-                        <h2 className="text-2xl font-extrabold text-[#0f4d3c]">
+                        <h2
+                            className={`text-2xl font-extrabold ${isDark ? "text-white" : "text-[#0f4d3c]"
+                                }`}
+                        >
                             Monthly Financial Summary
                         </h2>
-                        <p className="text-sm text-slate-500">
+                        <p
+                            className={`text-sm ${isDark ? "text-[#b7cbc3]" : "text-slate-500"
+                                }`}
+                        >
                             Revenue, expenses, profit, and monthly margin overview
                         </p>
                     </div>
@@ -1073,12 +1246,13 @@ function AdminFinancialManagement() {
                     <EmptyState
                         title="No monthly data yet"
                         description="Monthly financial summaries will appear here as soon as the system has enough revenue and expense records."
+                        isDark={isDark}
                     />
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full min-w-[760px] text-sm">
                             <thead>
-                                <tr className="border-b border-[#e8efeb] text-left text-slate-500">
+                                <tr className={tableHeadClass}>
                                     <th className="py-3 font-semibold">Month</th>
                                     <th className="py-3 font-semibold">Revenue</th>
                                     <th className="py-3 font-semibold">Expenses</th>
@@ -1093,22 +1267,36 @@ function AdminFinancialManagement() {
                                         initial={{ opacity: 0, y: 12 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ duration: 0.3 }}
-                                        className="border-b border-[#f1f5f3] transition hover:bg-[#fbfdfc]"
+                                        className={tableRowClass}
                                     >
-                                        <td className="py-4 font-bold text-[#0f4d3c]">
+                                        <td
+                                            className={`py-4 font-bold ${isDark ? "text-white" : "text-[#0f4d3c]"
+                                                }`}
+                                        >
                                             {row.label}
                                         </td>
-                                        <td className="py-4 text-slate-700">
+                                        <td
+                                            className={`py-4 ${isDark ? "text-[#dce9e4]" : "text-slate-700"
+                                                }`}
+                                        >
                                             {formatCurrency(row.revenue)}
                                         </td>
-                                        <td className="py-4 text-slate-700">
+                                        <td
+                                            className={`py-4 ${isDark ? "text-[#dce9e4]" : "text-slate-700"
+                                                }`}
+                                        >
                                             {formatCurrency(row.expenses)}
                                         </td>
-                                        <td className="py-4 font-semibold text-[#0f7a51]">
+                                        <td className="py-4 font-semibold text-[#22c58b]">
                                             {formatCurrency(row.profit)}
                                         </td>
                                         <td className="py-4">
-                                            <span className="inline-flex rounded-full bg-[#ecfdf5] px-3 py-1 text-xs font-semibold text-[#0f766e]">
+                                            <span
+                                                className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${isDark
+                                                        ? "border border-[#22c58b]/18 bg-[rgba(16,131,94,0.24)] text-[#98efcc]"
+                                                        : "bg-[#ecfdf5] text-[#0f766e]"
+                                                    }`}
+                                            >
                                                 {row.margin.toFixed(1)}%
                                             </span>
                                         </td>
@@ -1120,19 +1308,27 @@ function AdminFinancialManagement() {
                 )}
             </motion.section>
 
-            <motion.section
-                variants={fadeUp}
-                className="rounded-[28px] border border-[#dce7e2] bg-white p-6 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
-            >
+            <motion.section variants={fadeUp} className={sectionCardClass}>
                 <div className="mb-5 flex items-center gap-3">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#fff7e3] text-[#b99117]">
+                    <div
+                        className={`flex h-11 w-11 items-center justify-center rounded-2xl ${isDark
+                                ? "border border-[#d4af37]/18 bg-[rgba(133,102,26,0.24)] text-[#f5cf67]"
+                                : "bg-[#fff7e3] text-[#b99117]"
+                            }`}
+                    >
                         <BriefcaseBusiness size={20} />
                     </div>
                     <div>
-                        <h2 className="text-2xl font-extrabold text-[#0f4d3c]">
+                        <h2
+                            className={`text-2xl font-extrabold ${isDark ? "text-white" : "text-[#0f4d3c]"
+                                }`}
+                        >
                             Recent Expenses
                         </h2>
-                        <p className="text-sm text-slate-500">
+                        <p
+                            className={`text-sm ${isDark ? "text-[#b7cbc3]" : "text-slate-500"
+                                }`}
+                        >
                             Latest admin-recorded operating and event expenses
                         </p>
                     </div>
@@ -1142,12 +1338,13 @@ function AdminFinancialManagement() {
                     <EmptyState
                         title="No expense records yet"
                         description="Recorded expenses will appear here once you start adding expense entries from the form."
+                        isDark={isDark}
                     />
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full min-w-[820px] text-sm">
                             <thead>
-                                <tr className="border-b border-[#e8efeb] text-left text-slate-500">
+                                <tr className={tableHeadClass}>
                                     <th className="py-3 font-semibold">Booking ID</th>
                                     <th className="py-3 font-semibold">Client</th>
                                     <th className="py-3 font-semibold">Event Type</th>
@@ -1166,24 +1363,42 @@ function AdminFinancialManagement() {
                                             animate={{ opacity: 1, y: 0 }}
                                             exit={{ opacity: 0, y: 10 }}
                                             transition={{ duration: 0.26 }}
-                                            className="border-b border-[#f1f5f3] transition hover:bg-[#fbfdfc]"
+                                            className={tableRowClass}
                                         >
-                                            <td className="py-4 font-bold text-[#0f4d3c]">
+                                            <td
+                                                className={`py-4 font-bold ${isDark ? "text-white" : "text-[#0f4d3c]"
+                                                    }`}
+                                            >
                                                 {expense.bookingId || "—"}
                                             </td>
-                                            <td className="py-4 text-slate-700">
+                                            <td
+                                                className={`py-4 ${isDark ? "text-[#dce9e4]" : "text-slate-700"
+                                                    }`}
+                                            >
                                                 {expense.clientName || "—"}
                                             </td>
-                                            <td className="py-4 text-slate-700">
+                                            <td
+                                                className={`py-4 ${isDark ? "text-[#dce9e4]" : "text-slate-700"
+                                                    }`}
+                                            >
                                                 {expense.eventType || "—"}
                                             </td>
-                                            <td className="py-4 text-slate-700">
+                                            <td
+                                                className={`py-4 ${isDark ? "text-[#dce9e4]" : "text-slate-700"
+                                                    }`}
+                                            >
                                                 {expense.category || "—"}
                                             </td>
-                                            <td className="py-4 font-bold text-[#b99117]">
+                                            <td
+                                                className={`py-4 font-bold ${isDark ? "text-[#f5cf67]" : "text-[#b99117]"
+                                                    }`}
+                                            >
                                                 {formatCurrency(expense.amount)}
                                             </td>
-                                            <td className="py-4 text-slate-700">
+                                            <td
+                                                className={`py-4 ${isDark ? "text-[#dce9e4]" : "text-slate-700"
+                                                    }`}
+                                            >
                                                 {formatDate(expense.createdAt)}
                                             </td>
                                         </motion.tr>
@@ -1208,7 +1423,10 @@ function AdminFinancialManagement() {
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 18, scale: 0.96 }}
                             transition={{ type: "spring", stiffness: 260, damping: 22 }}
-                            className="w-full max-w-md overflow-hidden rounded-[28px] border border-gray-100 bg-white shadow-[0_25px_60px_rgba(0,0,0,0.2)]"
+                            className={`w-full max-w-md overflow-hidden rounded-[28px] border shadow-[0_25px_60px_rgba(0,0,0,0.2)] ${isDark
+                                    ? "border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.99)_0%,rgba(13,40,32,0.99)_100%)]"
+                                    : "border-gray-100 bg-white"
+                                }`}
                         >
                             <div className="bg-[linear-gradient(135deg,#0f4d3c_0%,#137255_100%)] px-6 py-5 text-white">
                                 <div className="flex items-center gap-4">
@@ -1227,7 +1445,10 @@ function AdminFinancialManagement() {
                             </div>
 
                             <div className="px-6 py-6">
-                                <p className="text-[15px] leading-7 text-gray-600">
+                                <p
+                                    className={`text-[15px] leading-7 ${isDark ? "text-[#dce9e4]" : "text-gray-600"
+                                        }`}
+                                >
                                     {popup.message}
                                 </p>
 

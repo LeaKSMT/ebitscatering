@@ -107,11 +107,57 @@ const fadeUp = {
     },
 };
 
+function useAdminTheme() {
+    const getTheme = () => {
+        if (typeof document === "undefined") return "light";
+        return document.body.getAttribute("data-theme") === "dark" ? "dark" : "light";
+    };
+
+    const [theme, setTheme] = useState(getTheme);
+
+    useEffect(() => {
+        if (typeof document === "undefined") return;
+
+        const observer = new MutationObserver(() => {
+            setTheme(getTheme());
+        });
+
+        observer.observe(document.body, {
+            attributes: true,
+            attributeFilter: ["data-theme"],
+        });
+
+        setTheme(getTheme());
+
+        return () => observer.disconnect();
+    }, []);
+
+    return theme;
+}
+
 function AdminInquiryManagement() {
+    const theme = useAdminTheme();
+
     const [threads, setThreads] = useState([]);
     const [selectedThreadKey, setSelectedThreadKey] = useState("");
     const [replyText, setReplyText] = useState("");
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+    const isDark = theme === "dark";
+
+    const shellCardClass = isDark
+        ? "border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] shadow-[0_18px_45px_rgba(0,0,0,0.26)]"
+        : "border-[#dce7e2] bg-white shadow-[0_14px_35px_rgba(15,77,60,0.06)]";
+
+    const mutedTextClass = isDark ? "text-[#b7cbc3]" : "text-slate-500";
+    const softTextClass = isDark ? "text-[#dce9e4]" : "text-[#0f4d3c]";
+    const panelBgClass = isDark
+        ? "bg-[linear-gradient(180deg,rgba(9,28,22,0.92)_0%,rgba(9,33,26,0.92)_100%)]"
+        : "bg-[linear-gradient(180deg,#f8fbfa_0%,#f5f8f7_100%)]";
+
+    const inputClass = isDark
+        ? "border-white/10 bg-[rgba(255,255,255,0.03)] text-white placeholder:text-white/35 focus:border-[#d4af37] focus:ring-4 focus:ring-[#d4af37]/15"
+        : "border-[#d5dfda] bg-[#fbfcfc] text-[#0f4d3c] placeholder:text-slate-400 focus:border-[#d4af37] focus:ring-4 focus:ring-[#f6e7b0]";
 
     const loadThreads = () => {
         const allThreads = getAllInquiryThreads();
@@ -208,7 +254,7 @@ function AdminInquiryManagement() {
         >
             <motion.section
                 variants={fadeUp}
-                className="relative overflow-hidden rounded-[30px] border border-[#d9e6e0] bg-white shadow-[0_18px_45px_rgba(15,77,60,0.08)]"
+                className={`relative overflow-hidden rounded-[30px] border ${shellCardClass}`}
             >
                 <div className="pointer-events-none absolute inset-0">
                     <motion.div
@@ -218,7 +264,12 @@ function AdminInquiryManagement() {
                     />
                     <motion.div
                         animate={{ scale: [1, 1.1, 1], opacity: [0.08, 0.16, 0.08] }}
-                        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
+                        transition={{
+                            duration: 8,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                            delay: 0.4,
+                        }}
                         className="absolute bottom-[-30px] left-[-20px] h-32 w-32 rounded-full bg-[#22b67f]/10 blur-3xl"
                     />
                 </div>
@@ -266,18 +317,20 @@ function AdminInquiryManagement() {
             {threads.length === 0 ? (
                 <motion.div
                     variants={fadeUp}
-                    className="overflow-hidden rounded-[30px] border border-[#dce7e2] bg-white shadow-[0_14px_35px_rgba(15,77,60,0.06)]"
+                    className={`overflow-hidden rounded-[30px] border ${shellCardClass}`}
                 >
                     <div className="px-6 py-14 text-center md:px-8">
                         <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[linear-gradient(135deg,#0f4d3c_0%,#138062_100%)] text-white shadow-lg">
                             <MessageSquareText className="h-9 w-9" />
                         </div>
 
-                        <h2 className="mt-6 text-3xl font-extrabold text-[#0f4d3c]">
+                        <h2 className={`mt-6 text-3xl font-extrabold ${softTextClass}`}>
                             No inquiries yet
                         </h2>
 
-                        <p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-slate-500 md:text-base">
+                        <p
+                            className={`mx-auto mt-3 max-w-2xl text-sm leading-7 md:text-base ${mutedTextClass}`}
+                        >
                             Client messages will appear here once they send an inquiry.
                             This page will help you monitor, review, and respond to each
                             conversation professionally.
@@ -288,9 +341,9 @@ function AdminInquiryManagement() {
                 <div className="grid grid-cols-1 gap-6 xl:grid-cols-[360px_1fr]">
                     <motion.div
                         variants={fadeUp}
-                        className="overflow-hidden rounded-[30px] border border-[#dce7e2] bg-white shadow-[0_14px_35px_rgba(15,77,60,0.06)]"
+                        className={`overflow-hidden rounded-[30px] border ${shellCardClass}`}
                     >
-                        <div className="border-b border-[#edf2ef] bg-[linear-gradient(135deg,#0c5a43_0%,#106d50_100%)] px-5 py-5 text-white">
+                        <div className="border-b border-white/10 bg-[linear-gradient(135deg,#0c5a43_0%,#106d50_100%)] px-5 py-5 text-white">
                             <h2 className="text-xl font-extrabold">Client Threads</h2>
                             <p className="mt-1 text-sm text-white/80">
                                 Select a client conversation to review the full inquiry.
@@ -320,25 +373,40 @@ function AdminInquiryManagement() {
                                                 }
                                                 whileHover={{ y: -3, scale: 1.01 }}
                                                 className={`w-full rounded-[24px] border px-4 py-4 text-left transition ${isActive
-                                                        ? "border-[#d4af37] bg-[linear-gradient(135deg,#fff8e6_0%,#fffdf6_100%)] shadow-sm"
-                                                        : "border-[#e6eeea] bg-white hover:border-[#cfe0d8] hover:bg-[#fbfdfc]"
+                                                        ? isDark
+                                                            ? "border-[#d4af37]/60 bg-[linear-gradient(135deg,rgba(87,66,20,0.26)_0%,rgba(20,48,38,0.9)_100%)] shadow-sm"
+                                                            : "border-[#d4af37] bg-[linear-gradient(135deg,#fff8e6_0%,#fffdf6_100%)] shadow-sm"
+                                                        : isDark
+                                                            ? "border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.02)_0%,rgba(255,255,255,0.015)_100%)] hover:border-[#22b67f]/35 hover:bg-[rgba(255,255,255,0.04)]"
+                                                            : "border-[#e6eeea] bg-white hover:border-[#cfe0d8] hover:bg-[#fbfdfc]"
                                                     }`}
                                             >
                                                 <div className="flex items-start justify-between gap-3">
                                                     <div className="min-w-0">
                                                         <div className="flex items-center gap-2">
-                                                            <p className="truncate text-base font-bold text-[#0f4d3c]">
+                                                            <p
+                                                                className={`truncate text-base font-bold ${isDark ? "text-white" : "text-[#0f4d3c]"
+                                                                    }`}
+                                                            >
                                                                 {thread.clientName}
                                                             </p>
 
                                                             {waitingReply && (
-                                                                <span className="inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-amber-700">
+                                                                <span
+                                                                    className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${isDark
+                                                                            ? "bg-amber-400/15 text-[#f5cf67] border border-[#d4af37]/20"
+                                                                            : "bg-amber-100 text-amber-700"
+                                                                        }`}
+                                                                >
                                                                     New
                                                                 </span>
                                                             )}
                                                         </div>
 
-                                                        <p className="mt-1 flex items-center gap-2 truncate text-xs text-slate-500">
+                                                        <p
+                                                            className={`mt-1 flex items-center gap-2 truncate text-xs ${isDark ? "text-[#a8beb5]" : "text-slate-500"
+                                                                }`}
+                                                        >
                                                             <Mail size={12} />
                                                             {thread.email}
                                                         </p>
@@ -356,18 +424,30 @@ function AdminInquiryManagement() {
                                                         >
                                                             <ChevronRight
                                                                 size={16}
-                                                                className={`text-slate-400 transition ${isActive ? "text-[#0f4d3c]" : ""
+                                                                className={`transition ${isActive
+                                                                        ? isDark
+                                                                            ? "text-[#f5cf67]"
+                                                                            : "text-[#0f4d3c]"
+                                                                        : isDark
+                                                                            ? "text-white/35"
+                                                                            : "text-slate-400"
                                                                     }`}
                                                             />
                                                         </motion.div>
                                                     </div>
                                                 </div>
 
-                                                <p className="mt-3 line-clamp-2 text-sm leading-6 text-slate-600">
+                                                <p
+                                                    className={`mt-3 line-clamp-2 text-sm leading-6 ${isDark ? "text-[#d4e2dd]" : "text-slate-600"
+                                                        }`}
+                                                >
                                                     {thread.latestMessage?.text || "No message"}
                                                 </p>
 
-                                                <p className="mt-3 text-xs text-slate-400">
+                                                <p
+                                                    className={`mt-3 text-xs ${isDark ? "text-white/35" : "text-slate-400"
+                                                        }`}
+                                                >
                                                     {formatDateTime(thread.latestAt)}
                                                 </p>
                                             </motion.button>
@@ -380,15 +460,18 @@ function AdminInquiryManagement() {
 
                     <motion.div
                         variants={fadeUp}
-                        className="overflow-hidden rounded-[30px] border border-[#dce7e2] bg-white shadow-[0_14px_35px_rgba(15,77,60,0.06)]"
+                        className={`overflow-hidden rounded-[30px] border ${shellCardClass}`}
                     >
                         {!selectedThread ? (
-                            <div className="px-6 py-16 text-center text-slate-500">
+                            <div
+                                className={`px-6 py-16 text-center ${isDark ? "text-[#b7cbc3]" : "text-slate-500"
+                                    }`}
+                            >
                                 Select a conversation to view messages.
                             </div>
                         ) : (
                             <>
-                                <div className="border-b border-[#edf2ef] bg-[linear-gradient(135deg,#0b5a43_0%,#0f6b50_58%,#138062_100%)] px-6 py-6 text-white md:px-7">
+                                <div className="border-b border-white/10 bg-[linear-gradient(135deg,#0b5a43_0%,#0f6b50_58%,#138062_100%)] px-6 py-6 text-white md:px-7">
                                     <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
                                         <div>
                                             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/70">
@@ -424,7 +507,9 @@ function AdminInquiryManagement() {
                                     </div>
                                 </div>
 
-                                <div className="min-h-[520px] max-h-[520px] space-y-4 overflow-y-auto bg-[linear-gradient(180deg,#f8fbfa_0%,#f5f8f7_100%)] p-5 md:p-6">
+                                <div
+                                    className={`min-h-[520px] max-h-[520px] space-y-4 overflow-y-auto p-5 md:p-6 ${panelBgClass}`}
+                                >
                                     <AnimatePresence mode="popLayout">
                                         {selectedThread.messages.map((message) => {
                                             const isAdmin = message.sender === "admin";
@@ -445,15 +530,21 @@ function AdminInquiryManagement() {
                                                 >
                                                     <div
                                                         className={`max-w-[88%] rounded-[24px] px-4 py-4 shadow-sm md:max-w-[72%] ${isAdmin
-                                                                ? "border border-[#e7d18c] bg-[linear-gradient(135deg,#fff4ca_0%,#f6dfa0_100%)] text-[#0f4d3c]"
-                                                                : "border border-[#e6ece9] bg-white text-slate-700"
+                                                                ? isDark
+                                                                    ? "border border-[#d4af37]/25 bg-[linear-gradient(135deg,rgba(93,71,21,0.36)_0%,rgba(128,96,26,0.24)_100%)] text-[#f7f0d0]"
+                                                                    : "border border-[#e7d18c] bg-[linear-gradient(135deg,#fff4ca_0%,#f6dfa0_100%)] text-[#0f4d3c]"
+                                                                : isDark
+                                                                    ? "border border-white/10 bg-[linear-gradient(180deg,rgba(13,31,25,0.98)_0%,rgba(17,39,31,0.98)_100%)] text-[#eef7f3]"
+                                                                    : "border border-[#e6ece9] bg-white text-slate-700"
                                                             }`}
                                                     >
                                                         <div className="mb-2 flex items-center gap-2">
                                                             <div
                                                                 className={`flex h-8 w-8 items-center justify-center rounded-full ${isAdmin
                                                                         ? "bg-[#0f4d3c] text-white"
-                                                                        : "bg-[#eef5f1] text-[#0f4d3c]"
+                                                                        : isDark
+                                                                            ? "bg-white/10 text-[#98efcc]"
+                                                                            : "bg-[#eef5f1] text-[#0f4d3c]"
                                                                     }`}
                                                             >
                                                                 {isAdmin ? (
@@ -484,7 +575,12 @@ function AdminInquiryManagement() {
                                     </AnimatePresence>
                                 </div>
 
-                                <div className="border-t border-[#edf2ef] bg-white p-5 md:p-6">
+                                <div
+                                    className={`border-t p-5 md:p-6 ${isDark
+                                            ? "border-white/10 bg-[rgba(255,255,255,0.015)]"
+                                            : "border-[#edf2ef] bg-white"
+                                        }`}
+                                >
                                     <div className="flex flex-col gap-3 md:flex-row">
                                         <div className="relative flex-1">
                                             <input
@@ -497,11 +593,12 @@ function AdminInquiryManagement() {
                                                     }
                                                 }}
                                                 placeholder="Type your reply here..."
-                                                className="w-full rounded-[22px] border border-[#d5dfda] bg-[#fbfcfc] px-4 py-3.5 pr-12 outline-none transition focus:border-[#d4af37] focus:ring-4 focus:ring-[#f6e7b0]"
+                                                className={`w-full rounded-[22px] border px-4 py-3.5 pr-12 outline-none transition ${inputClass}`}
                                             />
                                             <Send
                                                 size={17}
-                                                className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"
+                                                className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 ${isDark ? "text-white/35" : "text-slate-400"
+                                                    }`}
                                             />
                                         </div>
 
@@ -516,7 +613,10 @@ function AdminInquiryManagement() {
                                         </motion.button>
                                     </div>
 
-                                    <p className="mt-3 text-xs text-slate-400">
+                                    <p
+                                        className={`mt-3 text-xs ${isDark ? "text-white/35" : "text-slate-400"
+                                            }`}
+                                    >
                                         Replies sent here will also appear in the client inquiry
                                         page.
                                     </p>
@@ -540,7 +640,10 @@ function AdminInquiryManagement() {
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 18, scale: 0.96 }}
                             transition={{ type: "spring", stiffness: 260, damping: 22 }}
-                            className="w-full max-w-md overflow-hidden rounded-[30px] border border-white/10 bg-white shadow-[0_30px_70px_rgba(0,0,0,0.28)]"
+                            className={`w-full max-w-md overflow-hidden rounded-[30px] border shadow-[0_30px_70px_rgba(0,0,0,0.28)] ${isDark
+                                    ? "border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.99)_0%,rgba(13,40,32,0.99)_100%)]"
+                                    : "border-white/10 bg-white"
+                                }`}
                         >
                             <div className="bg-[linear-gradient(135deg,#dc2626_0%,#ef4444_100%)] px-6 py-5 text-white">
                                 <div className="flex items-center gap-4">
@@ -559,10 +662,16 @@ function AdminInquiryManagement() {
                             </div>
 
                             <div className="p-6">
-                                <p className="leading-7 text-slate-600">
+                                <p
+                                    className={`leading-7 ${isDark ? "text-[#dce9e4]" : "text-slate-600"
+                                        }`}
+                                >
                                     Are you sure you want to permanently remove the
                                     conversation of{" "}
-                                    <span className="font-semibold text-[#0f4d3c]">
+                                    <span
+                                        className={`font-semibold ${isDark ? "text-white" : "text-[#0f4d3c]"
+                                            }`}
+                                    >
                                         {selectedThread.clientName}
                                     </span>
                                     ? This action cannot be undone.
@@ -573,7 +682,10 @@ function AdminInquiryManagement() {
                                         whileTap={{ scale: 0.985 }}
                                         type="button"
                                         onClick={() => setShowDeleteModal(false)}
-                                        className="rounded-xl border border-gray-200 px-5 py-2.5 font-semibold text-slate-600 transition hover:bg-gray-50"
+                                        className={`rounded-xl border px-5 py-2.5 font-semibold transition ${isDark
+                                                ? "border-white/10 text-[#dce9e4] hover:bg-white/5"
+                                                : "border-gray-200 text-slate-600 hover:bg-gray-50"
+                                            }`}
                                     >
                                         Cancel
                                     </motion.button>

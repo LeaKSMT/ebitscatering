@@ -19,6 +19,34 @@ import {
 } from "lucide-react";
 import { quotationService } from "../services/quotationService.js";
 
+function useAdminTheme() {
+    const getTheme = () => {
+        if (typeof document === "undefined") return "light";
+        return document.body.getAttribute("data-theme") === "dark"
+            ? "dark"
+            : "light";
+    };
+
+    const [theme, setTheme] = useState(getTheme);
+
+    useEffect(() => {
+        if (typeof document === "undefined") return;
+
+        const observer = new MutationObserver(() => {
+            setTheme(getTheme());
+        });
+
+        observer.observe(document.body, {
+            attributes: true,
+            attributeFilter: ["data-theme"],
+        });
+
+        return () => observer.disconnect();
+    }, []);
+
+    return theme;
+}
+
 function getEditInitialState() {
     return {
         fullName: "",
@@ -84,7 +112,7 @@ function formatCurrency(value) {
     }).format(Number.isFinite(amount) ? amount : 0);
 }
 
-function getStatusChip(status = "") {
+function getStatusChip(status = "", isDark = false) {
     const normalized = normalizeStatus(status);
 
     if (
@@ -93,7 +121,9 @@ function getStatusChip(status = "") {
         normalized === "paid" ||
         normalized === "completed"
     ) {
-        return "bg-[#ecf8f2] text-[#0f7a51]";
+        return isDark
+            ? "bg-[rgba(16,131,94,0.24)] text-[#98efcc] border border-[#22c58b]/18"
+            : "bg-[#ecf8f2] text-[#0f7a51] border border-[#cceedd]";
     }
 
     if (
@@ -101,14 +131,20 @@ function getStatusChip(status = "") {
         normalized === "ongoing" ||
         normalized === "upcoming"
     ) {
-        return "bg-[#fff8e8] text-[#b07d12]";
+        return isDark
+            ? "bg-[rgba(133,102,26,0.24)] text-[#f5cf67] border border-[#d4af37]/18"
+            : "bg-[#fff8e8] text-[#b07d12] border border-[#f4df9f]";
     }
 
     if (normalized === "cancelled" || normalized === "rejected") {
-        return "bg-[#fef2f2] text-[#dc2626]";
+        return isDark
+            ? "bg-[rgba(239,68,68,0.14)] text-[#fca5a5] border border-[rgba(248,113,113,0.24)]"
+            : "bg-[#fef2f2] text-[#dc2626] border border-[#fecaca]";
     }
 
-    return "bg-[#eef2f7] text-[#64748b]";
+    return isDark
+        ? "bg-[rgba(148,163,184,0.14)] text-[#d5e1dd] border border-white/10"
+        : "bg-[#eef2f7] text-[#64748b] border border-[#dbe4ef]";
 }
 
 function shouldShowInEventManagement(status = "") {
@@ -163,6 +199,8 @@ function getTotalAmount(item) {
         item.totalPrice ||
         item.price ||
         item.amount ||
+        item.estimated_total ||
+        item.total_price ||
         0
     );
 }
@@ -203,62 +241,36 @@ function mapQuotationToBooking(item) {
             item.phone ||
             item.mobile ||
             "",
-        email:
-            item.email ||
-            item.owner_email ||
-            item.client_email ||
-            "",
-        ownerEmail:
-            item.owner_email ||
-            item.email ||
-            item.client_email ||
-            "",
-        eventType:
-            item.event_type ||
-            item.eventType ||
-            "Event",
+        email: item.email || item.owner_email || item.client_email || "",
+        ownerEmail: item.owner_email || item.email || item.client_email || "",
+        eventType: item.event_type || item.eventType || "Event",
         eventDate:
-            item.preferred_date ||
-            item.event_date ||
-            item.eventDate ||
-            "",
-        eventTime:
-            item.event_time ||
-            item.eventTime ||
-            "",
-        venue:
-            item.venue ||
-            "",
+            item.preferred_date || item.event_date || item.eventDate || "",
+        eventTime: item.event_time || item.eventTime || "",
+        venue: item.venue || "",
         guestCount: normalizeNumber(
-            item.guests ||
-            item.guest_count ||
-            item.guestCount ||
-            0
+            item.guests || item.guest_count || item.guestCount || 0
         ),
         packageType:
-            item.package_type ||
-            item.package_name ||
-            item.packageType ||
-            "",
-        classicMenu:
-            item.classic_menu ||
-            item.classicMenu ||
-            "",
+            item.package_type || item.package_name || item.packageType || "",
+        classicMenu: item.classic_menu || item.classicMenu || "",
         themePreference:
-            item.theme_preference ||
-            item.themePreference ||
-            "",
+            item.theme_preference || item.themePreference || "",
         specialRequests:
             item.special_requests ||
             item.specialRequests ||
             item.notes ||
             "",
         totalAmount: getTotalAmount(item),
-        assignedStaff: parseArrayField(item.assigned_staff || item.assignedStaff),
+        assignedStaff: parseArrayField(
+            item.assigned_staff || item.assignedStaff
+        ),
         eventOutcome: item.event_outcome || item.eventOutcome || "",
         evaluationNotes: item.evaluation_notes || item.evaluationNotes || "",
         clientSatisfaction:
-            item.client_satisfaction || item.clientSatisfaction || "Satisfied",
+            item.client_satisfaction ||
+            item.clientSatisfaction ||
+            "Satisfied",
         staffPerformance:
             item.staff_performance || item.staffPerformance || "Good",
         status: normalizeStatus(item.status || "pending"),
@@ -280,6 +292,9 @@ async function updateQuotationRecord(id, payload) {
 }
 
 function AdminEventManagement() {
+    const theme = useAdminTheme();
+    const isDark = theme === "dark";
+
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -355,7 +370,9 @@ function AdminEventManagement() {
                 return !Number.isNaN(d.getTime());
             }).length,
             confirmed: bookings.filter((item) =>
-                ["confirmed", "approved", "paid"].includes(normalizeStatus(item.status))
+                ["confirmed", "approved", "paid"].includes(
+                    normalizeStatus(item.status)
+                )
             ).length,
         };
     }, [bookings]);
@@ -364,18 +381,25 @@ function AdminEventManagement() {
         const value = (staffInput[booking.id] || "").trim();
         if (!value) return;
 
-        const current = Array.isArray(booking.assignedStaff) ? booking.assignedStaff : [];
+        const current = Array.isArray(booking.assignedStaff)
+            ? booking.assignedStaff
+            : [];
         const nextAssignedStaff = [...new Set([...current, value])];
 
         try {
             setSaving(true);
             await updateQuotationRecord(booking.id, {
+                assigned_staff: nextAssignedStaff,
                 assignedStaff: nextAssignedStaff,
             });
 
             setStaffInput((prev) => ({ ...prev, [booking.id]: "" }));
             await loadBookings();
-            openPopup("success", "Staff Added", "The staff member was added successfully.");
+            openPopup(
+                "success",
+                "Staff Added",
+                "The staff member was added successfully."
+            );
         } catch (error) {
             console.error("Failed to add staff:", error);
             openPopup(
@@ -391,10 +415,13 @@ function AdminEventManagement() {
     const handleRemoveStaff = async (booking, staffName) => {
         try {
             setSaving(true);
+            const nextAssignedStaff = (booking.assignedStaff || []).filter(
+                (name) => name !== staffName
+            );
+
             await updateQuotationRecord(booking.id, {
-                assignedStaff: (booking.assignedStaff || []).filter(
-                    (name) => name !== staffName
-                ),
+                assigned_staff: nextAssignedStaff,
+                assignedStaff: nextAssignedStaff,
             });
 
             await loadBookings();
@@ -483,22 +510,33 @@ function AdminEventManagement() {
             setSaving(true);
 
             await updateQuotationRecord(selectedBooking.id, {
+                full_name: editForm.fullName,
                 fullName: editForm.fullName,
+                contact_number: editForm.contactNumber,
                 contactNumber: editForm.contactNumber,
                 email: editForm.email,
+                owner_email: editForm.email || selectedBooking.ownerEmail || "",
                 ownerEmail: editForm.email || selectedBooking.ownerEmail || "",
+                event_type: editForm.eventType,
                 eventType: editForm.eventType,
+                preferred_date: editForm.eventDate,
                 eventDate: editForm.eventDate,
                 preferredDate: editForm.eventDate,
+                event_time: editForm.eventTime,
                 eventTime: editForm.eventTime,
                 venue: editForm.venue,
-                guestCount: normalizeNumber(editForm.guestCount),
                 guests: normalizeNumber(editForm.guestCount),
+                guestCount: normalizeNumber(editForm.guestCount),
+                package_type: editForm.packageType,
                 packageType: editForm.packageType,
+                classic_menu: editForm.classicMenu,
                 classicMenu: editForm.classicMenu,
+                theme_preference: editForm.themePreference,
                 themePreference: editForm.themePreference,
+                special_requests: editForm.specialRequests,
                 specialRequests: editForm.specialRequests,
                 status: normalizeStatus(editForm.status || "confirmed"),
+                updated_at: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
             });
 
@@ -530,10 +568,15 @@ function AdminEventManagement() {
 
             await updateQuotationRecord(selectedBooking.id, {
                 status: normalizeStatus(evaluationForm.status || "completed"),
+                event_outcome: evaluationForm.eventOutcome,
                 eventOutcome: evaluationForm.eventOutcome,
+                evaluation_notes: evaluationForm.evaluationNotes,
                 evaluationNotes: evaluationForm.evaluationNotes,
+                client_satisfaction: evaluationForm.clientSatisfaction,
                 clientSatisfaction: evaluationForm.clientSatisfaction,
+                staff_performance: evaluationForm.staffPerformance,
                 staffPerformance: evaluationForm.staffPerformance,
+                evaluated_at: new Date().toISOString(),
                 evaluatedAt: new Date().toISOString(),
             });
 
@@ -556,6 +599,14 @@ function AdminEventManagement() {
         }
     };
 
+    const surfaceClass = isDark
+        ? "border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] shadow-[0_18px_50px_rgba(0,0,0,0.25)]"
+        : "border-[#dce7e2] bg-white shadow-[0_18px_50px_rgba(14,61,47,0.07)]";
+
+    const sectionClass = isDark
+        ? "border-white/10 bg-[linear-gradient(180deg,rgba(8,28,22,0.96)_0%,rgba(10,34,26,0.96)_100%)] shadow-[0_14px_36px_rgba(0,0,0,0.22)]"
+        : "border-[#dce7e2] bg-white shadow-[0_14px_36px_rgba(14,61,47,0.06)]";
+
     return (
         <>
             <div className="space-y-6">
@@ -563,7 +614,7 @@ function AdminEventManagement() {
                     initial={{ opacity: 0, y: 18 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.45 }}
-                    className="overflow-hidden rounded-[30px] border border-[#dce7e2] bg-white shadow-[0_18px_50px_rgba(14,61,47,0.07)]"
+                    className={`overflow-hidden rounded-[30px] border ${surfaceClass}`}
                 >
                     <div className="relative overflow-hidden bg-[linear-gradient(135deg,#07382d_0%,#0c4d3d_34%,#0f6b52_68%,#18a06c_100%)] px-6 py-7 text-white md:px-8">
                         <div className="pointer-events-none absolute inset-0">
@@ -598,24 +649,32 @@ function AdminEventManagement() {
                         </div>
                     </div>
 
-                    <div className="grid gap-4 border-t border-[#e8efeb] bg-[#fbfdfc] px-5 py-5 md:grid-cols-3 md:px-6">
+                    <div
+                        className={`grid gap-4 border-t px-5 py-5 md:grid-cols-3 md:px-6 ${isDark
+                                ? "border-white/10 bg-[rgba(255,255,255,0.02)]"
+                                : "border-[#e8efeb] bg-[#fbfdfc]"
+                            }`}
+                    >
                         <SummaryCard
                             icon={ClipboardList}
                             label="Active Events"
                             value={summary.active}
                             delay={0.05}
+                            isDark={isDark}
                         />
                         <SummaryCard
                             icon={CalendarDays}
                             label="Upcoming Schedule"
                             value={summary.upcoming}
                             delay={0.1}
+                            isDark={isDark}
                         />
                         <SummaryCard
                             icon={BadgeCheck}
                             label="Confirmed Events"
                             value={summary.confirmed}
                             delay={0.15}
+                            isDark={isDark}
                         />
                     </div>
                 </motion.section>
@@ -624,31 +683,52 @@ function AdminEventManagement() {
                     <motion.div
                         initial={{ opacity: 0, y: 18 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="rounded-[24px] border border-gray-100 bg-white p-10 text-center text-gray-500 shadow-sm"
+                        className={`rounded-[24px] border p-10 text-center shadow-sm ${sectionClass}`}
                     >
-                        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#edf8f3] text-[#0f4d3c]">
+                        <div
+                            className={`mx-auto flex h-14 w-14 items-center justify-center rounded-full ${isDark
+                                    ? "bg-white/10 text-[#98efcc]"
+                                    : "bg-[#edf8f3] text-[#0f4d3c]"
+                                }`}
+                        >
                             <LoaderCircle className="animate-spin" size={24} />
                         </div>
-                        <p className="mt-4 font-medium">Loading event records...</p>
+                        <p
+                            className={`mt-4 font-medium ${isDark ? "text-[#dce9e4]" : "text-gray-500"
+                                }`}
+                        >
+                            Loading event records...
+                        </p>
                     </motion.div>
                 ) : bookings.length > 0 ? (
                     bookings.map((booking, index) => (
-                        <MotionCard key={booking.id || booking.bookingId} delay={index * 0.06}>
+                        <MotionCard
+                            key={booking.id || booking.bookingId}
+                            delay={index * 0.06}
+                            isDark={isDark}
+                        >
                             <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
                                 <div>
                                     <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                         <div>
-                                            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#b99117]">
+                                            <p
+                                                className={`text-xs font-semibold uppercase tracking-[0.18em] ${isDark ? "text-[#f5cf67]" : "text-[#b99117]"
+                                                    }`}
+                                            >
                                                 Event Record
                                             </p>
-                                            <h2 className="mt-1 text-2xl font-extrabold text-[#0f4d3c] md:text-3xl">
+                                            <h2
+                                                className={`mt-1 text-2xl font-extrabold md:text-3xl ${isDark ? "text-white" : "text-[#0f4d3c]"
+                                                    }`}
+                                            >
                                                 {booking.eventType || "Event"}
                                             </h2>
                                         </div>
 
                                         <span
                                             className={`inline-flex w-fit rounded-full px-3 py-1 text-xs font-bold capitalize ${getStatusChip(
-                                                booking.status
+                                                booking.status,
+                                                isDark
                                             )}`}
                                         >
                                             {capitalizeStatus(booking.status)}
@@ -661,32 +741,38 @@ function AdminEventManagement() {
                                             label="Booking ID"
                                             value={booking.displayBookingId || booking.bookingId}
                                             title={booking.rawBookingId || booking.bookingId}
+                                            isDark={isDark}
                                         />
                                         <InfoCard
                                             icon={User}
                                             label="Client"
                                             value={booking.fullName}
+                                            isDark={isDark}
                                         />
                                         <InfoCard
                                             icon={CalendarDays}
                                             label="Event Date"
                                             value={formatDate(booking.eventDate)}
+                                            isDark={isDark}
                                         />
                                         <InfoCard
                                             icon={MapPin}
                                             label="Venue"
                                             value={booking.venue || "Not set"}
+                                            isDark={isDark}
                                         />
                                         <InfoCard
                                             icon={Users}
                                             label="Guests"
                                             value={booking.guestCount}
+                                            isDark={isDark}
                                         />
                                         <InfoCard
                                             icon={ClipboardCheck}
                                             label="Total Amount"
                                             value={formatCurrency(booking.totalAmount)}
                                             highlight
+                                            isDark={isDark}
                                         />
                                     </div>
                                 </div>
@@ -695,13 +781,24 @@ function AdminEventManagement() {
                                     <motion.div
                                         whileHover={{ y: -4 }}
                                         transition={{ duration: 0.2 }}
-                                        className="rounded-[24px] border border-[#e4ece8] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-5 shadow-sm"
+                                        className={`rounded-[24px] border p-5 shadow-sm ${isDark
+                                                ? "border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.02)_0%,rgba(255,255,255,0.015)_100%)]"
+                                                : "border-[#e4ece8] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)]"
+                                            }`}
                                     >
                                         <div className="mb-3 flex items-center gap-3">
-                                            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#edf8f3] text-[#0f4d3c]">
+                                            <div
+                                                className={`flex h-11 w-11 items-center justify-center rounded-2xl ${isDark
+                                                        ? "bg-white/10 text-[#98efcc]"
+                                                        : "bg-[#edf8f3] text-[#0f4d3c]"
+                                                    }`}
+                                            >
                                                 <UserPlus size={19} />
                                             </div>
-                                            <h3 className="text-xl font-extrabold text-[#0f4d3c]">
+                                            <h3
+                                                className={`text-xl font-extrabold ${isDark ? "text-white" : "text-[#0f4d3c]"
+                                                    }`}
+                                            >
                                                 Assigned Staff
                                             </h3>
                                         </div>
@@ -718,9 +815,15 @@ function AdminEventManagement() {
                                                             duration: 0.25,
                                                             delay: staffIndex * 0.03,
                                                         }}
-                                                        className="flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 py-3"
+                                                        className={`flex items-center justify-between rounded-2xl border px-4 py-3 ${isDark
+                                                                ? "border-white/10 bg-white/5"
+                                                                : "border-gray-200 bg-white"
+                                                            }`}
                                                     >
-                                                        <span className="font-medium text-[#0f4d3c]">
+                                                        <span
+                                                            className={`font-medium ${isDark ? "text-white" : "text-[#0f4d3c]"
+                                                                }`}
+                                                        >
                                                             {staff}
                                                         </span>
                                                         <button
@@ -736,7 +839,12 @@ function AdminEventManagement() {
                                                 ))}
                                             </div>
                                         ) : (
-                                            <div className="rounded-2xl border border-dashed border-[#dce7e2] bg-[#f8fbf9] px-4 py-5 text-sm text-slate-500">
+                                            <div
+                                                className={`rounded-2xl border px-4 py-5 text-sm ${isDark
+                                                        ? "border-white/10 bg-white/5 text-[#b7cbc3]"
+                                                        : "border-dashed border-[#dce7e2] bg-[#f8fbf9] text-slate-500"
+                                                    }`}
+                                            >
                                                 No assigned staff yet.
                                             </div>
                                         )}
@@ -752,7 +860,10 @@ function AdminEventManagement() {
                                                     }))
                                                 }
                                                 placeholder="Enter staff name"
-                                                className="flex-1 rounded-2xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
+                                                className={`flex-1 rounded-2xl px-4 py-3 outline-none transition ${isDark
+                                                        ? "border border-white/10 bg-[#0b1f1a] text-white placeholder:text-white/35 focus:border-[#d4af37]/40 focus:ring-2 focus:ring-[#d4af37]/15"
+                                                        : "border border-gray-300 bg-white text-[#0f4d3c] focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
+                                                    }`}
                                             />
                                             <motion.button
                                                 whileHover={{ y: -2, scale: 1.02 }}
@@ -793,7 +904,10 @@ function AdminEventManagement() {
                     <motion.div
                         initial={{ opacity: 0, y: 18 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="rounded-[24px] border border-gray-100 bg-white p-8 text-center text-gray-500 shadow-sm"
+                        className={`rounded-[24px] border p-8 text-center shadow-sm ${isDark
+                                ? "border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] text-[#b7cbc3]"
+                                : "border-gray-100 bg-white text-gray-500"
+                            }`}
                     >
                         No event records yet.
                     </motion.div>
@@ -808,9 +922,17 @@ function AdminEventManagement() {
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 24, scale: 0.98 }}
                             transition={{ duration: 0.24 }}
-                            className="flex max-h-[calc(100vh-2rem)] w-full max-w-5xl flex-col overflow-hidden rounded-[30px] border border-gray-100 bg-white shadow-[0_25px_60px_rgba(0,0,0,0.20)]"
+                            className={`flex max-h-[calc(100vh-2rem)] w-full max-w-5xl flex-col overflow-hidden rounded-[30px] border shadow-[0_25px_60px_rgba(0,0,0,0.20)] ${isDark
+                                    ? "border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.99)_0%,rgba(13,40,32,0.99)_100%)]"
+                                    : "border-gray-100 bg-white"
+                                }`}
                         >
-                            <div className="sticky top-0 z-20 border-b border-gray-100 bg-white/95 px-5 py-5 backdrop-blur-md sm:px-8">
+                            <div
+                                className={`sticky top-0 z-20 border-b px-5 py-5 backdrop-blur-md sm:px-8 ${isDark
+                                        ? "border-white/10 bg-[rgba(11,31,26,0.94)]"
+                                        : "border-gray-100 bg-white/95"
+                                    }`}
+                            >
                                 <div className="flex items-start justify-between gap-4">
                                     <div className="flex min-w-0 items-center gap-3">
                                         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#0f4d3c] text-white">
@@ -820,29 +942,35 @@ function AdminEventManagement() {
                                             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#b99117]">
                                                 Event Management
                                             </p>
-                                            <h2 className="truncate text-2xl font-extrabold text-[#0f4d3c] sm:text-3xl">
+                                            <h2
+                                                className={`truncate text-2xl font-extrabold sm:text-3xl ${isDark ? "text-white" : "text-[#0f4d3c]"
+                                                    }`}
+                                            >
                                                 Edit Event Details
                                             </h2>
-                                            <p className="mt-1 text-sm text-slate-500">
-                                                Update booking information without cutting off the modal
-                                                view.
+                                            <p
+                                                className={`mt-1 text-sm ${isDark ? "text-[#b7cbc3]" : "text-slate-500"
+                                                    }`}
+                                            >
+                                                Update booking information without cutting off the
+                                                modal view.
                                             </p>
                                         </div>
                                     </div>
 
                                     <button
                                         onClick={handleCloseEdit}
-                                        className="rounded-full p-2 text-gray-500 transition hover:bg-gray-100"
+                                        className={`rounded-full p-2 transition ${isDark
+                                                ? "text-white/70 hover:bg-white/10"
+                                                : "text-gray-500 hover:bg-gray-100"
+                                            }`}
                                     >
                                         <X size={24} />
                                     </button>
                                 </div>
                             </div>
 
-                            <form
-                                onSubmit={handleSaveEdit}
-                                className="flex min-h-0 flex-1 flex-col"
-                            >
+                            <form onSubmit={handleSaveEdit} className="flex min-h-0 flex-1 flex-col">
                                 <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-8 sm:py-6">
                                     <div className="mb-5 grid gap-4 md:grid-cols-3">
                                         <PreviewInfo
@@ -857,14 +985,17 @@ function AdminEventManagement() {
                                                 selectedBooking.bookingId ||
                                                 "—"
                                             }
+                                            isDark={isDark}
                                         />
                                         <PreviewInfo
                                             label="Current Status"
                                             value={capitalizeStatus(selectedBooking.status)}
+                                            isDark={isDark}
                                         />
                                         <PreviewInfo
                                             label="Current Amount"
                                             value={formatCurrency(selectedBooking.totalAmount)}
+                                            isDark={isDark}
                                         />
                                     </div>
 
@@ -874,24 +1005,28 @@ function AdminEventManagement() {
                                             name="fullName"
                                             value={editForm.fullName}
                                             onChange={handleEditChange}
+                                            isDark={isDark}
                                         />
                                         <Field
                                             label="Contact Number"
                                             name="contactNumber"
                                             value={editForm.contactNumber}
                                             onChange={handleEditChange}
+                                            isDark={isDark}
                                         />
                                         <Field
                                             label="Email Address"
                                             name="email"
                                             value={editForm.email}
                                             onChange={handleEditChange}
+                                            isDark={isDark}
                                         />
                                         <Field
                                             label="Event Type"
                                             name="eventType"
                                             value={editForm.eventType}
                                             onChange={handleEditChange}
+                                            isDark={isDark}
                                         />
                                         <Field
                                             label="Event Date"
@@ -899,6 +1034,7 @@ function AdminEventManagement() {
                                             type="date"
                                             value={editForm.eventDate}
                                             onChange={handleEditChange}
+                                            isDark={isDark}
                                         />
                                         <Field
                                             label="Event Time"
@@ -906,12 +1042,14 @@ function AdminEventManagement() {
                                             type="time"
                                             value={editForm.eventTime}
                                             onChange={handleEditChange}
+                                            isDark={isDark}
                                         />
                                         <Field
                                             label="Venue / Location"
                                             name="venue"
                                             value={editForm.venue}
                                             onChange={handleEditChange}
+                                            isDark={isDark}
                                         />
                                         <Field
                                             label="Number of Guests"
@@ -919,24 +1057,28 @@ function AdminEventManagement() {
                                             type="number"
                                             value={editForm.guestCount}
                                             onChange={handleEditChange}
+                                            isDark={isDark}
                                         />
                                         <Field
                                             label="Preferred Package"
                                             name="packageType"
                                             value={editForm.packageType}
                                             onChange={handleEditChange}
+                                            isDark={isDark}
                                         />
                                         <Field
                                             label="Classic Menu"
                                             name="classicMenu"
                                             value={editForm.classicMenu}
                                             onChange={handleEditChange}
+                                            isDark={isDark}
                                         />
                                         <Field
                                             label="Theme / Style Preference"
                                             name="themePreference"
                                             value={editForm.themePreference}
                                             onChange={handleEditChange}
+                                            isDark={isDark}
                                         />
                                         <SelectField
                                             label="Status"
@@ -952,6 +1094,7 @@ function AdminEventManagement() {
                                                 "Completed",
                                                 "Cancelled",
                                             ]}
+                                            isDark={isDark}
                                         />
                                     </div>
 
@@ -961,11 +1104,17 @@ function AdminEventManagement() {
                                             name="specialRequests"
                                             value={editForm.specialRequests}
                                             onChange={handleEditChange}
+                                            isDark={isDark}
                                         />
                                     </div>
                                 </div>
 
-                                <div className="sticky bottom-0 z-20 border-t border-gray-100 bg-white/95 px-5 py-4 backdrop-blur-md sm:px-8">
+                                <div
+                                    className={`sticky bottom-0 z-20 border-t px-5 py-4 backdrop-blur-md sm:px-8 ${isDark
+                                            ? "border-white/10 bg-[rgba(11,31,26,0.94)]"
+                                            : "border-gray-100 bg-white/95"
+                                        }`}
+                                >
                                     <div className="flex flex-col gap-3 sm:flex-row">
                                         <motion.button
                                             whileHover={{ y: -2, scale: 1.01 }}
@@ -1002,9 +1151,17 @@ function AdminEventManagement() {
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 24, scale: 0.98 }}
                             transition={{ duration: 0.24 }}
-                            className="flex max-h-[calc(100vh-2rem)] w-full max-w-4xl flex-col overflow-hidden rounded-[30px] border border-gray-100 bg-white shadow-[0_25px_60px_rgba(0,0,0,0.20)]"
+                            className={`flex max-h-[calc(100vh-2rem)] w-full max-w-4xl flex-col overflow-hidden rounded-[30px] border shadow-[0_25px_60px_rgba(0,0,0,0.20)] ${isDark
+                                    ? "border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.99)_0%,rgba(13,40,32,0.99)_100%)]"
+                                    : "border-gray-100 bg-white"
+                                }`}
                         >
-                            <div className="sticky top-0 z-20 border-b border-gray-100 bg-white/95 px-5 py-5 backdrop-blur-md sm:px-8">
+                            <div
+                                className={`sticky top-0 z-20 border-b px-5 py-5 backdrop-blur-md sm:px-8 ${isDark
+                                        ? "border-white/10 bg-[rgba(11,31,26,0.94)]"
+                                        : "border-gray-100 bg-white/95"
+                                    }`}
+                            >
                                 <div className="flex items-start justify-between gap-4">
                                     <div className="flex min-w-0 items-center gap-3">
                                         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#d4af37] text-[#0f4d3c]">
@@ -1014,10 +1171,16 @@ function AdminEventManagement() {
                                             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#b99117]">
                                                 Event Evaluation
                                             </p>
-                                            <h2 className="truncate text-2xl font-extrabold text-[#0f4d3c] sm:text-3xl">
+                                            <h2
+                                                className={`truncate text-2xl font-extrabold sm:text-3xl ${isDark ? "text-white" : "text-[#0f4d3c]"
+                                                    }`}
+                                            >
                                                 Evaluate Event
                                             </h2>
-                                            <p className="mt-1 text-sm text-slate-500">
+                                            <p
+                                                className={`mt-1 text-sm ${isDark ? "text-[#b7cbc3]" : "text-slate-500"
+                                                    }`}
+                                            >
                                                 Review the event outcome and save evaluation notes.
                                             </p>
                                         </div>
@@ -1025,7 +1188,10 @@ function AdminEventManagement() {
 
                                     <button
                                         onClick={handleCloseEvaluate}
-                                        className="rounded-full p-2 text-gray-500 transition hover:bg-gray-100"
+                                        className={`rounded-full p-2 transition ${isDark
+                                                ? "text-white/70 hover:bg-white/10"
+                                                : "text-gray-500 hover:bg-gray-100"
+                                            }`}
                                     >
                                         <X size={24} />
                                     </button>
@@ -1041,14 +1207,17 @@ function AdminEventManagement() {
                                         <PreviewInfo
                                             label="Client"
                                             value={selectedBooking.fullName || "—"}
+                                            isDark={isDark}
                                         />
                                         <PreviewInfo
                                             label="Event Type"
                                             value={selectedBooking.eventType || "—"}
+                                            isDark={isDark}
                                         />
                                         <PreviewInfo
                                             label="Event Date"
                                             value={formatDate(selectedBooking.eventDate)}
+                                            isDark={isDark}
                                         />
                                     </div>
 
@@ -1065,6 +1234,7 @@ function AdminEventManagement() {
                                             "Completed",
                                             "Cancelled",
                                         ]}
+                                        isDark={isDark}
                                     />
 
                                     <SelectField
@@ -1078,6 +1248,7 @@ function AdminEventManagement() {
                                             "Neutral",
                                             "Unsatisfied",
                                         ]}
+                                        isDark={isDark}
                                     />
 
                                     <SelectField
@@ -1091,6 +1262,7 @@ function AdminEventManagement() {
                                             "Average",
                                             "Needs Improvement",
                                         ]}
+                                        isDark={isDark}
                                     />
 
                                     <TextAreaField
@@ -1099,6 +1271,7 @@ function AdminEventManagement() {
                                         value={evaluationForm.eventOutcome}
                                         onChange={handleEvaluationChange}
                                         placeholder="Describe the overall outcome of the event"
+                                        isDark={isDark}
                                     />
 
                                     <TextAreaField
@@ -1107,10 +1280,16 @@ function AdminEventManagement() {
                                         value={evaluationForm.evaluationNotes}
                                         onChange={handleEvaluationChange}
                                         placeholder="Add admin remarks, observations, or recommendations"
+                                        isDark={isDark}
                                     />
                                 </div>
 
-                                <div className="sticky bottom-0 z-20 border-t border-gray-100 bg-white/95 px-5 py-4 backdrop-blur-md sm:px-8">
+                                <div
+                                    className={`sticky bottom-0 z-20 border-t px-5 py-4 backdrop-blur-md sm:px-8 ${isDark
+                                            ? "border-white/10 bg-[rgba(11,31,26,0.94)]"
+                                            : "border-gray-100 bg-white/95"
+                                        }`}
+                                >
                                     <div className="flex flex-col gap-3 sm:flex-row">
                                         <motion.button
                                             whileHover={{ y: -2, scale: 1.01 }}
@@ -1151,12 +1330,15 @@ function AdminEventManagement() {
                             initial={{ opacity: 0, y: 20, scale: 0.97 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 20, scale: 0.97 }}
-                            className="w-full max-w-md overflow-hidden rounded-[28px] border border-gray-100 bg-white shadow-[0_25px_60px_rgba(0,0,0,0.25)]"
+                            className={`w-full max-w-md overflow-hidden rounded-[28px] border shadow-[0_25px_60px_rgba(0,0,0,0.25)] ${isDark
+                                    ? "border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.99)_0%,rgba(13,40,32,0.99)_100%)]"
+                                    : "border-gray-100 bg-white"
+                                }`}
                         >
                             <div
                                 className={`px-6 py-5 text-white ${popup.type === "success"
-                                    ? "bg-gradient-to-r from-[#0f4d3c] via-[#11614c] to-[#22b67f]"
-                                    : "bg-gradient-to-r from-[#b91c1c] via-[#dc2626] to-[#ef4444]"
+                                        ? "bg-gradient-to-r from-[#0f4d3c] via-[#11614c] to-[#22b67f]"
+                                        : "bg-gradient-to-r from-[#b91c1c] via-[#dc2626] to-[#ef4444]"
                                     }`}
                             >
                                 <div className="flex items-center gap-4">
@@ -1180,7 +1362,10 @@ function AdminEventManagement() {
                             </div>
 
                             <div className="px-6 py-6">
-                                <p className="text-[15px] leading-7 text-gray-600">
+                                <p
+                                    className={`text-[15px] leading-7 ${isDark ? "text-[#dce9e4]" : "text-gray-600"
+                                        }`}
+                                >
                                     {popup.message}
                                 </p>
 
@@ -1189,8 +1374,8 @@ function AdminEventManagement() {
                                     whileTap={{ scale: 0.98 }}
                                     onClick={closePopup}
                                     className={`mt-6 w-full rounded-2xl px-5 py-3.5 font-bold text-white transition ${popup.type === "success"
-                                        ? "bg-[#0f4d3c] hover:bg-[#0c3f31]"
-                                        : "bg-red-500 hover:bg-red-600"
+                                            ? "bg-[#0f4d3c] hover:bg-[#0c3f31]"
+                                            : "bg-red-500 hover:bg-red-600"
                                         }`}
                                 >
                                     Okay
@@ -1222,24 +1407,38 @@ function ModalShell({ children, onClose }) {
     );
 }
 
-function SummaryCard({ icon: Icon, label, value, delay = 0 }) {
+function SummaryCard({ icon: Icon, label, value, delay = 0, isDark = false }) {
     return (
         <motion.div
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, delay }}
             whileHover={{ y: -4 }}
-            className="rounded-[22px] border border-[#e2ebe7] bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
+            className={`rounded-[22px] border p-4 shadow-sm transition-shadow hover:shadow-md ${isDark
+                    ? "border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)]"
+                    : "border-[#e2ebe7] bg-white"
+                }`}
         >
             <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#edf8f3_0%,#dff1e8_100%)] text-[#0f4d3c]">
+                <div
+                    className={`flex h-11 w-11 items-center justify-center rounded-2xl ${isDark
+                            ? "border border-[#22c58b]/18 bg-[linear-gradient(135deg,rgba(16,96,69,0.45)_0%,rgba(22,146,102,0.24)_100%)] text-[#98efcc]"
+                            : "bg-[linear-gradient(135deg,#edf8f3_0%,#dff1e8_100%)] text-[#0f4d3c]"
+                        }`}
+                >
                     <Icon size={20} />
                 </div>
                 <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                    <p
+                        className={`text-xs font-semibold uppercase tracking-[0.18em] ${isDark ? "text-white/40" : "text-slate-400"
+                            }`}
+                    >
                         {label}
                     </p>
-                    <h3 className="mt-1 text-2xl font-extrabold text-[#0f4d3c]">
+                    <h3
+                        className={`mt-1 text-2xl font-extrabold ${isDark ? "text-white" : "text-[#0f4d3c]"
+                            }`}
+                    >
                         {value}
                     </h3>
                 </div>
@@ -1248,36 +1447,63 @@ function SummaryCard({ icon: Icon, label, value, delay = 0 }) {
     );
 }
 
-function MotionCard({ children, delay = 0 }) {
+function MotionCard({ children, delay = 0, isDark = false }) {
     return (
         <motion.div
             initial={{ opacity: 0, y: 20, scale: 0.985 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.38, delay, ease: "easeOut" }}
             whileHover={{ y: -4 }}
-            className="rounded-[28px] border border-[#dce7e2] bg-white p-6 shadow-[0_14px_36px_rgba(14,61,47,0.06)] transition-shadow hover:shadow-[0_18px_42px_rgba(14,61,47,0.10)]"
+            className={`rounded-[28px] border p-6 transition-shadow hover:shadow-[0_18px_42px_rgba(14,61,47,0.10)] ${isDark
+                    ? "border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] shadow-[0_14px_36px_rgba(0,0,0,0.28)]"
+                    : "border-[#dce7e2] bg-white shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
+                }`}
         >
             {children}
         </motion.div>
     );
 }
 
-function InfoCard({ icon: Icon, label, value, highlight = false, title = "" }) {
+function InfoCard({
+    icon: Icon,
+    label,
+    value,
+    highlight = false,
+    title = "",
+    isDark = false,
+}) {
     return (
         <motion.div
             whileHover={{ y: -3 }}
             transition={{ duration: 0.18 }}
-            className="rounded-[22px] border border-[#e4ece8] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-4 shadow-sm"
+            className={`rounded-[22px] border p-4 shadow-sm ${isDark
+                    ? "border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.02)_0%,rgba(255,255,255,0.015)_100%)]"
+                    : "border-[#e4ece8] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)]"
+                }`}
         >
-            <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-[#edf8f3] text-[#0f4d3c]">
+            <div
+                className={`mb-3 flex h-10 w-10 items-center justify-center rounded-2xl ${isDark
+                        ? "bg-white/10 text-[#98efcc]"
+                        : "bg-[#edf8f3] text-[#0f4d3c]"
+                    }`}
+            >
                 <Icon size={18} />
             </div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+            <p
+                className={`text-xs font-semibold uppercase tracking-[0.16em] ${isDark ? "text-white/40" : "text-slate-400"
+                    }`}
+            >
                 {label}
             </p>
             <p
                 title={title || value || ""}
-                className={`mt-2 break-words text-base font-bold ${highlight ? "text-[#b99117]" : "text-[#0f4d3c]"
+                className={`mt-2 break-words text-base font-bold ${highlight
+                        ? isDark
+                            ? "text-[#f5cf67]"
+                            : "text-[#b99117]"
+                        : isDark
+                            ? "text-white"
+                            : "text-[#0f4d3c]"
                     }`}
             >
                 {value || "—"}
@@ -1286,15 +1512,24 @@ function InfoCard({ icon: Icon, label, value, highlight = false, title = "" }) {
     );
 }
 
-function PreviewInfo({ label, value, title = "" }) {
+function PreviewInfo({ label, value, title = "", isDark = false }) {
     return (
-        <div className="rounded-[20px] border border-[#e4ece8] bg-[#f8fbf9] p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+        <div
+            className={`rounded-[20px] border p-4 ${isDark
+                    ? "border-white/10 bg-[#0f2a23]"
+                    : "border-[#e4ece8] bg-[#f8fbf9]"
+                }`}
+        >
+            <p
+                className={`text-xs font-semibold uppercase tracking-[0.16em] ${isDark ? "text-white/40" : "text-slate-400"
+                    }`}
+            >
                 {label}
             </p>
             <p
                 title={title || value || ""}
-                className="mt-2 break-words text-base font-bold text-[#0f4d3c]"
+                className={`mt-2 break-words text-base font-bold ${isDark ? "text-white" : "text-[#0f4d3c]"
+                    }`}
             >
                 {value || "—"}
             </p>
@@ -1309,10 +1544,14 @@ function Field({
     onChange,
     type = "text",
     placeholder = "",
+    isDark = false,
 }) {
     return (
         <div>
-            <label className="mb-2 block text-sm font-semibold text-[#0f4d3c]">
+            <label
+                className={`mb-2 block text-sm font-semibold ${isDark ? "text-white" : "text-[#0f4d3c]"
+                    }`}
+            >
                 {label}
             </label>
             <input
@@ -1321,26 +1560,46 @@ function Field({
                 value={value}
                 onChange={onChange}
                 placeholder={placeholder}
-                className="w-full rounded-2xl border border-gray-300 px-4 py-3.5 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
+                className={`w-full rounded-2xl px-4 py-3.5 outline-none transition ${isDark
+                        ? "border border-white/10 bg-[#0b1f1a] text-white placeholder:text-white/35 focus:border-[#d4af37]/40 focus:ring-2 focus:ring-[#d4af37]/15"
+                        : "border border-gray-300 bg-white text-[#0f4d3c] focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
+                    }`}
             />
         </div>
     );
 }
 
-function SelectField({ label, name, value, onChange, options = [] }) {
+function SelectField({
+    label,
+    name,
+    value,
+    onChange,
+    options = [],
+    isDark = false,
+}) {
     return (
         <div>
-            <label className="mb-2 block text-sm font-semibold text-[#0f4d3c]">
+            <label
+                className={`mb-2 block text-sm font-semibold ${isDark ? "text-white" : "text-[#0f4d3c]"
+                    }`}
+            >
                 {label}
             </label>
             <select
                 name={name}
                 value={value}
                 onChange={onChange}
-                className="w-full rounded-2xl border border-gray-300 px-4 py-3.5 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
+                className={`w-full rounded-2xl px-4 py-3.5 outline-none transition ${isDark
+                        ? "border border-white/10 bg-[#0b1f1a] text-white focus:border-[#d4af37]/40 focus:ring-2 focus:ring-[#d4af37]/15"
+                        : "border border-gray-300 bg-white text-[#0f4d3c] focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
+                    }`}
             >
                 {options.map((option) => (
-                    <option key={option} value={option}>
+                    <option
+                        key={option}
+                        value={option}
+                        className={isDark ? "bg-[#0b1f1a] text-white" : ""}
+                    >
                         {option}
                     </option>
                 ))}
@@ -1356,10 +1615,14 @@ function TextAreaField({
     onChange,
     placeholder = "",
     rows = 5,
+    isDark = false,
 }) {
     return (
         <div>
-            <label className="mb-2 block text-sm font-semibold text-[#0f4d3c]">
+            <label
+                className={`mb-2 block text-sm font-semibold ${isDark ? "text-white" : "text-[#0f4d3c]"
+                    }`}
+            >
                 {label}
             </label>
             <textarea
@@ -1368,7 +1631,10 @@ function TextAreaField({
                 onChange={onChange}
                 placeholder={placeholder}
                 rows={rows}
-                className="w-full resize-none rounded-2xl border border-gray-300 px-4 py-3.5 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
+                className={`w-full resize-none rounded-2xl px-4 py-3.5 outline-none transition ${isDark
+                        ? "border border-white/10 bg-[#0b1f1a] text-white placeholder:text-white/35 focus:border-[#d4af37]/40 focus:ring-2 focus:ring-[#d4af37]/15"
+                        : "border border-gray-300 bg-white text-[#0f4d3c] focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
+                    }`}
             />
         </div>
     );

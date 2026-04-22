@@ -39,24 +39,6 @@ function formatDate(dateStr) {
     });
 }
 
-function getStatusClasses(status) {
-    const normalized = String(status || "").toLowerCase();
-
-    if (normalized === "approved" || normalized === "confirmed" || normalized === "paid") {
-        return "bg-emerald-50 text-emerald-700 border border-emerald-200";
-    }
-
-    if (normalized === "rejected") {
-        return "bg-red-50 text-red-700 border border-red-200";
-    }
-
-    if (normalized === "cancelled" || normalized === "canceled") {
-        return "bg-gray-100 text-gray-700 border border-gray-200";
-    }
-
-    return "bg-[#fff8e6] text-[#b99117] border border-[#f1d98a]";
-}
-
 function safeParseArray(value) {
     if (Array.isArray(value)) return value;
     if (!value) return [];
@@ -117,6 +99,60 @@ function normalizeQuotation(item) {
     };
 }
 
+function useAdminTheme() {
+    const getTheme = () => {
+        if (typeof document === "undefined") return "light";
+        return document.body.getAttribute("data-theme") === "dark" ? "dark" : "light";
+    };
+
+    const [theme, setTheme] = useState(getTheme);
+
+    useEffect(() => {
+        if (typeof document === "undefined") return;
+
+        const observer = new MutationObserver(() => {
+            setTheme(getTheme());
+        });
+
+        observer.observe(document.body, {
+            attributes: true,
+            attributeFilter: ["data-theme"],
+        });
+
+        setTheme(getTheme());
+
+        return () => observer.disconnect();
+    }, []);
+
+    return theme;
+}
+
+function getStatusClasses(status, isDark = false) {
+    const normalized = String(status || "").toLowerCase();
+
+    if (normalized === "approved" || normalized === "confirmed" || normalized === "paid") {
+        return isDark
+            ? "bg-[rgba(16,131,94,0.24)] text-[#98efcc] border border-[#22c58b]/18"
+            : "bg-emerald-50 text-emerald-700 border border-emerald-200";
+    }
+
+    if (normalized === "rejected") {
+        return isDark
+            ? "bg-[rgba(239,68,68,0.14)] text-[#fca5a5] border border-[rgba(248,113,113,0.24)]"
+            : "bg-red-50 text-red-700 border border-red-200";
+    }
+
+    if (normalized === "cancelled" || normalized === "canceled") {
+        return isDark
+            ? "bg-[rgba(148,163,184,0.14)] text-[#d5e1dd] border border-white/10"
+            : "bg-gray-100 text-gray-700 border border-gray-200";
+    }
+
+    return isDark
+        ? "bg-[rgba(133,102,26,0.24)] text-[#f5cf67] border border-[#d4af37]/18"
+        : "bg-[#fff8e6] text-[#b99117] border border-[#f1d98a]";
+}
+
 const containerVariants = {
     hidden: {},
     show: {
@@ -164,7 +200,7 @@ const cardReveal = {
 
 const FILTERS = ["All", "Pending", "Approved", "Rejected"];
 
-function PopupModal({ popup, closePopup }) {
+function PopupModal({ popup, closePopup, isDark }) {
     if (typeof document === "undefined") return null;
 
     return createPortal(
@@ -184,7 +220,10 @@ function PopupModal({ popup, closePopup }) {
                         exit={{ opacity: 0, y: 18, scale: 0.96 }}
                         transition={{ type: "spring", stiffness: 260, damping: 22 }}
                         onClick={(e) => e.stopPropagation()}
-                        className="w-full max-w-md overflow-hidden rounded-[30px] border border-white/70 bg-white shadow-[0_30px_80px_rgba(0,0,0,0.28)]"
+                        className={`w-full max-w-md overflow-hidden rounded-[30px] border shadow-[0_30px_80px_rgba(0,0,0,0.28)] ${isDark
+                                ? "border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.99)_0%,rgba(13,40,32,0.99)_100%)]"
+                                : "border-white/70 bg-white"
+                            }`}
                     >
                         <div
                             className={`px-6 py-5 text-white ${popup.type === "success"
@@ -222,7 +261,10 @@ function PopupModal({ popup, closePopup }) {
                         </div>
 
                         <div className="px-6 py-6">
-                            <p className="text-[15px] leading-7 text-gray-600">
+                            <p
+                                className={`text-[15px] leading-7 ${isDark ? "text-[#dce9e4]" : "text-gray-600"
+                                    }`}
+                            >
                                 {popup.message}
                             </p>
 
@@ -245,7 +287,7 @@ function PopupModal({ popup, closePopup }) {
     );
 }
 
-function ConfirmModal({ confirmState, closeConfirm, onConfirm, loading }) {
+function ConfirmModal({ confirmState, closeConfirm, onConfirm, loading, isDark }) {
     if (typeof document === "undefined") return null;
 
     const isApprove = confirmState.action === "approve";
@@ -267,9 +309,17 @@ function ConfirmModal({ confirmState, closeConfirm, onConfirm, loading }) {
                         exit={{ opacity: 0, y: 14, scale: 0.97 }}
                         transition={{ type: "spring", stiffness: 260, damping: 24 }}
                         onClick={(e) => e.stopPropagation()}
-                        className="w-full max-w-lg overflow-hidden rounded-[30px] border border-white/70 bg-white shadow-[0_30px_80px_rgba(0,0,0,0.3)]"
+                        className={`w-full max-w-lg overflow-hidden rounded-[30px] border shadow-[0_30px_80px_rgba(0,0,0,0.3)] ${isDark
+                                ? "border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.99)_0%,rgba(13,40,32,0.99)_100%)]"
+                                : "border-white/70 bg-white"
+                            }`}
                     >
-                        <div className="border-b border-[#eef2ef] bg-[linear-gradient(180deg,#ffffff_0%,#f8fbfa_100%)] px-6 py-6">
+                        <div
+                            className={`border-b px-6 py-6 ${isDark
+                                    ? "border-white/10 bg-[rgba(255,255,255,0.02)]"
+                                    : "border-[#eef2ef] bg-[linear-gradient(180deg,#ffffff_0%,#f8fbfa_100%)]"
+                                }`}
+                        >
                             <div className="flex items-start gap-4">
                                 <div
                                     className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl ${isApprove
@@ -277,17 +327,30 @@ function ConfirmModal({ confirmState, closeConfirm, onConfirm, loading }) {
                                             : "bg-red-100 text-red-600"
                                         }`}
                                 >
-                                    {isApprove ? <ShieldCheck size={28} /> : <AlertTriangle size={28} />}
+                                    {isApprove ? (
+                                        <ShieldCheck size={28} />
+                                    ) : (
+                                        <AlertTriangle size={28} />
+                                    )}
                                 </div>
 
                                 <div className="min-w-0">
-                                    <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">
+                                    <p
+                                        className={`text-xs font-bold uppercase tracking-[0.22em] ${isDark ? "text-white/40" : "text-slate-400"
+                                            }`}
+                                    >
                                         Confirmation Required
                                     </p>
-                                    <h3 className="mt-1 text-2xl font-extrabold text-[#0f4d3c]">
+                                    <h3
+                                        className={`mt-1 text-2xl font-extrabold ${isDark ? "text-white" : "text-[#0f4d3c]"
+                                            }`}
+                                    >
                                         {confirmState.title}
                                     </h3>
-                                    <p className="mt-2 text-sm leading-7 text-slate-600">
+                                    <p
+                                        className={`mt-2 text-sm leading-7 ${isDark ? "text-[#dce9e4]" : "text-slate-600"
+                                            }`}
+                                    >
                                         {confirmState.message}
                                     </p>
                                 </div>
@@ -295,22 +358,31 @@ function ConfirmModal({ confirmState, closeConfirm, onConfirm, loading }) {
                         </div>
 
                         {confirmState.quotation && (
-                            <div className="grid gap-3 border-b border-[#eef2ef] bg-[#fbfdfc] px-6 py-5 sm:grid-cols-2">
+                            <div
+                                className={`grid gap-3 border-b px-6 py-5 sm:grid-cols-2 ${isDark
+                                        ? "border-white/10 bg-[rgba(255,255,255,0.02)]"
+                                        : "border-[#eef2ef] bg-[#fbfdfc]"
+                                    }`}
+                            >
                                 <ConfirmMeta
                                     label="Quotation No."
                                     value={confirmState.quotation.displayQuotationId}
+                                    isDark={isDark}
                                 />
                                 <ConfirmMeta
                                     label="Client"
                                     value={confirmState.quotation.fullName || "—"}
+                                    isDark={isDark}
                                 />
                                 <ConfirmMeta
                                     label="Event"
                                     value={confirmState.quotation.eventType || "—"}
+                                    isDark={isDark}
                                 />
                                 <ConfirmMeta
                                     label="Estimated Total"
                                     value={formatCurrency(confirmState.quotation.estimatedTotal || 0)}
+                                    isDark={isDark}
                                 />
                             </div>
                         )}
@@ -319,7 +391,10 @@ function ConfirmModal({ confirmState, closeConfirm, onConfirm, loading }) {
                             <button
                                 onClick={closeConfirm}
                                 disabled={loading}
-                                className="flex-1 rounded-2xl border border-[#dce7e2] bg-white px-5 py-3.5 font-bold text-[#0f4d3c] transition hover:bg-[#f7fbf9] disabled:cursor-not-allowed disabled:opacity-60"
+                                className={`flex-1 rounded-2xl px-5 py-3.5 font-bold transition disabled:cursor-not-allowed disabled:opacity-60 ${isDark
+                                        ? "border border-white/10 bg-white/5 text-[#dce9e4] hover:bg-white/8"
+                                        : "border border-[#dce7e2] bg-white text-[#0f4d3c] hover:bg-[#f7fbf9]"
+                                    }`}
                             >
                                 Cancel
                             </button>
@@ -348,6 +423,9 @@ function ConfirmModal({ confirmState, closeConfirm, onConfirm, loading }) {
 }
 
 function AdminQuotations() {
+    const theme = useAdminTheme();
+    const isDark = theme === "dark";
+
     const [refreshKey, setRefreshKey] = useState(0);
     const [expandedId, setExpandedId] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -611,6 +689,14 @@ function AdminQuotations() {
         }
     };
 
+    const surfaceClass = isDark
+        ? "border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] shadow-[0_18px_50px_rgba(0,0,0,0.25)]"
+        : "border-[#dce7e2] bg-white shadow-[0_18px_50px_rgba(14,61,47,0.07)]";
+
+    const subSurfaceClass = isDark
+        ? "border-white/10 bg-[linear-gradient(180deg,rgba(8,28,22,0.96)_0%,rgba(10,34,26,0.96)_100%)] shadow-[0_14px_36px_rgba(0,0,0,0.22)]"
+        : "border-[#dce7e2] bg-white shadow-[0_14px_36px_rgba(14,61,47,0.06)]";
+
     return (
         <>
             <motion.div
@@ -621,7 +707,7 @@ function AdminQuotations() {
             >
                 <motion.section
                     variants={fadeUp}
-                    className="overflow-hidden rounded-[30px] border border-[#dce7e2] bg-white shadow-[0_18px_50px_rgba(14,61,47,0.07)]"
+                    className={`overflow-hidden rounded-[30px] border ${surfaceClass}`}
                 >
                     <div className="relative overflow-hidden bg-[linear-gradient(135deg,#07382d_0%,#0c4d3d_34%,#0f6b52_68%,#18a06c_100%)] px-5 py-6 text-white md:px-7 md:py-7">
                         <div className="pointer-events-none absolute inset-0">
@@ -666,24 +752,38 @@ function AdminQuotations() {
                         </div>
                     </div>
 
-                    <div className="border-t border-[#e8efeb] bg-[#fbfdfc] px-4 py-4 md:px-6">
+                    <div
+                        className={`border-t px-4 py-4 md:px-6 ${isDark
+                                ? "border-white/10 bg-[rgba(255,255,255,0.02)]"
+                                : "border-[#e8efeb] bg-[#fbfdfc]"
+                            }`}
+                    >
                         <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
                             <div className="relative w-full xl:max-w-md">
                                 <Search
                                     size={18}
-                                    className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+                                    className={`pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 ${isDark ? "text-white/35" : "text-slate-400"
+                                        }`}
                                 />
                                 <input
                                     type="text"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     placeholder="Search by quotation no., client, event, package..."
-                                    className="w-full rounded-2xl border border-[#dce7e2] bg-white py-3 pl-11 pr-4 text-sm text-[#0f4d3c] outline-none transition placeholder:text-slate-400 focus:border-[#18a06c] focus:ring-4 focus:ring-[#18a06c]/10"
+                                    className={`w-full rounded-2xl border py-3 pl-11 pr-4 text-sm outline-none transition ${isDark
+                                            ? "border-white/10 bg-[rgba(255,255,255,0.03)] text-white placeholder:text-white/35 focus:border-[#18a06c] focus:ring-4 focus:ring-[#18a06c]/15"
+                                            : "border-[#dce7e2] bg-white text-[#0f4d3c] placeholder:text-slate-400 focus:border-[#18a06c] focus:ring-4 focus:ring-[#18a06c]/10"
+                                        }`}
                                 />
                             </div>
 
                             <div className="flex flex-wrap items-center gap-2">
-                                <div className="mr-1 inline-flex items-center gap-2 rounded-2xl bg-[#eef7f3] px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#0f4d3c]">
+                                <div
+                                    className={`mr-1 inline-flex items-center gap-2 rounded-2xl px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] ${isDark
+                                            ? "border border-white/10 bg-white/5 text-[#dce9e4]"
+                                            : "bg-[#eef7f3] text-[#0f4d3c]"
+                                        }`}
+                                >
                                     <Filter size={14} />
                                     Filter
                                 </div>
@@ -705,7 +805,9 @@ function AdminQuotations() {
                                             onClick={() => setActiveFilter(filter)}
                                             className={`rounded-2xl px-4 py-2.5 text-sm font-bold transition ${isActive
                                                     ? "bg-[#0f4d3c] text-white shadow-[0_10px_25px_rgba(15,77,60,0.18)]"
-                                                    : "border border-[#dce7e2] bg-white text-[#0f4d3c] hover:bg-[#f6fbf9]"
+                                                    : isDark
+                                                        ? "border border-white/10 bg-white/5 text-[#dce9e4] hover:bg-white/8"
+                                                        : "border border-[#dce7e2] bg-white text-[#0f4d3c] hover:bg-[#f6fbf9]"
                                                 }`}
                                         >
                                             {filter} ({count})
@@ -722,48 +824,67 @@ function AdminQuotations() {
                         icon={ClipboardList}
                         label="Total Quotations"
                         value={quotations.length}
+                        isDark={isDark}
                     />
                     <SummaryCard
                         icon={PartyPopper}
                         label="Pending Requests"
                         value={pendingCount}
+                        isDark={isDark}
                     />
                     <SummaryCard
                         icon={BadgeCheck}
                         label="Approved Requests"
                         value={approvedCount}
+                        isDark={isDark}
                     />
                     <SummaryCard
                         icon={ShieldCheck}
                         label="Quotation Value"
                         value={formatCurrency(totalQuotationValue)}
+                        isDark={isDark}
                     />
                 </motion.div>
 
                 {loading ? (
                     <motion.div
                         variants={fadeUp}
-                        className="rounded-[28px] border border-[#dce7e2] bg-white p-10 text-center shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
+                        className={`rounded-[28px] border p-10 text-center ${subSurfaceClass}`}
                     >
-                        <h2 className="text-2xl font-extrabold text-[#0f4d3c]">
+                        <h2
+                            className={`text-2xl font-extrabold ${isDark ? "text-white" : "text-[#0f4d3c]"
+                                }`}
+                        >
                             Loading quotations...
                         </h2>
-                        <p className="mt-3 text-sm text-slate-500">
+                        <p
+                            className={`mt-3 text-sm ${isDark ? "text-[#b7cbc3]" : "text-slate-500"
+                                }`}
+                        >
                             Please wait while the records are being loaded.
                         </p>
                     </motion.div>
                 ) : filteredQuotations.length === 0 ? (
                     <motion.div
                         variants={fadeUp}
-                        className="rounded-[28px] border border-[#dce7e2] bg-white p-10 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
+                        className={`rounded-[28px] border p-10 ${subSurfaceClass}`}
                     >
-                        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#edf8f3] text-[#0f4d3c]">
+                        <div
+                            className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full ${isDark ? "bg-white/10 text-[#98efcc]" : "bg-[#edf8f3] text-[#0f4d3c]"
+                                }`}
+                        >
                             <FileText className="h-8 w-8" />
                         </div>
-                        <h2 className="mt-5 text-center text-3xl font-extrabold text-[#0f4d3c]">
+                        <h2
+                            className={`mt-5 text-center text-3xl font-extrabold ${isDark ? "text-white" : "text-[#0f4d3c]"
+                                }`}
+                        >
                             No quotations found
                         </h2>
-                        <p className="mx-auto mt-3 max-w-2xl text-center text-sm leading-7 text-slate-500">
+                        <p
+                            className={`mx-auto mt-3 max-w-2xl text-center text-sm leading-7 ${isDark ? "text-[#b7cbc3]" : "text-slate-500"
+                                }`}
+                        >
                             Try changing your filter or search keyword to find a quotation.
                         </p>
                     </motion.div>
@@ -786,18 +907,22 @@ function AdminQuotations() {
                                         animate="show"
                                         exit="exit"
                                         transition={{ type: "spring", stiffness: 220, damping: 20 }}
-                                        className="overflow-hidden rounded-[28px] border border-[#dce7e2] bg-white shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
+                                        className={`overflow-hidden rounded-[28px] border ${subSurfaceClass}`}
                                     >
                                         <div className="p-4 md:p-5">
                                             <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                                                 <div className="min-w-0 flex-1">
                                                     <div className="flex flex-wrap items-center gap-3">
-                                                        <h2 className="text-[26px] font-extrabold leading-none text-[#0f4d3c]">
+                                                        <h2
+                                                            className={`text-[26px] font-extrabold leading-none ${isDark ? "text-white" : "text-[#0f4d3c]"
+                                                                }`}
+                                                        >
                                                             {quote.displayQuotationId}
                                                         </h2>
                                                         <span
                                                             className={`inline-flex rounded-full px-3 py-1 text-sm font-semibold ${getStatusClasses(
-                                                                status
+                                                                status,
+                                                                isDark
                                                             )}`}
                                                         >
                                                             {status}
@@ -809,21 +934,25 @@ function AdminQuotations() {
                                                             icon={FileText}
                                                             label="Client"
                                                             value={quote.fullName || quote.ownerName || "—"}
+                                                            isDark={isDark}
                                                         />
                                                         <CompactInfoCard
                                                             icon={CalendarDays}
                                                             label="Event"
                                                             value={quote.eventType || "—"}
+                                                            isDark={isDark}
                                                         />
                                                         <CompactInfoCard
                                                             icon={Users}
                                                             label="Guests"
                                                             value={quote.guests || "0"}
+                                                            isDark={isDark}
                                                         />
                                                         <CompactInfoCard
                                                             icon={MapPin}
                                                             label="Venue"
                                                             value={quote.venue || "—"}
+                                                            isDark={isDark}
                                                         />
                                                     </div>
 
@@ -831,28 +960,49 @@ function AdminQuotations() {
                                                         <InlineMeta
                                                             icon={Clock3}
                                                             text={formatDate(quote.preferredDate)}
+                                                            isDark={isDark}
                                                         />
                                                         <InlineMeta
                                                             icon={BadgeCheck}
                                                             text={quote.packageType || "No package"}
+                                                            isDark={isDark}
                                                         />
                                                     </div>
                                                 </div>
 
-                                                <div className="rounded-[22px] border border-[#f0e2a8] bg-[linear-gradient(180deg,#fffdf5_0%,#fff7da_100%)] px-5 py-4 xl:min-w-[240px] xl:text-right">
-                                                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8d7632]">
+                                                <div
+                                                    className={`rounded-[22px] px-5 py-4 xl:min-w-[240px] xl:text-right ${isDark
+                                                            ? "border border-[#d4af37]/18 bg-[linear-gradient(180deg,rgba(88,67,20,0.24)_0%,rgba(61,47,14,0.18)_100%)]"
+                                                            : "border border-[#f0e2a8] bg-[linear-gradient(180deg,#fffdf5_0%,#fff7da_100%)]"
+                                                        }`}
+                                                >
+                                                    <p
+                                                        className={`text-xs font-semibold uppercase tracking-[0.18em] ${isDark ? "text-[#d5c28c]" : "text-[#8d7632]"
+                                                            }`}
+                                                    >
                                                         Estimated Total
                                                     </p>
-                                                    <p className="mt-1 text-3xl font-extrabold text-[#b99117]">
+                                                    <p
+                                                        className={`mt-1 text-3xl font-extrabold ${isDark ? "text-[#f5cf67]" : "text-[#b99117]"
+                                                            }`}
+                                                    >
                                                         {formatCurrency(quote.estimatedTotal || 0)}
                                                     </p>
-                                                    <p className="mt-2 text-xs text-[#8d7632]">
+                                                    <p
+                                                        className={`mt-2 text-xs ${isDark ? "text-[#d5c28c]" : "text-[#8d7632]"
+                                                            }`}
+                                                    >
                                                         Package + add-ons summary
                                                     </p>
                                                 </div>
                                             </div>
 
-                                            <div className="mt-4 rounded-[24px] border border-[#edf2ef] bg-[#fbfdfc] p-3">
+                                            <div
+                                                className={`mt-4 rounded-[24px] border p-3 ${isDark
+                                                        ? "border-white/10 bg-[rgba(255,255,255,0.02)]"
+                                                        : "border-[#edf2ef] bg-[#fbfdfc]"
+                                                    }`}
+                                            >
                                                 <div className="flex flex-col gap-3 lg:flex-row">
                                                     {isPending ? (
                                                         <>
@@ -887,7 +1037,10 @@ function AdminQuotations() {
                                                     ) : (
                                                         <button
                                                             disabled
-                                                            className="flex-1 cursor-not-allowed rounded-2xl bg-gray-100 px-5 py-3.5 font-bold text-gray-500"
+                                                            className={`flex-1 cursor-not-allowed rounded-2xl px-5 py-3.5 font-bold ${isDark
+                                                                    ? "bg-white/5 text-white/45"
+                                                                    : "bg-gray-100 text-gray-500"
+                                                                }`}
                                                         >
                                                             This quotation is already {status.toLowerCase()}
                                                         </button>
@@ -898,7 +1051,10 @@ function AdminQuotations() {
                                                         onClick={() =>
                                                             setExpandedId(isExpanded ? null : currentId)
                                                         }
-                                                        className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#d4af37] bg-[#fff8e6] px-5 py-3.5 font-bold text-[#0f4d3c] transition hover:bg-[#ffefbd] lg:w-[230px]"
+                                                        className={`inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3.5 font-bold transition lg:w-[230px] ${isDark
+                                                                ? "border border-[#d4af37]/20 bg-[rgba(133,102,26,0.24)] text-[#f5cf67] hover:bg-[rgba(133,102,26,0.34)]"
+                                                                : "border border-[#d4af37] bg-[#fff8e6] text-[#0f4d3c] hover:bg-[#ffefbd]"
+                                                            }`}
                                                     >
                                                         <motion.span
                                                             animate={{ rotate: isExpanded ? 180 : 0 }}
@@ -930,7 +1086,10 @@ function AdminQuotations() {
                                                         },
                                                         opacity: { duration: 0.22 },
                                                     }}
-                                                    className="border-t border-[#e8efeb] bg-[#fcfcfb]"
+                                                    className={`border-t ${isDark
+                                                            ? "border-white/10 bg-[rgba(255,255,255,0.02)]"
+                                                            : "border-[#e8efeb] bg-[#fcfcfb]"
+                                                        }`}
                                                 >
                                                     <motion.div
                                                         initial={{ opacity: 0, y: 12 }}
@@ -939,28 +1098,100 @@ function AdminQuotations() {
                                                         transition={{ duration: 0.26, delay: 0.04 }}
                                                         className="grid gap-5 p-4 md:p-5 xl:grid-cols-[1.1fr_0.9fr]"
                                                     >
-                                                        <div className="rounded-[24px] border border-[#e5ece8] bg-white p-5 shadow-sm">
-                                                            <h3 className="mb-4 text-xl font-extrabold text-[#0f4d3c]">
+                                                        <div
+                                                            className={`rounded-[24px] border p-5 shadow-sm ${isDark
+                                                                    ? "border-white/10 bg-[rgba(255,255,255,0.02)]"
+                                                                    : "border-[#e5ece8] bg-white"
+                                                                }`}
+                                                        >
+                                                            <h3
+                                                                className={`mb-4 text-xl font-extrabold ${isDark ? "text-white" : "text-[#0f4d3c]"
+                                                                    }`}
+                                                            >
                                                                 Quotation Information
                                                             </h3>
 
                                                             <div className="grid gap-x-6 gap-y-4 text-sm sm:grid-cols-2">
-                                                                <DetailItem label="Reference No." value={quote.displayQuotationId} />
-                                                                <DetailItem label="Full Name" value={quote.fullName} />
-                                                                <DetailItem label="Contact Number" value={quote.contactNumber} />
-                                                                <DetailItem label="Email Address" value={quote.email || quote.ownerEmail} />
-                                                                <DetailItem label="Event Type" value={quote.eventType} />
-                                                                <DetailItem label="Preferred Date" value={formatDate(quote.preferredDate)} />
-                                                                <DetailItem label="Event Time" value={quote.eventTime} />
-                                                                <DetailItem label="Venue / Location" value={quote.venue} />
-                                                                <DetailItem label="Number of Guests" value={quote.guests} />
-                                                                <DetailItem label="Preferred Package" value={quote.packageType} />
-                                                                <DetailItem label="Classic Menu" value={quote.classicMenu} />
-                                                                <DetailItem label="Theme / Style" value={quote.themePreference} />
-                                                                <DetailItem label="Status" value={quote.status || "Pending"} />
-                                                                <DetailItem label="Package Price" value={formatCurrency(quote.packagePrice || 0)} />
-                                                                <DetailItem label="Add-ons Total" value={formatCurrency(quote.addOnsTotal || 0)} />
-                                                                <DetailItem label="Estimated Total" value={formatCurrency(quote.estimatedTotal || 0)} />
+                                                                <DetailItem
+                                                                    label="Reference No."
+                                                                    value={quote.displayQuotationId}
+                                                                    isDark={isDark}
+                                                                />
+                                                                <DetailItem
+                                                                    label="Full Name"
+                                                                    value={quote.fullName}
+                                                                    isDark={isDark}
+                                                                />
+                                                                <DetailItem
+                                                                    label="Contact Number"
+                                                                    value={quote.contactNumber}
+                                                                    isDark={isDark}
+                                                                />
+                                                                <DetailItem
+                                                                    label="Email Address"
+                                                                    value={quote.email || quote.ownerEmail}
+                                                                    isDark={isDark}
+                                                                />
+                                                                <DetailItem
+                                                                    label="Event Type"
+                                                                    value={quote.eventType}
+                                                                    isDark={isDark}
+                                                                />
+                                                                <DetailItem
+                                                                    label="Preferred Date"
+                                                                    value={formatDate(quote.preferredDate)}
+                                                                    isDark={isDark}
+                                                                />
+                                                                <DetailItem
+                                                                    label="Event Time"
+                                                                    value={quote.eventTime}
+                                                                    isDark={isDark}
+                                                                />
+                                                                <DetailItem
+                                                                    label="Venue / Location"
+                                                                    value={quote.venue}
+                                                                    isDark={isDark}
+                                                                />
+                                                                <DetailItem
+                                                                    label="Number of Guests"
+                                                                    value={quote.guests}
+                                                                    isDark={isDark}
+                                                                />
+                                                                <DetailItem
+                                                                    label="Preferred Package"
+                                                                    value={quote.packageType}
+                                                                    isDark={isDark}
+                                                                />
+                                                                <DetailItem
+                                                                    label="Classic Menu"
+                                                                    value={quote.classicMenu}
+                                                                    isDark={isDark}
+                                                                />
+                                                                <DetailItem
+                                                                    label="Theme / Style"
+                                                                    value={quote.themePreference}
+                                                                    isDark={isDark}
+                                                                />
+                                                                <DetailItem
+                                                                    label="Status"
+                                                                    value={quote.status || "Pending"}
+                                                                    isDark={isDark}
+                                                                />
+                                                                <DetailItem
+                                                                    label="Package Price"
+                                                                    value={formatCurrency(quote.packagePrice || 0)}
+                                                                    isDark={isDark}
+                                                                />
+                                                                <DetailItem
+                                                                    label="Add-ons Total"
+                                                                    value={formatCurrency(quote.addOnsTotal || 0)}
+                                                                    isDark={isDark}
+                                                                />
+                                                                <DetailItem
+                                                                    label="Estimated Total"
+                                                                    value={formatCurrency(quote.estimatedTotal || 0)}
+                                                                    isDark={isDark}
+                                                                />
                                                                 <DetailItem
                                                                     label="Package Coverage"
                                                                     value={
@@ -970,30 +1201,49 @@ function AdminQuotations() {
                                                                                 ? `${formatCurrency(quote.ratePerPax)}/pax`
                                                                                 : "—"
                                                                     }
+                                                                    isDark={isDark}
                                                                 />
                                                                 <DetailItem
                                                                     label="Excess Guests"
                                                                     value={quote.excessGuests || 0}
+                                                                    isDark={isDark}
                                                                 />
                                                                 <DetailItem
                                                                     label="Excess Cost"
                                                                     value={formatCurrency(quote.excessCost || 0)}
+                                                                    isDark={isDark}
                                                                 />
                                                             </div>
 
                                                             <div className="mt-5">
-                                                                <p className="mb-2 text-sm font-semibold text-[#0f4d3c]">
+                                                                <p
+                                                                    className={`mb-2 text-sm font-semibold ${isDark ? "text-white" : "text-[#0f4d3c]"
+                                                                        }`}
+                                                                >
                                                                     Special Requests
                                                                 </p>
-                                                                <div className="rounded-2xl border border-[#e1ece8] bg-[#f8fbfa] p-4 text-sm leading-6 text-slate-600">
+                                                                <div
+                                                                    className={`rounded-2xl border p-4 text-sm leading-6 ${isDark
+                                                                            ? "border-white/10 bg-[rgba(255,255,255,0.02)] text-[#dce9e4]"
+                                                                            : "border-[#e1ece8] bg-[#f8fbfa] text-slate-600"
+                                                                        }`}
+                                                                >
                                                                     {quote.specialRequests || "No special requests."}
                                                                 </div>
                                                             </div>
                                                         </div>
 
                                                         <div className="space-y-5">
-                                                            <div className="rounded-[24px] border border-[#e5ece8] bg-white p-5 shadow-sm">
-                                                                <h3 className="mb-4 text-xl font-extrabold text-[#0f4d3c]">
+                                                            <div
+                                                                className={`rounded-[24px] border p-5 shadow-sm ${isDark
+                                                                        ? "border-white/10 bg-[rgba(255,255,255,0.02)]"
+                                                                        : "border-[#e5ece8] bg-white"
+                                                                    }`}
+                                                            >
+                                                                <h3
+                                                                    className={`mb-4 text-xl font-extrabold ${isDark ? "text-white" : "text-[#0f4d3c]"
+                                                                        }`}
+                                                                >
                                                                     Selected Add-ons
                                                                 </h3>
 
@@ -1008,21 +1258,35 @@ function AdminQuotations() {
                                                                                     duration: 0.2,
                                                                                     delay: i * 0.02,
                                                                                 }}
-                                                                                className="rounded-full border border-[#e5d390] bg-[#fff8e6] px-3 py-1 text-sm font-medium text-[#0f4d3c]"
+                                                                                className={`rounded-full border px-3 py-1 text-sm font-medium ${isDark
+                                                                                        ? "border-[#d4af37]/18 bg-[rgba(133,102,26,0.24)] text-[#f5cf67]"
+                                                                                        : "border-[#e5d390] bg-[#fff8e6] text-[#0f4d3c]"
+                                                                                    }`}
                                                                             >
                                                                                 {addon}
                                                                             </motion.span>
                                                                         ))}
                                                                     </div>
                                                                 ) : (
-                                                                    <p className="text-sm text-slate-500">
+                                                                    <p
+                                                                        className={`text-sm ${isDark ? "text-[#b7cbc3]" : "text-slate-500"
+                                                                            }`}
+                                                                    >
                                                                         No add-ons selected.
                                                                     </p>
                                                                 )}
                                                             </div>
 
-                                                            <div className="rounded-[24px] border border-[#e5ece8] bg-white p-5 shadow-sm">
-                                                                <h3 className="mb-4 text-xl font-extrabold text-[#0f4d3c]">
+                                                            <div
+                                                                className={`rounded-[24px] border p-5 shadow-sm ${isDark
+                                                                        ? "border-white/10 bg-[rgba(255,255,255,0.02)]"
+                                                                        : "border-[#e5ece8] bg-white"
+                                                                    }`}
+                                                            >
+                                                                <h3
+                                                                    className={`mb-4 text-xl font-extrabold ${isDark ? "text-white" : "text-[#0f4d3c]"
+                                                                        }`}
+                                                                >
                                                                     Package Inclusions
                                                                 </h3>
 
@@ -1038,7 +1302,10 @@ function AdminQuotations() {
                                                                                     duration: 0.22,
                                                                                     delay: i * 0.02,
                                                                                 }}
-                                                                                className="flex items-start gap-3 text-sm text-slate-700"
+                                                                                className={`flex items-start gap-3 text-sm ${isDark
+                                                                                        ? "text-[#dce9e4]"
+                                                                                        : "text-slate-700"
+                                                                                    }`}
                                                                             >
                                                                                 <span className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full bg-[#d4af37]" />
                                                                                 <span>{item}</span>
@@ -1046,7 +1313,10 @@ function AdminQuotations() {
                                                                         ))}
                                                                     </ul>
                                                                 ) : (
-                                                                    <p className="text-sm text-slate-500">
+                                                                    <p
+                                                                        className={`text-sm ${isDark ? "text-[#b7cbc3]" : "text-slate-500"
+                                                                            }`}
+                                                                    >
                                                                         No package inclusions recorded in this quotation.
                                                                     </p>
                                                                 )}
@@ -1073,9 +1343,10 @@ function AdminQuotations() {
                     confirmState.quotation &&
                     actionLoadingId === confirmState.quotation.id
                 }
+                isDark={isDark}
             />
 
-            <PopupModal popup={popup} closePopup={closePopup} />
+            <PopupModal popup={popup} closePopup={closePopup} isDark={isDark} />
         </>
     );
 }
@@ -1091,22 +1362,36 @@ function MiniStat({ label, value }) {
     );
 }
 
-function SummaryCard({ icon: Icon, label, value }) {
+function SummaryCard({ icon: Icon, label, value, isDark }) {
     return (
         <motion.div
             whileHover={{ y: -3 }}
             transition={{ type: "spring", stiffness: 220, damping: 18 }}
-            className="rounded-[22px] border border-[#e2ebe7] bg-white p-4 shadow-sm"
+            className={`rounded-[22px] border p-4 shadow-sm ${isDark
+                    ? "border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)]"
+                    : "border-[#e2ebe7] bg-white"
+                }`}
         >
             <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#edf8f3_0%,#dff1e8_100%)] text-[#0f4d3c]">
+                <div
+                    className={`flex h-11 w-11 items-center justify-center rounded-2xl ${isDark
+                            ? "border border-[#22c58b]/18 bg-[linear-gradient(135deg,rgba(16,96,69,0.45)_0%,rgba(22,146,102,0.24)_100%)] text-[#98efcc]"
+                            : "bg-[linear-gradient(135deg,#edf8f3_0%,#dff1e8_100%)] text-[#0f4d3c]"
+                        }`}
+                >
                     <Icon size={20} />
                 </div>
                 <div className="min-w-0">
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                    <p
+                        className={`text-xs font-semibold uppercase tracking-[0.18em] ${isDark ? "text-white/40" : "text-slate-400"
+                            }`}
+                    >
                         {label}
                     </p>
-                    <h3 className="mt-1 text-2xl font-extrabold text-[#0f4d3c]">
+                    <h3
+                        className={`mt-1 text-2xl font-extrabold ${isDark ? "text-white" : "text-[#0f4d3c]"
+                            }`}
+                    >
                         {value}
                     </h3>
                 </div>
@@ -1115,49 +1400,84 @@ function SummaryCard({ icon: Icon, label, value }) {
     );
 }
 
-function CompactInfoCard({ icon: Icon, label, value }) {
+function CompactInfoCard({ icon: Icon, label, value, isDark }) {
     return (
-        <div className="rounded-[20px] border border-[#e4ece8] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-3 shadow-sm">
-            <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-2xl bg-[#edf8f3] text-[#0f4d3c]">
+        <div
+            className={`rounded-[20px] border p-3 shadow-sm ${isDark
+                    ? "border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.02)_0%,rgba(255,255,255,0.015)_100%)]"
+                    : "border-[#e4ece8] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)]"
+                }`}
+        >
+            <div
+                className={`mb-2 flex h-9 w-9 items-center justify-center rounded-2xl ${isDark
+                        ? "bg-white/10 text-[#98efcc]"
+                        : "bg-[#edf8f3] text-[#0f4d3c]"
+                    }`}
+            >
                 <Icon size={17} />
             </div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+            <p
+                className={`text-[11px] font-semibold uppercase tracking-[0.14em] ${isDark ? "text-white/40" : "text-slate-400"
+                    }`}
+            >
                 {label}
             </p>
-            <p className="mt-1 line-clamp-2 text-sm font-bold text-[#0f4d3c]">
+            <p
+                className={`mt-1 line-clamp-2 text-sm font-bold ${isDark ? "text-white" : "text-[#0f4d3c]"
+                    }`}
+            >
                 {value || "—"}
             </p>
         </div>
     );
 }
 
-function InlineMeta({ icon: Icon, text }) {
+function InlineMeta({ icon: Icon, text, isDark }) {
     return (
-        <div className="inline-flex items-center gap-2 rounded-full border border-[#dce7e2] bg-[#f8fbfa] px-3 py-2 text-xs font-semibold text-[#0f4d3c]">
+        <div
+            className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold ${isDark
+                    ? "border-white/10 bg-white/5 text-[#dce9e4]"
+                    : "border-[#dce7e2] bg-[#f8fbfa] text-[#0f4d3c]"
+                }`}
+        >
             <Icon size={14} />
             <span>{text || "—"}</span>
         </div>
     );
 }
 
-function DetailItem({ label, value }) {
+function DetailItem({ label, value, isDark }) {
     return (
         <div>
-            <p className="text-slate-500">{label}</p>
-            <p className="mt-1 break-words font-semibold text-[#0f4d3c]">
+            <p className={isDark ? "text-white/40" : "text-slate-500"}>{label}</p>
+            <p
+                className={`mt-1 break-words font-semibold ${isDark ? "text-[#dce9e4]" : "text-[#0f4d3c]"
+                    }`}
+            >
                 {value || "—"}
             </p>
         </div>
     );
 }
 
-function ConfirmMeta({ label, value }) {
+function ConfirmMeta({ label, value, isDark }) {
     return (
-        <div className="rounded-2xl border border-[#e3ece7] bg-white px-4 py-3">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+        <div
+            className={`rounded-2xl border px-4 py-3 ${isDark
+                    ? "border-white/10 bg-white/5"
+                    : "border-[#e3ece7] bg-white"
+                }`}
+        >
+            <p
+                className={`text-[11px] font-semibold uppercase tracking-[0.14em] ${isDark ? "text-white/40" : "text-slate-400"
+                    }`}
+            >
                 {label}
             </p>
-            <p className="mt-1 text-sm font-bold text-[#0f4d3c]">
+            <p
+                className={`mt-1 text-sm font-bold ${isDark ? "text-white" : "text-[#0f4d3c]"
+                    }`}
+            >
                 {value || "—"}
             </p>
         </div>
