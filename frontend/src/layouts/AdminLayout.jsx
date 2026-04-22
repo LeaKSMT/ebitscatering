@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import AdminSidebar from "../components/AdminSidebar";
@@ -21,33 +22,53 @@ function AdminLayout() {
 
     const isAdmin =
         adminAuth &&
-        (
-            adminUser?.role === "admin" ||
-            genericUser?.role === "admin"
-        );
+        (adminUser?.role === "admin" || genericUser?.role === "admin");
+
+    const [theme, setTheme] = useState(() => {
+        const savedTheme = localStorage.getItem("adminTheme");
+        return savedTheme === "dark" ? "dark" : "light";
+    });
+
+    useEffect(() => {
+        localStorage.setItem("adminTheme", theme);
+        document.body.setAttribute("data-theme", theme);
+    }, [theme]);
+
+    const handleToggleTheme = () => {
+        setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+    };
 
     if (!isAdmin) {
         return <Navigate to="/login" replace />;
     }
 
     return (
-        <div className="relative min-h-screen overflow-x-hidden bg-[#f4f7f5] text-slate-800">
-            <div className="pointer-events-none absolute inset-0">
-                <div className="absolute right-[-120px] top-[-120px] h-[320px] w-[320px] rounded-full bg-[#d4af37]/10 blur-3xl" />
-                <div className="absolute bottom-[-120px] left-[-120px] h-[260px] w-[260px] rounded-full bg-[#0f4d3c]/10 blur-3xl" />
+        <div
+            className={`admin-shell admin-theme-${theme} relative min-h-screen overflow-x-hidden transition-colors duration-300`}
+        >
+            <div className="pointer-events-none absolute inset-0 admin-shell-bg">
+                <div className="admin-orb admin-orb-1" />
+                <div className="admin-orb admin-orb-2" />
+                <div className="admin-orb admin-orb-3" />
+                <div className="admin-grid-overlay" />
+                <div className="admin-noise-overlay" />
             </div>
 
-            <AdminSidebar />
+            <AdminSidebar theme={theme} />
 
             <div className="relative min-w-0 transition-all duration-300 lg:ml-[240px]">
-                <AdminTopbar currentPath={location.pathname} />
+                <AdminTopbar
+                    currentPath={location.pathname}
+                    theme={theme}
+                    onToggleTheme={handleToggleTheme}
+                />
 
                 <main className="min-w-0 px-3 pb-4 pt-3 sm:px-4 sm:pb-5 sm:pt-4 md:px-5 md:pb-6 md:pt-5 lg:px-6 lg:pb-6 lg:pt-5">
                     <motion.div
                         initial={{ opacity: 0, y: 20, scale: 0.98 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         transition={{ duration: 0.5, ease: "easeOut" }}
-                        className="relative min-w-0 overflow-visible rounded-[30px] border border-white/70 bg-white/70 shadow-[0_25px_60px_rgba(15,77,60,0.10)] backdrop-blur-xl"
+                        className="admin-main-surface relative min-w-0 overflow-visible rounded-[30px] border shadow-[0_25px_60px_rgba(15,77,60,0.10)] backdrop-blur-xl"
                     >
                         <div className="pointer-events-none absolute inset-0">
                             <motion.div

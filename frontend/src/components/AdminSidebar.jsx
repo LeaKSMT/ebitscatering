@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import {
     LayoutDashboard,
@@ -17,7 +17,6 @@ import {
     CreditCard,
     UserRound,
     BarChart3,
-    LogOut,
     X,
     Sparkles,
     ShieldCheck,
@@ -26,9 +25,7 @@ import {
     Crown,
 } from "lucide-react";
 
-function AdminSidebar() {
-    const navigate = useNavigate();
-    const [showLogoutModal, setShowLogoutModal] = useState(false);
+function AdminSidebar({ theme = "light" }) {
     const [mobileOpen, setMobileOpen] = useState(false);
 
     const adminUser =
@@ -55,18 +52,8 @@ function AdminSidebar() {
         { label: "Reports", path: "/admin/reports", icon: BarChart3 },
     ];
 
-    const confirmLogout = () => {
-        localStorage.removeItem("adminAuth");
-        localStorage.removeItem("adminUser");
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        setShowLogoutModal(false);
-        setMobileOpen(false);
-        navigate("/login");
-    };
-
     const navContent = (
-        <div className="relative flex h-full flex-col overflow-hidden border-r border-white/10 bg-[linear-gradient(180deg,#042f25_0%,#0a4637_28%,#0d5b47_62%,#12785b_100%)] text-white shadow-[18px_0_45px_rgba(8,45,35,0.20)]">
+        <div className="admin-sidebar relative flex h-full flex-col overflow-hidden border-r text-white shadow-[18px_0_45px_rgba(8,45,35,0.20)]">
             <div className="pointer-events-none absolute inset-0">
                 <div className="absolute -top-16 right-[-50px] h-44 w-44 rounded-full bg-[#f5c94a]/18 blur-3xl" />
                 <div className="absolute bottom-[-40px] left-[-25px] h-32 w-32 rounded-full bg-white/8 blur-3xl" />
@@ -174,15 +161,17 @@ function AdminSidebar() {
             </nav>
 
             <div className="relative shrink-0 border-t border-white/10 px-3 pb-4 pt-3">
-                <motion.button
-                    whileHover={{ y: -2, scale: 1.01 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setShowLogoutModal(true)}
-                    className="flex w-full items-center justify-center gap-2 rounded-[18px] border border-white/15 bg-white px-4 py-3 font-bold text-[#0b4a3a] shadow-[0_10px_25px_rgba(0,0,0,0.10)] transition hover:bg-[#f8faf9]"
-                >
-                    <LogOut size={17} />
-                    Logout
-                </motion.button>
+                <div className="rounded-[18px] border border-white/10 bg-white/8 px-4 py-3 backdrop-blur-md">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/60">
+                        Theme
+                    </p>
+                    <p className="mt-1 text-sm font-semibold text-white">
+                        {theme === "dark" ? "Dark Mode Active" : "Light Mode Active"}
+                    </p>
+                    <p className="mt-1 text-[11px] leading-5 text-white/65">
+                        Logout and theme switch are available in the top-right admin dropdown.
+                    </p>
+                </div>
             </div>
         </div>
     );
@@ -230,61 +219,6 @@ function AdminSidebar() {
                             </div>
                         </motion.aside>
                     </>
-                )}
-            </AnimatePresence>
-
-            <AnimatePresence>
-                {showLogoutModal && (
-                    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/45 px-4 backdrop-blur-[3px]">
-                        <motion.div
-                            initial={{ opacity: 0, y: 18, scale: 0.97 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: 18, scale: 0.97 }}
-                            className="w-full max-w-md overflow-hidden rounded-[28px] border border-white/60 bg-white shadow-[0_25px_60px_rgba(0,0,0,0.18)]"
-                        >
-                            <div className="bg-[linear-gradient(135deg,#0b4a3a_0%,#0f5d49_60%,#12785b_100%)] px-6 py-5 text-white">
-                                <div className="flex items-start justify-between gap-4">
-                                    <div>
-                                        <p className="text-[11px] font-semibold uppercase tracking-[0.20em] text-white/65">
-                                            Confirmation
-                                        </p>
-                                        <h3 className="mt-1 text-2xl font-extrabold">
-                                            Logout Admin
-                                        </h3>
-                                    </div>
-
-                                    <button
-                                        onClick={() => setShowLogoutModal(false)}
-                                        className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20"
-                                    >
-                                        <X size={18} />
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div className="px-6 py-6">
-                                <p className="leading-7 text-gray-600">
-                                    Are you sure you want to log out of the admin panel?
-                                </p>
-
-                                <div className="mt-6 grid grid-cols-2 gap-3">
-                                    <button
-                                        onClick={() => setShowLogoutModal(false)}
-                                        className="w-full rounded-2xl border border-gray-200 py-3 font-bold text-[#0b4a3a] transition hover:bg-gray-50"
-                                    >
-                                        Cancel
-                                    </button>
-
-                                    <button
-                                        onClick={confirmLogout}
-                                        className="w-full rounded-2xl bg-[linear-gradient(135deg,#e4bc41_0%,#d4af37_100%)] py-3 font-bold text-[#0b4a3a] transition hover:brightness-95"
-                                    >
-                                        Yes, Logout
-                                    </button>
-                                </div>
-                            </div>
-                        </motion.div>
-                    </div>
                 )}
             </AnimatePresence>
         </>

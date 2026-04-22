@@ -275,9 +275,7 @@ function AdminDashboard() {
         const map = new Map();
 
         quotations.forEach((quotation) => {
-            const date = new Date(
-                quotation.eventDate || quotation.createdAt || ""
-            );
+            const date = new Date(quotation.eventDate || quotation.createdAt || "");
             if (Number.isNaN(date.getTime())) return;
 
             const key = `${date.getFullYear()}-${date.getMonth()}`;
@@ -378,9 +376,7 @@ function AdminDashboard() {
         const map = new Map();
 
         quotations.forEach((quotation) => {
-            const date = new Date(
-                quotation.eventDate || quotation.createdAt || ""
-            );
+            const date = new Date(quotation.eventDate || quotation.createdAt || "");
             if (Number.isNaN(date.getTime())) return;
 
             const label = date.toLocaleDateString("en-PH", {
@@ -466,7 +462,7 @@ function AdminDashboard() {
             initial="hidden"
             animate="show"
             transition={{ staggerChildren: 0.1 }}
-            className="space-y-5"
+            className="admin-dashboard space-y-5"
         >
             <motion.section
                 variants={fadeUp}
