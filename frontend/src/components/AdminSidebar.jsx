@@ -19,20 +19,12 @@ import {
     BarChart3,
     X,
     Sparkles,
-    ShieldCheck,
     Menu,
     ChevronRight,
-    Crown,
 } from "lucide-react";
 
-function AdminSidebar({ theme = "light" }) {
+function AdminSidebar() {
     const [mobileOpen, setMobileOpen] = useState(false);
-
-    const adminUser =
-        JSON.parse(localStorage.getItem("adminUser") || "null") ||
-        JSON.parse(localStorage.getItem("user") || "null") || {
-            name: "Admin User",
-        };
 
     const navItems = [
         { label: "Dashboard", path: "/admin/dashboard", icon: LayoutDashboard },
@@ -80,30 +72,6 @@ function AdminSidebar({ theme = "light" }) {
                     <p className="mt-1 text-xs text-white/75">
                         Executive Admin Workspace
                     </p>
-
-                    <motion.div
-                        whileHover={{ y: -2, scale: 1.01 }}
-                        className="mt-4 overflow-hidden rounded-[22px] border border-white/10 bg-white/10 p-3 backdrop-blur-md"
-                    >
-                        <div className="flex items-center gap-3">
-                            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#fff3c8_0%,#f3d06a_100%)] text-[#8a6710] shadow-[0_10px_20px_rgba(0,0,0,0.10)]">
-                                <ShieldCheck size={18} />
-                            </div>
-
-                            <div className="min-w-0">
-                                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/60">
-                                    Logged In
-                                </p>
-                                <p className="truncate text-sm font-bold text-white">
-                                    {adminUser.name}
-                                </p>
-                                <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-white/65">
-                                    <Crown size={12} className="text-[#f5d36a]" />
-                                    Administrator Access
-                                </div>
-                            </div>
-                        </div>
-                    </motion.div>
                 </motion.div>
             </div>
 
@@ -159,20 +127,6 @@ function AdminSidebar({ theme = "light" }) {
                     );
                 })}
             </nav>
-
-            <div className="relative shrink-0 border-t border-white/10 px-3 pb-4 pt-3">
-                <div className="rounded-[18px] border border-white/10 bg-white/8 px-4 py-3 backdrop-blur-md">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/60">
-                        Theme
-                    </p>
-                    <p className="mt-1 text-sm font-semibold text-white">
-                        {theme === "dark" ? "Dark Mode Active" : "Light Mode Active"}
-                    </p>
-                    <p className="mt-1 text-[11px] leading-5 text-white/65">
-                        Logout and theme switch are available in the top-right admin dropdown.
-                    </p>
-                </div>
-            </div>
         </div>
     );
 

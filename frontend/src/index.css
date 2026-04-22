@@ -1125,3 +1125,104 @@ body[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator {
     opacity: 0.34;
   }
 }
+
+.admin-profile-trigger {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(5, 33, 27, 0.36);
+  backdrop-filter: blur(14px);
+}
+
+.admin-profile-trigger:hover {
+  background: rgba(5, 33, 27, 0.44);
+}
+
+.admin-profile-dropdown {
+  border-color: rgba(15, 77, 60, 0.16);
+  background: linear-gradient(180deg, #032f25 0%, #063a2d 100%);
+  color: #eef7f3;
+}
+
+.admin-profile-dropdown-header {
+  background: linear-gradient(135deg, rgba(19, 134, 103, 0.92) 0%, rgba(10, 93, 72, 0.92) 100%);
+  color: #ffffff;
+}
+
+.admin-dropdown-item {
+  color: #eef7f3;
+  background: transparent;
+}
+
+.admin-dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.admin-dropdown-item-logout {
+  color: #ff8c69;
+}
+
+.admin-dropdown-item-logout:hover {
+  background: rgba(255, 138, 101, 0.10);
+}
+
+.admin-theme-light .admin-profile-dropdown {
+  border-color: rgba(15, 77, 60, 0.14);
+  background: linear-gradient(180deg, #0b4a3a 0%, #0d5d49 100%);
+  color: #eef7f3;
+}
+
+.admin-theme-light .admin-profile-dropdown-header {
+  background: linear-gradient(135deg, #148266 0%, #0e6a53 100%);
+  color: #ffffff;
+}
+
+.admin-theme-light .admin-dropdown-item {
+  color: #eef7f3;
+}
+
+.admin-theme-light .admin-dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.admin-theme-light .admin-dropdown-item-logout {
+  color: #ffb29a;
+}
+
+.admin-theme-light .admin-dropdown-item-logout:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.admin-theme-dark .admin-profile-trigger {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(5, 21, 17, 0.5);
+}
+
+.admin-theme-dark .admin-profile-trigger:hover {
+  background: rgba(5, 21, 17, 0.62);
+}
+
+.admin-theme-dark .admin-profile-dropdown {
+  border-color: rgba(255, 255, 255, 0.10);
+  background: linear-gradient(180deg, #031f19 0%, #062a22 100%);
+  color: #eef7f3;
+}
+
+.admin-theme-dark .admin-profile-dropdown-header {
+  background: linear-gradient(135deg, #0e6b53 0%, #0a5845 100%);
+  color: #ffffff;
+}
+
+.admin-theme-dark .admin-dropdown-item {
+  color: #eef7f3;
+}
+
+.admin-theme-dark .admin-dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.admin-theme-dark .admin-dropdown-item-logout {
+  color: #ff9f86;
+}
+
+.admin-theme-dark .admin-dropdown-item-logout:hover {
+  background: rgba(255, 159, 134, 0.10);
+}
