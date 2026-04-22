@@ -11,11 +11,13 @@
   --ebit-cream: #f7f4ee;
   --ebit-card: #fffdf8;
   --ebit-text: #1f2937;
+
   --dark-base: #071c16;
   --dark-surface: #0a241d;
   --dark-surface-2: #102d24;
   --dark-card: rgba(10, 33, 27, 0.98);
   --dark-card-soft: rgba(13, 40, 32, 0.98);
+  --dark-card-elevated: rgba(16, 44, 35, 0.98);
   --dark-border: rgba(255, 255, 255, 0.10);
   --dark-border-soft: rgba(255, 255, 255, 0.08);
   --dark-text: #eef7f3;
@@ -540,7 +542,7 @@ img {
   left: -5%;
   width: 300px;
   height: 300px;
-  background: rgba(212, 175, 55, 0.2);
+  background: rgba(212, 165, 20, 0.2);
   animation: float1 10s infinite;
 }
 
@@ -984,7 +986,254 @@ body[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator {
   background: rgba(255, 255, 255, 0.08);
 }
 
-/* Dashboard-specific dark override */
+/* =========================
+   GLOBAL ADMIN DARK MODE FIX
+========================= */
+
+/* General text */
+.admin-theme-dark,
+.admin-theme-dark p,
+.admin-theme-dark span,
+.admin-theme-dark small,
+.admin-theme-dark label,
+.admin-theme-dark td,
+.admin-theme-dark th,
+.admin-theme-dark li {
+  color: var(--dark-text);
+}
+
+.admin-theme-dark .text-slate-300,
+.admin-theme-dark .text-slate-400,
+.admin-theme-dark .text-gray-400,
+.admin-theme-dark .text-gray-500 {
+  color: var(--dark-muted) !important;
+}
+
+.admin-theme-dark .text-slate-500,
+.admin-theme-dark .text-slate-600,
+.admin-theme-dark .text-gray-600,
+.admin-theme-dark .text-gray-700 {
+  color: var(--dark-muted-2) !important;
+}
+
+.admin-theme-dark .text-slate-700,
+.admin-theme-dark .text-slate-800,
+.admin-theme-dark .text-slate-900,
+.admin-theme-dark .text-gray-800,
+.admin-theme-dark .text-gray-900,
+.admin-theme-dark .text-\[\#0b4a3a\],
+.admin-theme-dark .text-\[\#0f4d3c\],
+.admin-theme-dark .text-\[\#0d5c46\],
+.admin-theme-dark .text-\[\#0b5a43\],
+.admin-theme-dark .text-\[\#143c2f\] {
+  color: rgba(238, 247, 243, 0.98) !important;
+}
+
+.admin-theme-dark .text-\[\#b99117\],
+.admin-theme-dark .text-\[\#9b7510\],
+.admin-theme-dark .text-\[\#8a6710\],
+.admin-theme-dark .text-\[\#8f6a0f\] {
+  color: #f5cf67 !important;
+}
+
+/* Generic white/light surfaces */
+.admin-theme-dark .bg-white,
+.admin-theme-dark .bg-white\/95,
+.admin-theme-dark .bg-white\/90,
+.admin-theme-dark .bg-white\/85,
+.admin-theme-dark .bg-white\/80,
+.admin-theme-dark .bg-\[\#ffffff\],
+.admin-theme-dark .bg-\[\#f8fbfa\],
+.admin-theme-dark .bg-\[\#fbfdfc\],
+.admin-theme-dark .bg-\[\#f7fbf9\],
+.admin-theme-dark .bg-\[\#f6f7f9\],
+.admin-theme-dark .bg-\[\#f8fafc\],
+.admin-theme-dark .bg-\[\#fcfdfd\],
+.admin-theme-dark .bg-\[\#fafafa\],
+.admin-theme-dark .bg-\[\#f4f7f5\],
+.admin-theme-dark .bg-\[\#eef8f3\],
+.admin-theme-dark .bg-\[\#edf8f3\],
+.admin-theme-dark .bg-\[\#eef9f5\],
+.admin-theme-dark .bg-\[\#f1f7f4\],
+.admin-theme-dark .bg-\[\#f1f5f9\] {
+  background: linear-gradient(180deg, var(--dark-card) 0%, var(--dark-card-soft) 100%) !important;
+  color: rgba(238, 247, 243, 0.98) !important;
+}
+
+/* Cream / gold soft cards in dark */
+.admin-theme-dark .bg-\[\#fff8e6\],
+.admin-theme-dark .bg-\[\#fffaf0\],
+.admin-theme-dark .bg-\[\#fff3d0\],
+.admin-theme-dark .bg-\[\#fff2c5\],
+.admin-theme-dark .bg-\[linear-gradient\(135deg\,\#fffaf0_0\%\,\#fff3d0_100\%\)\],
+.admin-theme-dark .bg-\[linear-gradient\(135deg\,\#fff8df_0\%\,\#fff1bf_100\%\)\],
+.admin-theme-dark .bg-\[linear-gradient\(180deg\,\#fffdf6_0\%\,\#fff8e8_100\%\)\] {
+  background: linear-gradient(135deg, rgba(88, 67, 20, 0.26) 0%, rgba(120, 91, 27, 0.18) 100%) !important;
+  color: #f5cf67 !important;
+}
+
+/* Generic borders */
+.admin-theme-dark .border-slate-100,
+.admin-theme-dark .border-slate-200,
+.admin-theme-dark .border-slate-300,
+.admin-theme-dark .border-gray-100,
+.admin-theme-dark .border-gray-200,
+.admin-theme-dark .border-gray-300,
+.admin-theme-dark .border-\[\#dbe7e2\],
+.admin-theme-dark .border-\[\#dce7e2\],
+.admin-theme-dark .border-\[\#dfe8e4\],
+.admin-theme-dark .border-\[\#dfe9e4\],
+.admin-theme-dark .border-\[\#dbe6e1\],
+.admin-theme-dark .border-\[\#e3ebe7\],
+.admin-theme-dark .border-\[\#e4ece8\],
+.admin-theme-dark .border-\[\#e7efea\],
+.admin-theme-dark .border-\[\#edf2ef\],
+.admin-theme-dark .border-\[\#e8efeb\],
+.admin-theme-dark .border-\[\#efe2a9\],
+.admin-theme-dark .border-white\/10,
+.admin-theme-dark .border-dashed {
+  border-color: var(--dark-border) !important;
+}
+
+/* Rounded content cards */
+.admin-theme-dark .rounded-\[34px\].bg-white,
+.admin-theme-dark .rounded-\[32px\].bg-white,
+.admin-theme-dark .rounded-\[30px\].bg-white,
+.admin-theme-dark .rounded-\[28px\].bg-white,
+.admin-theme-dark .rounded-\[26px\].bg-white,
+.admin-theme-dark .rounded-\[24px\].bg-white,
+.admin-theme-dark .rounded-\[22px\].bg-white,
+.admin-theme-dark .rounded-3xl.bg-white,
+.admin-theme-dark .rounded-2xl.bg-white,
+.admin-theme-dark .rounded-xl.bg-white {
+  background: linear-gradient(180deg, var(--dark-card) 0%, var(--dark-card-soft) 100%) !important;
+  border-color: var(--dark-border) !important;
+  color: rgba(238, 247, 243, 0.98) !important;
+}
+
+/* Common gradient wrappers */
+.admin-theme-dark .bg-\[linear-gradient\(180deg\,\#ffffff_0\%\,\#fbfdfc_100\%\)\],
+.admin-theme-dark .bg-\[linear-gradient\(180deg\,\#fbfdfc_0\%\,\#f7fbf9_100\%\)\],
+.admin-theme-dark .bg-\[linear-gradient\(180deg\,\#f8fcfa_0\%\,\#f1f8f5_100\%\)\],
+.admin-theme-dark .bg-\[linear-gradient\(180deg\,\#f9fcfb_0\%\,\#f5f8fc_100\%\)\],
+.admin-theme-dark .bg-\[linear-gradient\(90deg\,\#f3fbf8_0\%\,\#fffaf0_100\%\)\],
+.admin-theme-dark .bg-\[linear-gradient\(90deg\,\#f3fbf8_0\%\,\#fff8ea_100\%\)\] {
+  background: linear-gradient(180deg, var(--dark-card) 0%, var(--dark-card-soft) 100%) !important;
+}
+
+/* Inputs / forms / selects / textareas */
+.admin-theme-dark input,
+.admin-theme-dark textarea,
+.admin-theme-dark select {
+  background: rgba(13, 36, 29, 0.96) !important;
+  border-color: rgba(255, 255, 255, 0.10) !important;
+  color: rgba(238, 247, 243, 0.98) !important;
+  caret-color: #f5cf67 !important;
+  box-shadow: none !important;
+}
+
+.admin-theme-dark input::placeholder,
+.admin-theme-dark textarea::placeholder {
+  color: rgba(220, 232, 227, 0.42) !important;
+}
+
+.admin-theme-dark option {
+  background: #0d241d;
+  color: #eef7f3;
+}
+
+.admin-theme-dark input:focus,
+.admin-theme-dark textarea:focus,
+.admin-theme-dark select:focus {
+  border-color: rgba(212, 175, 55, 0.42) !important;
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.10) !important;
+  outline: none !important;
+}
+
+/* Search bars / filter bars / table tools */
+.admin-theme-dark .hover\:bg-slate-50:hover,
+.admin-theme-dark .hover\:bg-gray-50:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Tables */
+.admin-theme-dark table,
+.admin-theme-dark thead,
+.admin-theme-dark tbody,
+.admin-theme-dark tr {
+  background: transparent !important;
+}
+
+.admin-theme-dark th {
+  color: rgba(196, 215, 208, 0.92) !important;
+}
+
+.admin-theme-dark td {
+  color: rgba(238, 247, 243, 0.96) !important;
+}
+
+.admin-theme-dark th,
+.admin-theme-dark td {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Scrollable panels and content areas */
+.admin-theme-dark .shadow-sm,
+.admin-theme-dark .shadow-md,
+.admin-theme-dark .shadow-lg {
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.18) !important;
+}
+
+/* Chat / conversation / panel areas */
+.admin-theme-dark .bg-\[\#f9fafb\],
+.admin-theme-dark .bg-\[\#f3f4f6\],
+.admin-theme-dark .bg-\[\#f5f5f5\] {
+  background: linear-gradient(180deg, rgba(10, 33, 27, 0.96) 0%, rgba(13, 40, 32, 0.96) 100%) !important;
+  color: rgba(238, 247, 243, 0.98) !important;
+}
+
+/* Green soft surfaces */
+.admin-theme-dark .bg-\[\#ecf8f2\] {
+  background: rgba(21, 80, 60, 0.55) !important;
+}
+
+/* Gold soft surfaces */
+.admin-theme-dark .bg-\[\#fff8e8\] {
+  background: rgba(97, 76, 24, 0.35) !important;
+}
+
+/* Badges */
+.admin-theme-dark .text-red-600 {
+  color: #fca5a5 !important;
+}
+
+.admin-theme-dark .border-red-200 {
+  border-color: rgba(248, 113, 113, 0.24) !important;
+}
+
+/* Recharts */
+.admin-theme-dark .recharts-cartesian-grid line {
+  stroke: rgba(255, 255, 255, 0.08) !important;
+}
+
+.admin-theme-dark .recharts-text,
+.admin-theme-dark .recharts-legend-item-text {
+  fill: #dceae5 !important;
+}
+
+.admin-theme-dark .recharts-tooltip-wrapper .recharts-default-tooltip {
+  background: rgba(10, 33, 27, 0.96) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #eef7f3 !important;
+}
+
+.admin-theme-dark .recharts-sector:focus,
+.admin-theme-dark .recharts-bar-rectangle:focus,
+.admin-theme-dark .recharts-dot:focus {
+  outline: none;
+}
+
+/* Specific page section helpers */
 .admin-theme-dark .admin-dashboard .bg-white,
 .admin-theme-dark .admin-dashboard .bg-\[linear-gradient\(180deg\,\#ffffff_0\%\,\#fbfdfc_100\%\)\],
 .admin-theme-dark .admin-dashboard .bg-\[linear-gradient\(180deg\,\#f8fcfa_0\%\,\#f1f8f5_100\%\)\],
@@ -1034,25 +1283,13 @@ body[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator {
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.16) !important;
 }
 
-.admin-theme-dark .admin-dashboard .recharts-cartesian-grid line {
-  stroke: rgba(255, 255, 255, 0.08) !important;
-}
-
-.admin-theme-dark .admin-dashboard .recharts-text,
-.admin-theme-dark .admin-dashboard .recharts-legend-item-text {
-  fill: #dceae5 !important;
-}
-
-.admin-theme-dark .admin-dashboard .recharts-tooltip-wrapper .recharts-default-tooltip {
-  background: rgba(10, 33, 27, 0.96) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  color: #eef7f3 !important;
-}
-
-.admin-theme-dark .admin-dashboard .recharts-sector:focus,
-.admin-theme-dark .admin-dashboard .recharts-bar-rectangle:focus,
-.admin-theme-dark .admin-dashboard .recharts-dot:focus {
-  outline: none;
+/* Make all admin page main white content adapt */
+.admin-theme-dark .rounded-\[30px\],
+.admin-theme-dark .rounded-\[28px\],
+.admin-theme-dark .rounded-\[26px\],
+.admin-theme-dark .rounded-\[24px\],
+.admin-theme-dark .rounded-\[22px\] {
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 /* =========================

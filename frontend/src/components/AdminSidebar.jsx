@@ -22,7 +22,7 @@ import {
     ChevronRight,
 } from "lucide-react";
 
-function AdminSidebar() {
+function AdminSidebar({ theme = "light" }) {
     const [mobileOpen, setMobileOpen] = useState(false);
 
     const navItems = [
@@ -44,9 +44,13 @@ function AdminSidebar() {
     ];
 
     const navContent = (
-        <div className="admin-sidebar relative flex h-full flex-col overflow-hidden border-r text-white">
-
-            {/* BACKGROUND EFFECT */}
+        <div
+            className={`admin-sidebar relative flex h-full flex-col overflow-hidden border-r ${theme === "dark"
+                    ? "bg-[linear-gradient(180deg,#031f19_0%,#072c23_28%,#0a3e31_62%,#0d5a45_100%)] text-white"
+                    : "bg-[linear-gradient(180deg,#042f25_0%,#0a4637_28%,#0d5b47_62%,#12785b_100%)] text-white"
+                }`}
+        >
+            {/* BG EFFECT */}
             <div className="pointer-events-none absolute inset-0">
                 <div className="absolute -top-16 right-[-50px] h-44 w-44 rounded-full bg-[#f5c94a]/20 blur-3xl" />
                 <div className="absolute bottom-[-40px] left-[-25px] h-32 w-32 rounded-full bg-white/10 blur-3xl" />

@@ -31,7 +31,13 @@ function AdminLayout() {
 
     useEffect(() => {
         localStorage.setItem("adminTheme", theme);
+
+        document.documentElement.setAttribute("data-theme", theme);
         document.body.setAttribute("data-theme", theme);
+        document.documentElement.classList.toggle("admin-dark", theme === "dark");
+        document.body.classList.toggle("admin-dark", theme === "dark");
+        document.documentElement.classList.toggle("admin-light", theme === "light");
+        document.body.classList.toggle("admin-light", theme === "light");
     }, [theme]);
 
     const handleToggleTheme = () => {
@@ -44,6 +50,7 @@ function AdminLayout() {
 
     return (
         <div
+            data-admin-theme={theme}
             className={`admin-shell admin-theme-${theme} relative min-h-screen overflow-x-hidden transition-colors duration-300`}
         >
             <div className="pointer-events-none absolute inset-0 admin-shell-bg">
