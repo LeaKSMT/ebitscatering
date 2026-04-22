@@ -510,9 +510,6 @@ function AdminCalendar() {
                 manualBookings
             );
 
-            console.log("QUOTATIONS FROM API:", quotations);
-            console.log("MERGED BOOKINGS:", merged);
-
             setBookings(merged);
         } catch (err) {
             console.error("AdminCalendar fetch error:", err);
@@ -882,7 +879,7 @@ function AdminCalendar() {
     const renderStatusBadge = (status) => {
         const normalized = normalizeStatus(status);
         const baseClass =
-            "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold";
+            "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold shadow-sm";
 
         if (normalized === "completed") {
             return (
@@ -916,7 +913,7 @@ function AdminCalendar() {
             );
         }
 
-        if (normalized === "approved" || normalized === "paid") {
+        if (normalized === "approved" || normalized === "paid" || normalized === "confirmed") {
             return (
                 <span className={`${baseClass} bg-green-100 text-green-700`}>
                     Confirmed
@@ -1183,13 +1180,13 @@ function AdminCalendar() {
                                             <h3 className="text-2xl font-extrabold text-[#174c3c]">
                                                 {event.eventType || "Event"}
                                             </h3>
-                                            <p className="mt-2 text-base text-slate-600">
+                                            <p className="mt-2 text-base font-medium text-slate-700">
                                                 {event.fullName || "Unnamed client"}
                                             </p>
                                             <p className="mt-2 text-sm font-semibold text-[#b99117]">
                                                 {formatDate(event.preferredDate)}
                                             </p>
-                                            <p className="mt-2 text-sm text-slate-500">
+                                            <p className="mt-2 text-sm text-slate-600">
                                                 {event.guests || 0} guests •{" "}
                                                 {formatCurrency(event.estimatedTotal)}
                                             </p>
@@ -1219,7 +1216,7 @@ function AdminCalendar() {
                                     <h2 className="text-4xl font-extrabold text-[#22b67f]">
                                         Add Booking
                                     </h2>
-                                    <p className="mt-1 text-slate-500">
+                                    <p className="mt-1 text-slate-600">
                                         Fill in the event details using the same quotation flow
                                     </p>
                                 </div>
@@ -1606,14 +1603,14 @@ function AdminCalendar() {
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 20, scale: 0.97 }}
                             transition={{ duration: 0.28, ease: "easeOut" }}
-                            className="max-h-[92vh] w-full max-w-5xl overflow-y-auto rounded-[30px] border border-[#e8efeb] bg-white shadow-2xl"
+                            className="max-h-[92vh] w-full max-w-5xl overflow-y-auto rounded-[30px] border border-[#1c6b55]/40 bg-[linear-gradient(135deg,#062b22_0%,#083a2d_45%,#0a4737_100%)] shadow-2xl"
                         >
-                            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100 bg-white px-8 py-6">
+                            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-[linear-gradient(135deg,rgba(5,33,27,0.94)_0%,rgba(8,54,42,0.92)_100%)] px-8 py-6 backdrop-blur-md">
                                 <div>
-                                    <h2 className="text-4xl font-extrabold text-[#22b67f]">
+                                    <h2 className="text-4xl font-extrabold text-[#2dd39b]">
                                         Manage Booking
                                     </h2>
-                                    <p className="mt-1 text-slate-500">
+                                    <p className="mt-1 text-[15px] text-white/75">
                                         Review full booking details and update event status
                                     </p>
                                 </div>
@@ -1621,20 +1618,20 @@ function AdminCalendar() {
                                 <button
                                     type="button"
                                     onClick={closeManageModal}
-                                    className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100"
+                                    className="rounded-full border border-white/10 bg-white/5 p-2 text-white/80 transition hover:bg-white/10 hover:text-white"
                                 >
                                     <X size={24} />
                                 </button>
                             </div>
 
                             <div className="p-8">
-                                <div className="rounded-[24px] border border-[#e8efeb] bg-[#f8fbfa] p-6">
+                                <div className="rounded-[24px] border border-white/10 bg-[linear-gradient(135deg,rgba(7,40,32,0.96)_0%,rgba(8,55,42,0.94)_100%)] p-6 shadow-[0_18px_45px_rgba(0,0,0,0.18)]">
                                     <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                                         <div>
-                                            <h3 className="text-3xl font-extrabold text-[#174c3c]">
+                                            <h3 className="text-3xl font-extrabold text-white">
                                                 {selectedBooking.eventType || "Booking"}
                                             </h3>
-                                            <p className="mt-2 text-lg text-slate-500">
+                                            <p className="mt-2 text-lg text-white/75">
                                                 Complete booking details based on your current system
                                             </p>
                                         </div>
@@ -1786,7 +1783,7 @@ function AdminCalendar() {
                                 </div>
 
                                 <div className="mt-8">
-                                    <h4 className="text-xl font-bold text-[#174c3c]">
+                                    <h4 className="text-xl font-bold text-white">
                                         Change Status
                                     </h4>
 
@@ -1794,22 +1791,22 @@ function AdminCalendar() {
                                         <ActionButton
                                             label="Mark as Confirmed"
                                             onClick={() => updateSelectedStatus("Confirmed")}
-                                            className="border-[#22b67f] text-[#174c3c] hover:bg-[#ecfff7]"
+                                            className="border-[#26d79b] bg-[#0b3a2d] text-[#7cf3ca] hover:bg-[#0f4a38]"
                                         />
                                         <ActionButton
                                             label="Mark as Pending"
                                             onClick={() => updateSelectedStatus("Pending")}
-                                            className="border-blue-200 text-blue-700 hover:bg-blue-50"
+                                            className="border-[#5aa7ff] bg-[#0a233a] text-[#7bb7ff] hover:bg-[#113050]"
                                         />
                                         <ActionButton
                                             label="Mark as Ongoing"
                                             onClick={() => updateSelectedStatus("Ongoing")}
-                                            className="border-amber-200 text-amber-700 hover:bg-amber-50"
+                                            className="border-[#f0c24f] bg-[#3f2f05] text-[#ffd56e] hover:bg-[#53400a]"
                                         />
                                         <ActionButton
                                             label="Mark as Completed"
                                             onClick={() => updateSelectedStatus("Completed")}
-                                            className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                                            className="border-[#36d399] bg-[#083328] text-[#7ff0bf] hover:bg-[#0d4334]"
                                         />
                                     </div>
                                 </div>
@@ -1833,7 +1830,7 @@ function AdminCalendar() {
                                         whileTap={{ scale: 0.98 }}
                                         type="button"
                                         onClick={closeManageModal}
-                                        className="rounded-[16px] border border-slate-200 px-7 py-4 text-base font-semibold text-slate-700 transition hover:bg-slate-50"
+                                        className="rounded-[16px] border border-white/15 bg-white/5 px-7 py-4 text-base font-semibold text-white/90 transition hover:bg-white/10"
                                     >
                                         Close
                                     </motion.button>
@@ -1935,7 +1932,9 @@ function SummaryRow({ label, value }) {
     return (
         <div className="flex items-start justify-between gap-4">
             <span className="text-white/75">{label}</span>
-            <span className="max-w-[190px] text-right font-semibold">{value}</span>
+            <span className="max-w-[190px] text-right font-semibold text-white">
+                {value}
+            </span>
         </div>
     );
 }
@@ -1961,7 +1960,7 @@ function Field({
                 onChange={onChange}
                 placeholder={placeholder}
                 required={required}
-                className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3.5 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
+                className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3.5 text-slate-800 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
             />
         </div>
     );
@@ -1988,7 +1987,7 @@ function SelectField({
                 onChange={onChange}
                 required={required}
                 disabled={disabled}
-                className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3.5 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 disabled:bg-gray-100"
+                className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3.5 text-slate-800 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20 disabled:bg-gray-100"
             >
                 <option value="">
                     {emptyLabel || `Select ${label.toLowerCase()}`}
@@ -2022,7 +2021,7 @@ function TextAreaField({
                 onChange={onChange}
                 placeholder={placeholder}
                 rows={rows}
-                className="w-full resize-none rounded-2xl border border-gray-300 bg-white px-4 py-3.5 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
+                className="w-full resize-none rounded-2xl border border-gray-300 bg-white px-4 py-3.5 text-slate-800 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
             />
         </div>
     );
@@ -2035,13 +2034,13 @@ function InfoCard({ icon, label, value, delay = 0 }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.34, delay, ease: "easeOut" }}
             whileHover={{ y: -2 }}
-            className="rounded-[18px] border border-[#e7ecea] bg-white p-4 transition-shadow hover:shadow-sm"
+            className="rounded-[18px] border border-white/15 bg-[linear-gradient(135deg,rgba(255,255,255,0.05)_0%,rgba(255,255,255,0.02)_100%)] p-4 transition-shadow hover:shadow-sm"
         >
-            <div className="flex items-center gap-2 text-sm font-semibold text-[#174c3c]">
-                <span>{icon}</span>
+            <div className="flex items-center gap-2 text-sm font-semibold text-white">
+                <span className="text-[#8ae9c5]">{icon}</span>
                 <span>{label}</span>
             </div>
-            <p className="mt-2 text-base text-slate-600">{value || "—"}</p>
+            <p className="mt-2 text-base font-medium text-white/88">{value || "—"}</p>
         </motion.div>
     );
 }
@@ -2053,10 +2052,10 @@ function LongInfoCard({ label, value }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.34, ease: "easeOut" }}
             whileHover={{ y: -2 }}
-            className="rounded-[18px] border border-[#e7ecea] bg-white p-4 transition-shadow hover:shadow-sm"
+            className="rounded-[18px] border border-white/15 bg-[linear-gradient(135deg,rgba(255,255,255,0.05)_0%,rgba(255,255,255,0.02)_100%)] p-4 transition-shadow hover:shadow-sm"
         >
-            <div className="text-sm font-semibold text-[#174c3c]">{label}</div>
-            <p className="mt-2 whitespace-pre-line text-base text-slate-600">
+            <div className="text-sm font-semibold text-[#8ae9c5]">{label}</div>
+            <p className="mt-2 whitespace-pre-line text-base font-medium text-white/88">
                 {value || "—"}
             </p>
         </motion.div>
