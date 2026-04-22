@@ -50,23 +50,18 @@ function AdminSidebar({ theme = "light" }) {
                     : "bg-[linear-gradient(180deg,#042f25_0%,#0a4637_28%,#0d5b47_62%,#12785b_100%)] text-white"
                 }`}
         >
-            {/* BG EFFECT */}
             <div className="pointer-events-none absolute inset-0">
                 <div className="absolute -top-16 right-[-50px] h-44 w-44 rounded-full bg-[#f5c94a]/20 blur-3xl" />
                 <div className="absolute bottom-[-40px] left-[-25px] h-32 w-32 rounded-full bg-white/10 blur-3xl" />
             </div>
 
-            {/* HEADER */}
             <div className="relative shrink-0 border-b border-white/10 px-5 py-5">
                 <h1 className="text-[20px] font-extrabold tracking-tight text-[#f5d36a]">
                     Ebit's Catering
                 </h1>
-                <p className="mt-1 text-xs text-white/70">
-                    Admin Workspace
-                </p>
+                <p className="mt-1 text-xs text-white/70">Admin Workspace</p>
             </div>
 
-            {/* NAV */}
             <nav className="relative flex-1 space-y-1.5 overflow-y-auto px-3 py-4">
                 {navItems.map((item, index) => {
                     const Icon = item.icon;
@@ -90,7 +85,6 @@ function AdminSidebar({ theme = "light" }) {
                             >
                                 {({ isActive }) => (
                                     <>
-                                        {/* ICON */}
                                         <div
                                             className={`flex h-9 w-9 items-center justify-center rounded-xl ${isActive
                                                     ? "bg-white text-[#0b4a3a]"
@@ -100,12 +94,8 @@ function AdminSidebar({ theme = "light" }) {
                                             <Icon size={16} />
                                         </div>
 
-                                        {/* TEXT */}
-                                        <span className="flex-1 truncate">
-                                            {item.label}
-                                        </span>
+                                        <span className="flex-1 truncate">{item.label}</span>
 
-                                        {/* ARROW */}
                                         <ChevronRight
                                             size={14}
                                             className={`transition ${isActive
@@ -125,7 +115,6 @@ function AdminSidebar({ theme = "light" }) {
 
     return (
         <>
-            {/* MOBILE BUTTON */}
             <button
                 onClick={() => setMobileOpen(true)}
                 className="fixed left-4 top-4 z-40 flex h-10 w-10 items-center justify-center rounded-xl bg-white text-[#0b4a3a] shadow lg:hidden"
@@ -133,16 +122,13 @@ function AdminSidebar({ theme = "light" }) {
                 <Menu size={18} />
             </button>
 
-            {/* DESKTOP */}
             <aside className="fixed left-0 top-0 z-40 hidden h-screen w-[240px] lg:block">
                 {navContent}
             </aside>
 
-            {/* MOBILE */}
             <AnimatePresence>
                 {mobileOpen && (
                     <>
-                        {/* OVERLAY */}
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
@@ -151,7 +137,6 @@ function AdminSidebar({ theme = "light" }) {
                             className="fixed inset-0 z-50 bg-black/40"
                         />
 
-                        {/* SIDEBAR */}
                         <motion.aside
                             initial={{ x: "-100%" }}
                             animate={{ x: 0 }}

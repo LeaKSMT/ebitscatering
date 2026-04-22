@@ -31,7 +31,6 @@ function AdminLayout() {
 
     useEffect(() => {
         localStorage.setItem("adminTheme", theme);
-
         document.documentElement.setAttribute("data-theme", theme);
         document.body.setAttribute("data-theme", theme);
         document.documentElement.classList.toggle("admin-dark", theme === "dark");
@@ -76,8 +75,8 @@ function AdminLayout() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         transition={{ duration: 0.45, ease: "easeOut" }}
                         className={`admin-main-surface relative min-w-0 overflow-visible rounded-[30px] border backdrop-blur-xl ${theme === "dark"
-                                ? "border-white/10 bg-[linear-gradient(180deg,rgba(8,28,22,0.82)_0%,rgba(9,34,26,0.82)_100%)] shadow-[0_25px_60px_rgba(0,0,0,0.30)]"
-                                : "border-white/70 bg-white/70 shadow-[0_25px_60px_rgba(15,77,60,0.10)]"
+                                ? "border-white/10 bg-[linear-gradient(180deg,rgba(8,28,22,0.88)_0%,rgba(9,34,26,0.88)_100%)] shadow-[0_25px_60px_rgba(0,0,0,0.30)]"
+                                : "border-[#dfe8e3] bg-[linear-gradient(180deg,rgba(255,255,255,0.88)_0%,rgba(250,252,251,0.94)_100%)] shadow-[0_25px_60px_rgba(15,77,60,0.10)]"
                             }`}
                     >
                         <div className="pointer-events-none absolute inset-0">

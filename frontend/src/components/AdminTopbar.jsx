@@ -20,9 +20,18 @@ function AdminTopbar({ currentPath = "", theme = "light", onToggleTheme }) {
     const [profileOpen, setProfileOpen] = useState(false);
     const [showLogoutModal, setShowLogoutModal] = useState(false);
 
+    const getSafeJson = (key) => {
+        try {
+            const raw = localStorage.getItem(key);
+            return raw ? JSON.parse(raw) : null;
+        } catch {
+            return null;
+        }
+    };
+
     const adminUser =
-        JSON.parse(localStorage.getItem("adminUser") || "null") ||
-        JSON.parse(localStorage.getItem("user") || "null") || {
+        getSafeJson("adminUser") ||
+        getSafeJson("user") || {
             name: "Admin User",
         };
 
