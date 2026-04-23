@@ -187,27 +187,57 @@ function formatEventDate(value) {
     });
 }
 
+function getCurrentTheme() {
+    if (typeof document === "undefined") return "light";
+
+    const html = document.documentElement;
+    const body = document.body;
+
+    if (
+        html.classList.contains("admin-dark") ||
+        body.classList.contains("admin-dark") ||
+        html.getAttribute("data-theme") === "dark" ||
+        body.getAttribute("data-theme") === "dark"
+    ) {
+        return "dark";
+    }
+
+    return "light";
+}
+
 function AdminDashboard() {
     const token = getStoredToken();
 
-    const [theme, setTheme] = useState(() => {
-        return localStorage.getItem("adminTheme") === "dark" ? "dark" : "light";
-    });
-
+    const [theme, setTheme] = useState(getCurrentTheme);
     const [quotations, setQuotations] = useState([]);
     const [bookings, setBookings] = useState([]);
     const [payments, setPayments] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        if (typeof document === "undefined") return undefined;
+
         const syncTheme = () => {
-            setTheme(localStorage.getItem("adminTheme") === "dark" ? "dark" : "light");
+            setTheme(getCurrentTheme());
         };
 
         syncTheme();
-        window.addEventListener("storage", syncTheme);
 
-        return () => window.removeEventListener("storage", syncTheme);
+        const observer = new MutationObserver(() => {
+            syncTheme();
+        });
+
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ["class", "data-theme"],
+        });
+
+        observer.observe(document.body, {
+            attributes: true,
+            attributeFilter: ["class", "data-theme"],
+        });
+
+        return () => observer.disconnect();
     }, []);
 
     useEffect(() => {
@@ -480,18 +510,6 @@ function AdminDashboard() {
     const heroBgClass = isDark
         ? "bg-[linear-gradient(135deg,#07382d_0%,#0c4d3d_34%,#0f6b52_68%,#18a06c_100%)] text-white"
         : "bg-[linear-gradient(135deg,#0d5b47_0%,#14785e_50%,#20a97a_100%)] text-white";
-    const cardClass = isDark
-        ? "border-white/10 bg-[linear-gradient(180deg,rgba(8,28,22,0.96)_0%,rgba(9,34,26,0.96)_100%)] shadow-[0_16px_34px_rgba(0,0,0,0.22)] hover:shadow-[0_22px_40px_rgba(0,0,0,0.28)]"
-        : "border-[#dfe8e3] bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(245,249,247,0.98)_100%)] shadow-[0_16px_34px_rgba(15,77,60,0.08)] hover:shadow-[0_22px_40px_rgba(15,77,60,0.12)]";
-    const statCardClass = isDark
-        ? "border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] shadow-[0_12px_24px_rgba(0,0,0,0.22)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.30)]"
-        : "border-[#dfe8e3] bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(246,250,248,0.98)_100%)] shadow-[0_12px_24px_rgba(15,77,60,0.08)] hover:shadow-[0_20px_40px_rgba(15,77,60,0.12)]";
-    const titleClass = isDark ? "text-white" : "text-[#10382d]";
-    const subTextClass = isDark ? "text-[#b4c8c0]" : "text-[#5f7b71]";
-    const labelClass = isDark ? "text-[#cfe2db]" : "text-[#43675b]";
-    const badgeClass = isDark
-        ? "border-white/10 bg-white/5 text-[#b8d5ca]"
-        : "border-[#d7e5de] bg-[#f4f8f6] text-[#527468]";
     const chartGridStroke = isDark ? "rgba(255,255,255,0.08)" : "rgba(15,77,60,0.10)";
     const axisStroke = isDark ? "#cfe2db" : "#4f7165";
     const tooltipStyle = isDark
@@ -510,7 +528,7 @@ function AdminDashboard() {
 
     return (
         <motion.div
-            data-build="premium-admin-dashboard-v9-theme-aware"
+            data-build="premium-admin-dashboard-v10-live-theme-sync"
             initial="hidden"
             animate="show"
             transition={{ staggerChildren: 0.1 }}
@@ -522,9 +540,18 @@ function AdminDashboard() {
                 className={`relative overflow-hidden rounded-[34px] border ${mainSectionClass}`}
             >
                 <div className="pointer-events-none absolute inset-0">
-                    <div className={`absolute -top-16 right-[-40px] h-52 w-52 rounded-full blur-3xl ${isDark ? "bg-[#d4af37]/12" : "bg-[#d4af37]/10"}`} />
-                    <div className={`absolute bottom-[-36px] left-[-24px] h-40 w-40 rounded-full blur-3xl ${isDark ? "bg-[#0f6d51]/18" : "bg-[#0f6d51]/10"}`} />
-                    <div className={`absolute top-1/2 right-1/3 h-32 w-32 rounded-full blur-3xl ${isDark ? "bg-white/5" : "bg-[#0f6d51]/6"}`} />
+                    <div
+                        className={`absolute -top-16 right-[-40px] h-52 w-52 rounded-full blur-3xl ${isDark ? "bg-[#d4af37]/12" : "bg-[#d4af37]/10"
+                            }`}
+                    />
+                    <div
+                        className={`absolute bottom-[-36px] left-[-24px] h-40 w-40 rounded-full blur-3xl ${isDark ? "bg-[#0f6d51]/18" : "bg-[#0f6d51]/10"
+                            }`}
+                    />
+                    <div
+                        className={`absolute top-1/2 right-1/3 h-32 w-32 rounded-full blur-3xl ${isDark ? "bg-white/5" : "bg-[#0f6d51]/6"
+                            }`}
+                    />
                 </div>
 
                 <div className={`relative overflow-hidden px-6 py-8 md:px-8 md:py-10 ${heroBgClass}`}>
