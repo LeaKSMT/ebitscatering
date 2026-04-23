@@ -2,8 +2,8 @@ function getApiBaseUrl() {
   const envUrl = import.meta.env.VITE_API_URL?.trim();
 
   if (!envUrl) {
-    console.warn("VITE_API_URL is missing. Using Railway fallback.");
-    return "https://ebitscatering-production.up.railway.app/api";
+    console.warn("VITE_API_URL is missing. Using Render fallback.");
+    return "https://ebitscatering.onrender.com/api";
   }
 
   const cleaned = envUrl.replace(/\/+$/, "");
@@ -156,6 +156,22 @@ export const authService = {
       credentials: "include",
       body: JSON.stringify({
         email: String(email || "").trim().toLowerCase(),
+      }),
+    });
+
+    return handleResponse(response);
+  },
+
+  async resetPassword({ token, password }) {
+    const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        token: String(token || "").trim(),
+        password: String(password || ""),
       }),
     });
 

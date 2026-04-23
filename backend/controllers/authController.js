@@ -1,6 +1,8 @@
 const db = require("../config/db");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
+const nodemailer = require("nodemailer");
 
 const signToken = (user) => {
     return jwt.sign(
@@ -21,6 +23,23 @@ const cookieOptions = {
     sameSite: "none",
     maxAge: 24 * 60 * 60 * 1000,
     path: "/",
+};
+
+const getTransporter = () => {
+    const mailUser = process.env.MAIL_USER;
+    const mailPass = process.env.MAIL_PASS;
+
+    if (!mailUser || !mailPass) {
+        return null;
+    }
+
+    return nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+            user: mailUser,
+            pass: mailPass,
+        },
+    });
 };
 
 exports.register = async (req, res) => {
@@ -317,6 +336,200 @@ exports.me = (req, res) => {
                 success: true,
                 user: results[0],
             });
+        }
+    );
+};
+
+exports.forgotPassword = (req, res) => {
+    const email = (req.body.email || "").trim().toLowerCase();
+
+    if (!email) {
+        return res.status(400).json({
+            success: false,
+            message: "Email is required.",
+        });
+    }
+
+    db.query(
+        "SELECT id, name, email FROM users WHERE LOWER(email) = ? LIMIT 1",
+        [email],
+        async (err, results) => {
+            if (err) {
+                console.error("Forgot password lookup error:", err);
+                return res.status(500).json({
+                    success: false,
+                    message: "Server error",
+                    error: err.message,
+                });
+            }
+
+            if (!results || results.length === 0) {
+                return res.status(200).json({
+                    success: true,
+                    message:
+                        "If your email exists in the system, reset instructions have been sent.",
+                });
+            }
+
+            const user = results[0];
+            const rawToken = crypto.randomBytes(32).toString("hex");
+            const hashedToken = crypto
+                .createHash("sha256")
+                .update(rawToken)
+                .digest("hex");
+            const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+            db.query(
+                "UPDATE users SET reset_token = ?, reset_token_expires = ? WHERE id = ?",
+                [hashedToken, expiresAt, user.id],
+                async (updateErr) => {
+                    if (updateErr) {
+                        console.error("Forgot password update error:", updateErr);
+                        return res.status(500).json({
+                            success: false,
+                            message: "Failed to create reset token",
+                            error: updateErr.message,
+                        });
+                    }
+
+                    const frontendUrl =
+                        (process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/+$/, "");
+                    const resetLink = `${frontendUrl}/reset-password?token=${rawToken}`;
+
+                    try {
+                        const transporter = getTransporter();
+
+                        if (transporter) {
+                            await transporter.sendMail({
+                                from: process.env.MAIL_USER,
+                                to: user.email,
+                                subject: "Reset Your Ebit's Catering Password",
+                                html: `
+                                    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #1f2937;">
+                                        <h2 style="color: #0f4d3c;">Password Reset Request</h2>
+                                        <p>Hello ${user.name || "User"},</p>
+                                        <p>We received a request to reset your password.</p>
+                                        <p>
+                                            Click the button below to reset your password:
+                                        </p>
+                                        <p style="margin: 24px 0;">
+                                            <a
+                                                href="${resetLink}"
+                                                style="background:#0f4d3c;color:#ffffff;padding:12px 20px;border-radius:10px;text-decoration:none;display:inline-block;"
+                                            >
+                                                Reset Password
+                                            </a>
+                                        </p>
+                                        <p>This link will expire in 15 minutes.</p>
+                                        <p>If you did not request this, you can safely ignore this email.</p>
+                                    </div>
+                                `,
+                            });
+
+                            return res.status(200).json({
+                                success: true,
+                                message:
+                                    "If your email exists in the system, reset instructions have been sent.",
+                            });
+                        }
+
+                        console.log("RESET LINK (DEV ONLY):", resetLink);
+
+                        return res.status(200).json({
+                            success: true,
+                            message:
+                                "Reset link generated successfully. Email sending is not configured yet.",
+                            resetLink,
+                        });
+                    } catch (mailErr) {
+                        console.error("Forgot password email error:", mailErr);
+
+                        return res.status(200).json({
+                            success: true,
+                            message:
+                                "Reset link generated, but email sending failed. Use the returned reset link for testing.",
+                            resetLink,
+                        });
+                    }
+                }
+            );
+        }
+    );
+};
+
+exports.resetPassword = async (req, res) => {
+    const token = (req.body.token || "").trim();
+    const newPassword = (req.body.password || "").trim();
+
+    if (!token || !newPassword) {
+        return res.status(400).json({
+            success: false,
+            message: "Token and new password are required.",
+        });
+    }
+
+    if (newPassword.length < 6) {
+        return res.status(400).json({
+            success: false,
+            message: "Password must be at least 6 characters long.",
+        });
+    }
+
+    const hashedToken = crypto
+        .createHash("sha256")
+        .update(token)
+        .digest("hex");
+
+    db.query(
+        "SELECT id FROM users WHERE reset_token = ? AND reset_token_expires > NOW() LIMIT 1",
+        [hashedToken],
+        async (err, results) => {
+            if (err) {
+                console.error("Reset password lookup error:", err);
+                return res.status(500).json({
+                    success: false,
+                    message: "Server error",
+                    error: err.message,
+                });
+            }
+
+            if (!results || results.length === 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid or expired reset token.",
+                });
+            }
+
+            try {
+                const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+                db.query(
+                    "UPDATE users SET password = ?, reset_token = NULL, reset_token_expires = NULL WHERE id = ?",
+                    [hashedPassword, results[0].id],
+                    (updateErr) => {
+                        if (updateErr) {
+                            console.error("Reset password update error:", updateErr);
+                            return res.status(500).json({
+                                success: false,
+                                message: "Failed to reset password",
+                                error: updateErr.message,
+                            });
+                        }
+
+                        return res.status(200).json({
+                            success: true,
+                            message: "Password has been reset successfully.",
+                        });
+                    }
+                );
+            } catch (hashErr) {
+                console.error("Reset password hash error:", hashErr);
+                return res.status(500).json({
+                    success: false,
+                    message: "Server error",
+                    error: hashErr.message,
+                });
+            }
         }
     );
 };

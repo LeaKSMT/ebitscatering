@@ -4,6 +4,7 @@ import Home from "./pages/Home";
 import Packages from "./pages/Packages";
 import Quotation from "./pages/Quotation";
 import Login from "./pages/Login";
+import ResetPassword from "./pages/ResetPassword";
 import ClientRegister from "./pages/ClientRegister";
 import Inquiry from "./pages/Inquiry";
 
@@ -48,7 +49,6 @@ function App() {
   return (
     <Router>
       <Routes>
-
         <Route path="/" element={<Home />} />
         <Route path="/packages" element={<Packages />} />
         <Route path="/inquiry" element={<Inquiry />} />
@@ -56,12 +56,12 @@ function App() {
         <Route path="/client-login" element={<Login />} />
         <Route path="/register" element={<ClientRegister />} />
         <Route path="/client-register" element={<ClientRegister />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
         <Route
           path="/quotation"
           element={<Navigate to="/client/quotation" replace />}
         />
-
 
         <Route
           path="/client"
@@ -79,7 +79,6 @@ function App() {
           <Route path="calendar" element={<ClientCalendar />} />
           <Route path="inquiries" element={<ClientInquiries />} />
         </Route>
-
 
         <Route path="/admin-login" element={<AdminLogin />} />
 
@@ -104,7 +103,6 @@ function App() {
           <Route path="clients" element={<AdminClients />} />
           <Route path="reports" element={<AdminReports />} />
         </Route>
-
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
