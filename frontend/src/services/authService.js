@@ -147,6 +147,21 @@ export const authService = {
     return handleResponse(response);
   },
 
+  async forgotPassword(email) {
+    const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        email: String(email || "").trim().toLowerCase(),
+      }),
+    });
+
+    return handleResponse(response);
+  },
+
   async logout() {
     const token = getStoredToken();
 

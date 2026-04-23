@@ -11,6 +11,8 @@ import {
     SunMedium,
     LogOut,
     X,
+    BellRing,
+    Stars,
 } from "lucide-react";
 
 function AdminTopbar({ currentPath = "", theme = "light", onToggleTheme }) {
@@ -19,6 +21,8 @@ function AdminTopbar({ currentPath = "", theme = "light", onToggleTheme }) {
 
     const [profileOpen, setProfileOpen] = useState(false);
     const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+    const isDark = theme === "dark";
 
     const getSafeJson = (key) => {
         try {
@@ -136,23 +140,30 @@ function AdminTopbar({ currentPath = "", theme = "light", onToggleTheme }) {
         };
 
         document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
+        return () =>
+            document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
     return (
         <>
-            <header className="admin-topbar sticky top-0 z-30 border-b backdrop-blur-2xl">
+            <header className="sticky top-0 z-30 border-b border-white/10 backdrop-blur-2xl">
                 <div className="px-3 pb-3 pt-14 sm:px-4 md:px-5 lg:px-6 lg:pb-4 lg:pt-4">
                     <motion.div
                         initial={{ opacity: 0, y: -12 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.45, ease: "easeOut" }}
-                        className="relative overflow-visible rounded-[30px] border bg-[linear-gradient(135deg,#0a4637_0%,#0d5c48_48%,#148266_100%)] text-white shadow-[0_20px_50px_rgba(10,70,55,0.20)]"
+                        className={`relative overflow-visible rounded-[32px] border text-white ${isDark
+                                ? "border-white/10 bg-[linear-gradient(135deg,#063126_0%,#0a4637_32%,#0f6550_68%,#148366_100%)] shadow-[0_24px_60px_rgba(0,0,0,0.26)]"
+                                : "border-white/20 bg-[linear-gradient(135deg,#0a4637_0%,#0d5c48_38%,#13735b_72%,#1a8a6b_100%)] shadow-[0_24px_60px_rgba(10,70,55,0.18)]"
+                            }`}
                     >
-                        <div className="pointer-events-none absolute inset-0">
+                        <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[32px]">
+                            <div className="absolute inset-y-0 right-0 w-px bg-gradient-to-b from-transparent via-white/20 to-transparent" />
+                            <div className="absolute left-0 top-0 h-28 w-full bg-gradient-to-b from-white/10 to-transparent" />
                             <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-[#f3d57a]/18 blur-3xl" />
                             <div className="absolute left-[-30px] top-[25%] h-24 w-24 rounded-full bg-white/8 blur-3xl" />
                             <div className="absolute bottom-[-25px] right-[24%] h-20 w-20 rounded-full bg-white/6 blur-2xl" />
+                            <div className="absolute inset-0 opacity-[0.045] [background-image:radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:20px_20px]" />
                         </div>
 
                         <motion.div
@@ -172,14 +183,17 @@ function AdminTopbar({ currentPath = "", theme = "light", onToggleTheme }) {
                                     <motion.div
                                         initial={{ opacity: 0, scale: 0.96 }}
                                         animate={{ opacity: 1, scale: 1 }}
-                                        transition={{ delay: 0.08, duration: 0.3 }}
-                                        className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.24em] text-white/80 backdrop-blur-md"
+                                        transition={{
+                                            delay: 0.08,
+                                            duration: 0.3,
+                                        }}
+                                        className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.24em] text-white/80 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]"
                                     >
                                         <Sparkles size={12} />
                                         Executive View
                                     </motion.div>
 
-                                    <h1 className="mt-3 text-[24px] font-extrabold tracking-tight text-white sm:text-[28px] lg:text-[32px]">
+                                    <h1 className="mt-3 text-[24px] font-extrabold tracking-tight text-white sm:text-[28px] lg:text-[33px]">
                                         {current.title}
                                     </h1>
 
@@ -189,16 +203,23 @@ function AdminTopbar({ currentPath = "", theme = "light", onToggleTheme }) {
                                 </div>
 
                                 <div className="flex justify-end">
-                                    <div className="relative" ref={dropdownRef}>
+                                    <div
+                                        className="relative"
+                                        ref={dropdownRef}
+                                    >
                                         <motion.button
                                             whileHover={{ y: -2, scale: 1.01 }}
                                             whileTap={{ scale: 0.985 }}
                                             transition={{ duration: 0.2 }}
-                                            onClick={() => setProfileOpen((prev) => !prev)}
-                                            className="admin-profile-trigger flex min-w-[240px] items-center gap-3 rounded-[20px] border px-3.5 py-3 text-left shadow-[0_14px_30px_rgba(0,0,0,0.10)]"
+                                            onClick={() =>
+                                                setProfileOpen((prev) => !prev)
+                                            }
+                                            className="group flex min-w-[255px] items-center gap-3 rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.10)_0%,rgba(255,255,255,0.06)_100%)] px-3.5 py-3 text-left shadow-[0_16px_32px_rgba(0,0,0,0.12)] backdrop-blur-md transition duration-300 hover:border-white/15 hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.13)_0%,rgba(255,255,255,0.08)_100%)]"
                                         >
-                                            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#fff3c8_0%,#f2cf63_100%)] text-[#8a6710] shadow-sm">
-                                                <ShieldCheck size={18} />
+                                            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[18px] bg-[linear-gradient(135deg,#fff3c8_0%,#f2cf63_100%)] text-[#8a6710] shadow-[0_10px_24px_rgba(242,207,99,0.20)]">
+                                                <ShieldCheck
+                                                    size={18}
+                                                />
                                             </div>
 
                                             <div className="min-w-0 flex-1">
@@ -208,16 +229,25 @@ function AdminTopbar({ currentPath = "", theme = "light", onToggleTheme }) {
                                                 <p className="truncate text-sm font-bold text-white">
                                                     {adminUser.name}
                                                 </p>
-                                                <div className="mt-0.5 flex items-center gap-1.5 text-xs text-white/70">
-                                                    <Crown size={12} className="text-[#f3d57a]" />
-                                                    <span>Administrator Access</span>
-                                                    <ArrowUpRight size={12} />
+                                                <div className="mt-0.5 flex items-center gap-1.5 text-xs text-white/72">
+                                                    <Crown
+                                                        size={12}
+                                                        className="text-[#f3d57a]"
+                                                    />
+                                                    <span>
+                                                        Administrator Access
+                                                    </span>
+                                                    <ArrowUpRight
+                                                        size={12}
+                                                    />
                                                 </div>
                                             </div>
 
                                             <ChevronDown
                                                 size={16}
-                                                className={`shrink-0 text-white/85 transition ${profileOpen ? "rotate-180" : ""
+                                                className={`shrink-0 text-white/85 transition duration-300 ${profileOpen
+                                                        ? "rotate-180"
+                                                        : ""
                                                     }`}
                                             />
                                         </motion.button>
@@ -225,25 +255,119 @@ function AdminTopbar({ currentPath = "", theme = "light", onToggleTheme }) {
                                         <AnimatePresence>
                                             {profileOpen && (
                                                 <motion.div
-                                                    initial={{ opacity: 0, y: 10, scale: 0.97 }}
-                                                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                                                    exit={{ opacity: 0, y: 8, scale: 0.97 }}
-                                                    transition={{ duration: 0.2, ease: "easeOut" }}
-                                                    className="admin-profile-dropdown absolute right-0 top-[calc(100%+10px)] z-[120] w-[320px] overflow-hidden rounded-[24px] border shadow-[0_25px_60px_rgba(0,0,0,0.22)]"
+                                                    initial={{
+                                                        opacity: 0,
+                                                        y: 10,
+                                                        scale: 0.97,
+                                                    }}
+                                                    animate={{
+                                                        opacity: 1,
+                                                        y: 0,
+                                                        scale: 1,
+                                                    }}
+                                                    exit={{
+                                                        opacity: 0,
+                                                        y: 8,
+                                                        scale: 0.97,
+                                                    }}
+                                                    transition={{
+                                                        duration: 0.2,
+                                                        ease: "easeOut",
+                                                    }}
+                                                    className={`absolute right-0 top-[calc(100%+10px)] z-[120] w-[332px] overflow-hidden rounded-[26px] border shadow-[0_30px_70px_rgba(0,0,0,0.26)] ${isDark
+                                                            ? "border-white/10 bg-[linear-gradient(180deg,rgba(7,27,21,0.98)_0%,rgba(10,36,29,0.98)_100%)]"
+                                                            : "border-[#dfe8e3] bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(249,252,251,0.98)_100%)]"
+                                                        }`}
                                                 >
-                                                    <div className="admin-profile-dropdown-header px-5 py-4">
+                                                    <div
+                                                        className={`px-5 py-4 ${isDark
+                                                                ? "border-b border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.06)_0%,rgba(255,255,255,0.03)_100%)]"
+                                                                : "border-b border-[#ebf1ee] bg-[linear-gradient(135deg,#fdfbf3_0%,#f7f1d8_100%)]"
+                                                            }`}
+                                                    >
                                                         <div className="flex items-center gap-3">
-                                                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#fff3c8_0%,#f2cf63_100%)] text-[#8a6710] shadow-sm">
-                                                                <ShieldCheck size={18} />
+                                                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[18px] bg-[linear-gradient(135deg,#fff3c8_0%,#f2cf63_100%)] text-[#8a6710] shadow-sm">
+                                                                <ShieldCheck
+                                                                    size={
+                                                                        18
+                                                                    }
+                                                                />
                                                             </div>
 
                                                             <div className="min-w-0">
-                                                                <p className="truncate text-sm font-bold">
-                                                                    {adminUser.name || "Admin User"}
+                                                                <p
+                                                                    className={`truncate text-sm font-bold ${isDark
+                                                                            ? "text-white"
+                                                                            : "text-[#08382d]"
+                                                                        }`}
+                                                                >
+                                                                    {adminUser.name ||
+                                                                        "Admin User"}
                                                                 </p>
-                                                                <p className="mt-0.5 truncate text-xs opacity-85">
-                                                                    Administrator Access
+                                                                <p
+                                                                    className={`mt-0.5 truncate text-xs ${isDark
+                                                                            ? "text-white/70"
+                                                                            : "text-[#58756c]"
+                                                                        }`}
+                                                                >
+                                                                    Administrator
+                                                                    Access
                                                                 </p>
+                                                            </div>
+                                                        </div>
+
+                                                        <div
+                                                            className={`mt-4 grid grid-cols-2 gap-2 rounded-[18px] border px-3 py-3 ${isDark
+                                                                    ? "border-white/10 bg-white/[0.03]"
+                                                                    : "border-[#e7efea] bg-white/75"
+                                                                }`}
+                                                        >
+                                                            <div>
+                                                                <p
+                                                                    className={`text-[10px] font-semibold uppercase tracking-[0.18em] ${isDark
+                                                                            ? "text-white/45"
+                                                                            : "text-[#7e958d]"
+                                                                        }`}
+                                                                >
+                                                                    Role
+                                                                </p>
+                                                                <div
+                                                                    className={`mt-1 flex items-center gap-1.5 text-xs font-semibold ${isDark
+                                                                            ? "text-[#f6d97e]"
+                                                                            : "text-[#8a6710]"
+                                                                        }`}
+                                                                >
+                                                                    <Crown
+                                                                        size={
+                                                                            12
+                                                                        }
+                                                                    />
+                                                                    Admin
+                                                                </div>
+                                                            </div>
+
+                                                            <div>
+                                                                <p
+                                                                    className={`text-[10px] font-semibold uppercase tracking-[0.18em] ${isDark
+                                                                            ? "text-white/45"
+                                                                            : "text-[#7e958d]"
+                                                                        }`}
+                                                                >
+                                                                    Status
+                                                                </p>
+                                                                <div
+                                                                    className={`mt-1 flex items-center gap-1.5 text-xs font-semibold ${isDark
+                                                                            ? "text-[#98efcc]"
+                                                                            : "text-[#0f7a51]"
+                                                                        }`}
+                                                                >
+                                                                    <BellRing
+                                                                        size={
+                                                                            12
+                                                                        }
+                                                                    />
+                                                                    Active
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -254,32 +378,84 @@ function AdminTopbar({ currentPath = "", theme = "light", onToggleTheme }) {
                                                                 type="button"
                                                                 onClick={() => {
                                                                     onToggleTheme?.();
-                                                                    setProfileOpen(false);
+                                                                    setProfileOpen(
+                                                                        false
+                                                                    );
                                                                 }}
-                                                                className="admin-dropdown-item flex w-full items-center gap-3 rounded-[16px] px-4 py-3 text-left text-sm font-semibold"
+                                                                className={`flex w-full items-center gap-3 rounded-[16px] px-4 py-3 text-left text-sm font-semibold transition ${isDark
+                                                                        ? "text-white hover:bg-white/8"
+                                                                        : "text-[#08382d] hover:bg-[#f3f7f5]"
+                                                                    }`}
                                                             >
-                                                                {theme === "dark" ? (
-                                                                    <SunMedium size={18} />
-                                                                ) : (
-                                                                    <Moon size={18} />
-                                                                )}
-                                                                <span>
-                                                                    {theme === "dark"
-                                                                        ? "Switch to Light Mode"
-                                                                        : "Switch to Dark Mode"}
-                                                                </span>
+                                                                <div
+                                                                    className={`flex h-9 w-9 items-center justify-center rounded-xl ${isDark
+                                                                            ? "bg-white/8 text-[#f6d97e]"
+                                                                            : "bg-[#edf8f3] text-[#0f4d3c]"
+                                                                        }`}
+                                                                >
+                                                                    {theme ===
+                                                                        "dark" ? (
+                                                                        <SunMedium
+                                                                            size={
+                                                                                17
+                                                                            }
+                                                                        />
+                                                                    ) : (
+                                                                        <Moon
+                                                                            size={
+                                                                                17
+                                                                            }
+                                                                        />
+                                                                    )}
+                                                                </div>
+                                                                <div className="flex-1">
+                                                                    <span>
+                                                                        {theme ===
+                                                                            "dark"
+                                                                            ? "Switch to Light Mode"
+                                                                            : "Switch to Dark Mode"}
+                                                                    </span>
+                                                                </div>
+                                                                <Stars
+                                                                    size={14}
+                                                                    className={
+                                                                        isDark
+                                                                            ? "text-white/40"
+                                                                            : "text-[#90a79f]"
+                                                                    }
+                                                                />
                                                             </button>
 
                                                             <button
                                                                 type="button"
                                                                 onClick={() => {
-                                                                    setProfileOpen(false);
-                                                                    setShowLogoutModal(true);
+                                                                    setProfileOpen(
+                                                                        false
+                                                                    );
+                                                                    setShowLogoutModal(
+                                                                        true
+                                                                    );
                                                                 }}
-                                                                className="admin-dropdown-item admin-dropdown-item-logout flex w-full items-center gap-3 rounded-[16px] px-4 py-3 text-left text-sm font-semibold"
+                                                                className={`flex w-full items-center gap-3 rounded-[16px] px-4 py-3 text-left text-sm font-semibold transition ${isDark
+                                                                        ? "text-[#ffb4b4] hover:bg-[rgba(239,68,68,0.10)]"
+                                                                        : "text-[#c73a3a] hover:bg-[#fff1f1]"
+                                                                    }`}
                                                             >
-                                                                <LogOut size={18} />
-                                                                <span>Logout</span>
+                                                                <div
+                                                                    className={`flex h-9 w-9 items-center justify-center rounded-xl ${isDark
+                                                                            ? "bg-[rgba(239,68,68,0.10)] text-[#fca5a5]"
+                                                                            : "bg-[#fff1f1] text-[#dc2626]"
+                                                                        }`}
+                                                                >
+                                                                    <LogOut
+                                                                        size={
+                                                                            17
+                                                                        }
+                                                                    />
+                                                                </div>
+                                                                <span>
+                                                                    Logout
+                                                                </span>
                                                             </button>
                                                         </div>
                                                     </div>
@@ -296,12 +472,15 @@ function AdminTopbar({ currentPath = "", theme = "light", onToggleTheme }) {
 
             <AnimatePresence>
                 {showLogoutModal && (
-                    <div className="fixed inset-0 z-[130] flex items-center justify-center bg-black/45 px-4 backdrop-blur-[3px]">
+                    <div className="fixed inset-0 z-[130] flex items-center justify-center bg-black/50 px-4 backdrop-blur-[4px]">
                         <motion.div
                             initial={{ opacity: 0, y: 18, scale: 0.97 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 18, scale: 0.97 }}
-                            className="admin-logout-modal w-full max-w-md overflow-hidden rounded-[28px] border shadow-[0_25px_60px_rgba(0,0,0,0.18)]"
+                            className={`w-full max-w-md overflow-hidden rounded-[30px] border shadow-[0_30px_70px_rgba(0,0,0,0.22)] ${isDark
+                                    ? "border-white/10 bg-[linear-gradient(180deg,rgba(8,28,22,0.99)_0%,rgba(10,34,26,0.99)_100%)]"
+                                    : "border-[#dfe8e3] bg-white"
+                                }`}
                         >
                             <div className="bg-[linear-gradient(135deg,#0b4a3a_0%,#0f5d49_60%,#12785b_100%)] px-6 py-5 text-white">
                                 <div className="flex items-start justify-between gap-4">
@@ -315,7 +494,9 @@ function AdminTopbar({ currentPath = "", theme = "light", onToggleTheme }) {
                                     </div>
 
                                     <button
-                                        onClick={() => setShowLogoutModal(false)}
+                                        onClick={() =>
+                                            setShowLogoutModal(false)
+                                        }
                                         className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20"
                                     >
                                         <X size={18} />
@@ -324,14 +505,25 @@ function AdminTopbar({ currentPath = "", theme = "light", onToggleTheme }) {
                             </div>
 
                             <div className="px-6 py-6">
-                                <p className="admin-logout-text leading-7">
-                                    Are you sure you want to log out of the admin panel?
+                                <p
+                                    className={`leading-7 ${isDark
+                                            ? "text-[#dce9e4]"
+                                            : "text-[#50645e]"
+                                        }`}
+                                >
+                                    Are you sure you want to log out of the
+                                    admin panel?
                                 </p>
 
                                 <div className="mt-6 grid grid-cols-2 gap-3">
                                     <button
-                                        onClick={() => setShowLogoutModal(false)}
-                                        className="admin-logout-cancel w-full rounded-2xl border py-3 font-bold transition"
+                                        onClick={() =>
+                                            setShowLogoutModal(false)
+                                        }
+                                        className={`w-full rounded-2xl border py-3 font-bold transition ${isDark
+                                                ? "border-white/10 text-white hover:bg-white/6"
+                                                : "border-[#dfe8e3] text-[#0b4a3a] hover:bg-[#f5faf7]"
+                                            }`}
                                     >
                                         Cancel
                                     </button>

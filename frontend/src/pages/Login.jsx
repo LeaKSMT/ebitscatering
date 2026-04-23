@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { signInWithPopup, signInWithRedirect, getRedirectResult } from "firebase/auth";
+import {
+    signInWithPopup,
+    signInWithRedirect,
+    getRedirectResult,
+} from "firebase/auth";
 import {
     Eye,
     EyeOff,
@@ -55,7 +59,13 @@ function Login() {
         document.documentElement.classList.remove("dark");
     };
 
-    const saveClientSession = ({ id = null, name, email, photo = "", token = "" }) => {
+    const saveClientSession = ({
+        id = null,
+        name,
+        email,
+        photo = "",
+        token = "",
+    }) => {
         const safeEmail = email?.trim().toLowerCase() || "";
         const finalName = name?.trim() || safeEmail.split("@")[0] || "Client";
 
@@ -84,7 +94,13 @@ function Login() {
         }
     };
 
-    const saveAdminSession = ({ id = null, name, email, photo = "", token = "" }) => {
+    const saveAdminSession = ({
+        id = null,
+        name,
+        email,
+        photo = "",
+        token = "",
+    }) => {
         const safeEmail = email?.trim().toLowerCase() || "";
         const finalName = name?.trim() || safeEmail.split("@")[0] || "Admin";
 
@@ -159,7 +175,10 @@ function Login() {
             },
         });
 
-        setTimeout(() => navigate(getRedirectAfterLogin("client"), { replace: true }), 1000);
+        setTimeout(
+            () => navigate(getRedirectAfterLogin("client"), { replace: true }),
+            1000
+        );
     };
 
     useEffect(() => {
@@ -281,6 +300,91 @@ function Login() {
         }
     };
 
+    const handleForgotPassword = async () => {
+        const { value: forgotEmail } = await Swal.fire({
+            title: "Forgot Password",
+            text: "Enter your email and we’ll send reset instructions.",
+            input: "email",
+            inputLabel: "Email Address",
+            inputPlaceholder: "Enter your email",
+            inputValue: email || "",
+            showCancelButton: true,
+            confirmButtonText: "Send",
+            cancelButtonText: "Cancel",
+            background: "#ffffff",
+            color: "#1f2937",
+            confirmButtonColor: "#0f4d3c",
+            cancelButtonColor: "#9ca3af",
+            customClass: {
+                popup: "rounded-[24px] shadow-2xl",
+                title: "text-2xl font-bold",
+                confirmButton: "rounded-xl px-6 py-2",
+                cancelButton: "rounded-xl px-6 py-2",
+                input: "rounded-xl",
+            },
+            inputValidator: (value) => {
+                if (!value) return "Email is required.";
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(value)) return "Please enter a valid email.";
+                return undefined;
+            },
+        });
+
+        if (!forgotEmail) return;
+
+        try {
+            Swal.fire({
+                title: "Sending...",
+                text: "Please wait while we process your request.",
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                background: "#ffffff",
+                color: "#1f2937",
+                didOpen: () => {
+                    Swal.showLoading();
+                },
+            });
+
+            const data = await authService.forgotPassword(
+                forgotEmail.trim().toLowerCase()
+            );
+
+            await Swal.fire({
+                icon: "success",
+                title: "Request Sent",
+                text:
+                    data?.message ||
+                    "If your email exists in the system, reset instructions have been sent.",
+                confirmButtonText: "Okay",
+                background: "#ffffff",
+                color: "#1f2937",
+                confirmButtonColor: "#0f4d3c",
+                customClass: {
+                    popup: "rounded-[24px] shadow-2xl",
+                    title: "text-2xl font-bold",
+                    confirmButton: "rounded-xl px-6 py-2",
+                },
+            });
+        } catch (err) {
+            await Swal.fire({
+                icon: "error",
+                title: "Request Failed",
+                text:
+                    err.message ||
+                    "Unable to process forgot password request right now.",
+                confirmButtonText: "Okay",
+                background: "#ffffff",
+                color: "#1f2937",
+                confirmButtonColor: "#0f4d3c",
+                customClass: {
+                    popup: "rounded-[24px] shadow-2xl",
+                    title: "text-2xl font-bold",
+                    confirmButton: "rounded-xl px-6 py-2",
+                },
+            });
+        }
+    };
+
     const pageVariants = {
         hidden: { opacity: 0 },
         visible: {
@@ -365,7 +469,9 @@ function Login() {
                                 className="mt-8 text-5xl font-extrabold leading-tight"
                             >
                                 Welcome Back to
-                                <span className="block text-[#f5c94a]">Ebit&apos;s Catering</span>
+                                <span className="block text-[#f5c94a]">
+                                    Ebit&apos;s Catering
+                                </span>
                             </motion.h1>
 
                             <motion.p
@@ -383,9 +489,14 @@ function Login() {
                                 whileHover={{ y: -4, scale: 1.01 }}
                                 className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/10 p-4"
                             >
-                                <UtensilsCrossed className="mt-1 text-[#f5c94a]" size={20} />
+                                <UtensilsCrossed
+                                    className="mt-1 text-[#f5c94a]"
+                                    size={20}
+                                />
                                 <div>
-                                    <h3 className="font-semibold">Professional workflow</h3>
+                                    <h3 className="font-semibold">
+                                        Professional workflow
+                                    </h3>
                                     <p className="text-sm text-white/75">
                                         Smooth access for clients and administrators.
                                     </p>
@@ -397,11 +508,15 @@ function Login() {
                                 whileHover={{ y: -4, scale: 1.01 }}
                                 className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/10 p-4"
                             >
-                                <ShieldCheck className="mt-1 text-[#f5c94a]" size={20} />
+                                <ShieldCheck
+                                    className="mt-1 text-[#f5c94a]"
+                                    size={20}
+                                />
                                 <div>
                                     <h3 className="font-semibold">Secure access</h3>
                                     <p className="text-sm text-white/75">
-                                        Login securely with your account credentials or Google.
+                                        Login securely with your account credentials or
+                                        Google.
                                     </p>
                                 </div>
                             </motion.div>
@@ -473,10 +588,26 @@ function Login() {
 
                                         <button
                                             type="button"
-                                            onClick={() => setShowPassword(!showPassword)}
+                                            onClick={() =>
+                                                setShowPassword(!showPassword)
+                                            }
                                             className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#0b4d3b]"
                                         >
-                                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                            {showPassword ? (
+                                                <EyeOff size={18} />
+                                            ) : (
+                                                <Eye size={18} />
+                                            )}
+                                        </button>
+                                    </div>
+
+                                    <div className="mt-2 flex justify-end">
+                                        <button
+                                            type="button"
+                                            onClick={handleForgotPassword}
+                                            className="text-sm font-semibold text-[#b99117] transition hover:text-[#8f6f0c]"
+                                        >
+                                            Forgot Password?
                                         </button>
                                     </div>
                                 </motion.div>
@@ -521,10 +652,22 @@ function Login() {
                                 className="flex w-full items-center justify-center gap-3 rounded-2xl border border-gray-300 bg-white px-4 py-3.5 font-medium text-gray-700 transition hover:border-[#d4af37] hover:shadow-sm disabled:opacity-70"
                             >
                                 <svg className="h-5 w-5" viewBox="0 0 48 48" aria-hidden="true">
-                                    <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303C33.659 32.657 29.219 36 24 36c-6.627 0-12-5.373-12-12S17.373 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.278 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917Z" />
-                                    <path fill="#FF3D00" d="M6.306 14.691 12.88 19.51C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.278 4 24 4c-7.682 0-14.347 4.337-17.694 10.691Z" />
-                                    <path fill="#4CAF50" d="M24 44c5.176 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.143 35.091 26.715 36 24 36c-5.198 0-9.625-3.317-11.288-7.946l-6.525 5.025C9.5 39.556 16.227 44 24 44Z" />
-                                    <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.05 12.05 0 0 1-4.084 5.57h.003l6.19 5.238C36.972 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917Z" />
+                                    <path
+                                        fill="#FFC107"
+                                        d="M43.611 20.083H42V20H24v8h11.303C33.659 32.657 29.219 36 24 36c-6.627 0-12-5.373-12-12S17.373 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.278 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917Z"
+                                    />
+                                    <path
+                                        fill="#FF3D00"
+                                        d="M6.306 14.691 12.88 19.51C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.278 4 24 4c-7.682 0-14.347 4.337-17.694 10.691Z"
+                                    />
+                                    <path
+                                        fill="#4CAF50"
+                                        d="M24 44c5.176 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.143 35.091 26.715 36 24 36c-5.198 0-9.625-3.317-11.288-7.946l-6.525 5.025C9.5 39.556 16.227 44 24 44Z"
+                                    />
+                                    <path
+                                        fill="#1976D2"
+                                        d="M43.611 20.083H42V20H24v8h11.303a12.05 12.05 0 0 1-4.084 5.57h.003l6.19 5.238C36.972 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917Z"
+                                    />
                                 </svg>
                                 Continue with Gmail
                             </motion.button>
