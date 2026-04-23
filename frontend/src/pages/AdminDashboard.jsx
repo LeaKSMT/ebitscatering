@@ -190,10 +190,25 @@ function formatEventDate(value) {
 function AdminDashboard() {
     const token = getStoredToken();
 
+    const [theme, setTheme] = useState(() => {
+        return localStorage.getItem("adminTheme") === "dark" ? "dark" : "light";
+    });
+
     const [quotations, setQuotations] = useState([]);
     const [bookings, setBookings] = useState([]);
     const [payments, setPayments] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const syncTheme = () => {
+            setTheme(localStorage.getItem("adminTheme") === "dark" ? "dark" : "light");
+        };
+
+        syncTheme();
+        window.addEventListener("storage", syncTheme);
+
+        return () => window.removeEventListener("storage", syncTheme);
+    }, []);
 
     useEffect(() => {
         const fetchDashboardData = async () => {
@@ -456,26 +471,63 @@ function AdminDashboard() {
         );
     }, [stats.totalCollected, stats.totalRevenue]);
 
+    const isDark = theme === "dark";
+
+    const pageTextClass = isDark ? "text-[#eef7f3]" : "text-[#17352d]";
+    const mainSectionClass = isDark
+        ? "border-white/10 bg-[linear-gradient(180deg,rgba(8,28,22,0.96)_0%,rgba(9,34,26,0.96)_100%)] shadow-[0_22px_60px_rgba(0,0,0,0.24)]"
+        : "border-[#dfe8e3] bg-[linear-gradient(180deg,rgba(255,255,255,0.96)_0%,rgba(247,250,248,0.98)_100%)] shadow-[0_22px_60px_rgba(15,77,60,0.10)]";
+    const heroBgClass = isDark
+        ? "bg-[linear-gradient(135deg,#07382d_0%,#0c4d3d_34%,#0f6b52_68%,#18a06c_100%)] text-white"
+        : "bg-[linear-gradient(135deg,#0d5b47_0%,#14785e_50%,#20a97a_100%)] text-white";
+    const cardClass = isDark
+        ? "border-white/10 bg-[linear-gradient(180deg,rgba(8,28,22,0.96)_0%,rgba(9,34,26,0.96)_100%)] shadow-[0_16px_34px_rgba(0,0,0,0.22)] hover:shadow-[0_22px_40px_rgba(0,0,0,0.28)]"
+        : "border-[#dfe8e3] bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(245,249,247,0.98)_100%)] shadow-[0_16px_34px_rgba(15,77,60,0.08)] hover:shadow-[0_22px_40px_rgba(15,77,60,0.12)]";
+    const statCardClass = isDark
+        ? "border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] shadow-[0_12px_24px_rgba(0,0,0,0.22)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.30)]"
+        : "border-[#dfe8e3] bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(246,250,248,0.98)_100%)] shadow-[0_12px_24px_rgba(15,77,60,0.08)] hover:shadow-[0_20px_40px_rgba(15,77,60,0.12)]";
+    const titleClass = isDark ? "text-white" : "text-[#10382d]";
+    const subTextClass = isDark ? "text-[#b4c8c0]" : "text-[#5f7b71]";
+    const labelClass = isDark ? "text-[#cfe2db]" : "text-[#43675b]";
+    const badgeClass = isDark
+        ? "border-white/10 bg-white/5 text-[#b8d5ca]"
+        : "border-[#d7e5de] bg-[#f4f8f6] text-[#527468]";
+    const chartGridStroke = isDark ? "rgba(255,255,255,0.08)" : "rgba(15,77,60,0.10)";
+    const axisStroke = isDark ? "#cfe2db" : "#4f7165";
+    const tooltipStyle = isDark
+        ? {
+            borderRadius: "16px",
+            border: "1px solid rgba(255,255,255,0.10)",
+            background: "rgba(10,33,27,0.98)",
+            color: "#eef7f3",
+        }
+        : {
+            borderRadius: "16px",
+            border: "1px solid rgba(15,77,60,0.12)",
+            background: "rgba(255,255,255,0.98)",
+            color: "#17352d",
+        };
+
     return (
         <motion.div
-            data-build="premium-admin-dashboard-v8-dark"
+            data-build="premium-admin-dashboard-v9-theme-aware"
             initial="hidden"
             animate="show"
             transition={{ staggerChildren: 0.1 }}
-            className="admin-dashboard space-y-5 text-[#eef7f3]"
+            className={`admin-dashboard space-y-5 ${pageTextClass}`}
         >
             <motion.section
                 variants={fadeUp}
                 transition={{ duration: 0.46, ease: "easeOut" }}
-                className="relative overflow-hidden rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(8,28,22,0.96)_0%,rgba(9,34,26,0.96)_100%)] shadow-[0_22px_60px_rgba(0,0,0,0.24)]"
+                className={`relative overflow-hidden rounded-[34px] border ${mainSectionClass}`}
             >
                 <div className="pointer-events-none absolute inset-0">
-                    <div className="absolute -top-16 right-[-40px] h-52 w-52 rounded-full bg-[#d4af37]/12 blur-3xl" />
-                    <div className="absolute bottom-[-36px] left-[-24px] h-40 w-40 rounded-full bg-[#0f6d51]/18 blur-3xl" />
-                    <div className="absolute top-1/2 right-1/3 h-32 w-32 rounded-full bg-white/5 blur-3xl" />
+                    <div className={`absolute -top-16 right-[-40px] h-52 w-52 rounded-full blur-3xl ${isDark ? "bg-[#d4af37]/12" : "bg-[#d4af37]/10"}`} />
+                    <div className={`absolute bottom-[-36px] left-[-24px] h-40 w-40 rounded-full blur-3xl ${isDark ? "bg-[#0f6d51]/18" : "bg-[#0f6d51]/10"}`} />
+                    <div className={`absolute top-1/2 right-1/3 h-32 w-32 rounded-full blur-3xl ${isDark ? "bg-white/5" : "bg-[#0f6d51]/6"}`} />
                 </div>
 
-                <div className="relative overflow-hidden bg-[linear-gradient(135deg,#07382d_0%,#0c4d3d_34%,#0f6b52_68%,#18a06c_100%)] px-6 py-8 text-white md:px-8 md:py-10">
+                <div className={`relative overflow-hidden px-6 py-8 md:px-8 md:py-10 ${heroBgClass}`}>
                     <motion.div
                         animate={{ y: [0, -5, 0] }}
                         transition={{ duration: 4.8, repeat: Infinity, ease: "easeInOut" }}
@@ -520,6 +572,7 @@ function AdminDashboard() {
 
                 <div className="grid gap-4 px-5 py-5 sm:grid-cols-2 md:px-6 xl:grid-cols-4">
                     <StatCard
+                        theme={theme}
                         title="Total Revenue"
                         value={formatCurrency(stats.totalRevenue)}
                         subtitle="Quotation-based total booking amounts"
@@ -528,6 +581,7 @@ function AdminDashboard() {
                         delay={0.04}
                     />
                     <StatCard
+                        theme={theme}
                         title="Total Bookings"
                         value={stats.totalBookings}
                         subtitle="All quotation records in the system"
@@ -535,6 +589,7 @@ function AdminDashboard() {
                         delay={0.1}
                     />
                     <StatCard
+                        theme={theme}
                         title="Upcoming Events"
                         value={stats.upcomingEvents}
                         subtitle="Events scheduled from today onward"
@@ -542,6 +597,7 @@ function AdminDashboard() {
                         delay={0.16}
                     />
                     <StatCard
+                        theme={theme}
                         title="Guests Served"
                         value={stats.totalGuests}
                         subtitle="Combined guest count from bookings"
@@ -554,6 +610,7 @@ function AdminDashboard() {
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                 <motion.div variants={fadeUp}>
                     <MiniMetricCard
+                        theme={theme}
                         title="Collected Payments"
                         value={formatCurrency(stats.totalCollected)}
                         icon={BadgeDollarSign}
@@ -562,6 +619,7 @@ function AdminDashboard() {
 
                 <motion.div variants={fadeUp}>
                     <MiniMetricCard
+                        theme={theme}
                         title="Pending Quotations"
                         value={stats.pendingQuotations}
                         icon={FileClock}
@@ -570,6 +628,7 @@ function AdminDashboard() {
 
                 <motion.div variants={fadeUp}>
                     <MiniMetricCard
+                        theme={theme}
                         title="Confirmed Bookings"
                         value={stats.confirmedBookings}
                         icon={CalendarClock}
@@ -578,6 +637,7 @@ function AdminDashboard() {
 
                 <motion.div variants={fadeUp}>
                     <MiniMetricCard
+                        theme={theme}
                         title="Completed Events"
                         value={stats.completedEvents}
                         icon={CheckCircle2}
@@ -587,28 +647,24 @@ function AdminDashboard() {
 
             <div className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
                 <DashboardCard
+                    theme={theme}
                     title="Monthly Revenue Trend"
                     subtitle="Revenue and expenses based on real quotation totals."
                     variants={fadeUp}
                 >
                     <div className="h-[310px]">
                         {monthlyRows.length === 0 ? (
-                            <EmptyChartState message="No monthly revenue data yet." />
+                            <EmptyChartState theme={theme} message="No monthly revenue data yet." />
                         ) : (
                             <ResponsiveContainer width="100%" height="100%">
                                 <LineChart data={monthlyRows}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
-                                    <XAxis dataKey="label" stroke="#cfe2db" />
-                                    <YAxis stroke="#cfe2db" />
+                                    <CartesianGrid strokeDasharray="3 3" stroke={chartGridStroke} />
+                                    <XAxis dataKey="label" stroke={axisStroke} />
+                                    <YAxis stroke={axisStroke} />
                                     <Tooltip
                                         formatter={(value) => formatCurrency(value)}
-                                        contentStyle={{
-                                            borderRadius: "16px",
-                                            border: "1px solid rgba(255,255,255,0.10)",
-                                            background: "rgba(10,33,27,0.98)",
-                                            color: "#eef7f3",
-                                        }}
-                                        labelStyle={{ color: "#eef7f3" }}
+                                        contentStyle={tooltipStyle}
+                                        labelStyle={{ color: isDark ? "#eef7f3" : "#17352d" }}
                                     />
                                     <Legend />
                                     <Line
@@ -634,13 +690,14 @@ function AdminDashboard() {
                 </DashboardCard>
 
                 <DashboardCard
+                    theme={theme}
                     title="Event Type Distribution"
                     subtitle="Booking share by event category."
                     variants={fadeUp}
                 >
                     <div className="h-[310px]">
                         {eventTypeChartData.length === 0 ? (
-                            <EmptyChartState message="No event type data yet." />
+                            <EmptyChartState theme={theme} message="No event type data yet." />
                         ) : (
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
@@ -663,13 +720,8 @@ function AdminDashboard() {
                                     </Pie>
                                     <Tooltip
                                         formatter={(value, name) => [`${value} booking(s)`, name]}
-                                        contentStyle={{
-                                            borderRadius: "16px",
-                                            border: "1px solid rgba(255,255,255,0.10)",
-                                            background: "rgba(10,33,27,0.98)",
-                                            color: "#eef7f3",
-                                        }}
-                                        labelStyle={{ color: "#eef7f3" }}
+                                        contentStyle={tooltipStyle}
+                                        labelStyle={{ color: isDark ? "#eef7f3" : "#17352d" }}
                                     />
                                     <Legend />
                                 </PieChart>
@@ -681,28 +733,24 @@ function AdminDashboard() {
 
             <div className="grid gap-5 xl:grid-cols-[1fr_1fr]">
                 <DashboardCard
+                    theme={theme}
                     title="Booking Trend"
                     subtitle="Number of bookings recorded per month."
                     variants={fadeUp}
                 >
                     <div className="h-[310px]">
                         {monthlyBookingTrend.length === 0 ? (
-                            <EmptyChartState message="No booking trend data yet." />
+                            <EmptyChartState theme={theme} message="No booking trend data yet." />
                         ) : (
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={monthlyBookingTrend}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
-                                    <XAxis dataKey="month" stroke="#cfe2db" />
-                                    <YAxis stroke="#cfe2db" allowDecimals={false} />
+                                    <CartesianGrid strokeDasharray="3 3" stroke={chartGridStroke} />
+                                    <XAxis dataKey="month" stroke={axisStroke} />
+                                    <YAxis stroke={axisStroke} allowDecimals={false} />
                                     <Tooltip
                                         formatter={(value) => [`${value} booking(s)`, "Bookings"]}
-                                        contentStyle={{
-                                            borderRadius: "16px",
-                                            border: "1px solid rgba(255,255,255,0.10)",
-                                            background: "rgba(10,33,27,0.98)",
-                                            color: "#eef7f3",
-                                        }}
-                                        labelStyle={{ color: "#eef7f3" }}
+                                        contentStyle={tooltipStyle}
+                                        labelStyle={{ color: isDark ? "#eef7f3" : "#17352d" }}
                                     />
                                     <Legend />
                                     <Bar
@@ -718,13 +766,14 @@ function AdminDashboard() {
                 </DashboardCard>
 
                 <DashboardCard
+                    theme={theme}
                     title="Payment Status Overview"
                     subtitle="Booking payment completion distribution."
                     variants={fadeUp}
                 >
                     <div className="h-[310px]">
                         {paymentStatusChartData.length === 0 ? (
-                            <EmptyChartState message="No payment status data yet." />
+                            <EmptyChartState theme={theme} message="No payment status data yet." />
                         ) : (
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
@@ -747,13 +796,8 @@ function AdminDashboard() {
                                     </Pie>
                                     <Tooltip
                                         formatter={(value, name) => [`${value} booking(s)`, name]}
-                                        contentStyle={{
-                                            borderRadius: "16px",
-                                            border: "1px solid rgba(255,255,255,0.10)",
-                                            background: "rgba(10,33,27,0.98)",
-                                            color: "#eef7f3",
-                                        }}
-                                        labelStyle={{ color: "#eef7f3" }}
+                                        contentStyle={tooltipStyle}
+                                        labelStyle={{ color: isDark ? "#eef7f3" : "#17352d" }}
                                     />
                                     <Legend />
                                 </PieChart>
@@ -765,13 +809,14 @@ function AdminDashboard() {
 
             <div className="grid gap-5 xl:grid-cols-[1.05fr_0.95fr]">
                 <DashboardCard
+                    theme={theme}
                     title="Revenue Flow Snapshot"
                     subtitle="Visual summary of monthly revenue movement."
                     variants={fadeUp}
                 >
                     <div className="h-[300px]">
                         {monthlyRows.length === 0 ? (
-                            <EmptyChartState message="No revenue flow data yet." />
+                            <EmptyChartState theme={theme} message="No revenue flow data yet." />
                         ) : (
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={monthlyRows}>
@@ -781,18 +826,13 @@ function AdminDashboard() {
                                             <stop offset="95%" stopColor="#22c58b" stopOpacity={0.03} />
                                         </linearGradient>
                                     </defs>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
-                                    <XAxis dataKey="label" stroke="#cfe2db" />
-                                    <YAxis stroke="#cfe2db" />
+                                    <CartesianGrid strokeDasharray="3 3" stroke={chartGridStroke} />
+                                    <XAxis dataKey="label" stroke={axisStroke} />
+                                    <YAxis stroke={axisStroke} />
                                     <Tooltip
                                         formatter={(value) => formatCurrency(value)}
-                                        contentStyle={{
-                                            borderRadius: "16px",
-                                            border: "1px solid rgba(255,255,255,0.10)",
-                                            background: "rgba(10,33,27,0.98)",
-                                            color: "#eef7f3",
-                                        }}
-                                        labelStyle={{ color: "#eef7f3" }}
+                                        contentStyle={tooltipStyle}
+                                        labelStyle={{ color: isDark ? "#eef7f3" : "#17352d" }}
                                     />
                                     <Area
                                         type="monotone"
@@ -809,30 +849,35 @@ function AdminDashboard() {
                 </DashboardCard>
 
                 <DashboardCard
+                    theme={theme}
                     title="Operational Snapshot"
                     subtitle="Quick executive summary of active business metrics."
                     variants={fadeUp}
                 >
                     <div className="grid gap-3 sm:grid-cols-2">
                         <InsightTile
+                            theme={theme}
                             icon={BriefcaseBusiness}
                             label="Total Operations"
                             value={stats.totalBookings}
                             tone="green"
                         />
                         <InsightTile
+                            theme={theme}
                             icon={ReceiptText}
                             label="Quotation Pipeline"
                             value={stats.pendingQuotations}
                             tone="gold"
                         />
                         <InsightTile
+                            theme={theme}
                             icon={CalendarDays}
                             label="Upcoming Schedule"
                             value={stats.upcomingEvents}
                             tone="green"
                         />
                         <InsightTile
+                            theme={theme}
                             icon={CircleDollarSign}
                             label="Collection Rate"
                             value={`${collectionRate}%`}
@@ -844,16 +889,18 @@ function AdminDashboard() {
 
             <div className="grid gap-5 xl:grid-cols-[1fr_1fr]">
                 <DashboardCard
+                    theme={theme}
                     title="Upcoming Events"
                     subtitle="Nearest scheduled events from the booking list."
                     variants={fadeUp}
                 >
                     {upcomingEventList.length === 0 ? (
-                        <EmptyListState message="No upcoming events available yet." />
+                        <EmptyListState theme={theme} message="No upcoming events available yet." />
                     ) : (
                         <div className="space-y-3">
                             {upcomingEventList.map((quotation, index) => (
                                 <ListRow
+                                    theme={theme}
                                     key={quotation.id || `${quotation.fullName}-${index}`}
                                     title={quotation.fullName || "Client Event"}
                                     metaLeft={quotation.eventType || "Event"}
@@ -867,16 +914,18 @@ function AdminDashboard() {
                 </DashboardCard>
 
                 <DashboardCard
+                    theme={theme}
                     title="Recent Quotations"
                     subtitle="Latest quotation activity recorded in the system."
                     variants={fadeUp}
                 >
                     {recentQuotations.length === 0 ? (
-                        <EmptyListState message="No quotations available yet." />
+                        <EmptyListState theme={theme} message="No quotations available yet." />
                     ) : (
                         <div className="space-y-3">
                             {recentQuotations.map((quotation, index) => (
                                 <ListRow
+                                    theme={theme}
                                     key={quotation.id || `${quotation.email}-${index}`}
                                     title={
                                         quotation.fullName ||
@@ -901,21 +950,27 @@ function AdminDashboard() {
     );
 }
 
-function DashboardCard({ title, subtitle, children, variants }) {
+function DashboardCard({ theme, title, subtitle, children, variants }) {
+    const isDark = theme === "dark";
+
     return (
         <motion.section
             variants={variants}
             transition={{ duration: 0.46, ease: "easeOut" }}
             whileHover={{ y: -4 }}
-            className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(8,28,22,0.96)_0%,rgba(9,34,26,0.96)_100%)] p-5 shadow-[0_16px_34px_rgba(0,0,0,0.22)] transition-shadow hover:shadow-[0_22px_40px_rgba(0,0,0,0.28)]"
+            className={`rounded-[28px] border p-5 transition-shadow ${isDark
+                    ? "border-white/10 bg-[linear-gradient(180deg,rgba(8,28,22,0.96)_0%,rgba(9,34,26,0.96)_100%)] shadow-[0_16px_34px_rgba(0,0,0,0.22)] hover:shadow-[0_22px_40px_rgba(0,0,0,0.28)]"
+                    : "border-[#dfe8e3] bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(245,249,247,0.98)_100%)] shadow-[0_16px_34px_rgba(15,77,60,0.08)] hover:shadow-[0_22px_40px_rgba(15,77,60,0.12)]"
+                }`}
         >
-            <SectionHeader title={title} subtitle={subtitle} />
+            <SectionHeader theme={theme} title={title} subtitle={subtitle} />
             {children}
         </motion.section>
     );
 }
 
 function StatCard({
+    theme,
     title,
     value,
     subtitle,
@@ -923,10 +978,16 @@ function StatCard({
     accent = "green",
     delay = 0,
 }) {
+    const isDark = theme === "dark";
+
     const iconStyle =
         accent === "gold"
-            ? "bg-[linear-gradient(135deg,rgba(111,85,21,0.45)_0%,rgba(161,121,30,0.30)_100%)] text-[#f5cf67] border border-[#d4af37]/25"
-            : "bg-[linear-gradient(135deg,rgba(16,96,69,0.45)_0%,rgba(22,146,102,0.24)_100%)] text-[#98efcc] border border-[#22c58b]/20";
+            ? isDark
+                ? "bg-[linear-gradient(135deg,rgba(111,85,21,0.45)_0%,rgba(161,121,30,0.30)_100%)] text-[#f5cf67] border border-[#d4af37]/25"
+                : "bg-[linear-gradient(135deg,rgba(212,175,55,0.14)_0%,rgba(212,175,55,0.08)_100%)] text-[#a37a10] border border-[#d4af37]/25"
+            : isDark
+                ? "bg-[linear-gradient(135deg,rgba(16,96,69,0.45)_0%,rgba(22,146,102,0.24)_100%)] text-[#98efcc] border border-[#22c58b]/20"
+                : "bg-[linear-gradient(135deg,rgba(34,197,139,0.14)_0%,rgba(34,197,139,0.08)_100%)] text-[#0f7a57] border border-[#22c58b]/18";
 
     return (
         <motion.div
@@ -934,20 +995,27 @@ function StatCard({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.42, delay, ease: "easeOut" }}
             whileHover={{ y: -6, scale: 1.012 }}
-            className="group rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] p-5 shadow-[0_12px_24px_rgba(0,0,0,0.22)] transition hover:shadow-[0_20px_40px_rgba(0,0,0,0.30)]"
+            className={`group rounded-[24px] border p-5 transition ${isDark
+                    ? "border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] shadow-[0_12px_24px_rgba(0,0,0,0.22)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.30)]"
+                    : "border-[#dfe8e3] bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(246,250,248,0.98)_100%)] shadow-[0_12px_24px_rgba(15,77,60,0.08)] hover:shadow-[0_20px_40px_rgba(15,77,60,0.12)]"
+                }`}
         >
             <div className="flex items-start justify-between gap-4">
                 <div>
-                    <p className="text-sm font-semibold text-[#cfe2db]">{title}</p>
+                    <p className={`text-sm font-semibold ${isDark ? "text-[#cfe2db]" : "text-[#43675b]"}`}>
+                        {title}
+                    </p>
                     <motion.h3
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.4, delay: delay + 0.04, ease: "easeOut" }}
-                        className="mt-3 text-3xl font-extrabold text-white"
+                        className={`mt-3 text-3xl font-extrabold ${isDark ? "text-white" : "text-[#10382d]"}`}
                     >
                         {value}
                     </motion.h3>
-                    <p className="mt-2 text-xs leading-5 text-[#9fb8af]">{subtitle}</p>
+                    <p className={`mt-2 text-xs leading-5 ${isDark ? "text-[#9fb8af]" : "text-[#6a857a]"}`}>
+                        {subtitle}
+                    </p>
                 </div>
 
                 <motion.div
@@ -962,25 +1030,35 @@ function StatCard({
     );
 }
 
-function MiniMetricCard({ title, value, icon: Icon }) {
+function MiniMetricCard({ theme, title, value, icon: Icon }) {
+    const isDark = theme === "dark";
+
     return (
         <motion.div
             whileHover={{ y: -5, scale: 1.012 }}
             transition={{ duration: 0.22, ease: "easeOut" }}
-            className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] p-4 shadow-[0_10px_24px_rgba(0,0,0,0.22)] transition hover:shadow-[0_16px_34px_rgba(0,0,0,0.28)]"
+            className={`rounded-[24px] border p-4 transition ${isDark
+                    ? "border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] shadow-[0_10px_24px_rgba(0,0,0,0.22)] hover:shadow-[0_16px_34px_rgba(0,0,0,0.28)]"
+                    : "border-[#dfe8e3] bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(246,250,248,0.98)_100%)] shadow-[0_10px_24px_rgba(15,77,60,0.08)] hover:shadow-[0_16px_34px_rgba(15,77,60,0.12)]"
+                }`}
         >
             <div className="flex items-center gap-3">
                 <motion.div
                     whileHover={{ rotate: -8, scale: 1.05 }}
                     transition={{ duration: 0.22, ease: "easeOut" }}
-                    className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[#22c58b]/18 bg-[linear-gradient(135deg,rgba(16,96,69,0.45)_0%,rgba(22,146,102,0.24)_100%)] text-[#98efcc] shadow-sm"
+                    className={`flex h-11 w-11 items-center justify-center rounded-2xl shadow-sm ${isDark
+                            ? "border border-[#22c58b]/18 bg-[linear-gradient(135deg,rgba(16,96,69,0.45)_0%,rgba(22,146,102,0.24)_100%)] text-[#98efcc]"
+                            : "border border-[#22c58b]/16 bg-[linear-gradient(135deg,rgba(34,197,139,0.14)_0%,rgba(34,197,139,0.08)_100%)] text-[#0f7a57]"
+                        }`}
                 >
                     <Icon size={20} />
                 </motion.div>
 
                 <div className="min-w-0">
-                    <p className="text-sm font-semibold text-[#cfe2db]">{title}</p>
-                    <h3 className="mt-1 text-2xl font-extrabold text-white">
+                    <p className={`text-sm font-semibold ${isDark ? "text-[#cfe2db]" : "text-[#43675b]"}`}>
+                        {title}
+                    </p>
+                    <h3 className={`mt-1 text-2xl font-extrabold ${isDark ? "text-white" : "text-[#10382d]"}`}>
                         {value}
                     </h3>
                 </div>
@@ -989,11 +1067,17 @@ function MiniMetricCard({ title, value, icon: Icon }) {
     );
 }
 
-function InsightTile({ icon: Icon, label, value, tone = "green" }) {
+function InsightTile({ theme, icon: Icon, label, value, tone = "green" }) {
+    const isDark = theme === "dark";
+
     const styles =
         tone === "gold"
-            ? "border-[#d4af37]/22 bg-[linear-gradient(180deg,rgba(74,58,17,0.28)_0%,rgba(55,42,11,0.18)_100%)] text-[#f5cf67]"
-            : "border-[#22c58b]/18 bg-[linear-gradient(180deg,rgba(11,61,45,0.56)_0%,rgba(10,43,32,0.42)_100%)] text-[#eef7f3]";
+            ? isDark
+                ? "border-[#d4af37]/22 bg-[linear-gradient(180deg,rgba(74,58,17,0.28)_0%,rgba(55,42,11,0.18)_100%)] text-[#f5cf67]"
+                : "border-[#ecd48d] bg-[linear-gradient(180deg,rgba(212,175,55,0.10)_0%,rgba(212,175,55,0.04)_100%)] text-[#9b7413]"
+            : isDark
+                ? "border-[#22c58b]/18 bg-[linear-gradient(180deg,rgba(11,61,45,0.56)_0%,rgba(10,43,32,0.42)_100%)] text-[#eef7f3]"
+                : "border-[#cfe6db] bg-[linear-gradient(180deg,rgba(34,197,139,0.08)_0%,rgba(34,197,139,0.03)_100%)] text-[#17352d]";
 
     return (
         <motion.div
@@ -1008,7 +1092,7 @@ function InsightTile({ icon: Icon, label, value, tone = "green" }) {
                     </p>
                     <h4 className="mt-2 text-3xl font-extrabold">{value}</h4>
                 </div>
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 shadow-sm">
+                <div className={`flex h-11 w-11 items-center justify-center rounded-2xl shadow-sm ${isDark ? "bg-white/10" : "bg-[#eef5f1]"}`}>
                     <Icon size={20} />
                 </div>
             </div>
@@ -1016,16 +1100,24 @@ function InsightTile({ icon: Icon, label, value, tone = "green" }) {
     );
 }
 
-function ListRow({ title, metaLeft, metaRight, status, delay = 0 }) {
+function ListRow({ theme, title, metaLeft, metaRight, status, delay = 0 }) {
+    const isDark = theme === "dark";
     const normalized = normalizeStatus(status);
+
     const statusClass =
         normalized === "confirmed" ||
             normalized === "approved" ||
             normalized === "completed"
-            ? "bg-[rgba(16,131,94,0.24)] text-[#98efcc] border border-[#22c58b]/18"
+            ? isDark
+                ? "bg-[rgba(16,131,94,0.24)] text-[#98efcc] border border-[#22c58b]/18"
+                : "bg-[rgba(34,197,139,0.10)] text-[#0f7a57] border border-[#22c58b]/18"
             : normalized === "pending"
-                ? "bg-[rgba(133,102,26,0.24)] text-[#f5cf67] border border-[#d4af37]/18"
-                : "bg-[rgba(148,163,184,0.18)] text-[#d5e1dd] border border-white/10";
+                ? isDark
+                    ? "bg-[rgba(133,102,26,0.24)] text-[#f5cf67] border border-[#d4af37]/18"
+                    : "bg-[rgba(212,175,55,0.10)] text-[#9b7413] border border-[#d4af37]/18"
+                : isDark
+                    ? "bg-[rgba(148,163,184,0.18)] text-[#d5e1dd] border border-white/10"
+                    : "bg-[#f1f5f3] text-[#5d756b] border border-[#dbe6e1]";
 
     return (
         <motion.div
@@ -1033,11 +1125,16 @@ function ListRow({ title, metaLeft, metaRight, status, delay = 0 }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.38, delay, ease: "easeOut" }}
             whileHover={{ y: -3 }}
-            className="flex flex-col gap-3 rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] p-4 shadow-sm transition-shadow hover:shadow-md sm:flex-row sm:items-center sm:justify-between"
+            className={`flex flex-col gap-3 rounded-[22px] border p-4 transition-shadow hover:shadow-md sm:flex-row sm:items-center sm:justify-between ${isDark
+                    ? "border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)]"
+                    : "border-[#dfe8e3] bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(246,250,248,0.98)_100%)]"
+                }`}
         >
             <div className="min-w-0">
-                <h4 className="truncate text-base font-bold text-white">{title}</h4>
-                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[#b9cdc5]">
+                <h4 className={`truncate text-base font-bold ${isDark ? "text-white" : "text-[#10382d]"}`}>
+                    {title}
+                </h4>
+                <div className={`mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm ${isDark ? "text-[#b9cdc5]" : "text-[#688378]"}`}>
                     <span>{metaLeft}</span>
                     <span className="hidden sm:inline">•</span>
                     <span>{metaRight}</span>
@@ -1053,32 +1150,55 @@ function ListRow({ title, metaLeft, metaRight, status, delay = 0 }) {
     );
 }
 
-function SectionHeader({ title, subtitle }) {
+function SectionHeader({ theme, title, subtitle }) {
+    const isDark = theme === "dark";
+
     return (
         <div className="mb-4">
-            <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-[#b8d5ca]">
+            <div
+                className={`mb-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] ${isDark
+                        ? "border-white/10 bg-white/5 text-[#b8d5ca]"
+                        : "border-[#d7e5de] bg-[#f4f8f6] text-[#527468]"
+                    }`}
+            >
                 <TrendingUp size={12} />
                 Insights
             </div>
-            <h2 className="text-[26px] font-extrabold text-white sm:text-[28px]">
+            <h2 className={`text-[26px] font-extrabold sm:text-[28px] ${isDark ? "text-white" : "text-[#10382d]"}`}>
                 {title}
             </h2>
-            <p className="mt-1 text-sm text-[#b4c8c0]">{subtitle}</p>
+            <p className={`mt-1 text-sm ${isDark ? "text-[#b4c8c0]" : "text-[#5f7b71]"}`}>
+                {subtitle}
+            </p>
         </div>
     );
 }
 
-function EmptyChartState({ message }) {
+function EmptyChartState({ theme, message }) {
+    const isDark = theme === "dark";
+
     return (
-        <div className="flex h-full items-center justify-center rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] text-sm text-[#b4c8c0]">
+        <div
+            className={`flex h-full items-center justify-center rounded-2xl border text-sm ${isDark
+                    ? "border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] text-[#b4c8c0]"
+                    : "border-[#dfe8e3] bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(246,250,248,0.98)_100%)] text-[#5f7b71]"
+                }`}
+        >
             {message}
         </div>
     );
 }
 
-function EmptyListState({ message }) {
+function EmptyListState({ theme, message }) {
+    const isDark = theme === "dark";
+
     return (
-        <div className="flex min-h-[220px] items-center justify-center rounded-[24px] border border-dashed border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] p-6 text-center text-sm text-[#b4c8c0]">
+        <div
+            className={`flex min-h-[220px] items-center justify-center rounded-[24px] border p-6 text-center text-sm ${isDark
+                    ? "border-dashed border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] text-[#b4c8c0]"
+                    : "border-dashed border-[#dfe8e3] bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(246,250,248,0.98)_100%)] text-[#5f7b71]"
+                }`}
+        >
             {message}
         </div>
     );
