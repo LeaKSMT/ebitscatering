@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Sparkles, Palette, Tag } from "lucide-react";
+import { Sparkles, Tag } from "lucide-react";
 import { getAdminDecorations } from "../utils/AdminData";
 
 const fadeUp = {
@@ -79,27 +79,6 @@ function AdminDecorations() {
                         <p className="mt-2 max-w-3xl text-sm leading-7 text-white/85 md:text-[15px]">
                             Review decorative concepts, event categories, and available
                             styling options in a modern premium visual overview.
-                        </p>
-                    </div>
-                </div>
-            </motion.section>
-
-            <motion.section
-                variants={fadeUp}
-                transition={{ duration: 0.46, ease: "easeOut" }}
-                className="rounded-[28px] border border-[#e9dec2] bg-[#fffaf0] p-6 shadow-sm"
-            >
-                <div className="flex items-start gap-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#fff1c2] text-[#b99117]">
-                        <Palette size={22} />
-                    </div>
-                    <div>
-                        <h2 className="text-2xl font-extrabold text-[#0f4d3c]">
-                            Decorations Overview
-                        </h2>
-                        <p className="mt-2 text-sm leading-7 text-slate-600">
-                            This section helps the admin review available decorative setups
-                            and event styling categories shown in the catering system.
                         </p>
                     </div>
                 </div>

@@ -62,7 +62,7 @@ function AdminSidebar({ theme = "light" }) {
                 <p className="mt-1 text-xs text-white/70">Admin Workspace</p>
             </div>
 
-            <nav className="relative flex-1 space-y-1.5 overflow-y-auto px-3 py-4">
+            <nav className="relative flex-1 space-y-2 overflow-y-auto px-3 py-4">
                 {navItems.map((item, index) => {
                     const Icon = item.icon;
 
@@ -77,8 +77,8 @@ function AdminSidebar({ theme = "light" }) {
                                 to={item.path}
                                 onClick={() => setMobileOpen(false)}
                                 className={({ isActive }) =>
-                                    `group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${isActive
-                                        ? "bg-gradient-to-r from-[#fff3c8] to-[#f4db86] text-[#0b4a3a] shadow-md"
+                                    `group flex items-center gap-3 rounded-2xl px-3.5 py-3 text-sm font-semibold transition-all duration-300 ${isActive
+                                        ? "bg-[linear-gradient(135deg,#fff5d7_0%,#f4db86_100%)] text-[#0b4a3a] shadow-[0_14px_30px_rgba(0,0,0,0.16)]"
                                         : "text-white/85 hover:bg-white/10 hover:text-white"
                                     }`
                                 }
@@ -86,21 +86,21 @@ function AdminSidebar({ theme = "light" }) {
                                 {({ isActive }) => (
                                     <>
                                         <div
-                                            className={`flex h-9 w-9 items-center justify-center rounded-xl ${isActive
-                                                    ? "bg-white text-[#0b4a3a]"
-                                                    : "bg-white/10 group-hover:bg-white/15"
+                                            className={`flex h-10 w-10 items-center justify-center rounded-2xl transition-all duration-300 ${isActive
+                                                    ? "bg-white text-[#0b4a3a] shadow-sm"
+                                                    : "bg-white/10 text-white/90 group-hover:bg-white/15 group-hover:text-white"
                                                 }`}
                                         >
-                                            <Icon size={16} />
+                                            <Icon size={17} />
                                         </div>
 
                                         <span className="flex-1 truncate">{item.label}</span>
 
                                         <ChevronRight
-                                            size={14}
-                                            className={`transition ${isActive
-                                                    ? "text-[#0b4a3a]"
-                                                    : "opacity-0 group-hover:opacity-100"
+                                            size={15}
+                                            className={`transition-all duration-300 ${isActive
+                                                    ? "translate-x-0 text-[#0b4a3a]"
+                                                    : "translate-x-[-2px] opacity-0 group-hover:translate-x-0 group-hover:opacity-100"
                                                 }`}
                                         />
                                     </>
@@ -117,7 +117,7 @@ function AdminSidebar({ theme = "light" }) {
         <>
             <button
                 onClick={() => setMobileOpen(true)}
-                className="fixed left-4 top-4 z-40 flex h-10 w-10 items-center justify-center rounded-xl bg-white text-[#0b4a3a] shadow lg:hidden"
+                className="fixed left-4 top-4 z-40 flex h-11 w-11 items-center justify-center rounded-2xl border border-[#dfe8e3] bg-white/95 text-[#0b4a3a] shadow-[0_10px_25px_rgba(15,77,60,0.14)] backdrop-blur lg:hidden"
             >
                 <Menu size={18} />
             </button>
@@ -134,7 +134,7 @@ function AdminSidebar({ theme = "light" }) {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={() => setMobileOpen(false)}
-                            className="fixed inset-0 z-50 bg-black/40"
+                            className="fixed inset-0 z-50 bg-black/45 backdrop-blur-[2px]"
                         />
 
                         <motion.aside
@@ -146,7 +146,7 @@ function AdminSidebar({ theme = "light" }) {
                         >
                             <button
                                 onClick={() => setMobileOpen(false)}
-                                className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white"
+                                className="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20"
                             >
                                 <X size={16} />
                             </button>

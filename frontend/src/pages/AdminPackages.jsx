@@ -1,11 +1,5 @@
 import { motion } from "framer-motion";
-import {
-    Sparkles,
-    Package2,
-    Gem,
-    Gift,
-    BadgeCheck,
-} from "lucide-react";
+import { Sparkles } from "lucide-react";
 
 const weddingPackages = [
     {
@@ -319,7 +313,7 @@ function AdminPackageCard({ item, index = 0 }) {
     );
 }
 
-function SummaryCard({ icon: Icon, label, value, delay = 0 }) {
+function SummaryCard({ label, value, delay = 0 }) {
     return (
         <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -328,17 +322,10 @@ function SummaryCard({ icon: Icon, label, value, delay = 0 }) {
             whileHover={{ y: -4 }}
             className="rounded-[22px] border border-[#f0e2b7] bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
         >
-            <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#fff6dc] text-[#0f4d3c]">
-                    <Icon size={20} />
-                </div>
-                <div>
-                    <p className="text-sm text-slate-500">{label}</p>
-                    <h2 className="mt-1 text-3xl font-extrabold text-[#0f4d3c]">
-                        {value}
-                    </h2>
-                </div>
-            </div>
+            <p className="text-sm font-medium text-slate-500">{label}</p>
+            <h2 className="mt-2 text-4xl font-extrabold text-[#0f4d3c]">
+                {value}
+            </h2>
         </motion.div>
     );
 }
@@ -398,19 +385,16 @@ function AdminPackages() {
             >
                 <div className="grid gap-4 md:grid-cols-3">
                     <SummaryCard
-                        icon={Gem}
                         label="Wedding Packages"
                         value={weddingPackages.length}
                         delay={0.04}
                     />
                     <SummaryCard
-                        icon={Package2}
                         label="Debut Packages"
                         value={debutPackages.length}
                         delay={0.1}
                     />
                     <SummaryCard
-                        icon={Gift}
                         label="Available Add-ons"
                         value={addOns.length}
                         delay={0.16}
@@ -489,10 +473,10 @@ function AdminPackages() {
                             whileHover={{ y: -4 }}
                             className="rounded-[22px] border border-[#dce7e2] bg-[#f8fbfa] p-5 shadow-sm transition-shadow hover:shadow-md"
                         >
-                            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#edf8f3] text-[#0f4d3c]">
-                                <BadgeCheck size={20} />
-                            </div>
-                            <h3 className="mt-4 text-lg font-bold text-[#0f4d3c]">
+                            <p className="text-sm font-medium uppercase tracking-[0.16em] text-[#b99117]">
+                                Add-on Service
+                            </p>
+                            <h3 className="mt-3 text-lg font-bold text-[#0f4d3c]">
                                 {item.name}
                             </h3>
                             <p className="mt-2 text-2xl font-extrabold text-[#b99117]">

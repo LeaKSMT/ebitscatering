@@ -147,7 +147,7 @@ function AdminTopbar({ currentPath = "", theme = "light", onToggleTheme }) {
                         initial={{ opacity: 0, y: -12 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.45, ease: "easeOut" }}
-                        className="relative overflow-visible rounded-[30px] border bg-[linear-gradient(135deg,#0a4637_0%,#0d5c48_52%,#148266_100%)] text-white shadow-[0_20px_50px_rgba(10,70,55,0.22)]"
+                        className="relative overflow-visible rounded-[30px] border bg-[linear-gradient(135deg,#0a4637_0%,#0d5c48_48%,#148266_100%)] text-white shadow-[0_20px_50px_rgba(10,70,55,0.20)]"
                     >
                         <div className="pointer-events-none absolute inset-0">
                             <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-[#f3d57a]/18 blur-3xl" />
@@ -195,9 +195,9 @@ function AdminTopbar({ currentPath = "", theme = "light", onToggleTheme }) {
                                             whileTap={{ scale: 0.985 }}
                                             transition={{ duration: 0.2 }}
                                             onClick={() => setProfileOpen((prev) => !prev)}
-                                            className="admin-profile-trigger flex min-w-[230px] items-center gap-3 rounded-[18px] border px-3.5 py-2.5 text-left shadow-[0_14px_30px_rgba(0,0,0,0.10)]"
+                                            className="admin-profile-trigger flex min-w-[240px] items-center gap-3 rounded-[20px] border px-3.5 py-3 text-left shadow-[0_14px_30px_rgba(0,0,0,0.10)]"
                                         >
-                                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#fff3c8_0%,#f2cf63_100%)] text-[#8a6710] shadow-sm">
+                                            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#fff3c8_0%,#f2cf63_100%)] text-[#8a6710] shadow-sm">
                                                 <ShieldCheck size={18} />
                                             </div>
 

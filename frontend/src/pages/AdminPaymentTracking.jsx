@@ -114,8 +114,7 @@ function mapQuotationToPaymentRow(item) {
             item.clientName ||
             "Client",
         email: item.email || item.owner_email || item.client_email || "",
-        ownerEmail:
-            item.owner_email || item.email || item.client_email || "",
+        ownerEmail: item.owner_email || item.email || item.client_email || "",
         eventType: item.event_type || item.eventType || "Booking",
         eventDate:
             item.preferred_date ||
@@ -155,7 +154,8 @@ function getPaymentIdentity(payment, index = 0) {
         payment?.id ||
         payment?.paymentId ||
         payment?.referenceNumber ||
-        `${payment?.bookingId || ""}_${payment?.amount || 0}_${payment?.createdAt || payment?.created_at || index}`
+        `${payment?.bookingId || ""}_${payment?.amount || 0}_${payment?.createdAt || payment?.created_at || index
+        }`
     );
 }
 
@@ -311,7 +311,11 @@ function AdminPaymentTracking() {
         }
 
         if (selectedRow.balance <= 0) {
-            showFeedback("error", "Already Fully Paid", "This booking is already fully paid.");
+            showFeedback(
+                "error",
+                "Already Fully Paid",
+                "This booking is already fully paid."
+            );
             return;
         }
 
@@ -359,7 +363,8 @@ function AdminPaymentTracking() {
             showFeedback(
                 "success",
                 "Payment Saved",
-                `${formatCurrency(amount)} was successfully recorded for ${selectedRow.fullName}.`
+                `${formatCurrency(amount)} was successfully recorded for ${selectedRow.fullName
+                }.`
             );
         } catch (error) {
             console.error("Failed to save payment:", error);
@@ -611,7 +616,7 @@ function AdminPaymentTracking() {
                         title="Partial / Unpaid"
                         value={statusCounts.partial + statusCounts.unpaid}
                         icon={Clock3}
-                        accent="slate"
+                        accent="amber"
                         delay={0.2}
                     />
                 </section>
@@ -620,32 +625,32 @@ function AdminPaymentTracking() {
                     initial={{ opacity: 0, y: 18 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.45, delay: 0.1 }}
-                    className="overflow-hidden rounded-[28px] border border-white/70 bg-white/90 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur"
+                    className="overflow-hidden rounded-[28px] border border-[#e4ece8] bg-white/95 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur"
                 >
-                    <div className="border-b border-gray-100 p-6">
+                    <div className="border-b border-[#edf2ef] p-6">
                         <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
                             <div>
                                 <h2 className="text-2xl font-black tracking-tight text-[#0f4d3c]">
                                     Booking Payment Records
                                 </h2>
-                                <p className="mt-1 text-sm text-gray-500">
+                                <p className="mt-1 text-sm text-slate-500">
                                     Review payment progress, balances, and booking status in one place.
                                 </p>
                             </div>
 
                             <div className="flex w-full flex-col gap-3 sm:flex-row xl:w-auto">
                                 <div className="relative min-w-0 flex-1 xl:w-[320px]">
-                                    <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                                    <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7b8c85]" />
                                     <input
                                         type="text"
                                         placeholder="Search booking, client, event, status..."
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="w-full rounded-2xl border border-gray-200 bg-[#f8fafc] py-3 pl-11 pr-4 text-sm outline-none transition focus:border-[#d4af37] focus:bg-white"
+                                        className="w-full rounded-2xl border border-[#dce7e2] bg-[#f8fbfa] py-3 pl-11 pr-4 text-sm text-[#0f4d3c] outline-none transition focus:border-[#d4af37] focus:bg-white"
                                     />
                                 </div>
 
-                                <div className="inline-flex items-center rounded-2xl border border-[#d4af37]/30 bg-[#fff8e6] px-4 py-3 text-sm font-semibold text-[#8d6a0e]">
+                                <div className="inline-flex items-center rounded-2xl border border-[#e7d28b] bg-[#fff8e6] px-4 py-3 text-sm font-semibold text-[#8d6a0e]">
                                     {filteredRows.length} record(s)
                                 </div>
                             </div>
@@ -654,8 +659,8 @@ function AdminPaymentTracking() {
 
                     {loading ? (
                         <div className="p-10">
-                            <div className="rounded-[24px] border border-dashed border-[#d9e2ec] bg-[linear-gradient(135deg,#f8fafc,white)] p-10 text-center">
-                                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#ecfdf5]">
+                            <div className="rounded-[24px] border border-dashed border-[#dce7e2] bg-[linear-gradient(135deg,#f8fbfa,white)] p-10 text-center">
+                                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#edf8f3]">
                                     <LoaderCircle className="h-8 w-8 animate-spin text-[#0f766e]" />
                                 </div>
                                 <h3 className="mt-4 text-xl font-bold text-[#0f4d3c]">
@@ -665,14 +670,14 @@ function AdminPaymentTracking() {
                         </div>
                     ) : filteredRows.length === 0 ? (
                         <div className="p-10">
-                            <div className="rounded-[24px] border border-dashed border-[#d9e2ec] bg-[linear-gradient(135deg,#f8fafc,white)] p-10 text-center">
-                                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#ecfdf5]">
+                            <div className="rounded-[24px] border border-dashed border-[#dce7e2] bg-[linear-gradient(135deg,#f8fbfa,white)] p-10 text-center">
+                                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#edf8f3]">
                                     <Wallet className="h-8 w-8 text-[#0f766e]" />
                                 </div>
                                 <h3 className="mt-4 text-xl font-bold text-[#0f4d3c]">
                                     No payment records found
                                 </h3>
-                                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-gray-500">
+                                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
                                     There are currently no matching booking payments in the system.
                                 </p>
                             </div>
@@ -681,7 +686,7 @@ function AdminPaymentTracking() {
                         <div className="overflow-x-auto">
                             <table className="w-full min-w-[1160px] text-sm">
                                 <thead>
-                                    <tr className="bg-[#fcfcfd] text-left text-[12px] uppercase tracking-[0.16em] text-gray-500">
+                                    <tr className="bg-[#f9fcfb] text-left text-[12px] uppercase tracking-[0.16em] text-[#6d7f77]">
                                         <th className="px-6 py-4 font-bold">Booking</th>
                                         <th className="px-6 py-4 font-bold">Client</th>
                                         <th className="px-6 py-4 font-bold">Event Date</th>
@@ -700,14 +705,14 @@ function AdminPaymentTracking() {
                                             initial={{ opacity: 0, y: 14 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ duration: 0.3, delay: index * 0.03 }}
-                                            className="border-t border-gray-100 transition hover:bg-[#fcfdfd]"
+                                            className="border-t border-[#edf2ef] transition hover:bg-[#fcfefd]"
                                         >
                                             <td className="px-6 py-5">
                                                 <div>
                                                     <p className="font-extrabold text-[#0f4d3c]">
                                                         {row.bookingId}
                                                     </p>
-                                                    <p className="mt-1 text-xs text-gray-400">
+                                                    <p className="mt-1 text-xs text-slate-400">
                                                         {row.eventType || "Booking record"}
                                                     </p>
                                                 </div>
@@ -718,7 +723,7 @@ function AdminPaymentTracking() {
                                                     <p className="font-semibold text-slate-700">
                                                         {row.fullName}
                                                     </p>
-                                                    <p className="mt-1 text-xs text-gray-400">
+                                                    <p className="mt-1 text-xs text-slate-400">
                                                         {row.email || row.ownerEmail || "No email"}
                                                     </p>
                                                 </div>
@@ -880,11 +885,11 @@ function AdminPaymentTracking() {
                             <div className="max-h-[calc(92vh-112px)] overflow-y-auto p-6">
                                 <div className="grid gap-6 xl:grid-cols-[1.05fr_1.35fr]">
                                     <div className="space-y-5">
-                                        <div className="rounded-[24px] border border-[#f4ecd2] bg-[#fffaf0] p-4">
+                                        <div className="rounded-[24px] border border-[#f1e4b3] bg-[#fffaf0] p-4">
                                             <p className="text-sm font-bold text-[#0f4d3c]">
                                                 {selectedRow.fullName}
                                             </p>
-                                            <p className="mt-1 text-xs text-gray-500">
+                                            <p className="mt-1 text-xs text-slate-500">
                                                 Booking ID: {selectedRow.bookingId}
                                             </p>
 
@@ -908,16 +913,16 @@ function AdminPaymentTracking() {
                                             </div>
                                         </div>
 
-                                        <div className="rounded-[24px] border border-gray-100 bg-white p-5 shadow-sm">
+                                        <div className="rounded-[24px] border border-[#e8efeb] bg-[#fffdfb] p-5 shadow-sm">
                                             <div className="mb-4 flex items-center gap-2">
-                                                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#ecfdf5]">
+                                                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#edf8f3]">
                                                     <ArrowRight className="h-5 w-5 text-[#0f766e]" />
                                                 </div>
                                                 <div>
                                                     <h4 className="font-extrabold text-[#0f4d3c]">
                                                         Add New Payment
                                                     </h4>
-                                                    <p className="text-xs text-gray-500">
+                                                    <p className="text-xs text-slate-500">
                                                         Record an additional payment for this booking.
                                                     </p>
                                                 </div>
@@ -928,7 +933,7 @@ function AdminPaymentTracking() {
                                                     Amount Paid
                                                 </label>
                                                 <div className="relative">
-                                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400">
+                                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">
                                                         ₱
                                                     </span>
                                                     <input
@@ -945,10 +950,10 @@ function AdminPaymentTracking() {
                                                             setPaymentInput(e.target.value)
                                                         }
                                                         disabled={selectedRow.balance <= 0 || saving}
-                                                        className="w-full rounded-2xl border border-gray-200 bg-[#f8fafc] py-3 pl-10 pr-4 outline-none transition focus:border-[#d4af37] focus:bg-white disabled:cursor-not-allowed disabled:bg-gray-100"
+                                                        className="w-full rounded-2xl border border-[#dce7e2] bg-[#f8fbfa] py-3 pl-10 pr-4 outline-none transition focus:border-[#d4af37] focus:bg-white disabled:cursor-not-allowed disabled:bg-slate-100"
                                                     />
                                                 </div>
-                                                <p className="mt-2 text-xs text-gray-500">
+                                                <p className="mt-2 text-xs text-slate-500">
                                                     Maximum allowed payment:{" "}
                                                     {formatCurrency(selectedRow.balance)}
                                                 </p>
@@ -974,23 +979,23 @@ function AdminPaymentTracking() {
                                     </div>
 
                                     <div className="space-y-5">
-                                        <div className="rounded-[24px] border border-gray-100 bg-white p-5 shadow-sm">
+                                        <div className="rounded-[24px] border border-[#e8efeb] bg-[#fffdfb] p-5 shadow-sm">
                                             <div className="mb-4 flex items-center gap-2">
-                                                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#eff6ff]">
+                                                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#eef5ff]">
                                                     <History className="h-5 w-5 text-[#2563eb]" />
                                                 </div>
                                                 <div>
                                                     <h4 className="font-extrabold text-[#0f4d3c]">
                                                         Payment History
                                                     </h4>
-                                                    <p className="text-xs text-gray-500">
+                                                    <p className="text-xs text-slate-500">
                                                         Edit or delete recorded payments when deductions are wrong.
                                                     </p>
                                                 </div>
                                             </div>
 
                                             {selectedRow.payments.length === 0 ? (
-                                                <div className="rounded-2xl border border-dashed border-gray-200 bg-[#fafafa] px-4 py-8 text-center text-sm text-gray-500">
+                                                <div className="rounded-2xl border border-dashed border-[#dce7e2] bg-[#fafcfb] px-4 py-8 text-center text-sm text-slate-500">
                                                     No payment records yet for this booking.
                                                 </div>
                                             ) : (
@@ -1013,19 +1018,19 @@ function AdminPaymentTracking() {
                                                         return (
                                                             <div
                                                                 key={getPaymentIdentity(payment, index)}
-                                                                className="rounded-[22px] border border-gray-100 bg-[#fcfcfd] p-4"
+                                                                className="rounded-[22px] border border-[#e8efeb] bg-[#fcfefd] p-4"
                                                             >
                                                                 <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                                                                     <div className="min-w-0">
                                                                         <p className="text-sm font-extrabold text-[#0f4d3c]">
                                                                             {formatCurrency(amountValue)}
                                                                         </p>
-                                                                        <p className="mt-1 text-xs text-gray-500">
+                                                                        <p className="mt-1 text-xs text-slate-500">
                                                                             {payment?.referenceNumber ||
                                                                                 payment?.paymentId ||
                                                                                 "Manual payment record"}
                                                                         </p>
-                                                                        <p className="mt-1 text-xs text-gray-400">
+                                                                        <p className="mt-1 text-xs text-slate-400">
                                                                             {formatDate(
                                                                                 payment?.createdAt ||
                                                                                 payment?.created_at ||
@@ -1060,11 +1065,11 @@ function AdminPaymentTracking() {
                                                                         </div>
                                                                     ) : (
                                                                         <div className="w-full md:w-[280px]">
-                                                                            <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.14em] text-gray-500">
+                                                                            <label className="mb-2 block text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
                                                                                 Edit payment amount
                                                                             </label>
                                                                             <div className="relative">
-                                                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400">
+                                                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">
                                                                                     ₱
                                                                                 </span>
                                                                                 <input
@@ -1077,10 +1082,10 @@ function AdminPaymentTracking() {
                                                                                             e.target.value
                                                                                         )
                                                                                     }
-                                                                                    className="w-full rounded-2xl border border-gray-200 bg-white py-3 pl-10 pr-4 text-sm outline-none transition focus:border-[#d4af37]"
+                                                                                    className="w-full rounded-2xl border border-[#dce7e2] bg-white py-3 pl-10 pr-4 text-sm outline-none transition focus:border-[#d4af37]"
                                                                                 />
                                                                             </div>
-                                                                            <p className="mt-2 text-[11px] text-gray-500">
+                                                                            <p className="mt-2 text-[11px] text-slate-500">
                                                                                 Max allowed:{" "}
                                                                                 {formatCurrency(
                                                                                     currentEditableRemaining
@@ -1099,7 +1104,7 @@ function AdminPaymentTracking() {
                                                                                 <button
                                                                                     type="button"
                                                                                     onClick={cancelEditPayment}
-                                                                                    className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-bold text-gray-600 transition hover:bg-gray-50"
+                                                                                    className="inline-flex items-center gap-2 rounded-xl border border-[#dce7e2] bg-white px-3 py-2 text-xs font-bold text-slate-600 transition hover:bg-[#f8fbfa]"
                                                                                 >
                                                                                     Cancel
                                                                                 </button>
@@ -1120,7 +1125,7 @@ function AdminPaymentTracking() {
                                     <button
                                         type="button"
                                         onClick={closePaymentModal}
-                                        className="rounded-2xl border border-gray-200 bg-white px-5 py-3 text-sm font-bold text-gray-600 transition hover:bg-gray-50"
+                                        className="rounded-2xl border border-[#dce7e2] bg-white px-5 py-3 text-sm font-bold text-slate-600 transition hover:bg-[#f8fbfa]"
                                     >
                                         Close
                                     </button>
@@ -1137,10 +1142,11 @@ function AdminPaymentTracking() {
 function StatCard({ title, value, icon: Icon, accent = "gold", delay = 0 }) {
     const accentMap = {
         emerald:
-            "from-emerald-500/10 to-emerald-100/40 text-emerald-600 ring-emerald-200",
-        rose: "from-rose-500/10 to-rose-100/40 text-rose-600 ring-rose-200",
-        gold: "from-[#d4af37]/15 to-[#fff4cd] text-[#b99117] ring-[#ecd891]",
-        slate: "from-slate-500/10 to-slate-100/40 text-slate-600 ring-slate-200",
+            "bg-[linear-gradient(135deg,#ecfdf5_0%,#dff7ea_100%)] text-emerald-600 ring-emerald-200",
+        rose: "bg-[linear-gradient(135deg,#fff1f2_0%,#ffe4e6_100%)] text-rose-600 ring-rose-200",
+        gold: "bg-[linear-gradient(135deg,#fff8df_0%,#fff1bf_100%)] text-[#b99117] ring-[#ecd891]",
+        amber:
+            "bg-[linear-gradient(135deg,#fff8e6_0%,#ffefc7_100%)] text-[#c27b0a] ring-[#f2d089]",
     };
 
     return (
@@ -1148,18 +1154,18 @@ function StatCard({ title, value, icon: Icon, accent = "gold", delay = 0 }) {
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, delay }}
-            className="group rounded-[26px] border border-white/70 bg-white/90 p-5 shadow-[0_16px_50px_rgba(15,23,42,0.07)] backdrop-blur transition hover:-translate-y-1"
+            className="group rounded-[26px] border border-[#e4ece8] bg-white/95 p-5 shadow-[0_16px_50px_rgba(15,23,42,0.07)] backdrop-blur transition hover:-translate-y-1"
         >
             <div className="flex items-start justify-between gap-4">
                 <div>
-                    <p className="text-sm font-medium text-gray-500">{title}</p>
+                    <p className="text-sm font-medium text-slate-500">{title}</p>
                     <h2 className="mt-3 text-3xl font-black tracking-tight text-[#0f4d3c]">
                         {value}
                     </h2>
                 </div>
 
                 <div
-                    className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${accentMap[accent]} ring-1`}
+                    className={`flex h-12 w-12 items-center justify-center rounded-2xl ${accentMap[accent]} ring-1`}
                 >
                     <Icon className="h-6 w-6" />
                 </div>
@@ -1170,8 +1176,8 @@ function StatCard({ title, value, icon: Icon, accent = "gold", delay = 0 }) {
 
 function MiniInfo({ label, value }) {
     return (
-        <div className="rounded-2xl border border-white bg-white px-4 py-3 shadow-sm">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-gray-400">
+        <div className="rounded-2xl border border-[#e8efeb] bg-white px-4 py-3 shadow-sm">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
                 {label}
             </p>
             <p className="mt-2 font-extrabold capitalize text-[#0f4d3c]">

@@ -95,8 +95,6 @@ img {
   background: transparent;
 }
 
-
-
 .client-portal-shell {
   background:
     radial-gradient(circle at top, rgba(212, 175, 55, 0.08), transparent 18%),
@@ -488,8 +486,6 @@ img {
   box-shadow: 0 20px 45px rgba(14, 61, 47, 0.1);
 }
 
-
-
 .hero-luxury-overlay {
   background:
     linear-gradient(90deg, rgba(4, 21, 16, 0.84) 0%, rgba(7, 33, 25, 0.76) 28%, rgba(9, 49, 38, 0.42) 56%, rgba(8, 25, 20, 0.58) 100%),
@@ -662,7 +658,6 @@ img {
   pointer-events: none;
 }
 
-
 .login-page input,
 .login-page textarea,
 .login-page select {
@@ -690,8 +685,6 @@ img {
   box-shadow: 0 0 0 1000px #fafafa inset !important;
 }
 
-
-
 input[type="date"],
 input[type="time"],
 select {
@@ -710,8 +703,6 @@ body[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator {
   filter: invert(1) brightness(1.2);
   opacity: 0.85;
 }
-
-
 
 .admin-shell {
   min-height: 100vh;
@@ -808,8 +799,9 @@ body[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator {
 }
 
 .admin-main-surface {
-  border-color: rgba(255, 255, 255, 0.68);
-  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(223, 232, 227, 0.95);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 25px 60px rgba(15, 77, 60, 0.10);
 }
 
 .admin-theme-dark .admin-main-surface {
@@ -819,8 +811,9 @@ body[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator {
 }
 
 .admin-sidebar {
-  border-right-color: rgba(255, 255, 255, 0.1);
+  border-right-color: rgba(255, 255, 255, 0.10);
   background: linear-gradient(180deg, #042f25 0%, #0a4637 28%, #0d5b47 62%, #12785b 100%);
+  box-shadow: 10px 0 30px rgba(0, 0, 0, 0.14);
 }
 
 .admin-theme-dark .admin-sidebar {
@@ -829,7 +822,7 @@ body[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator {
 
 .admin-topbar {
   border-bottom-color: rgba(255, 255, 255, 0.55);
-  background: rgba(248, 251, 250, 0.75);
+  background: rgba(248, 251, 250, 0.72);
 }
 
 .admin-theme-dark .admin-topbar {
@@ -837,24 +830,23 @@ body[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator {
   background: rgba(4, 20, 16, 0.58);
 }
 
-
 .admin-profile-trigger {
   border-color: rgba(255, 255, 255, 0.14);
-  background: rgba(5, 33, 27, 0.36);
+  background: rgba(5, 33, 27, 0.38);
   backdrop-filter: blur(14px);
 }
 
 .admin-profile-trigger:hover {
-  background: rgba(5, 33, 27, 0.44);
+  background: rgba(5, 33, 27, 0.48);
 }
 
 .admin-theme-dark .admin-profile-trigger {
   border-color: rgba(255, 255, 255, 0.14);
-  background: rgba(5, 21, 17, 0.5);
+  background: rgba(5, 21, 17, 0.52);
 }
 
 .admin-theme-dark .admin-profile-trigger:hover {
-  background: rgba(5, 21, 17, 0.62);
+  background: rgba(5, 21, 17, 0.64);
 }
 
 .admin-profile-dropdown {
@@ -976,8 +968,6 @@ body[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator {
 .admin-theme-dark .admin-logout-cancel:hover {
   background: rgba(255, 255, 255, 0.08);
 }
-
-
 
 .admin-theme-dark,
 .admin-theme-dark p,
@@ -1264,7 +1254,6 @@ body[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator {
   border-color: rgba(255, 255, 255, 0.08);
 }
 
-
 @keyframes float1 {
 
   0%,
@@ -1333,7 +1322,6 @@ body[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator {
     transform: translateY(18px) translateX(8px);
   }
 }
-
 
 @media (max-width: 1024px) {
 

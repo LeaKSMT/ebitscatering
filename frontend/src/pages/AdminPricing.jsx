@@ -3,7 +3,6 @@ import {
     Sparkles,
     CircleDollarSign,
     BadgeDollarSign,
-    ReceiptText,
 } from "lucide-react";
 import { ADD_ONS, formatCurrency } from "../utils/AdminData";
 
@@ -123,29 +122,6 @@ function AdminPricing() {
                     {ADD_ONS.map((item, index) => (
                         <PricingCard key={item.name} item={item} index={index} />
                     ))}
-                </div>
-            </motion.section>
-
-            <motion.section
-                variants={fadeUp}
-                transition={{ duration: 0.46, ease: "easeOut" }}
-                className="rounded-[28px] border border-[#e9dec2] bg-[#fffaf0] p-6 shadow-sm"
-            >
-                <div className="flex items-start gap-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#fff1c2] text-[#b99117]">
-                        <ReceiptText size={22} />
-                    </div>
-                    <div>
-                        <h3 className="text-2xl font-extrabold text-[#0f4d3c]">
-                            Pricing Note
-                        </h3>
-                        <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-600">
-                            This pricing page serves as the official admin reference for
-                            quotation computations. The standard guest rate is fixed at
-                            <span className="font-bold text-[#0f4d3c]"> ₱400 per pax</span>,
-                            while all optional services are computed separately as add-ons.
-                        </p>
-                    </div>
                 </div>
             </motion.section>
         </motion.div>
