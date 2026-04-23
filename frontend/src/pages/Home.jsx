@@ -234,22 +234,22 @@ function Home() {
     const experienceCards = [
         {
             title: "Elegant Setup",
-            text: "Visually polished tables, stage styling, and coordinated presentation.",
+            text: "Professionally arranged table styling, venue presentation, and event-ready setup.",
             icon: <Award className="h-5 w-5" />,
         },
         {
-            title: "Food & Service",
-            text: "Fresh menu options delivered with professional catering support.",
+            title: "Food & Beverage Service",
+            text: "Well-prepared menu service delivered with quality, consistency, and attention to detail.",
             icon: <UtensilsCrossed className="h-5 w-5" />,
         },
         {
-            title: "Celebration Flow",
-            text: "Smooth coordination to keep the event organized and stress-free.",
+            title: "Event Coordination",
+            text: "Structured service flow that helps keep the program smooth, organized, and stress-free.",
             icon: <Music4 className="h-5 w-5" />,
         },
         {
-            title: "Picture-Ready Moments",
-            text: "A polished look that makes every event feel premium and memorable.",
+            title: "Presentation Quality",
+            text: "Refined visual details that enhance the atmosphere and overall guest experience.",
             icon: <Camera className="h-5 w-5" />,
         },
     ];
@@ -606,8 +606,12 @@ function Home() {
                                             Signature Experience
                                         </p>
                                         <h3 className="mt-3 text-[31px] font-bold leading-tight">
-                                            End-to-End Elegant Service
+                                            Elegant Catering Experience
                                         </h3>
+                                        <p className="mt-3 max-w-md text-sm leading-7 text-white/76">
+                                            Delivering organized, polished, and professional
+                                            catering service for memorable celebrations.
+                                        </p>
                                     </div>
 
                                     <div className="rounded-2xl border border-white/10 bg-white/10 p-3 text-yellow-400 shadow-inner">
@@ -642,16 +646,16 @@ function Home() {
                                             Best for
                                         </p>
                                         <p className="mt-2 text-sm font-semibold text-white/92">
-                                            Weddings • Debuts • Milestones
+                                            Weddings • Debuts • Birthdays • Milestones
                                         </p>
                                     </div>
 
                                     <div className="rounded-2xl border border-white/10 bg-white/10 p-4">
                                         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/60">
-                                            Signature
+                                            Service Standard
                                         </p>
                                         <p className="mt-2 text-sm font-semibold text-white/92">
-                                            Elegant • Organized • Premium
+                                            Organized • Elegant • Professional
                                         </p>
                                     </div>
                                 </div>
