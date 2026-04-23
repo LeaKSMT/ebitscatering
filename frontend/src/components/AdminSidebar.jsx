@@ -49,8 +49,8 @@ function AdminSidebar({ theme = "light" }) {
     const navContent = (
         <div
             className={`relative flex h-full flex-col overflow-hidden border-r ${isDark
-                    ? "border-white/10 bg-[linear-gradient(180deg,#021611_0%,#05231c_18%,#083127_42%,#0b4837_72%,#10654d_100%)] text-white shadow-[inset_-1px_0_0_rgba(255,255,255,0.05),0_20px_40px_rgba(0,0,0,0.22)]"
-                    : "border-white/10 bg-[linear-gradient(180deg,#03231c_0%,#063229_18%,#0a4638_42%,#0f5d48_72%,#147a5c_100%)] text-white shadow-[inset_-1px_0_0_rgba(255,255,255,0.08),0_20px_40px_rgba(0,0,0,0.14)]"
+                ? "border-white/10 bg-[linear-gradient(180deg,#021611_0%,#05231c_18%,#083127_42%,#0b4837_72%,#10654d_100%)] text-white shadow-[inset_-1px_0_0_rgba(255,255,255,0.05),0_20px_40px_rgba(0,0,0,0.22)]"
+                : "border-white/10 bg-[linear-gradient(180deg,#03231c_0%,#063229_18%,#0a4638_42%,#0f5d48_72%,#147a5c_100%)] text-white shadow-[inset_-1px_0_0_rgba(255,255,255,0.08),0_20px_40px_rgba(0,0,0,0.14)]"
                 }`}
         >
             <div className="pointer-events-none absolute inset-0">
@@ -82,11 +82,6 @@ function AdminSidebar({ theme = "light" }) {
                             <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/65">
                                 Admin Workspace
                             </p>
-
-                            <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-[#f5d36a]/20 bg-[rgba(245,211,106,0.10)] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-[#f8df8c]">
-                                <ShieldCheck size={12} />
-                                Premium Control Panel
-                            </div>
                         </div>
 
                         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[18px] border border-[#f5d36a]/18 bg-[linear-gradient(135deg,rgba(245,211,106,0.22)_0%,rgba(245,201,74,0.08)_100%)] text-[#f5d36a] shadow-[0_12px_28px_rgba(245,201,74,0.10)]">
@@ -125,20 +120,20 @@ function AdminSidebar({ theme = "light" }) {
                                             }}
                                             whileTap={{ scale: 0.985 }}
                                             className={`group relative overflow-hidden rounded-[22px] border px-3.5 py-3.5 transition-all duration-300 ${isActive
-                                                    ? "border-[#f5d36a]/80 bg-[linear-gradient(135deg,#fff8df_0%,#f6df97_40%,#eac55b_100%)] text-[#07372d] shadow-[0_18px_34px_rgba(0,0,0,0.18),0_0_22px_rgba(245,211,106,0.18),inset_0_1px_0_rgba(255,255,255,0.45)]"
-                                                    : "border-transparent bg-white/[0.035] text-white/95 hover:border-white/10 hover:bg-white/[0.085] hover:shadow-[0_12px_28px_rgba(0,0,0,0.10)]"
+                                                ? "border-[#f5d36a]/80 bg-[linear-gradient(135deg,#fff8df_0%,#f6df97_40%,#eac55b_100%)] text-[#07372d] shadow-[0_18px_34px_rgba(0,0,0,0.18),0_0_22px_rgba(245,211,106,0.18),inset_0_1px_0_rgba(255,255,255,0.45)]"
+                                                : "border-transparent bg-white/[0.035] text-white/95 hover:border-white/10 hover:bg-white/[0.085] hover:shadow-[0_12px_28px_rgba(0,0,0,0.10)]"
                                                 }`}
                                         >
                                             <div
                                                 className={`pointer-events-none absolute inset-0 transition-opacity duration-300 ${isActive
-                                                        ? "opacity-100"
-                                                        : "opacity-0 group-hover:opacity-100"
+                                                    ? "opacity-100"
+                                                    : "opacity-0 group-hover:opacity-100"
                                                     }`}
                                             >
                                                 <div
                                                     className={`absolute inset-y-0 left-0 w-[3px] rounded-r-full ${isActive
-                                                            ? "bg-[#0a4638]"
-                                                            : "bg-[#f5d36a]/60"
+                                                        ? "bg-[#0a4638]"
+                                                        : "bg-[#f5d36a]/60"
                                                         }`}
                                                 />
                                                 <div className="absolute inset-0 bg-gradient-to-r from-white/18 via-white/6 to-transparent" />
@@ -149,8 +144,8 @@ function AdminSidebar({ theme = "light" }) {
                                                     whileHover={{ rotate: -5, scale: 1.04 }}
                                                     transition={{ duration: 0.18 }}
                                                     className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-[18px] border transition-all duration-300 ${isActive
-                                                            ? "border-[#0b4a3a]/10 bg-[linear-gradient(135deg,#08382d_0%,#0c4b3c_100%)] text-[#f5d36a] shadow-[0_10px_22px_rgba(8,56,45,0.28)]"
-                                                            : "border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.12)_0%,rgba(255,255,255,0.05)_100%)] text-white/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] group-hover:border-[#f5d36a]/18 group-hover:bg-[linear-gradient(135deg,rgba(255,255,255,0.16)_0%,rgba(255,255,255,0.08)_100%)] group-hover:text-[#ffe28a]"
+                                                        ? "border-[#0b4a3a]/10 bg-[linear-gradient(135deg,#08382d_0%,#0c4b3c_100%)] text-[#f5d36a] shadow-[0_10px_22px_rgba(8,56,45,0.28)]"
+                                                        : "border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.12)_0%,rgba(255,255,255,0.05)_100%)] text-white/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] group-hover:border-[#f5d36a]/18 group-hover:bg-[linear-gradient(135deg,rgba(255,255,255,0.16)_0%,rgba(255,255,255,0.08)_100%)] group-hover:text-[#ffe28a]"
                                                         }`}
                                                 >
                                                     <Icon size={17} strokeWidth={2.15} />
@@ -159,8 +154,8 @@ function AdminSidebar({ theme = "light" }) {
                                                 <div className="min-w-0 flex-1">
                                                     <span
                                                         className={`block truncate text-[14px] font-semibold tracking-[0.01em] transition-colors duration-300 ${isActive
-                                                                ? "text-[#08382d]"
-                                                                : "text-white/95 group-hover:text-white"
+                                                            ? "text-[#08382d]"
+                                                            : "text-white/95 group-hover:text-white"
                                                             }`}
                                                     >
                                                         {item.label}
@@ -170,8 +165,8 @@ function AdminSidebar({ theme = "light" }) {
                                                 <ChevronRight
                                                     size={16}
                                                     className={`shrink-0 transition-all duration-300 ${isActive
-                                                            ? "translate-x-0 text-[#08382d] opacity-100"
-                                                            : "translate-x-[-3px] text-white/65 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 group-hover:text-[#ffe28a]"
+                                                        ? "translate-x-0 text-[#08382d] opacity-100"
+                                                        : "translate-x-[-3px] text-white/65 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 group-hover:text-[#ffe28a]"
                                                         }`}
                                                 />
                                             </div>
@@ -183,17 +178,6 @@ function AdminSidebar({ theme = "light" }) {
                     })}
                 </div>
             </nav>
-
-            <div className="relative shrink-0 border-t border-white/10 px-4 py-4">
-                <div className="rounded-[20px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06)_0%,rgba(255,255,255,0.035)_100%)] px-4 py-3 backdrop-blur-sm shadow-[0_12px_26px_rgba(0,0,0,0.10)]">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/55">
-                        Defense Ready
-                    </p>
-                    <p className="mt-1 text-xs font-medium leading-5 text-white/80">
-                        Elegant and professional workspace for managing operations.
-                    </p>
-                </div>
-            </div>
         </div>
     );
 
