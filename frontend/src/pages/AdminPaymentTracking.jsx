@@ -154,8 +154,7 @@ function getPaymentIdentity(payment, index = 0) {
         payment?.id ||
         payment?.paymentId ||
         payment?.referenceNumber ||
-        `${payment?.bookingId || ""}_${payment?.amount || 0}_${payment?.createdAt || payment?.created_at || index
-        }`
+        `${payment?.bookingId || ""}_${payment?.amount || 0}_${payment?.createdAt || payment?.created_at || index}`
     );
 }
 
@@ -363,8 +362,7 @@ function AdminPaymentTracking() {
             showFeedback(
                 "success",
                 "Payment Saved",
-                `${formatCurrency(amount)} was successfully recorded for ${selectedRow.fullName
-                }.`
+                `${formatCurrency(amount)} was successfully recorded for ${selectedRow.fullName}.`
             );
         } catch (error) {
             console.error("Failed to save payment:", error);
@@ -547,12 +545,18 @@ function AdminPaymentTracking() {
 
     const getStatusStyle = (status) => {
         if (status === "paid") {
-            return "bg-emerald-50 text-emerald-700 border border-emerald-200";
+            return "bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-sm";
         }
         if (status === "partial") {
-            return "bg-amber-50 text-amber-700 border border-amber-200";
+            return "bg-amber-100 text-amber-800 border border-amber-300 shadow-sm";
         }
-        return "bg-rose-50 text-rose-700 border border-rose-200";
+        return "bg-rose-100 text-rose-700 border border-rose-300 shadow-sm";
+    };
+
+    const getMiniStatusStyle = (status) => {
+        if (status === "paid") return "text-emerald-700";
+        if (status === "partial") return "text-amber-700";
+        return "text-rose-600";
     };
 
     return (
@@ -758,7 +762,7 @@ function AdminPaymentTracking() {
 
                                             <td className="px-6 py-5">
                                                 <span
-                                                    className={`inline-flex rounded-full px-3 py-1 text-xs font-bold capitalize ${getStatusStyle(
+                                                    className={`inline-flex min-w-[96px] justify-center rounded-full px-3.5 py-1.5 text-xs font-extrabold uppercase tracking-[0.08em] ${getStatusStyle(
                                                         row.paymentStatus
                                                     )}`}
                                                 >
@@ -909,6 +913,7 @@ function AdminPaymentTracking() {
                                                 <MiniInfo
                                                     label="Status"
                                                     value={selectedRow.paymentStatus}
+                                                    valueClassName={getMiniStatusStyle(selectedRow.paymentStatus)}
                                                 />
                                             </div>
                                         </div>
@@ -1174,13 +1179,13 @@ function StatCard({ title, value, icon: Icon, accent = "gold", delay = 0 }) {
     );
 }
 
-function MiniInfo({ label, value }) {
+function MiniInfo({ label, value, valueClassName = "" }) {
     return (
         <div className="rounded-2xl border border-[#e8efeb] bg-white px-4 py-3 shadow-sm">
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
                 {label}
             </p>
-            <p className="mt-2 font-extrabold capitalize text-[#0f4d3c]">
+            <p className={`mt-2 font-extrabold capitalize ${valueClassName || "text-[#0f4d3c]"}`}>
                 {value}
             </p>
         </div>
