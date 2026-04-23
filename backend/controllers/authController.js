@@ -34,11 +34,19 @@ const getTransporter = () => {
     }
 
     return nodemailer.createTransport({
-        service: "gmail",
+        host: "smtp.gmail.com",
+        port: 587,
+        secure: false,
         auth: {
             user: mailUser,
             pass: mailPass,
         },
+        tls: {
+            rejectUnauthorized: false,
+        },
+        connectionTimeout: 15000,
+        greetingTimeout: 15000,
+        socketTimeout: 20000,
     });
 };
 
@@ -415,34 +423,32 @@ exports.forgotPassword = (req, res) => {
                             });
                         }
 
-                        await Promise.race([
-                            transporter.sendMail({
-                                from: `"Ebit's Catering" <${process.env.MAIL_USER}>`,
-                                to: user.email,
-                                subject: "Reset Your Ebit's Catering Password",
-                                html: `
-                                    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #1f2937;">
-                                        <h2 style="color: #0f4d3c;">Password Reset Request</h2>
-                                        <p>Hello ${user.name || "User"},</p>
-                                        <p>We received a request to reset your password.</p>
-                                        <p>Click the button below to reset your password:</p>
-                                        <p style="margin: 24px 0;">
-                                            <a
-                                                href="${resetLink}"
-                                                style="background:#0f4d3c;color:#ffffff;padding:12px 20px;border-radius:10px;text-decoration:none;display:inline-block;"
-                                            >
-                                                Reset Password
-                                            </a>
-                                        </p>
-                                        <p>This link will expire in 15 minutes.</p>
-                                        <p>If you did not request this, you can safely ignore this email.</p>
-                                    </div>
-                                `,
-                            }),
-                            new Promise((_, reject) =>
-                                setTimeout(() => reject(new Error("Email send timeout")), 15000)
-                            ),
-                        ]);
+                        await transporter.verify();
+                        console.log("SMTP transporter verified successfully");
+
+                        await transporter.sendMail({
+                            from: `"Ebit's Catering" <${process.env.MAIL_USER}>`,
+                            to: user.email,
+                            subject: "Reset Your Ebit's Catering Password",
+                            html: `
+                                <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #1f2937;">
+                                    <h2 style="color: #0f4d3c;">Password Reset Request</h2>
+                                    <p>Hello ${user.name || "User"},</p>
+                                    <p>We received a request to reset your password.</p>
+                                    <p>Click the button below to reset your password:</p>
+                                    <p style="margin: 24px 0;">
+                                        <a
+                                            href="${resetLink}"
+                                            style="background:#0f4d3c;color:#ffffff;padding:12px 20px;border-radius:10px;text-decoration:none;display:inline-block;"
+                                        >
+                                            Reset Password
+                                        </a>
+                                    </p>
+                                    <p>This link will expire in 15 minutes.</p>
+                                    <p>If you did not request this, you can safely ignore this email.</p>
+                                </div>
+                            `,
+                        });
 
                         console.log("Email sent successfully to:", user.email);
 
