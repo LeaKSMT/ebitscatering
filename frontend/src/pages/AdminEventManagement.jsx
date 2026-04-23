@@ -717,8 +717,8 @@ function AdminEventManagement() {
 
                     <div
                         className={`grid gap-4 border-t px-5 py-5 md:grid-cols-3 md:px-6 ${isDark
-                                ? "border-white/10 bg-[rgba(255,255,255,0.02)]"
-                                : "border-[#e8efeb] bg-[#fbfdfc]"
+                            ? "border-white/10 bg-[rgba(255,255,255,0.02)]"
+                            : "border-[#e8efeb] bg-[#fbfdfc]"
                             }`}
                     >
                         <SummaryCard
@@ -753,8 +753,8 @@ function AdminEventManagement() {
                     >
                         <div
                             className={`mx-auto flex h-14 w-14 items-center justify-center rounded-full ${isDark
-                                    ? "bg-white/10 text-[#98efcc]"
-                                    : "bg-[#edf8f3] text-[#0f4d3c]"
+                                ? "bg-white/10 text-[#98efcc]"
+                                : "bg-[#edf8f3] text-[#0f4d3c]"
                                 }`}
                         >
                             <LoaderCircle className="animate-spin" size={24} />
@@ -779,16 +779,16 @@ function AdminEventManagement() {
                                         <div>
                                             <p
                                                 className={`text-xs font-semibold uppercase tracking-[0.18em] ${isDark
-                                                        ? "text-[#f5cf67]"
-                                                        : "text-[#b99117]"
+                                                    ? "text-[#f5cf67]"
+                                                    : "text-[#b99117]"
                                                     }`}
                                             >
                                                 Event Record
                                             </p>
                                             <h2
                                                 className={`mt-1 text-2xl font-extrabold md:text-3xl ${isDark
-                                                        ? "text-white"
-                                                        : "text-[#0f4d3c]"
+                                                    ? "text-white"
+                                                    : "text-[#0f4d3c]"
                                                     }`}
                                             >
                                                 {booking.eventType || "Event"}
@@ -860,23 +860,23 @@ function AdminEventManagement() {
                                         whileHover={{ y: -4 }}
                                         transition={{ duration: 0.2 }}
                                         className={`rounded-[24px] border p-5 shadow-sm ${isDark
-                                                ? "border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.02)_0%,rgba(255,255,255,0.015)_100%)]"
-                                                : "border-[#e4ece8] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)]"
+                                            ? "border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.02)_0%,rgba(255,255,255,0.015)_100%)]"
+                                            : "border-[#e4ece8] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)]"
                                             }`}
                                     >
                                         <div className="mb-3 flex items-center gap-3">
                                             <div
                                                 className={`flex h-11 w-11 items-center justify-center rounded-2xl ${isDark
-                                                        ? "bg-white/10 text-[#98efcc]"
-                                                        : "bg-[#edf8f3] text-[#0f4d3c]"
+                                                    ? "bg-white/10 text-[#98efcc]"
+                                                    : "bg-[#edf8f3] text-[#0f4d3c]"
                                                     }`}
                                             >
                                                 <UserPlus size={19} />
                                             </div>
                                             <h3
                                                 className={`text-xl font-extrabold ${isDark
-                                                        ? "text-white"
-                                                        : "text-[#0f4d3c]"
+                                                    ? "text-white"
+                                                    : "text-[#0f4d3c]"
                                                     }`}
                                             >
                                                 Assigned Staff
@@ -905,14 +905,14 @@ function AdminEventManagement() {
                                                                     0.03,
                                                             }}
                                                             className={`flex items-center justify-between rounded-2xl border px-4 py-3 ${isDark
-                                                                    ? "border-white/10 bg-white/5"
-                                                                    : "border-gray-200 bg-white"
+                                                                ? "border-white/10 bg-white/5"
+                                                                : "border-gray-200 bg-white"
                                                                 }`}
                                                         >
                                                             <span
                                                                 className={`font-medium ${isDark
-                                                                        ? "text-white"
-                                                                        : "text-[#0f4d3c]"
+                                                                    ? "text-white"
+                                                                    : "text-[#0f4d3c]"
                                                                     }`}
                                                             >
                                                                 {staff}
@@ -938,8 +938,8 @@ function AdminEventManagement() {
                                         ) : (
                                             <div
                                                 className={`rounded-2xl border px-4 py-5 text-sm ${isDark
-                                                        ? "border-white/10 bg-white/5 text-[#b7cbc3]"
-                                                        : "border-dashed border-[#dce7e2] bg-[#f8fbf9] text-slate-500"
+                                                    ? "border-white/10 bg-white/5 text-[#b7cbc3]"
+                                                    : "border-dashed border-[#dce7e2] bg-[#f8fbf9] text-slate-500"
                                                     }`}
                                             >
                                                 No assigned staff yet.
@@ -965,8 +965,8 @@ function AdminEventManagement() {
                                                 }}
                                                 placeholder="Enter staff name"
                                                 className={`flex-1 rounded-2xl px-4 py-3 outline-none transition ${isDark
-                                                        ? "border border-white/10 bg-[#0b1f1a] text-white placeholder:text-white/35 focus:border-[#d4af37]/40 focus:ring-2 focus:ring-[#d4af37]/15"
-                                                        : "border border-gray-300 bg-white text-[#0f4d3c] focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
+                                                    ? "border border-white/10 bg-[#0b1f1a] text-white placeholder:text-white/35 focus:border-[#d4af37]/40 focus:ring-2 focus:ring-[#d4af37]/15"
+                                                    : "border border-gray-300 bg-white text-[#0f4d3c] focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
                                                     }`}
                                             />
                                             <motion.button
@@ -1015,8 +1015,8 @@ function AdminEventManagement() {
                         initial={{ opacity: 0, y: 18 }}
                         animate={{ opacity: 1, y: 0 }}
                         className={`rounded-[24px] border p-8 text-center shadow-sm ${isDark
-                                ? "border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] text-[#b7cbc3]"
-                                : "border-gray-100 bg-white text-gray-500"
+                            ? "border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] text-[#b7cbc3]"
+                            : "border-gray-100 bg-white text-gray-500"
                             }`}
                     >
                         No event records yet.
@@ -1033,14 +1033,14 @@ function AdminEventManagement() {
                             exit={{ opacity: 0, y: 24, scale: 0.98 }}
                             transition={{ duration: 0.24 }}
                             className={`flex max-h-[calc(100vh-2rem)] w-full max-w-5xl flex-col overflow-hidden rounded-[30px] border shadow-[0_25px_60px_rgba(0,0,0,0.20)] ${isDark
-                                    ? "border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.99)_0%,rgba(13,40,32,0.99)_100%)]"
-                                    : "border-gray-100 bg-white"
+                                ? "border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.99)_0%,rgba(13,40,32,0.99)_100%)]"
+                                : "border-gray-100 bg-white"
                                 }`}
                         >
                             <div
                                 className={`sticky top-0 z-20 border-b px-5 py-5 backdrop-blur-md sm:px-8 ${isDark
-                                        ? "border-white/10 bg-[rgba(11,31,26,0.94)]"
-                                        : "border-gray-100 bg-white/95"
+                                    ? "border-white/10 bg-[rgba(11,31,26,0.94)]"
+                                    : "border-gray-100 bg-white/95"
                                     }`}
                             >
                                 <div className="flex items-start justify-between gap-4">
@@ -1054,16 +1054,16 @@ function AdminEventManagement() {
                                             </p>
                                             <h2
                                                 className={`truncate text-2xl font-extrabold sm:text-3xl ${isDark
-                                                        ? "text-white"
-                                                        : "text-[#0f4d3c]"
+                                                    ? "text-white"
+                                                    : "text-[#0f4d3c]"
                                                     }`}
                                             >
                                                 Edit Event Details
                                             </h2>
                                             <p
                                                 className={`mt-1 text-sm ${isDark
-                                                        ? "text-[#b7cbc3]"
-                                                        : "text-slate-500"
+                                                    ? "text-[#b7cbc3]"
+                                                    : "text-slate-500"
                                                     }`}
                                             >
                                                 Update booking information
@@ -1076,8 +1076,8 @@ function AdminEventManagement() {
                                     <button
                                         onClick={handleCloseEdit}
                                         className={`rounded-full p-2 transition ${isDark
-                                                ? "text-white/70 hover:bg-white/10"
-                                                : "text-gray-500 hover:bg-gray-100"
+                                            ? "text-white/70 hover:bg-white/10"
+                                            : "text-gray-500 hover:bg-gray-100"
                                             }`}
                                     >
                                         <X size={24} />
@@ -1233,8 +1233,8 @@ function AdminEventManagement() {
 
                                 <div
                                     className={`sticky bottom-0 z-20 border-t px-5 py-4 backdrop-blur-md sm:px-8 ${isDark
-                                            ? "border-white/10 bg-[rgba(11,31,26,0.94)]"
-                                            : "border-gray-100 bg-white/95"
+                                        ? "border-white/10 bg-[rgba(11,31,26,0.94)]"
+                                        : "border-gray-100 bg-white/95"
                                         }`}
                                 >
                                     <div className="flex flex-col gap-3 sm:flex-row">
@@ -1274,14 +1274,14 @@ function AdminEventManagement() {
                             exit={{ opacity: 0, y: 24, scale: 0.98 }}
                             transition={{ duration: 0.24 }}
                             className={`flex max-h-[calc(100vh-2rem)] w-full max-w-4xl flex-col overflow-hidden rounded-[30px] border shadow-[0_25px_60px_rgba(0,0,0,0.20)] ${isDark
-                                    ? "border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.99)_0%,rgba(13,40,32,0.99)_100%)]"
-                                    : "border-gray-100 bg-white"
+                                ? "border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.99)_0%,rgba(13,40,32,0.99)_100%)]"
+                                : "border-gray-100 bg-white"
                                 }`}
                         >
                             <div
                                 className={`sticky top-0 z-20 border-b px-5 py-5 backdrop-blur-md sm:px-8 ${isDark
-                                        ? "border-white/10 bg-[rgba(11,31,26,0.94)]"
-                                        : "border-gray-100 bg-white/95"
+                                    ? "border-white/10 bg-[rgba(11,31,26,0.94)]"
+                                    : "border-gray-100 bg-white/95"
                                     }`}
                             >
                                 <div className="flex items-start justify-between gap-4">
@@ -1295,16 +1295,16 @@ function AdminEventManagement() {
                                             </p>
                                             <h2
                                                 className={`truncate text-2xl font-extrabold sm:text-3xl ${isDark
-                                                        ? "text-white"
-                                                        : "text-[#0f4d3c]"
+                                                    ? "text-white"
+                                                    : "text-[#0f4d3c]"
                                                     }`}
                                             >
                                                 Evaluate Event
                                             </h2>
                                             <p
                                                 className={`mt-1 text-sm ${isDark
-                                                        ? "text-[#b7cbc3]"
-                                                        : "text-slate-500"
+                                                    ? "text-[#b7cbc3]"
+                                                    : "text-slate-500"
                                                     }`}
                                             >
                                                 Review the event outcome and save
@@ -1316,8 +1316,8 @@ function AdminEventManagement() {
                                     <button
                                         onClick={handleCloseEvaluate}
                                         className={`rounded-full p-2 transition ${isDark
-                                                ? "text-white/70 hover:bg-white/10"
-                                                : "text-gray-500 hover:bg-gray-100"
+                                            ? "text-white/70 hover:bg-white/10"
+                                            : "text-gray-500 hover:bg-gray-100"
                                             }`}
                                     >
                                         <X size={24} />
@@ -1415,8 +1415,8 @@ function AdminEventManagement() {
 
                                 <div
                                     className={`sticky bottom-0 z-20 border-t px-5 py-4 backdrop-blur-md sm:px-8 ${isDark
-                                            ? "border-white/10 bg-[rgba(11,31,26,0.94)]"
-                                            : "border-gray-100 bg-white/95"
+                                        ? "border-white/10 bg-[rgba(11,31,26,0.94)]"
+                                        : "border-gray-100 bg-white/95"
                                         }`}
                                 >
                                     <div className="flex flex-col gap-3 sm:flex-row">
@@ -1462,14 +1462,14 @@ function AdminEventManagement() {
                             exit={{ opacity: 0, y: 20, scale: 0.97 }}
                             onClick={(e) => e.stopPropagation()}
                             className={`w-full max-w-md overflow-hidden rounded-[28px] border shadow-[0_25px_60px_rgba(0,0,0,0.25)] ${isDark
-                                    ? "border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.99)_0%,rgba(13,40,32,0.99)_100%)]"
-                                    : "border-gray-100 bg-white"
+                                ? "border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.99)_0%,rgba(13,40,32,0.99)_100%)]"
+                                : "border-gray-100 bg-white"
                                 }`}
                         >
                             <div
                                 className={`px-6 py-5 text-white ${popup.type === "success"
-                                        ? "bg-gradient-to-r from-[#0f4d3c] via-[#11614c] to-[#22b67f]"
-                                        : "bg-gradient-to-r from-[#b91c1c] via-[#dc2626] to-[#ef4444]"
+                                    ? "bg-gradient-to-r from-[#0f4d3c] via-[#11614c] to-[#22b67f]"
+                                    : "bg-gradient-to-r from-[#b91c1c] via-[#dc2626] to-[#ef4444]"
                                     }`}
                             >
                                 <div className="flex items-center gap-4">
@@ -1495,8 +1495,8 @@ function AdminEventManagement() {
                             <div className="px-6 py-6">
                                 <p
                                     className={`text-[15px] leading-7 ${isDark
-                                            ? "text-[#dce9e4]"
-                                            : "text-gray-600"
+                                        ? "text-[#dce9e4]"
+                                        : "text-gray-600"
                                         }`}
                                 >
                                     {popup.message}
@@ -1507,8 +1507,8 @@ function AdminEventManagement() {
                                     whileTap={{ scale: 0.98 }}
                                     onClick={closePopup}
                                     className={`mt-6 w-full rounded-2xl px-5 py-3.5 font-bold text-white transition ${popup.type === "success"
-                                            ? "bg-[#0f4d3c] hover:bg-[#0c3f31]"
-                                            : "bg-red-500 hover:bg-red-600"
+                                        ? "bg-[#0f4d3c] hover:bg-[#0c3f31]"
+                                        : "bg-red-500 hover:bg-red-600"
                                         }`}
                                 >
                                     Okay
@@ -1528,12 +1528,16 @@ function ModalShell({ children, onClose }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[9998] flex items-center justify-center bg-black/50 p-3 backdrop-blur-sm sm:p-4"
-            onClick={onClose}
+            className="fixed inset-0 z-[9998] flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm"
         >
             <div
+                className="absolute inset-0"
+                onClick={onClose}
+            />
+
+            <div
                 onClick={(e) => e.stopPropagation()}
-                className="flex max-h-[100vh] w-full items-center justify-center"
+                className="relative z-[9999] flex max-h-[calc(100vh-2rem)] w-full items-center justify-center overflow-y-auto"
             >
                 {children}
             </div>
@@ -1549,15 +1553,15 @@ function SummaryCard({ icon: Icon, label, value, delay = 0, isDark = false }) {
             transition={{ duration: 0.35, delay }}
             whileHover={{ y: -4 }}
             className={`rounded-[22px] border p-4 shadow-sm transition-shadow hover:shadow-md ${isDark
-                    ? "border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)]"
-                    : "border-[#e2ebe7] bg-white"
+                ? "border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)]"
+                : "border-[#e2ebe7] bg-white"
                 }`}
         >
             <div className="flex items-center gap-3">
                 <div
                     className={`flex h-11 w-11 items-center justify-center rounded-2xl ${isDark
-                            ? "border border-[#22c58b]/18 bg-[linear-gradient(135deg,rgba(16,96,69,0.45)_0%,rgba(22,146,102,0.24)_100%)] text-[#98efcc]"
-                            : "bg-[linear-gradient(135deg,#edf8f3_0%,#dff1e8_100%)] text-[#0f4d3c]"
+                        ? "border border-[#22c58b]/18 bg-[linear-gradient(135deg,rgba(16,96,69,0.45)_0%,rgba(22,146,102,0.24)_100%)] text-[#98efcc]"
+                        : "bg-[linear-gradient(135deg,#edf8f3_0%,#dff1e8_100%)] text-[#0f4d3c]"
                         }`}
                 >
                     <Icon size={20} />
@@ -1589,8 +1593,8 @@ function MotionCard({ children, delay = 0, isDark = false }) {
             transition={{ duration: 0.38, delay, ease: "easeOut" }}
             whileHover={{ y: -4 }}
             className={`rounded-[28px] border p-6 transition-shadow hover:shadow-[0_18px_42px_rgba(14,61,47,0.10)] ${isDark
-                    ? "border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] shadow-[0_14px_36px_rgba(0,0,0,0.28)]"
-                    : "border-[#dce7e2] bg-white shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
+                ? "border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] shadow-[0_14px_36px_rgba(0,0,0,0.28)]"
+                : "border-[#dce7e2] bg-white shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
                 }`}
         >
             {children}
@@ -1611,14 +1615,14 @@ function InfoCard({
             whileHover={{ y: -3 }}
             transition={{ duration: 0.18 }}
             className={`rounded-[22px] border p-4 shadow-sm ${isDark
-                    ? "border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.02)_0%,rgba(255,255,255,0.015)_100%)]"
-                    : "border-[#e4ece8] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)]"
+                ? "border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.02)_0%,rgba(255,255,255,0.015)_100%)]"
+                : "border-[#e4ece8] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)]"
                 }`}
         >
             <div
                 className={`mb-3 flex h-10 w-10 items-center justify-center rounded-2xl ${isDark
-                        ? "bg-white/10 text-[#98efcc]"
-                        : "bg-[#edf8f3] text-[#0f4d3c]"
+                    ? "bg-white/10 text-[#98efcc]"
+                    : "bg-[#edf8f3] text-[#0f4d3c]"
                     }`}
             >
                 <Icon size={18} />
@@ -1632,12 +1636,12 @@ function InfoCard({
             <p
                 title={title || value || ""}
                 className={`mt-2 break-words text-base font-bold ${highlight
-                        ? isDark
-                            ? "text-[#f5cf67]"
-                            : "text-[#b99117]"
-                        : isDark
-                            ? "text-white"
-                            : "text-[#0f4d3c]"
+                    ? isDark
+                        ? "text-[#f5cf67]"
+                        : "text-[#b99117]"
+                    : isDark
+                        ? "text-white"
+                        : "text-[#0f4d3c]"
                     }`}
             >
                 {value || "—"}
@@ -1650,8 +1654,8 @@ function PreviewInfo({ label, value, title = "", isDark = false }) {
     return (
         <div
             className={`rounded-[20px] border p-4 ${isDark
-                    ? "border-white/10 bg-[#0f2a23]"
-                    : "border-[#e4ece8] bg-[#f8fbf9]"
+                ? "border-white/10 bg-[#0f2a23]"
+                : "border-[#e4ece8] bg-[#f8fbf9]"
                 }`}
         >
             <p
@@ -1695,8 +1699,8 @@ function Field({
                 onChange={onChange}
                 placeholder={placeholder}
                 className={`w-full rounded-2xl px-4 py-3.5 outline-none transition ${isDark
-                        ? "border border-white/10 bg-[#0b1f1a] text-white placeholder:text-white/35 focus:border-[#d4af37]/40 focus:ring-2 focus:ring-[#d4af37]/15"
-                        : "border border-gray-300 bg-white text-[#0f4d3c] focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
+                    ? "border border-white/10 bg-[#0b1f1a] text-white placeholder:text-white/35 focus:border-[#d4af37]/40 focus:ring-2 focus:ring-[#d4af37]/15"
+                    : "border border-gray-300 bg-white text-[#0f4d3c] focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
                     }`}
             />
         </div>
@@ -1724,8 +1728,8 @@ function SelectField({
                 value={value}
                 onChange={onChange}
                 className={`w-full rounded-2xl px-4 py-3.5 outline-none transition ${isDark
-                        ? "border border-white/10 bg-[#0b1f1a] text-white focus:border-[#d4af37]/40 focus:ring-2 focus:ring-[#d4af37]/15"
-                        : "border border-gray-300 bg-white text-[#0f4d3c] focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
+                    ? "border border-white/10 bg-[#0b1f1a] text-white focus:border-[#d4af37]/40 focus:ring-2 focus:ring-[#d4af37]/15"
+                    : "border border-gray-300 bg-white text-[#0f4d3c] focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
                     }`}
             >
                 {options.map((option) => (
@@ -1766,8 +1770,8 @@ function TextAreaField({
                 placeholder={placeholder}
                 rows={rows}
                 className={`w-full resize-none rounded-2xl px-4 py-3.5 outline-none transition ${isDark
-                        ? "border border-white/10 bg-[#0b1f1a] text-white placeholder:text-white/35 focus:border-[#d4af37]/40 focus:ring-2 focus:ring-[#d4af37]/15"
-                        : "border border-gray-300 bg-white text-[#0f4d3c] focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
+                    ? "border border-white/10 bg-[#0b1f1a] text-white placeholder:text-white/35 focus:border-[#d4af37]/40 focus:ring-2 focus:ring-[#d4af37]/15"
+                    : "border border-gray-300 bg-white text-[#0f4d3c] focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
                     }`}
             />
         </div>
