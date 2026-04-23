@@ -59,16 +59,11 @@ function AdminLayout() {
     return (
         <div
             data-admin-theme={theme}
-            className={`admin-shell admin-theme-${theme} relative min-h-screen overflow-x-hidden transition-colors duration-300`}
+            className={`admin-shell admin-theme-${theme} relative min-h-screen overflow-x-hidden transition-colors duration-300 ${theme === "dark"
+                    ? "bg-[linear-gradient(180deg,#041612_0%,#07211b_48%,#0b2f25_100%)]"
+                    : "bg-[linear-gradient(180deg,#edf6f2_0%,#f7fbf9_48%,#eef7f3_100%)]"
+                }`}
         >
-            <div className="pointer-events-none absolute inset-0 admin-shell-bg">
-                <div className="admin-orb admin-orb-1" />
-                <div className="admin-orb admin-orb-2" />
-                <div className="admin-orb admin-orb-3" />
-                <div className="admin-grid-overlay" />
-                <div className="admin-noise-overlay" />
-            </div>
-
             <AdminSidebar theme={theme} />
 
             <div className="relative min-w-0 transition-all duration-300 lg:ml-[240px]">
@@ -83,9 +78,9 @@ function AdminLayout() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.45, ease: "easeOut" }}
-                        className={`admin-main-surface relative min-w-0 rounded-[30px] border backdrop-blur-xl ${theme === "dark"
-                                ? "border-white/10 bg-[linear-gradient(180deg,rgba(8,28,22,0.88)_0%,rgba(9,34,26,0.88)_100%)] shadow-[0_25px_60px_rgba(0,0,0,0.30)]"
-                                : "border-[#dfe8e3] bg-[linear-gradient(180deg,rgba(255,255,255,0.88)_0%,rgba(250,252,251,0.94)_100%)] shadow-[0_25px_60px_rgba(15,77,60,0.10)]"
+                        className={`admin-main-surface relative min-w-0 rounded-[30px] border ${theme === "dark"
+                                ? "border-white/10 bg-[linear-gradient(180deg,rgba(8,28,22,0.97)_0%,rgba(9,34,26,0.97)_100%)] shadow-[0_25px_60px_rgba(0,0,0,0.30)]"
+                                : "border-[#dfe8e3] bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(250,252,251,0.98)_100%)] shadow-[0_25px_60px_rgba(15,77,60,0.10)]"
                             }`}
                     >
                         <div className="pointer-events-none absolute inset-0">
@@ -93,16 +88,16 @@ function AdminLayout() {
                                 animate={{ y: [0, -10, 0] }}
                                 transition={{ duration: 6, repeat: Infinity }}
                                 className={`absolute -top-10 right-10 h-40 w-40 rounded-full blur-3xl ${theme === "dark"
-                                        ? "bg-[#d4af37]/10"
-                                        : "bg-[#d4af37]/12"
+                                        ? "bg-[#d4af37]/6"
+                                        : "bg-[#d4af37]/8"
                                     }`}
                             />
                             <motion.div
                                 animate={{ y: [0, 10, 0] }}
                                 transition={{ duration: 7, repeat: Infinity }}
                                 className={`absolute bottom-0 left-0 h-32 w-32 rounded-full blur-3xl ${theme === "dark"
-                                        ? "bg-[#0f6d51]/14"
-                                        : "bg-[#0f4d3c]/8"
+                                        ? "bg-[#0f6d51]/8"
+                                        : "bg-[#0f4d3c]/5"
                                     }`}
                             />
                         </div>
