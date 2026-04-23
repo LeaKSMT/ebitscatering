@@ -2,7 +2,9 @@ const db = require("../config/db");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const signToken = (user) => {
     return jwt.sign(
@@ -23,31 +25,6 @@ const cookieOptions = {
     sameSite: "none",
     maxAge: 24 * 60 * 60 * 1000,
     path: "/",
-};
-
-const getTransporter = () => {
-    const mailUser = (process.env.MAIL_USER || "").trim();
-    const mailPass = (process.env.MAIL_PASS || "").trim();
-
-    if (!mailUser || !mailPass) {
-        return null;
-    }
-
-    return nodemailer.createTransport({
-        host: "smtp.gmail.com",
-        port: 587,
-        secure: false,
-        auth: {
-            user: mailUser,
-            pass: mailPass,
-        },
-        tls: {
-            rejectUnauthorized: false,
-        },
-        connectionTimeout: 15000,
-        greetingTimeout: 15000,
-        socketTimeout: 20000,
-    });
 };
 
 exports.register = async (req, res) => {
@@ -407,12 +384,7 @@ exports.forgotPassword = (req, res) => {
                     const resetLink = `${frontendUrl}/reset-password?token=${rawToken}`;
 
                     try {
-                        const transporter = getTransporter();
-
-                        console.log("MAIL USER:", process.env.MAIL_USER || "missing");
-                        console.log("MAIL PASS EXISTS:", !!process.env.MAIL_PASS);
-
-                        if (!transporter) {
+                        if (!process.env.RESEND_API_KEY) {
                             console.log("RESET LINK (DEV ONLY):", resetLink);
 
                             return res.status(200).json({
@@ -423,11 +395,8 @@ exports.forgotPassword = (req, res) => {
                             });
                         }
 
-                        await transporter.verify();
-                        console.log("SMTP transporter verified successfully");
-
-                        await transporter.sendMail({
-                            from: `"Ebit's Catering" <${process.env.MAIL_USER}>`,
+                        const emailResponse = await resend.emails.send({
+                            from: "Ebit's Catering <onboarding@resend.dev>",
                             to: user.email,
                             subject: "Reset Your Ebit's Catering Password",
                             html: `
@@ -450,7 +419,7 @@ exports.forgotPassword = (req, res) => {
                             `,
                         });
 
-                        console.log("Email sent successfully to:", user.email);
+                        console.log("Resend success:", emailResponse);
 
                         return res.status(200).json({
                             success: true,
@@ -458,7 +427,7 @@ exports.forgotPassword = (req, res) => {
                                 "If your email exists in the system, reset instructions have been sent.",
                         });
                     } catch (mailErr) {
-                        console.error("Forgot password email error:", mailErr);
+                        console.error("Resend error:", mailErr);
 
                         return res.status(200).json({
                             success: true,
