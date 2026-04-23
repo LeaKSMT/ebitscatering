@@ -137,6 +137,7 @@ exports.createQuotation = (req, res) => {
         evaluation_notes,
         client_satisfaction,
         staff_performance,
+        assigned_staff,
     } = req.body;
 
     if (!full_name || !email || !event_type || !preferred_date || !venue) {
@@ -185,9 +186,10 @@ exports.createQuotation = (req, res) => {
             event_outcome,
             evaluation_notes,
             client_satisfaction,
-            staff_performance
+            staff_performance,
+            assigned_staff
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const values = [
@@ -224,6 +226,7 @@ exports.createQuotation = (req, res) => {
         evaluation_notes || null,
         client_satisfaction || null,
         staff_performance || null,
+        JSON.stringify(Array.isArray(assigned_staff) ? assigned_staff : []),
     ];
 
     db.query(insertQuery, values, (err, result) => {
@@ -350,6 +353,17 @@ exports.updateQuotation = (req, res) => {
                 }
             })();
 
+        const assignedStaff =
+            body.assignedStaff ??
+            body.assigned_staff ??
+            (() => {
+                try {
+                    return JSON.parse(current.assigned_staff || "[]");
+                } catch {
+                    return [];
+                }
+            })();
+
         const updateQuery = `
             UPDATE quotations
             SET
@@ -384,7 +398,8 @@ exports.updateQuotation = (req, res) => {
                 event_outcome = ?,
                 evaluation_notes = ?,
                 client_satisfaction = ?,
-                staff_performance = ?
+                staff_performance = ?,
+                assigned_staff = ?
             WHERE id = ?
         `;
 
@@ -399,7 +414,10 @@ exports.updateQuotation = (req, res) => {
             null,
             body.fullName || body.full_name || current.full_name,
             nextEmail || null,
-            body.contactNumber || body.contact_number || current.contact_number || null,
+            body.contactNumber ||
+            body.contact_number ||
+            current.contact_number ||
+            null,
             body.eventType || body.event_type || current.event_type || null,
             body.preferredDate ||
             body.preferred_date ||
@@ -412,8 +430,14 @@ exports.updateQuotation = (req, res) => {
             body.packageType || body.package_type || current.package_type || null,
             body.classicMenu || body.classic_menu || current.classic_menu || null,
             JSON.stringify(Array.isArray(addOns) ? addOns : []),
-            body.themePreference || body.theme_preference || current.theme_preference || null,
-            body.specialRequests || body.special_requests || current.special_requests || null,
+            body.themePreference ||
+            body.theme_preference ||
+            current.theme_preference ||
+            null,
+            body.specialRequests ||
+            body.special_requests ||
+            current.special_requests ||
+            null,
             Number(body.packagePrice ?? body.package_price ?? current.package_price ?? 0),
             Number(body.addOnsTotal ?? body.add_ons_total ?? current.add_ons_total ?? 0),
             Number(
@@ -442,9 +466,19 @@ exports.updateQuotation = (req, res) => {
             JSON.stringify(Array.isArray(expenses) ? expenses : []),
             JSON.stringify(Array.isArray(inquiries) ? inquiries : []),
             body.eventOutcome || body.event_outcome || current.event_outcome || null,
-            body.evaluationNotes || body.evaluation_notes || current.evaluation_notes || null,
-            body.clientSatisfaction || body.client_satisfaction || current.client_satisfaction || null,
-            body.staffPerformance || body.staff_performance || current.staff_performance || null,
+            body.evaluationNotes ||
+            body.evaluation_notes ||
+            current.evaluation_notes ||
+            null,
+            body.clientSatisfaction ||
+            body.client_satisfaction ||
+            current.client_satisfaction ||
+            null,
+            body.staffPerformance ||
+            body.staff_performance ||
+            current.staff_performance ||
+            null,
+            JSON.stringify(Array.isArray(assignedStaff) ? assignedStaff : []),
             id,
         ];
 
@@ -642,25 +676,29 @@ exports.updateQuotationStatus = (req, res) => {
                             notesParts.join(" | ") || null,
                         ];
 
-                        db.query(bookingInsertQuery, bookingInsertValues, (bookingInsertErr) => {
-                            if (bookingInsertErr) {
-                                console.error(
-                                    "Create booking from quotation error:",
-                                    bookingInsertErr
-                                );
-                                return res.status(500).json({
-                                    message:
-                                        "Quotation status updated but failed to create booking",
-                                    error: bookingInsertErr.message,
+                        db.query(
+                            bookingInsertQuery,
+                            bookingInsertValues,
+                            (bookingInsertErr) => {
+                                if (bookingInsertErr) {
+                                    console.error(
+                                        "Create booking from quotation error:",
+                                        bookingInsertErr
+                                    );
+                                    return res.status(500).json({
+                                        message:
+                                            "Quotation status updated but failed to create booking",
+                                        error: bookingInsertErr.message,
+                                    });
+                                }
+
+                                return res.status(200).json({
+                                    message: "Quotation status updated successfully",
+                                    bookingSynced: true,
+                                    bookingCreated: true,
                                 });
                             }
-
-                            return res.status(200).json({
-                                message: "Quotation status updated successfully",
-                                bookingSynced: true,
-                                bookingCreated: true,
-                            });
-                        });
+                        );
                     }
                 );
             }

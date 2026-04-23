@@ -80,10 +80,10 @@ function AdminLayout() {
 
                 <main className="min-w-0 px-3 pb-5 pt-3 sm:px-4 sm:pb-6 sm:pt-4 md:px-5 md:pb-6 md:pt-5 lg:px-6 lg:pb-7 lg:pt-5">
                     <motion.div
-                        initial={{ opacity: 0, y: 20, scale: 0.985 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.45, ease: "easeOut" }}
-                        className={`admin-main-surface relative min-w-0 overflow-hidden rounded-[30px] border backdrop-blur-xl ${theme === "dark"
+                        className={`admin-main-surface relative min-w-0 rounded-[30px] border backdrop-blur-xl ${theme === "dark"
                                 ? "border-white/10 bg-[linear-gradient(180deg,rgba(8,28,22,0.88)_0%,rgba(9,34,26,0.88)_100%)] shadow-[0_25px_60px_rgba(0,0,0,0.30)]"
                                 : "border-[#dfe8e3] bg-[linear-gradient(180deg,rgba(255,255,255,0.88)_0%,rgba(250,252,251,0.94)_100%)] shadow-[0_25px_60px_rgba(15,77,60,0.10)]"
                             }`}
@@ -108,7 +108,7 @@ function AdminLayout() {
                         </div>
 
                         <div className="relative w-full p-3 sm:p-4 md:p-5 lg:p-6">
-                            <div className="min-w-0 overflow-x-auto">
+                            <div className="min-w-0">
                                 <Outlet />
                             </div>
                         </div>
