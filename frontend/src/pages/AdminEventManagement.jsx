@@ -186,7 +186,7 @@ function formatBookingIdForDisplay(item) {
     }
 
     if (item?.id !== undefined && item?.id !== null && item?.id !== "") {
-        return `BK-${String(item.id).padStart(4, "0")}`;
+        return `BK-${String(item.id).padStart(2, "0")}`;
     }
 
     return rawId;
@@ -304,7 +304,9 @@ function AdminEventManagement() {
     const [showEditModal, setShowEditModal] = useState(false);
     const [showEvaluateModal, setShowEvaluateModal] = useState(false);
     const [editForm, setEditForm] = useState(getEditInitialState());
-    const [evaluationForm, setEvaluationForm] = useState(getEvaluationInitialState());
+    const [evaluationForm, setEvaluationForm] = useState(
+        getEvaluationInitialState()
+    );
     const [popup, setPopup] = useState({
         open: false,
         type: "success",
@@ -321,14 +323,14 @@ function AdminEventManagement() {
         });
     }, []);
 
-    const closePopup = () => {
+    const closePopup = useCallback(() => {
         setPopup({
             open: false,
             type: "success",
             title: "",
             message: "",
         });
-    };
+    }, []);
 
     const loadBookings = useCallback(async () => {
         setLoading(true);
@@ -337,7 +339,9 @@ function AdminEventManagement() {
             const mapped = Array.isArray(rows)
                 ? rows
                     .map(mapQuotationToBooking)
-                    .filter((item) => shouldShowInEventManagement(item.status))
+                    .filter((item) =>
+                        shouldShowInEventManagement(item.status)
+                    )
                     .filter(
                         (item) =>
                             normalizeStatus(item.status) !== "cancelled" &&
@@ -362,6 +366,30 @@ function AdminEventManagement() {
         loadBookings();
     }, [loadBookings]);
 
+    useEffect(() => {
+        if (popup.open) {
+            document.body.style.overflow = "hidden";
+        } else {
+            document.body.style.overflow = "";
+        }
+
+        return () => {
+            document.body.style.overflow = "";
+        };
+    }, [popup.open]);
+
+    useEffect(() => {
+        if (showEditModal || showEvaluateModal) {
+            document.body.style.overflow = "hidden";
+        } else if (!popup.open) {
+            document.body.style.overflow = "";
+        }
+
+        return () => {
+            document.body.style.overflow = "";
+        };
+    }, [showEditModal, showEvaluateModal, popup.open]);
+
     const summary = useMemo(() => {
         return {
             active: bookings.length,
@@ -384,17 +412,42 @@ function AdminEventManagement() {
         const current = Array.isArray(booking.assignedStaff)
             ? booking.assignedStaff
             : [];
-        const nextAssignedStaff = [...new Set([...current, value])];
+
+        const alreadyExists = current.some(
+            (staff) => String(staff).trim().toLowerCase() === value.toLowerCase()
+        );
+
+        if (alreadyExists) {
+            openPopup(
+                "error",
+                "Duplicate Staff",
+                "That staff member is already assigned to this event."
+            );
+            return;
+        }
+
+        const nextAssignedStaff = [...current, value];
 
         try {
             setSaving(true);
+
+            setBookings((prev) =>
+                prev.map((b) =>
+                    b.id === booking.id
+                        ? { ...b, assignedStaff: nextAssignedStaff }
+                        : b
+                )
+            );
+
             await updateQuotationRecord(booking.id, {
-                assigned_staff: nextAssignedStaff,
+                assigned_staff: JSON.stringify(nextAssignedStaff),
                 assignedStaff: nextAssignedStaff,
+                updated_at: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
             });
 
             setStaffInput((prev) => ({ ...prev, [booking.id]: "" }));
-            await loadBookings();
+
             openPopup(
                 "success",
                 "Staff Added",
@@ -402,6 +455,7 @@ function AdminEventManagement() {
             );
         } catch (error) {
             console.error("Failed to add staff:", error);
+            await loadBookings();
             openPopup(
                 "error",
                 "Update Failed",
@@ -415,16 +469,26 @@ function AdminEventManagement() {
     const handleRemoveStaff = async (booking, staffName) => {
         try {
             setSaving(true);
+
             const nextAssignedStaff = (booking.assignedStaff || []).filter(
                 (name) => name !== staffName
             );
 
+            setBookings((prev) =>
+                prev.map((b) =>
+                    b.id === booking.id
+                        ? { ...b, assignedStaff: nextAssignedStaff }
+                        : b
+                )
+            );
+
             await updateQuotationRecord(booking.id, {
-                assigned_staff: nextAssignedStaff,
+                assigned_staff: JSON.stringify(nextAssignedStaff),
                 assignedStaff: nextAssignedStaff,
+                updated_at: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
             });
 
-            await loadBookings();
             openPopup(
                 "success",
                 "Staff Removed",
@@ -432,6 +496,7 @@ function AdminEventManagement() {
             );
         } catch (error) {
             console.error("Failed to remove staff:", error);
+            await loadBookings();
             openPopup(
                 "error",
                 "Update Failed",
@@ -643,8 +708,9 @@ function AdminEventManagement() {
                                 Admin Event Management
                             </h1>
                             <p className="mt-2 max-w-3xl text-sm leading-7 text-white/85 md:text-[15px]">
-                                Manage booking schedules, assign staff, update event details,
-                                and evaluate completed events in one polished workspace.
+                                Manage booking schedules, assign staff, update event
+                                details, and evaluate completed events in one polished
+                                workspace.
                             </p>
                         </div>
                     </div>
@@ -712,13 +778,17 @@ function AdminEventManagement() {
                                     <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                         <div>
                                             <p
-                                                className={`text-xs font-semibold uppercase tracking-[0.18em] ${isDark ? "text-[#f5cf67]" : "text-[#b99117]"
+                                                className={`text-xs font-semibold uppercase tracking-[0.18em] ${isDark
+                                                        ? "text-[#f5cf67]"
+                                                        : "text-[#b99117]"
                                                     }`}
                                             >
                                                 Event Record
                                             </p>
                                             <h2
-                                                className={`mt-1 text-2xl font-extrabold md:text-3xl ${isDark ? "text-white" : "text-[#0f4d3c]"
+                                                className={`mt-1 text-2xl font-extrabold md:text-3xl ${isDark
+                                                        ? "text-white"
+                                                        : "text-[#0f4d3c]"
                                                     }`}
                                             >
                                                 {booking.eventType || "Event"}
@@ -739,8 +809,14 @@ function AdminEventManagement() {
                                         <InfoCard
                                             icon={FileText}
                                             label="Booking ID"
-                                            value={booking.displayBookingId || booking.bookingId}
-                                            title={booking.rawBookingId || booking.bookingId}
+                                            value={
+                                                booking.displayBookingId ||
+                                                booking.bookingId
+                                            }
+                                            title={
+                                                booking.rawBookingId ||
+                                                booking.bookingId
+                                            }
                                             isDark={isDark}
                                         />
                                         <InfoCard
@@ -770,7 +846,9 @@ function AdminEventManagement() {
                                         <InfoCard
                                             icon={ClipboardCheck}
                                             label="Total Amount"
-                                            value={formatCurrency(booking.totalAmount)}
+                                            value={formatCurrency(
+                                                booking.totalAmount
+                                            )}
                                             highlight
                                             isDark={isDark}
                                         />
@@ -796,7 +874,9 @@ function AdminEventManagement() {
                                                 <UserPlus size={19} />
                                             </div>
                                             <h3
-                                                className={`text-xl font-extrabold ${isDark ? "text-white" : "text-[#0f4d3c]"
+                                                className={`text-xl font-extrabold ${isDark
+                                                        ? "text-white"
+                                                        : "text-[#0f4d3c]"
                                                     }`}
                                             >
                                                 Assigned Staff
@@ -806,37 +886,54 @@ function AdminEventManagement() {
                                         {Array.isArray(booking.assignedStaff) &&
                                             booking.assignedStaff.length > 0 ? (
                                             <div className="space-y-2">
-                                                {booking.assignedStaff.map((staff, staffIndex) => (
-                                                    <motion.div
-                                                        key={`${booking.id}-${staff}-${staffIndex}`}
-                                                        initial={{ opacity: 0, x: -10 }}
-                                                        animate={{ opacity: 1, x: 0 }}
-                                                        transition={{
-                                                            duration: 0.25,
-                                                            delay: staffIndex * 0.03,
-                                                        }}
-                                                        className={`flex items-center justify-between rounded-2xl border px-4 py-3 ${isDark
-                                                                ? "border-white/10 bg-white/5"
-                                                                : "border-gray-200 bg-white"
-                                                            }`}
-                                                    >
-                                                        <span
-                                                            className={`font-medium ${isDark ? "text-white" : "text-[#0f4d3c]"
+                                                {booking.assignedStaff.map(
+                                                    (staff, staffIndex) => (
+                                                        <motion.div
+                                                            key={`${booking.id}-${staff}-${staffIndex}`}
+                                                            initial={{
+                                                                opacity: 0,
+                                                                x: -10,
+                                                            }}
+                                                            animate={{
+                                                                opacity: 1,
+                                                                x: 0,
+                                                            }}
+                                                            transition={{
+                                                                duration: 0.25,
+                                                                delay:
+                                                                    staffIndex *
+                                                                    0.03,
+                                                            }}
+                                                            className={`flex items-center justify-between rounded-2xl border px-4 py-3 ${isDark
+                                                                    ? "border-white/10 bg-white/5"
+                                                                    : "border-gray-200 bg-white"
                                                                 }`}
                                                         >
-                                                            {staff}
-                                                        </span>
-                                                        <button
-                                                            onClick={() =>
-                                                                handleRemoveStaff(booking, staff)
-                                                            }
-                                                            disabled={saving}
-                                                            className="text-sm font-bold text-red-500 transition hover:scale-105 hover:text-red-600 disabled:opacity-50"
-                                                        >
-                                                            Remove
-                                                        </button>
-                                                    </motion.div>
-                                                ))}
+                                                            <span
+                                                                className={`font-medium ${isDark
+                                                                        ? "text-white"
+                                                                        : "text-[#0f4d3c]"
+                                                                    }`}
+                                                            >
+                                                                {staff}
+                                                            </span>
+                                                            <button
+                                                                onClick={() =>
+                                                                    handleRemoveStaff(
+                                                                        booking,
+                                                                        staff
+                                                                    )
+                                                                }
+                                                                disabled={
+                                                                    saving
+                                                                }
+                                                                className="text-sm font-bold text-red-500 transition hover:scale-105 hover:text-red-600 disabled:opacity-50"
+                                                            >
+                                                                Remove
+                                                            </button>
+                                                        </motion.div>
+                                                    )
+                                                )}
                                             </div>
                                         ) : (
                                             <div
@@ -856,9 +953,16 @@ function AdminEventManagement() {
                                                 onChange={(e) =>
                                                     setStaffInput((prev) => ({
                                                         ...prev,
-                                                        [booking.id]: e.target.value,
+                                                        [booking.id]:
+                                                            e.target.value,
                                                     }))
                                                 }
+                                                onKeyDown={(e) => {
+                                                    if (e.key === "Enter") {
+                                                        e.preventDefault();
+                                                        handleAddStaff(booking);
+                                                    }
+                                                }}
                                                 placeholder="Enter staff name"
                                                 className={`flex-1 rounded-2xl px-4 py-3 outline-none transition ${isDark
                                                         ? "border border-white/10 bg-[#0b1f1a] text-white placeholder:text-white/35 focus:border-[#d4af37]/40 focus:ring-2 focus:ring-[#d4af37]/15"
@@ -868,7 +972,9 @@ function AdminEventManagement() {
                                             <motion.button
                                                 whileHover={{ y: -2, scale: 1.02 }}
                                                 whileTap={{ scale: 0.98 }}
-                                                onClick={() => handleAddStaff(booking)}
+                                                onClick={() =>
+                                                    handleAddStaff(booking)
+                                                }
                                                 disabled={saving}
                                                 className="rounded-2xl bg-[#0b4a3a] px-5 py-3 font-bold text-white transition hover:bg-[#09382d] disabled:cursor-not-allowed disabled:opacity-60"
                                             >
@@ -881,7 +987,9 @@ function AdminEventManagement() {
                                         <motion.button
                                             whileHover={{ y: -2, scale: 1.01 }}
                                             whileTap={{ scale: 0.98 }}
-                                            onClick={() => handleOpenEdit(booking)}
+                                            onClick={() =>
+                                                handleOpenEdit(booking)
+                                            }
                                             className="w-full rounded-2xl bg-[#0b4a3a] px-5 py-3 font-bold text-white transition hover:bg-[#09382d]"
                                         >
                                             Edit Event Details
@@ -890,7 +998,9 @@ function AdminEventManagement() {
                                         <motion.button
                                             whileHover={{ y: -2, scale: 1.01 }}
                                             whileTap={{ scale: 0.98 }}
-                                            onClick={() => handleOpenEvaluate(booking)}
+                                            onClick={() =>
+                                                handleOpenEvaluate(booking)
+                                            }
                                             className="w-full rounded-2xl bg-[#d4af37] px-5 py-3 font-bold text-[#0b4a3a] transition hover:bg-[#c79f23]"
                                         >
                                             Evaluate Event
@@ -943,17 +1053,22 @@ function AdminEventManagement() {
                                                 Event Management
                                             </p>
                                             <h2
-                                                className={`truncate text-2xl font-extrabold sm:text-3xl ${isDark ? "text-white" : "text-[#0f4d3c]"
+                                                className={`truncate text-2xl font-extrabold sm:text-3xl ${isDark
+                                                        ? "text-white"
+                                                        : "text-[#0f4d3c]"
                                                     }`}
                                             >
                                                 Edit Event Details
                                             </h2>
                                             <p
-                                                className={`mt-1 text-sm ${isDark ? "text-[#b7cbc3]" : "text-slate-500"
+                                                className={`mt-1 text-sm ${isDark
+                                                        ? "text-[#b7cbc3]"
+                                                        : "text-slate-500"
                                                     }`}
                                             >
-                                                Update booking information without cutting off the
-                                                modal view.
+                                                Update booking information
+                                                without cutting off the modal
+                                                view.
                                             </p>
                                         </div>
                                     </div>
@@ -970,7 +1085,10 @@ function AdminEventManagement() {
                                 </div>
                             </div>
 
-                            <form onSubmit={handleSaveEdit} className="flex min-h-0 flex-1 flex-col">
+                            <form
+                                onSubmit={handleSaveEdit}
+                                className="flex min-h-0 flex-1 flex-col"
+                            >
                                 <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-8 sm:py-6">
                                     <div className="mb-5 grid gap-4 md:grid-cols-3">
                                         <PreviewInfo
@@ -989,12 +1107,16 @@ function AdminEventManagement() {
                                         />
                                         <PreviewInfo
                                             label="Current Status"
-                                            value={capitalizeStatus(selectedBooking.status)}
+                                            value={capitalizeStatus(
+                                                selectedBooking.status
+                                            )}
                                             isDark={isDark}
                                         />
                                         <PreviewInfo
                                             label="Current Amount"
-                                            value={formatCurrency(selectedBooking.totalAmount)}
+                                            value={formatCurrency(
+                                                selectedBooking.totalAmount
+                                            )}
                                             isDark={isDark}
                                         />
                                     </div>
@@ -1172,16 +1294,21 @@ function AdminEventManagement() {
                                                 Event Evaluation
                                             </p>
                                             <h2
-                                                className={`truncate text-2xl font-extrabold sm:text-3xl ${isDark ? "text-white" : "text-[#0f4d3c]"
+                                                className={`truncate text-2xl font-extrabold sm:text-3xl ${isDark
+                                                        ? "text-white"
+                                                        : "text-[#0f4d3c]"
                                                     }`}
                                             >
                                                 Evaluate Event
                                             </h2>
                                             <p
-                                                className={`mt-1 text-sm ${isDark ? "text-[#b7cbc3]" : "text-slate-500"
+                                                className={`mt-1 text-sm ${isDark
+                                                        ? "text-[#b7cbc3]"
+                                                        : "text-slate-500"
                                                     }`}
                                             >
-                                                Review the event outcome and save evaluation notes.
+                                                Review the event outcome and save
+                                                evaluation notes.
                                             </p>
                                         </div>
                                     </div>
@@ -1216,7 +1343,9 @@ function AdminEventManagement() {
                                         />
                                         <PreviewInfo
                                             label="Event Date"
-                                            value={formatDate(selectedBooking.eventDate)}
+                                            value={formatDate(
+                                                selectedBooking.eventDate
+                                            )}
                                             isDark={isDark}
                                         />
                                     </div>
@@ -1324,12 +1453,14 @@ function AdminEventManagement() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 px-4 backdrop-blur-[2px]"
+                        className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+                        onClick={closePopup}
                     >
                         <motion.div
                             initial={{ opacity: 0, y: 20, scale: 0.97 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 20, scale: 0.97 }}
+                            onClick={(e) => e.stopPropagation()}
                             className={`w-full max-w-md overflow-hidden rounded-[28px] border shadow-[0_25px_60px_rgba(0,0,0,0.25)] ${isDark
                                     ? "border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.99)_0%,rgba(13,40,32,0.99)_100%)]"
                                     : "border-gray-100 bg-white"
@@ -1363,7 +1494,9 @@ function AdminEventManagement() {
 
                             <div className="px-6 py-6">
                                 <p
-                                    className={`text-[15px] leading-7 ${isDark ? "text-[#dce9e4]" : "text-gray-600"
+                                    className={`text-[15px] leading-7 ${isDark
+                                            ? "text-[#dce9e4]"
+                                            : "text-gray-600"
                                         }`}
                                 >
                                     {popup.message}
@@ -1395,13 +1528,14 @@ function ModalShell({ children, onClose }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[90] overflow-y-auto bg-black/45 px-3 py-4 backdrop-blur-[3px] sm:px-4"
+            className="fixed inset-0 z-[9998] flex items-center justify-center bg-black/50 p-3 backdrop-blur-sm sm:p-4"
             onClick={onClose}
         >
-            <div className="flex min-h-full items-start justify-center">
-                <div onClick={(e) => e.stopPropagation()} className="w-full">
-                    {children}
-                </div>
+            <div
+                onClick={(e) => e.stopPropagation()}
+                className="flex max-h-[100vh] w-full items-center justify-center"
+            >
+                {children}
             </div>
         </motion.div>
     );
