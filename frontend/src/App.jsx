@@ -48,7 +48,7 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* PUBLIC */}
+
         <Route path="/" element={<Home />} />
         <Route path="/packages" element={<Packages />} />
         <Route path="/inquiry" element={<Inquiry />} />
@@ -62,7 +62,7 @@ function App() {
           element={<Navigate to="/client/quotation" replace />}
         />
 
-        {/* CLIENT */}
+
         <Route
           path="/client"
           element={
@@ -80,7 +80,7 @@ function App() {
           <Route path="inquiries" element={<ClientInquiries />} />
         </Route>
 
-        {/* ADMIN */}
+
         <Route path="/admin-login" element={<AdminLogin />} />
 
         <Route path="/admin" element={<AdminLayout />}>
@@ -105,7 +105,7 @@ function App() {
           <Route path="reports" element={<AdminReports />} />
         </Route>
 
-        {/* FALLBACK */}
+
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>

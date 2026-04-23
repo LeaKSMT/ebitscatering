@@ -30,13 +30,22 @@ function AdminLayout() {
     });
 
     useEffect(() => {
-        localStorage.setItem("adminTheme", theme);
-        document.documentElement.setAttribute("data-theme", theme);
-        document.body.setAttribute("data-theme", theme);
-        document.documentElement.classList.toggle("admin-dark", theme === "dark");
-        document.body.classList.toggle("admin-dark", theme === "dark");
-        document.documentElement.classList.toggle("admin-light", theme === "light");
-        document.body.classList.toggle("admin-light", theme === "light");
+        const safeTheme = theme === "dark" ? "dark" : "light";
+
+        localStorage.setItem("adminTheme", safeTheme);
+
+        document.documentElement.setAttribute("data-theme", safeTheme);
+        document.body.setAttribute("data-theme", safeTheme);
+
+        document.documentElement.classList.remove("admin-dark", "admin-light");
+        document.body.classList.remove("admin-dark", "admin-light");
+
+        document.documentElement.classList.add(
+            safeTheme === "dark" ? "admin-dark" : "admin-light"
+        );
+        document.body.classList.add(
+            safeTheme === "dark" ? "admin-dark" : "admin-light"
+        );
     }, [theme]);
 
     const handleToggleTheme = () => {

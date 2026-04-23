@@ -95,9 +95,7 @@ img {
   background: transparent;
 }
 
-/* =========================
-   CLIENT THEME
-========================= */
+
 
 .client-portal-shell {
   background:
@@ -490,9 +488,7 @@ img {
   box-shadow: 0 20px 45px rgba(14, 61, 47, 0.1);
 }
 
-/* =========================
-   HOME / LANDING
-========================= */
+
 
 .hero-luxury-overlay {
   background:
@@ -666,9 +662,6 @@ img {
   pointer-events: none;
 }
 
-/* =========================
-   LOGIN PAGE FIX
-========================= */
 
 .login-page input,
 .login-page textarea,
@@ -697,9 +690,7 @@ img {
   box-shadow: 0 0 0 1000px #fafafa inset !important;
 }
 
-/* =========================
-   INPUT POLISH
-========================= */
+
 
 input[type="date"],
 input[type="time"],
@@ -720,9 +711,7 @@ body[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator {
   opacity: 0.85;
 }
 
-/* =========================
-   ADMIN THEME
-========================= */
+
 
 .admin-shell {
   min-height: 100vh;
@@ -848,7 +837,7 @@ body[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator {
   background: rgba(4, 20, 16, 0.58);
 }
 
-/* Dropdown */
+
 .admin-profile-trigger {
   border-color: rgba(255, 255, 255, 0.14);
   background: rgba(5, 33, 27, 0.36);
@@ -988,9 +977,7 @@ body[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator {
   background: rgba(255, 255, 255, 0.08);
 }
 
-/* =========================
-   GLOBAL ADMIN DARK MODE FIX
-========================= */
+
 
 .admin-theme-dark,
 .admin-theme-dark p,
@@ -1277,9 +1264,6 @@ body[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator {
   border-color: rgba(255, 255, 255, 0.08);
 }
 
-/* =========================
-   ANIMATIONS
-========================= */
 
 @keyframes float1 {
 
@@ -1350,9 +1334,6 @@ body[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator {
   }
 }
 
-/* =========================
-   RESPONSIVE
-========================= */
 
 @media (max-width: 1024px) {
 

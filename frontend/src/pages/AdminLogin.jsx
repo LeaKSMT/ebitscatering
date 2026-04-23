@@ -24,6 +24,19 @@ function AdminLogin() {
         setError("");
     };
 
+    const applyLightTheme = () => {
+        localStorage.setItem("adminTheme", "light");
+
+        document.documentElement.setAttribute("data-theme", "light");
+        document.body.setAttribute("data-theme", "light");
+
+        document.documentElement.classList.remove("admin-dark", "admin-light");
+        document.body.classList.remove("admin-dark", "admin-light");
+
+        document.documentElement.classList.add("admin-light");
+        document.body.classList.add("admin-light");
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -48,6 +61,8 @@ function AdminLogin() {
             localStorage.setItem("adminAuth", "true");
             localStorage.setItem("adminUser", JSON.stringify(data.user));
             localStorage.setItem("user", JSON.stringify(data.user));
+
+            applyLightTheme();
 
             navigate("/admin/dashboard");
         } catch (err) {
