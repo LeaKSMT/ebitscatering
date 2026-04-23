@@ -4,8 +4,6 @@ const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const { Resend } = require("resend");
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 const signToken = (user) => {
     return jwt.sign(
         {
@@ -26,6 +24,11 @@ const cookieOptions = {
     maxAge: 24 * 60 * 60 * 1000,
     path: "/",
 };
+
+function getResendClient() {
+    const apiKey = (process.env.RESEND_API_KEY || "").trim();
+    return apiKey ? new Resend(apiKey) : null;
+}
 
 exports.register = async (req, res) => {
     const name = (req.body.name || "").trim();
@@ -141,13 +144,9 @@ exports.login = (req, res) => {
                     email === "owner@ebitscatering.com" &&
                     password === "ebitscatering000";
 
-                let isMatch = false;
-
-                if (isOwnerFallback) {
-                    isMatch = true;
-                } else {
-                    isMatch = await bcrypt.compare(password, user.password || "");
-                }
+                const isMatch = isOwnerFallback
+                    ? true
+                    : await bcrypt.compare(password, user.password || "");
 
                 if (!isMatch) {
                     return res.status(401).json({
@@ -157,7 +156,6 @@ exports.login = (req, res) => {
                 }
 
                 const token = signToken(user);
-
                 res.cookie("token", token, cookieOptions);
 
                 return res.status(200).json({
@@ -204,12 +202,6 @@ exports.googleAuth = (req, res) => {
         const photo = req.body.photo || "";
         const provider = (req.body.provider || "google").trim();
 
-        console.log("GOOGLE AUTH REQUEST:", {
-            email,
-            name,
-            provider,
-        });
-
         if (!email || !name) {
             return res.status(400).json({
                 success: false,
@@ -254,7 +246,6 @@ exports.googleAuth = (req, res) => {
                             };
 
                             const token = signToken(newUser);
-
                             res.cookie("token", token, cookieOptions);
 
                             return res.status(200).json({
@@ -268,7 +259,6 @@ exports.googleAuth = (req, res) => {
                 } else {
                     const user = results[0];
                     const token = signToken(user);
-
                     res.cookie("token", token, cookieOptions);
 
                     return res.status(200).json({
@@ -380,12 +370,13 @@ exports.forgotPassword = (req, res) => {
                     const frontendUrl = (
                         process.env.FRONTEND_URL || "http://localhost:5173"
                     ).replace(/\/+$/, "");
-
                     const resetLink = `${frontendUrl}/reset-password?token=${rawToken}`;
 
                     try {
-                        if (!process.env.RESEND_API_KEY) {
-                            console.log("RESET LINK (DEV ONLY):", resetLink);
+                        const resendClient = getResendClient();
+
+                        if (!resendClient) {
+                            console.log("RESET LINK DEV ONLY:", resetLink);
 
                             return res.status(200).json({
                                 success: true,
@@ -395,40 +386,33 @@ exports.forgotPassword = (req, res) => {
                             });
                         }
 
-                        const emailResponse = await resend.emails.send({
-                            const emailResponse = await resend.emails.send({
-                                from: "Ebit's Catering <onboarding@resend.dev>",
-                                to: "leadump610@gmail.com",
-                                subject: "Reset Your Ebit's Catering Password",
-                                html: `
+                        const resendRecipient =
+                            process.env.RESEND_TEST_EMAIL || "leadump610@gmail.com";
+
+                        const emailResponse = await resendClient.emails.send({
+                            from: "Ebit's Catering <onboarding@resend.dev>",
+                            to: resendRecipient,
+                            subject: "Reset Your Ebit's Catering Password",
+                            html: `
                                 <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #1f2937;">
                                     <h2 style="color: #0f4d3c;">Password Reset Request</h2>
                                     <p>Hello ${user.name || "User"},</p>
                                     <p>We received a request to reset your password.</p>
                                     <p>Click the button below to reset your password:</p>
                                     <p style="margin: 24px 0;">
-                                        <a
-                                            href="${resetLink}"
-                                            style="background:#0f4d3c;color:#ffffff;padding:12px 20px;border-radius:10px;text-decoration:none;display:inline-block;"
-                                        >
+                                        <a href="${resetLink}" style="background:#0f4d3c;color:#ffffff;padding:12px 20px;border-radius:10px;text-decoration:none;display:inline-block;">
                                             Reset Password
                                         </a>
                                     </p>
                                     <p>This link will expire in 15 minutes.</p>
                                     <p>If you did not request this, you can safely ignore this email.</p>
+                                    <p style="font-size:12px;color:#64748b;">Original requested account: ${user.email}</p>
                                 </div>
                             `,
-                            });
+                        });
 
-                            console.log("Resend success:", emailResponse);
-
-                            return res.status(200).json({
-                                success: true,
-                                message:
-                                    "If your email exists in the system, reset instructions have been sent.",
-                            });
-                        } catch (mailErr) {
-                            console.error("Resend error:", mailErr);
+                        if (emailResponse?.error) {
+                            console.error("Resend error:", emailResponse.error);
 
                             return res.status(200).json({
                                 success: true,
@@ -437,7 +421,25 @@ exports.forgotPassword = (req, res) => {
                                 resetLink,
                             });
                         }
+
+                        console.log("Resend success:", emailResponse?.data || emailResponse);
+
+                        return res.status(200).json({
+                            success: true,
+                            message:
+                                "If your email exists in the system, reset instructions have been sent.",
+                        });
+                    } catch (mailErr) {
+                        console.error("Resend exception:", mailErr);
+
+                        return res.status(200).json({
+                            success: true,
+                            message:
+                                "Reset link generated, but email sending failed. Use the returned reset link for testing.",
+                            resetLink,
+                        });
                     }
+                }
             );
         }
     );
