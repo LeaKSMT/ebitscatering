@@ -152,11 +152,51 @@ function getClientKey(item) {
     );
 }
 
+function getCurrentTheme() {
+    if (typeof document === "undefined") return "light";
+
+    const html = document.documentElement;
+    const body = document.body;
+
+    if (
+        html.classList.contains("admin-dark") ||
+        body.classList.contains("admin-dark") ||
+        html.getAttribute("data-theme") === "dark" ||
+        body.getAttribute("data-theme") === "dark"
+    ) {
+        return "dark";
+    }
+
+    return "light";
+}
+
 function AdminClients() {
+    const [theme, setTheme] = useState(getCurrentTheme);
     const [selectedClient, setSelectedClient] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [records, setRecords] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (typeof document === "undefined") return undefined;
+
+        const syncTheme = () => setTheme(getCurrentTheme());
+        syncTheme();
+
+        const observer = new MutationObserver(syncTheme);
+
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ["class", "data-theme"],
+        });
+
+        observer.observe(document.body, {
+            attributes: true,
+            attributeFilter: ["class", "data-theme"],
+        });
+
+        return () => observer.disconnect();
+    }, []);
 
     useEffect(() => {
         let isMounted = true;
@@ -274,18 +314,13 @@ function AdminClients() {
             .map((client) => ({
                 ...client,
                 bookings: [...client.bookings].sort(
-                    (a, b) =>
-                        new Date(b.eventDate || 0) - new Date(a.eventDate || 0)
+                    (a, b) => new Date(b.eventDate || 0) - new Date(a.eventDate || 0)
                 ),
                 quotations: [...client.quotations].sort(
-                    (a, b) =>
-                        new Date(b.preferredDate || 0) -
-                        new Date(a.preferredDate || 0)
+                    (a, b) => new Date(b.preferredDate || 0) - new Date(a.preferredDate || 0)
                 ),
                 inquiries: [...client.inquiries].sort(
-                    (a, b) =>
-                        new Date(b.preferredDate || 0) -
-                        new Date(a.preferredDate || 0)
+                    (a, b) => new Date(b.preferredDate || 0) - new Date(a.preferredDate || 0)
                 ),
             }))
             .sort((a, b) => a.fullName.localeCompare(b.fullName));
@@ -373,6 +408,22 @@ function AdminClients() {
         });
     };
 
+    const isDark = theme === "dark";
+
+    const shellCard = isDark
+        ? "border-white/10 bg-[linear-gradient(180deg,rgba(8,28,22,0.96)_0%,rgba(9,34,26,0.96)_100%)] shadow-[0_18px_60px_rgba(0,0,0,0.24)]"
+        : "border-white/70 bg-white/90 shadow-[0_18px_60px_rgba(15,23,42,0.08)]";
+
+    const panelBorder = isDark ? "border-white/10" : "border-gray-100";
+    const titleColor = isDark ? "text-white" : "text-[#0f4d3c]";
+    const softText = isDark ? "text-[#b4c8c0]" : "text-gray-500";
+    const inputClass = isDark
+        ? "border-white/10 bg-[rgba(255,255,255,0.04)] text-white placeholder:text-[#7da095] focus:border-[#d4af37] focus:bg-[rgba(255,255,255,0.06)]"
+        : "border-gray-200 bg-[#f8fafc] text-[#17352d] placeholder:text-gray-400 focus:border-[#d4af37] focus:bg-white";
+    const emptyBoxClass = isDark
+        ? "border-white/10 bg-[rgba(255,255,255,0.03)] text-[#b4c8c0]"
+        : "border-dashed border-gray-200 bg-[#fafafa] text-gray-500";
+
     return (
         <div className="space-y-6">
             <motion.section
@@ -408,22 +459,22 @@ function AdminClients() {
             </motion.section>
 
             <section className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
-                <TopStatCard title="Total Clients" value={stats.totalClients} icon={Users} delay={0.05} />
-                <TopStatCard title="With Bookings" value={stats.withBookings} icon={CalendarDays} delay={0.1} />
-                <TopStatCard title="With Quotations" value={stats.withQuotations} icon={FileText} delay={0.15} />
-                <TopStatCard title="With Inquiries" value={stats.withInquiries} icon={MessageSquareQuote} delay={0.2} />
+                <TopStatCard theme={theme} title="Total Clients" value={stats.totalClients} icon={Users} delay={0.05} />
+                <TopStatCard theme={theme} title="With Bookings" value={stats.withBookings} icon={CalendarDays} delay={0.1} />
+                <TopStatCard theme={theme} title="With Quotations" value={stats.withQuotations} icon={FileText} delay={0.15} />
+                <TopStatCard theme={theme} title="With Inquiries" value={stats.withInquiries} icon={MessageSquareQuote} delay={0.2} />
             </section>
 
             {loading ? (
                 <motion.div
                     initial={{ opacity: 0, y: 18 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="rounded-[28px] border border-white/70 bg-white/90 p-10 text-center shadow-[0_18px_60px_rgba(15,23,42,0.08)]"
+                    className={`rounded-[28px] border p-10 text-center ${shellCard}`}
                 >
-                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#ecfdf5]">
-                        <LoaderCircle className="h-8 w-8 animate-spin text-[#0f766e]" />
+                    <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full ${isDark ? "bg-[rgba(34,197,139,0.10)]" : "bg-[#ecfdf5]"}`}>
+                        <LoaderCircle className={`h-8 w-8 animate-spin ${isDark ? "text-[#98efcc]" : "text-[#0f766e]"}`} />
                     </div>
-                    <h3 className="mt-4 text-xl font-black text-[#0f4d3c]">
+                    <h3 className={`mt-4 text-xl font-black ${titleColor}`}>
                         Loading client records
                     </h3>
                 </motion.div>
@@ -431,15 +482,15 @@ function AdminClients() {
                 <motion.div
                     initial={{ opacity: 0, y: 18 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="rounded-[28px] border border-white/70 bg-white/90 p-10 text-center shadow-[0_18px_60px_rgba(15,23,42,0.08)]"
+                    className={`rounded-[28px] border p-10 text-center ${shellCard}`}
                 >
-                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#ecfdf5]">
-                        <Users className="h-8 w-8 text-[#0f766e]" />
+                    <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full ${isDark ? "bg-[rgba(34,197,139,0.10)]" : "bg-[#ecfdf5]"}`}>
+                        <Users className={`h-8 w-8 ${isDark ? "text-[#98efcc]" : "text-[#0f766e]"}`} />
                     </div>
-                    <h3 className="mt-4 text-xl font-black text-[#0f4d3c]">
+                    <h3 className={`mt-4 text-xl font-black ${titleColor}`}>
                         No client records yet
                     </h3>
-                    <p className="mt-2 text-sm text-gray-500">
+                    <p className={`mt-2 text-sm ${softText}`}>
                         Client information will appear here once quotations or related records are saved.
                     </p>
                 </motion.div>
@@ -449,27 +500,27 @@ function AdminClients() {
                         initial={{ opacity: 0, x: -18 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.4 }}
-                        className="overflow-hidden rounded-[28px] border border-white/70 bg-white/90 shadow-[0_18px_60px_rgba(15,23,42,0.08)]"
+                        className={`overflow-hidden rounded-[28px] border ${shellCard}`}
                     >
-                        <div className="border-b border-gray-100 p-6">
+                        <div className={`border-b p-6 ${panelBorder}`}>
                             <div className="flex flex-col gap-4">
                                 <div>
-                                    <h2 className="text-2xl font-black text-[#0f4d3c]">
+                                    <h2 className={`text-2xl font-black ${titleColor}`}>
                                         Client List
                                     </h2>
-                                    <p className="mt-1 text-sm text-gray-500">
+                                    <p className={`mt-1 text-sm ${softText}`}>
                                         Select a client to view their full profile history.
                                     </p>
                                 </div>
 
                                 <div className="relative">
-                                    <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                                    <Search className={`pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 ${isDark ? "text-[#7da095]" : "text-gray-400"}`} />
                                     <input
                                         type="text"
                                         placeholder="Search client name, email, number..."
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="w-full rounded-2xl border border-gray-200 bg-[#f8fafc] py-3 pl-11 pr-4 text-sm outline-none transition focus:border-[#d4af37] focus:bg-white"
+                                        className={`w-full rounded-2xl border py-3 pl-11 pr-4 text-sm outline-none transition ${inputClass}`}
                                     />
                                 </div>
                             </div>
@@ -484,38 +535,42 @@ function AdminClients() {
                                     transition={{ duration: 0.3, delay: index * 0.025 }}
                                     onClick={() => setSelectedClient(client)}
                                     className={`w-full rounded-[24px] border p-4 text-left transition ${selectedClient?.clientKey === client.clientKey
-                                            ? "border-[#d4af37] bg-[linear-gradient(135deg,#fff8e6,#fffdf7)] shadow-[0_12px_35px_rgba(212,175,55,0.15)]"
-                                            : "border-gray-200 bg-white hover:-translate-y-0.5 hover:border-[#d7e0e8] hover:bg-[#fcfcfd]"
+                                            ? isDark
+                                                ? "border-[#d4af37] bg-[linear-gradient(135deg,rgba(212,175,55,0.10),rgba(255,255,255,0.04))] shadow-[0_12px_35px_rgba(212,175,55,0.10)]"
+                                                : "border-[#d4af37] bg-[linear-gradient(135deg,#fff8e6,#fffdf7)] shadow-[0_12px_35px_rgba(212,175,55,0.15)]"
+                                            : isDark
+                                                ? "border-white/10 bg-[rgba(255,255,255,0.03)] hover:-translate-y-0.5 hover:border-white/15 hover:bg-[rgba(255,255,255,0.05)]"
+                                                : "border-gray-200 bg-white hover:-translate-y-0.5 hover:border-[#d7e0e8] hover:bg-[#fcfcfd]"
                                         }`}
                                 >
                                     <div className="flex items-start justify-between gap-4">
                                         <div className="min-w-0">
-                                            <h4 className="truncate text-base font-black text-[#0f4d3c]">
+                                            <h4 className={`truncate text-base font-black ${titleColor}`}>
                                                 {client.fullName}
                                             </h4>
-                                            <p className="mt-1 truncate text-sm text-gray-500">
+                                            <p className={`mt-1 truncate text-sm ${softText}`}>
                                                 {client.email || "No email"}
                                             </p>
-                                            <p className="mt-1 text-xs text-gray-400">
+                                            <p className={`mt-1 text-xs ${isDark ? "text-[#90a8a0]" : "text-gray-400"}`}>
                                                 {client.contactNumber || "No contact number"}
                                             </p>
                                         </div>
 
-                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#f8fafc]">
-                                            <ChevronRight className="h-5 w-5 text-gray-400" />
+                                        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${isDark ? "bg-[rgba(255,255,255,0.05)]" : "bg-[#f8fafc]"}`}>
+                                            <ChevronRight className={`h-5 w-5 ${isDark ? "text-[#9bb3ab]" : "text-gray-400"}`} />
                                         </div>
                                     </div>
 
                                     <div className="mt-4 grid grid-cols-3 gap-2">
-                                        <TinyCounter label="Bookings" value={client.bookings.length} />
-                                        <TinyCounter label="Quotes" value={client.quotations.length} />
-                                        <TinyCounter label="Inquiries" value={client.inquiries.length} />
+                                        <TinyCounter theme={theme} label="Bookings" value={client.bookings.length} />
+                                        <TinyCounter theme={theme} label="Quotes" value={client.quotations.length} />
+                                        <TinyCounter theme={theme} label="Inquiries" value={client.inquiries.length} />
                                     </div>
                                 </motion.button>
                             ))}
 
                             {filteredClients.length === 0 && (
-                                <div className="rounded-[24px] border border-dashed border-gray-200 bg-[#fafafa] p-8 text-center text-sm text-gray-500">
+                                <div className={`rounded-[24px] border p-8 text-center text-sm ${emptyBoxClass}`}>
                                     No matching client found.
                                 </div>
                             )}
@@ -526,10 +581,10 @@ function AdminClients() {
                         initial={{ opacity: 0, x: 18 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.4 }}
-                        className="overflow-hidden rounded-[28px] border border-white/70 bg-white/90 shadow-[0_18px_60px_rgba(15,23,42,0.08)]"
+                        className={`overflow-hidden rounded-[28px] border ${shellCard}`}
                     >
                         {!selectedClient ? (
-                            <div className="flex min-h-[500px] items-center justify-center p-10 text-center text-gray-500">
+                            <div className={`flex min-h-[500px] items-center justify-center p-10 text-center ${softText}`}>
                                 Select a client to view complete details.
                             </div>
                         ) : (
@@ -570,18 +625,19 @@ function AdminClients() {
                                 </div>
 
                                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                                    <MiniStat label="Bookings" value={selectedClient.bookings.length} />
-                                    <MiniStat label="Quotations" value={selectedClient.quotations.length} />
-                                    <MiniStat label="Inquiries" value={selectedClient.inquiries.length} />
+                                    <MiniStat theme={theme} label="Bookings" value={selectedClient.bookings.length} />
+                                    <MiniStat theme={theme} label="Quotations" value={selectedClient.quotations.length} />
+                                    <MiniStat theme={theme} label="Inquiries" value={selectedClient.inquiries.length} />
                                 </div>
 
-                                <HistorySection title="Booking History" icon={CalendarDays}>
+                                <HistorySection theme={theme} title="Booking History" icon={CalendarDays}>
                                     {selectedClient.bookings.length === 0 ? (
-                                        <EmptyMini text="No booking history." />
+                                        <EmptyMini theme={theme} text="No booking history." />
                                     ) : (
                                         <div className="space-y-3">
                                             {selectedClient.bookings.map((booking) => (
                                                 <RecordCard
+                                                    theme={theme}
                                                     key={booking.id}
                                                     title={`${booking.bookingId} • ${booking.eventType}`}
                                                     subtitle={`${formatDate(booking.eventDate)} • ${booking.guestCount} guests`}
@@ -594,13 +650,14 @@ function AdminClients() {
                                     )}
                                 </HistorySection>
 
-                                <HistorySection title="Quotation History" icon={FileText}>
+                                <HistorySection theme={theme} title="Quotation History" icon={FileText}>
                                     {selectedClient.quotations.length === 0 ? (
-                                        <EmptyMini text="No quotation history." />
+                                        <EmptyMini theme={theme} text="No quotation history." />
                                     ) : (
                                         <div className="space-y-3">
                                             {selectedClient.quotations.map((quote) => (
                                                 <RecordCard
+                                                    theme={theme}
                                                     key={quote.id}
                                                     title={`${quote.quotationId} • ${quote.eventType}`}
                                                     subtitle={`${formatDate(quote.preferredDate)} • ${quote.guests} guests`}
@@ -613,13 +670,14 @@ function AdminClients() {
                                     )}
                                 </HistorySection>
 
-                                <HistorySection title="Inquiry History" icon={MessageSquareQuote}>
+                                <HistorySection theme={theme} title="Inquiry History" icon={MessageSquareQuote}>
                                     {selectedClient.inquiries.length === 0 ? (
-                                        <EmptyMini text="No inquiry history." />
+                                        <EmptyMini theme={theme} text="No inquiry history." />
                                     ) : (
                                         <div className="space-y-3">
                                             {selectedClient.inquiries.map((inquiry) => (
                                                 <RecordCard
+                                                    theme={theme}
                                                     key={inquiry.id}
                                                     title={`${inquiry.inquiryId} • ${inquiry.eventType}`}
                                                     subtitle={`${formatDate(inquiry.preferredDate)} • ${inquiry.guests} guests`}
@@ -640,20 +698,28 @@ function AdminClients() {
     );
 }
 
-function TopStatCard({ title, value, icon: Icon, delay = 0 }) {
+function TopStatCard({ theme, title, value, icon: Icon, delay = 0 }) {
+    const isDark = theme === "dark";
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, delay }}
-            className="rounded-[26px] border border-white/70 bg-white/90 p-5 shadow-[0_16px_50px_rgba(15,23,42,0.07)]"
+            className={`rounded-[26px] border p-5 ${isDark
+                    ? "border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] shadow-[0_16px_50px_rgba(0,0,0,0.22)]"
+                    : "border-white/70 bg-white/90 shadow-[0_16px_50px_rgba(15,23,42,0.07)]"
+                }`}
         >
             <div className="flex items-start justify-between gap-4">
                 <div>
-                    <p className="text-sm font-medium text-gray-500">{title}</p>
-                    <h2 className="mt-3 text-3xl font-black text-[#0f4d3c]">{value}</h2>
+                    <p className={`text-sm font-medium ${isDark ? "text-[#b4c8c0]" : "text-gray-500"}`}>{title}</p>
+                    <h2 className={`mt-3 text-3xl font-black ${isDark ? "text-white" : "text-[#0f4d3c]"}`}>{value}</h2>
                 </div>
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,rgba(212,175,55,0.16),rgba(255,248,230,1))] text-[#b99117] ring-1 ring-[#ecd891]">
+                <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${isDark
+                        ? "bg-[linear-gradient(135deg,rgba(212,175,55,0.18),rgba(212,175,55,0.08))] text-[#f4d97a] ring-1 ring-[#d4af37]/30"
+                        : "bg-[linear-gradient(135deg,rgba(212,175,55,0.16),rgba(255,248,230,1))] text-[#b99117] ring-1 ring-[#ecd891]"
+                    }`}>
                     <Icon className="h-6 w-6" />
                 </div>
             </div>
@@ -661,58 +727,86 @@ function TopStatCard({ title, value, icon: Icon, delay = 0 }) {
     );
 }
 
-function TinyCounter({ label, value }) {
+function TinyCounter({ theme, label, value }) {
+    const isDark = theme === "dark";
+
     return (
-        <div className="rounded-2xl border border-white/70 bg-[#f8fafc] px-3 py-3 text-center">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-400">
+        <div className={`rounded-2xl border px-3 py-3 text-center ${isDark
+                ? "border-white/10 bg-[rgba(255,255,255,0.03)]"
+                : "border-white/70 bg-[#f8fafc]"
+            }`}>
+            <p className={`text-[11px] font-semibold uppercase tracking-[0.16em] ${isDark ? "text-[#90a8a0]" : "text-gray-400"
+                }`}>
                 {label}
             </p>
-            <p className="mt-2 text-lg font-black text-[#0f4d3c]">{value}</p>
+            <p className={`mt-2 text-lg font-black ${isDark ? "text-white" : "text-[#0f4d3c]"
+                }`}>{value}</p>
         </div>
     );
 }
 
-function MiniStat({ label, value }) {
+function MiniStat({ theme, label, value }) {
+    const isDark = theme === "dark";
+
     return (
-        <div className="rounded-[24px] border border-gray-200 bg-[linear-gradient(135deg,#ffffff,#f8fafc)] p-4 shadow-sm">
-            <p className="text-sm text-gray-500">{label}</p>
-            <h4 className="mt-2 text-3xl font-black text-[#0f4d3c]">{value}</h4>
+        <div className={`rounded-[24px] border p-4 shadow-sm ${isDark
+                ? "border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.05),rgba(255,255,255,0.03))]"
+                : "border-gray-200 bg-[linear-gradient(135deg,#ffffff,#f8fafc)]"
+            }`}>
+            <p className={`text-sm ${isDark ? "text-[#b4c8c0]" : "text-gray-500"}`}>{label}</p>
+            <h4 className={`mt-2 text-3xl font-black ${isDark ? "text-white" : "text-[#0f4d3c]"}`}>{value}</h4>
         </div>
     );
 }
 
-function HistorySection({ title, icon: Icon, children }) {
+function HistorySection({ theme, title, icon: Icon, children }) {
+    const isDark = theme === "dark";
+
     return (
-        <div className="rounded-[28px] border border-gray-100 bg-[#fcfcfd] p-5">
+        <div className={`rounded-[28px] border p-5 ${isDark
+                ? "border-white/10 bg-[rgba(255,255,255,0.03)]"
+                : "border-gray-100 bg-[#fcfcfd]"
+            }`}>
             <div className="mb-4 flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#fff8e6] text-[#b99117]">
+                <div className={`flex h-11 w-11 items-center justify-center rounded-2xl ${isDark
+                        ? "bg-[rgba(212,175,55,0.14)] text-[#f4d97a]"
+                        : "bg-[#fff8e6] text-[#b99117]"
+                    }`}>
                     <Icon className="h-5 w-5" />
                 </div>
-                <h4 className="text-xl font-black text-[#0f4d3c]">{title}</h4>
+                <h4 className={`text-xl font-black ${isDark ? "text-white" : "text-[#0f4d3c]"}`}>{title}</h4>
             </div>
             {children}
         </div>
     );
 }
 
-function RecordCard({ title, subtitle, extra, value, status }) {
+function RecordCard({ theme, title, subtitle, extra, value, status }) {
+    const isDark = theme === "dark";
+
     return (
-        <div className="rounded-[24px] border border-gray-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+        <div className={`rounded-[24px] border p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${isDark
+                ? "border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)]"
+                : "border-gray-200 bg-white"
+            }`}>
             <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                 <div className="min-w-0">
-                    <p className="font-black text-[#0f4d3c]">{title}</p>
-                    <p className="mt-1 text-sm text-gray-500">{subtitle}</p>
-                    <p className="mt-1 text-sm text-gray-400">{extra}</p>
+                    <p className={`font-black ${isDark ? "text-white" : "text-[#0f4d3c]"}`}>{title}</p>
+                    <p className={`mt-1 text-sm ${isDark ? "text-[#b4c8c0]" : "text-gray-500"}`}>{subtitle}</p>
+                    <p className={`mt-1 text-sm ${isDark ? "text-[#8ea59d]" : "text-gray-400"}`}>{extra}</p>
                 </div>
 
                 <div className="md:text-right">
                     {value ? (
-                        <p className="font-black text-[#10b981]">{value}</p>
+                        <p className={`font-black ${isDark ? "text-[#98efcc]" : "text-[#10b981]"}`}>{value}</p>
                     ) : (
-                        <p className="font-bold text-gray-400">—</p>
+                        <p className={`font-bold ${isDark ? "text-[#8ea59d]" : "text-gray-400"}`}>—</p>
                     )}
 
-                    <p className="mt-2 inline-flex rounded-full bg-[#f8fafc] px-3 py-1 text-xs font-bold capitalize text-[#0f4d3c] ring-1 ring-gray-200">
+                    <p className={`mt-2 inline-flex rounded-full px-3 py-1 text-xs font-bold capitalize ring-1 ${isDark
+                            ? "bg-[rgba(255,255,255,0.05)] text-[#eef7f3] ring-white/10"
+                            : "bg-[#f8fafc] text-[#0f4d3c] ring-gray-200"
+                        }`}>
                         {status || "recorded"}
                     </p>
                 </div>
@@ -721,8 +815,10 @@ function RecordCard({ title, subtitle, extra, value, status }) {
     );
 }
 
-function EmptyMini({ text }) {
-    return <p className="text-sm text-gray-500">{text}</p>;
+function EmptyMini({ theme, text }) {
+    return (
+        <p className={`text-sm ${theme === "dark" ? "text-[#b4c8c0]" : "text-gray-500"}`}>{text}</p>
+    );
 }
 
 export default AdminClients;

@@ -173,9 +173,49 @@ function mapRecord(item) {
     };
 }
 
+function getCurrentTheme() {
+    if (typeof document === "undefined") return "light";
+
+    const html = document.documentElement;
+    const body = document.body;
+
+    if (
+        html.classList.contains("admin-dark") ||
+        body.classList.contains("admin-dark") ||
+        html.getAttribute("data-theme") === "dark" ||
+        body.getAttribute("data-theme") === "dark"
+    ) {
+        return "dark";
+    }
+
+    return "light";
+}
+
 function AdminReports() {
+    const [theme, setTheme] = useState(getCurrentTheme);
     const [records, setRecords] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (typeof document === "undefined") return undefined;
+
+        const syncTheme = () => setTheme(getCurrentTheme());
+        syncTheme();
+
+        const observer = new MutationObserver(syncTheme);
+
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ["class", "data-theme"],
+        });
+
+        observer.observe(document.body, {
+            attributes: true,
+            attributeFilter: ["class", "data-theme"],
+        });
+
+        return () => observer.disconnect();
+    }, []);
 
     useEffect(() => {
         let isMounted = true;
@@ -293,9 +333,7 @@ function AdminReports() {
         );
 
         const approvedQuotations = quotations.filter((item) =>
-            ["approved", "confirmed", "paid"].includes(
-                normalizeStatus(item.status)
-            )
+            ["approved", "confirmed", "paid"].includes(normalizeStatus(item.status))
         ).length;
 
         const pendingQuotations = quotations.filter(
@@ -387,9 +425,7 @@ function AdminReports() {
             const date = new Date(rawDate);
             if (Number.isNaN(date.getTime())) return;
 
-            const key = `${date.getFullYear()}-${String(
-                date.getMonth() + 1
-            ).padStart(2, "0")}`;
+            const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
             const label = date.toLocaleDateString("en-PH", {
                 year: "numeric",
                 month: "long",
@@ -740,6 +776,11 @@ function AdminReports() {
         },
     ];
 
+    const isDark = theme === "dark";
+    const shellCard = isDark
+        ? "border-white/10 bg-[linear-gradient(180deg,rgba(8,28,22,0.96)_0%,rgba(9,34,26,0.96)_100%)] shadow-[0_18px_60px_rgba(0,0,0,0.24)]"
+        : "border-white/70 bg-white/90 shadow-[0_18px_60px_rgba(15,23,42,0.08)]";
+
     return (
         <div className="space-y-6">
             <motion.section
@@ -777,24 +818,28 @@ function AdminReports() {
 
             <section className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
                 <SummaryCard
+                    theme={theme}
                     title="Total Bookings"
                     value={summary.totalBookings}
                     icon={CalendarRange}
                     delay={0.05}
                 />
                 <SummaryCard
+                    theme={theme}
                     title="Total Revenue"
                     value={formatCurrency(summary.totalRevenue)}
                     icon={Wallet}
                     delay={0.1}
                 />
                 <SummaryCard
+                    theme={theme}
                     title="Total Inquiries"
                     value={summary.totalInquiries}
                     icon={Users}
                     delay={0.15}
                 />
                 <SummaryCard
+                    theme={theme}
                     title="Net Profit"
                     value={formatCurrency(summary.netProfit)}
                     icon={TrendingUp}
@@ -806,23 +851,23 @@ function AdminReports() {
                 initial={{ opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.45, delay: 0.08 }}
-                className="overflow-hidden rounded-[28px] border border-white/70 bg-white/90 shadow-[0_18px_60px_rgba(15,23,42,0.08)]"
+                className={`overflow-hidden rounded-[28px] border ${shellCard}`}
             >
-                <div className="border-b border-gray-100 p-6">
-                    <h2 className="text-2xl font-black text-[#0f4d3c]">
+                <div className={`border-b p-6 ${isDark ? "border-white/10" : "border-gray-100"}`}>
+                    <h2 className={`text-2xl font-black ${isDark ? "text-white" : "text-[#0f4d3c]"}`}>
                         Printable Report Generator
                     </h2>
-                    <p className="mt-1 text-sm text-gray-500">
+                    <p className={`mt-1 text-sm ${isDark ? "text-[#b4c8c0]" : "text-gray-500"}`}>
                         Click any report card below to open a printable version.
                     </p>
                 </div>
 
                 {loading ? (
                     <div className="p-10 text-center">
-                        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#ecfdf5]">
-                            <LoaderCircle className="h-8 w-8 animate-spin text-[#0f766e]" />
+                        <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full ${isDark ? "bg-[rgba(34,197,139,0.10)]" : "bg-[#ecfdf5]"}`}>
+                            <LoaderCircle className={`h-8 w-8 animate-spin ${isDark ? "text-[#98efcc]" : "text-[#0f766e]"}`} />
                         </div>
-                        <p className="mt-4 text-sm text-gray-500">
+                        <p className={`mt-4 text-sm ${isDark ? "text-[#b4c8c0]" : "text-gray-500"}`}>
                             Loading report data...
                         </p>
                     </div>
@@ -830,6 +875,7 @@ function AdminReports() {
                     <div className="grid gap-4 p-6 md:grid-cols-2 xl:grid-cols-4">
                         {reportCards.map((card, index) => (
                             <ReportButton
+                                theme={theme}
                                 key={card.title}
                                 label={card.title}
                                 description={card.description}
@@ -847,43 +893,29 @@ function AdminReports() {
                     initial={{ opacity: 0, x: -18 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.35 }}
-                    className="rounded-[28px] border border-white/70 bg-white/90 p-6 shadow-[0_18px_60px_rgba(15,23,42,0.08)]"
+                    className={`rounded-[28px] border p-6 ${shellCard}`}
                 >
                     <div className="flex items-center gap-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#fff8e6] text-[#b99117]">
+                        <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${isDark ? "bg-[rgba(212,175,55,0.14)] text-[#f4d97a]" : "bg-[#fff8e6] text-[#b99117]"
+                            }`}>
                             <CheckCircle2 className="h-6 w-6" />
                         </div>
                         <div>
-                            <h2 className="text-2xl font-black text-[#0f4d3c]">
+                            <h2 className={`text-2xl font-black ${isDark ? "text-white" : "text-[#0f4d3c]"}`}>
                                 Report Summary
                             </h2>
-                            <p className="text-sm text-gray-500">
+                            <p className={`text-sm ${isDark ? "text-[#b4c8c0]" : "text-gray-500"}`}>
                                 Quick summary before printing.
                             </p>
                         </div>
                     </div>
 
                     <div className="mt-6 space-y-4">
-                        <SummaryLine
-                            label="Approved Quotations"
-                            value={summary.approvedQuotations}
-                        />
-                        <SummaryLine
-                            label="Pending Quotations"
-                            value={summary.pendingQuotations}
-                        />
-                        <SummaryLine
-                            label="Total Collected"
-                            value={formatCurrency(summary.totalCollected)}
-                        />
-                        <SummaryLine
-                            label="Total Expenses"
-                            value={formatCurrency(summary.totalExpenses)}
-                        />
-                        <SummaryLine
-                            label="Replied Inquiries"
-                            value={summary.repliedInquiries}
-                        />
+                        <SummaryLine theme={theme} label="Approved Quotations" value={summary.approvedQuotations} />
+                        <SummaryLine theme={theme} label="Pending Quotations" value={summary.pendingQuotations} />
+                        <SummaryLine theme={theme} label="Total Collected" value={formatCurrency(summary.totalCollected)} />
+                        <SummaryLine theme={theme} label="Total Expenses" value={formatCurrency(summary.totalExpenses)} />
+                        <SummaryLine theme={theme} label="Replied Inquiries" value={summary.repliedInquiries} />
                     </div>
                 </motion.div>
 
@@ -891,46 +923,46 @@ function AdminReports() {
                     initial={{ opacity: 0, x: 18 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.35 }}
-                    className="rounded-[28px] border border-white/70 bg-white/90 p-6 shadow-[0_18px_60px_rgba(15,23,42,0.08)]"
+                    className={`rounded-[28px] border p-6 ${shellCard}`}
                 >
                     <div className="flex items-center gap-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#ecfdf5] text-[#0f766e]">
+                        <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${isDark ? "bg-[rgba(34,197,139,0.12)] text-[#98efcc]" : "bg-[#ecfdf5] text-[#0f766e]"
+                            }`}>
                             <Clock3 className="h-6 w-6" />
                         </div>
                         <div>
-                            <h2 className="text-2xl font-black text-[#0f4d3c]">
+                            <h2 className={`text-2xl font-black ${isDark ? "text-white" : "text-[#0f4d3c]"}`}>
                                 Demand Forecast Snapshot
                             </h2>
-                            <p className="text-sm text-gray-500">
-                                Event type distribution based on current
-                                bookings.
+                            <p className={`text-sm ${isDark ? "text-[#b4c8c0]" : "text-gray-500"}`}>
+                                Event type distribution based on current bookings.
                             </p>
                         </div>
                     </div>
 
                     <div className="mt-6 space-y-5">
                         {loading ? (
-                            <div className="flex items-center gap-3 text-sm text-gray-500">
+                            <div className={`flex items-center gap-3 text-sm ${isDark ? "text-[#b4c8c0]" : "text-gray-500"}`}>
                                 <LoaderCircle className="h-4 w-4 animate-spin" />
                                 Loading demand forecast...
                             </div>
                         ) : demandForecast.length === 0 ? (
-                            <p className="text-sm text-gray-500">
+                            <p className={`text-sm ${isDark ? "text-[#b4c8c0]" : "text-gray-500"}`}>
                                 No demand forecast data yet.
                             </p>
                         ) : (
                             demandForecast.map((item) => (
                                 <div key={item.type}>
-                                    <div className="mb-2 flex items-center justify-between gap-3 text-sm">
-                                        <span className="font-bold text-[#0f4d3c]">
+                                    <div className={`mb-2 flex items-center justify-between gap-3 text-sm`}>
+                                        <span className={`font-bold ${isDark ? "text-white" : "text-[#0f4d3c]"}`}>
                                             {item.type}
                                         </span>
-                                        <span className="text-gray-500">
+                                        <span className={`${isDark ? "text-[#b4c8c0]" : "text-gray-500"}`}>
                                             {item.count} • {item.percent}%
                                         </span>
                                     </div>
 
-                                    <div className="h-3 overflow-hidden rounded-full bg-gray-100">
+                                    <div className={`h-3 overflow-hidden rounded-full ${isDark ? "bg-white/10" : "bg-gray-100"}`}>
                                         <motion.div
                                             initial={{ width: 0 }}
                                             animate={{ width: `${item.percent}%` }}
@@ -948,22 +980,30 @@ function AdminReports() {
     );
 }
 
-function SummaryCard({ title, value, icon: Icon, delay = 0 }) {
+function SummaryCard({ theme, title, value, icon: Icon, delay = 0 }) {
+    const isDark = theme === "dark";
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, delay }}
-            className="rounded-[26px] border border-white/70 bg-white/90 p-5 shadow-[0_16px_50px_rgba(15,23,42,0.07)]"
+            className={`rounded-[26px] border p-5 ${isDark
+                    ? "border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] shadow-[0_16px_50px_rgba(0,0,0,0.22)]"
+                    : "border-white/70 bg-white/90 shadow-[0_16px_50px_rgba(15,23,42,0.07)]"
+                }`}
         >
             <div className="flex items-start justify-between gap-4">
                 <div>
-                    <p className="text-sm font-medium text-gray-500">{title}</p>
-                    <h2 className="mt-3 text-3xl font-black text-[#0f4d3c]">
+                    <p className={`text-sm font-medium ${isDark ? "text-[#b4c8c0]" : "text-gray-500"}`}>{title}</p>
+                    <h2 className={`mt-3 text-3xl font-black ${isDark ? "text-white" : "text-[#0f4d3c]"}`}>
                         {value}
                     </h2>
                 </div>
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,rgba(212,175,55,0.16),rgba(255,248,230,1))] text-[#b99117] ring-1 ring-[#ecd891]">
+                <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${isDark
+                        ? "bg-[linear-gradient(135deg,rgba(212,175,55,0.18),rgba(212,175,55,0.08))] text-[#f4d97a] ring-1 ring-[#d4af37]/30"
+                        : "bg-[linear-gradient(135deg,rgba(212,175,55,0.16),rgba(255,248,230,1))] text-[#b99117] ring-1 ring-[#ecd891]"
+                    }`}>
                     <Icon className="h-6 w-6" />
                 </div>
             </div>
@@ -971,39 +1011,55 @@ function SummaryCard({ title, value, icon: Icon, delay = 0 }) {
     );
 }
 
-function SummaryLine({ label, value }) {
+function SummaryLine({ theme, label, value }) {
+    const isDark = theme === "dark";
+
     return (
-        <div className="flex items-center justify-between rounded-[20px] border border-gray-100 bg-[linear-gradient(135deg,#ffffff,#f8fafc)] px-4 py-4 shadow-sm">
-            <span className="text-sm text-gray-600">{label}</span>
-            <span className="font-black text-[#0f4d3c]">{value}</span>
+        <div className={`flex items-center justify-between rounded-[20px] border px-4 py-4 shadow-sm ${isDark
+                ? "border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.05),rgba(255,255,255,0.03))]"
+                : "border-gray-100 bg-[linear-gradient(135deg,#ffffff,#f8fafc)]"
+            }`}>
+            <span className={`text-sm ${isDark ? "text-[#b4c8c0]" : "text-gray-600"}`}>{label}</span>
+            <span className={`font-black ${isDark ? "text-white" : "text-[#0f4d3c]"}`}>{value}</span>
         </div>
     );
 }
 
-function ReportButton({ label, description, onClick, icon: Icon, delay = 0 }) {
+function ReportButton({ theme, label, description, onClick, icon: Icon, delay = 0 }) {
+    const isDark = theme === "dark";
+
     return (
         <motion.button
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay }}
             onClick={onClick}
-            className="group rounded-[24px] border border-[#dce5eb] bg-[linear-gradient(135deg,#ffffff,#f8fafc)] p-4 text-left shadow-sm transition hover:-translate-y-1 hover:border-[#d4af37] hover:shadow-[0_16px_40px_rgba(15,23,42,0.08)]"
+            className={`group rounded-[24px] border p-4 text-left shadow-sm transition hover:-translate-y-1 ${isDark
+                    ? "border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.05),rgba(255,255,255,0.03))] hover:border-[#d4af37]/40 hover:shadow-[0_16px_40px_rgba(0,0,0,0.18)]"
+                    : "border-[#dce5eb] bg-[linear-gradient(135deg,#ffffff,#f8fafc)] hover:border-[#d4af37] hover:shadow-[0_16px_40px_rgba(15,23,42,0.08)]"
+                }`}
         >
             <div className="flex items-start justify-between gap-4">
                 <div>
-                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#0f4d3c] text-white transition group-hover:bg-[#d4af37] group-hover:text-[#0f2c24]">
+                    <div className={`flex h-11 w-11 items-center justify-center rounded-2xl transition ${isDark
+                            ? "bg-[rgba(34,197,139,0.12)] text-[#98efcc] group-hover:bg-[#d4af37] group-hover:text-[#0f2c24]"
+                            : "bg-[#0f4d3c] text-white group-hover:bg-[#d4af37] group-hover:text-[#0f2c24]"
+                        }`}>
                         <Icon className="h-5 w-5" />
                     </div>
-                    <h3 className="mt-4 text-base font-black text-[#0f4d3c]">
+                    <h3 className={`mt-4 text-base font-black ${isDark ? "text-white" : "text-[#0f4d3c]"}`}>
                         {label}
                     </h3>
-                    <p className="mt-1 text-xs leading-5 text-gray-500">
+                    <p className={`mt-1 text-xs leading-5 ${isDark ? "text-[#b4c8c0]" : "text-gray-500"}`}>
                         {description}
                     </p>
                 </div>
             </div>
 
-            <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#fff8e6] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-[#9b7510]">
+            <div className={`mt-4 inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] ${isDark
+                    ? "bg-[rgba(212,175,55,0.12)] text-[#f4d97a]"
+                    : "bg-[#fff8e6] text-[#9b7510]"
+                }`}>
                 <Printer className="h-3.5 w-3.5" />
                 Print Report
             </div>
