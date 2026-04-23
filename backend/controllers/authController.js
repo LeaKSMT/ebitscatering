@@ -26,8 +26,8 @@ const cookieOptions = {
 };
 
 const getTransporter = () => {
-    const mailUser = process.env.MAIL_USER;
-    const mailPass = process.env.MAIL_PASS;
+    const mailUser = (process.env.MAIL_USER || "").trim();
+    const mailPass = (process.env.MAIL_PASS || "").trim();
 
     if (!mailUser || !mailPass) {
         return null;
@@ -392,16 +392,32 @@ exports.forgotPassword = (req, res) => {
                         });
                     }
 
-                    const frontendUrl =
-                        (process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/+$/, "");
+                    const frontendUrl = (
+                        process.env.FRONTEND_URL || "http://localhost:5173"
+                    ).replace(/\/+$/, "");
+
                     const resetLink = `${frontendUrl}/reset-password?token=${rawToken}`;
 
                     try {
                         const transporter = getTransporter();
 
-                        if (transporter) {
-                            await transporter.sendMail({
-                                from: process.env.MAIL_USER,
+                        console.log("MAIL USER:", process.env.MAIL_USER || "missing");
+                        console.log("MAIL PASS EXISTS:", !!process.env.MAIL_PASS);
+
+                        if (!transporter) {
+                            console.log("RESET LINK (DEV ONLY):", resetLink);
+
+                            return res.status(200).json({
+                                success: true,
+                                message:
+                                    "Reset link generated successfully. Email sending is not configured yet.",
+                                resetLink,
+                            });
+                        }
+
+                        await Promise.race([
+                            transporter.sendMail({
+                                from: `"Ebit's Catering" <${process.env.MAIL_USER}>`,
                                 to: user.email,
                                 subject: "Reset Your Ebit's Catering Password",
                                 html: `
@@ -409,9 +425,7 @@ exports.forgotPassword = (req, res) => {
                                         <h2 style="color: #0f4d3c;">Password Reset Request</h2>
                                         <p>Hello ${user.name || "User"},</p>
                                         <p>We received a request to reset your password.</p>
-                                        <p>
-                                            Click the button below to reset your password:
-                                        </p>
+                                        <p>Click the button below to reset your password:</p>
                                         <p style="margin: 24px 0;">
                                             <a
                                                 href="${resetLink}"
@@ -424,22 +438,18 @@ exports.forgotPassword = (req, res) => {
                                         <p>If you did not request this, you can safely ignore this email.</p>
                                     </div>
                                 `,
-                            });
+                            }),
+                            new Promise((_, reject) =>
+                                setTimeout(() => reject(new Error("Email send timeout")), 15000)
+                            ),
+                        ]);
 
-                            return res.status(200).json({
-                                success: true,
-                                message:
-                                    "If your email exists in the system, reset instructions have been sent.",
-                            });
-                        }
-
-                        console.log("RESET LINK (DEV ONLY):", resetLink);
+                        console.log("Email sent successfully to:", user.email);
 
                         return res.status(200).json({
                             success: true,
                             message:
-                                "Reset link generated successfully. Email sending is not configured yet.",
-                            resetLink,
+                                "If your email exists in the system, reset instructions have been sent.",
                         });
                     } catch (mailErr) {
                         console.error("Forgot password email error:", mailErr);
@@ -475,10 +485,7 @@ exports.resetPassword = async (req, res) => {
         });
     }
 
-    const hashedToken = crypto
-        .createHash("sha256")
-        .update(token)
-        .digest("hex");
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
 
     db.query(
         "SELECT id FROM users WHERE reset_token = ? AND reset_token_expires > NOW() LIMIT 1",
