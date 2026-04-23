@@ -878,12 +878,15 @@ function AdminCalendar() {
 
     const renderStatusBadge = (status) => {
         const normalized = normalizeStatus(status);
+
         const baseClass =
-            "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold shadow-sm";
+            "inline-flex items-center rounded-full border px-3 py-[5px] text-[11px] font-extrabold tracking-[0.02em] shadow-sm";
 
         if (normalized === "completed") {
             return (
-                <span className={`${baseClass} bg-emerald-100 text-emerald-700`}>
+                <span
+                    className={`${baseClass} border-[#2e9a67] bg-[#1f8a5a] text-white`}
+                >
                     Completed
                 </span>
             );
@@ -891,7 +894,9 @@ function AdminCalendar() {
 
         if (normalized === "ongoing") {
             return (
-                <span className={`${baseClass} bg-amber-100 text-amber-700`}>
+                <span
+                    className={`${baseClass} border-[#d59d18] bg-[#f0b429] text-[#2f2200]`}
+                >
                     Ongoing
                 </span>
             );
@@ -899,7 +904,9 @@ function AdminCalendar() {
 
         if (normalized === "cancelled") {
             return (
-                <span className={`${baseClass} bg-red-100 text-red-700`}>
+                <span
+                    className={`${baseClass} border-[#d84c4c] bg-[#e53935] text-white`}
+                >
                     Cancelled
                 </span>
             );
@@ -907,22 +914,32 @@ function AdminCalendar() {
 
         if (normalized === "pending") {
             return (
-                <span className={`${baseClass} bg-blue-100 text-blue-700`}>
+                <span
+                    className={`${baseClass} border-[#2c6ad6] bg-[#2563eb] text-white`}
+                >
                     Pending
                 </span>
             );
         }
 
-        if (normalized === "approved" || normalized === "paid" || normalized === "confirmed") {
+        if (
+            normalized === "approved" ||
+            normalized === "paid" ||
+            normalized === "confirmed"
+        ) {
             return (
-                <span className={`${baseClass} bg-green-100 text-green-700`}>
+                <span
+                    className={`${baseClass} border-[#158f66] bg-[#22b67f] text-white`}
+                >
                     Confirmed
                 </span>
             );
         }
 
         return (
-            <span className={`${baseClass} bg-green-100 text-green-700`}>
+            <span
+                className={`${baseClass} border-[#158f66] bg-[#22b67f] text-white`}
+            >
                 {capitalizeStatus(status)}
             </span>
         );
