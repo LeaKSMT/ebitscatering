@@ -396,10 +396,11 @@ exports.forgotPassword = (req, res) => {
                         }
 
                         const emailResponse = await resend.emails.send({
-                            from: "Ebit's Catering <onboarding@resend.dev>",
-                            to: "leadump610@gmail.com",
-                            subject: "Reset Your Ebit's Catering Password",
-                            html: `
+                            const emailResponse = await resend.emails.send({
+                                from: "Ebit's Catering <onboarding@resend.dev>",
+                                to: "leadump610@gmail.com",
+                                subject: "Reset Your Ebit's Catering Password",
+                                html: `
                                 <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #1f2937;">
                                     <h2 style="color: #0f4d3c;">Password Reset Request</h2>
                                     <p>Hello ${user.name || "User"},</p>
@@ -417,26 +418,26 @@ exports.forgotPassword = (req, res) => {
                                     <p>If you did not request this, you can safely ignore this email.</p>
                                 </div>
                             `,
-                        });
+                            });
 
-                        console.log("Resend success:", emailResponse);
+                            console.log("Resend success:", emailResponse);
 
-                        return res.status(200).json({
-                            success: true,
-                            message:
-                                "If your email exists in the system, reset instructions have been sent.",
-                        });
-                    } catch (mailErr) {
-                        console.error("Resend error:", mailErr);
+                            return res.status(200).json({
+                                success: true,
+                                message:
+                                    "If your email exists in the system, reset instructions have been sent.",
+                            });
+                        } catch (mailErr) {
+                            console.error("Resend error:", mailErr);
 
-                        return res.status(200).json({
-                            success: true,
-                            message:
-                                "Reset link generated, but email sending failed. Use the returned reset link for testing.",
-                            resetLink,
-                        });
+                            return res.status(200).json({
+                                success: true,
+                                message:
+                                    "Reset link generated, but email sending failed. Use the returned reset link for testing.",
+                                resetLink,
+                            });
+                        }
                     }
-                }
             );
         }
     );
