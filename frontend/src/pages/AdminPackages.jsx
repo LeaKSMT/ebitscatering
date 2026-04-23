@@ -322,7 +322,10 @@ function SummaryCard({ label, value, delay = 0 }) {
             whileHover={{ y: -4 }}
             className="rounded-[22px] border border-[#f0e2b7] bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
         >
-            <p className="text-sm font-medium text-slate-500">{label}</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#b99117]">
+                Summary
+            </p>
+            <p className="mt-3 text-sm font-medium text-slate-500">{label}</p>
             <h2 className="mt-2 text-4xl font-extrabold text-[#0f4d3c]">
                 {value}
             </h2>
