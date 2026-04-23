@@ -108,8 +108,6 @@ exports.login = (req, res) => {
     const email = (req.body.email || "").trim().toLowerCase();
     const password = (req.body.password || "").trim();
 
-    console.log("LOGIN ATTEMPT:", { email });
-
     if (!email || !password) {
         return res.status(400).json({
             success: false,
@@ -339,10 +337,9 @@ exports.forgotPassword = (req, res) => {
             }
 
             if (!results || results.length === 0) {
-                return res.status(200).json({
-                    success: true,
-                    message:
-                        "If your email exists in the system, reset instructions have been sent.",
+                return res.status(404).json({
+                    success: false,
+                    message: "Email not found in the system.",
                 });
             }
 
@@ -352,11 +349,10 @@ exports.forgotPassword = (req, res) => {
                 .createHash("sha256")
                 .update(rawToken)
                 .digest("hex");
-            const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
             db.query(
-                "UPDATE users SET reset_token = ?, reset_token_expires = ? WHERE id = ?",
-                [hashedToken, expiresAt, user.id],
+                "UPDATE users SET reset_token = ?, reset_token_expires = DATE_ADD(NOW(), INTERVAL 15 MINUTE) WHERE id = ?",
+                [hashedToken, user.id],
                 async (updateErr) => {
                     if (updateErr) {
                         console.error("Forgot password update error:", updateErr);
@@ -386,12 +382,9 @@ exports.forgotPassword = (req, res) => {
                             });
                         }
 
-                        const resendRecipient =
-                            process.env.RESEND_TEST_EMAIL || "leadump610@gmail.com";
-
                         const emailResponse = await resendClient.emails.send({
                             from: "Ebit's Catering <onboarding@resend.dev>",
-                            to: resendRecipient,
+                            to: user.email,
                             subject: "Reset Your Ebit's Catering Password",
                             html: `
                                 <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #1f2937;">
@@ -406,7 +399,6 @@ exports.forgotPassword = (req, res) => {
                                     </p>
                                     <p>This link will expire in 15 minutes.</p>
                                     <p>If you did not request this, you can safely ignore this email.</p>
-                                    <p style="font-size:12px;color:#64748b;">Original requested account: ${user.email}</p>
                                 </div>
                             `,
                         });
@@ -414,10 +406,11 @@ exports.forgotPassword = (req, res) => {
                         if (emailResponse?.error) {
                             console.error("Resend error:", emailResponse.error);
 
-                            return res.status(200).json({
-                                success: true,
+                            return res.status(500).json({
+                                success: false,
                                 message:
-                                    "Reset link generated, but email sending failed. Use the returned reset link for testing.",
+                                    emailResponse.error.message ||
+                                    "Email sending failed.",
                                 resetLink,
                             });
                         }
@@ -426,16 +419,16 @@ exports.forgotPassword = (req, res) => {
 
                         return res.status(200).json({
                             success: true,
-                            message:
-                                "If your email exists in the system, reset instructions have been sent.",
+                            message: "Reset instructions have been sent to your email.",
                         });
                     } catch (mailErr) {
                         console.error("Resend exception:", mailErr);
 
-                        return res.status(200).json({
-                            success: true,
+                        return res.status(500).json({
+                            success: false,
                             message:
-                                "Reset link generated, but email sending failed. Use the returned reset link for testing.",
+                                mailErr.message ||
+                                "Reset link generated, but email sending failed.",
                             resetLink,
                         });
                     }
