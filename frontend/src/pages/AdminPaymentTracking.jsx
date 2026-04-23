@@ -154,7 +154,8 @@ function getPaymentIdentity(payment, index = 0) {
         payment?.id ||
         payment?.paymentId ||
         payment?.referenceNumber ||
-        `${payment?.bookingId || ""}_${payment?.amount || 0}_${payment?.createdAt || payment?.created_at || index}`
+        `${payment?.bookingId || ""}_${payment?.amount || 0}_${payment?.createdAt || payment?.created_at || index
+        }`
     );
 }
 
@@ -545,12 +546,12 @@ function AdminPaymentTracking() {
 
     const getStatusStyle = (status) => {
         if (status === "paid") {
-            return "bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-sm";
+            return "border border-emerald-300 bg-emerald-500 text-white shadow-[0_8px_20px_rgba(16,185,129,0.30)]";
         }
         if (status === "partial") {
-            return "bg-amber-100 text-amber-800 border border-amber-300 shadow-sm";
+            return "border border-amber-300 bg-amber-400 text-[#3b2600] shadow-[0_8px_20px_rgba(245,158,11,0.28)]";
         }
-        return "bg-rose-100 text-rose-700 border border-rose-300 shadow-sm";
+        return "border border-rose-300 bg-rose-500 text-white shadow-[0_8px_20px_rgba(244,63,94,0.28)]";
     };
 
     const getMiniStatusStyle = (status) => {
@@ -762,7 +763,7 @@ function AdminPaymentTracking() {
 
                                             <td className="px-6 py-5">
                                                 <span
-                                                    className={`inline-flex min-w-[96px] justify-center rounded-full px-3.5 py-1.5 text-xs font-extrabold uppercase tracking-[0.08em] ${getStatusStyle(
+                                                    className={`inline-flex min-w-[110px] justify-center rounded-full px-4 py-2 text-[11px] font-black uppercase tracking-[0.14em] ${getStatusStyle(
                                                         row.paymentStatus
                                                     )}`}
                                                 >
@@ -1185,7 +1186,10 @@ function MiniInfo({ label, value, valueClassName = "" }) {
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
                 {label}
             </p>
-            <p className={`mt-2 font-extrabold capitalize ${valueClassName || "text-[#0f4d3c]"}`}>
+            <p
+                className={`mt-2 font-extrabold capitalize ${valueClassName || "text-[#0f4d3c]"
+                    }`}
+            >
                 {value}
             </p>
         </div>

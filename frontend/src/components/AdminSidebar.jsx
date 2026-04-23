@@ -46,8 +46,8 @@ function AdminSidebar({ theme = "light" }) {
     const navContent = (
         <div
             className={`admin-sidebar relative flex h-full flex-col overflow-hidden border-r ${theme === "dark"
-                    ? "bg-[linear-gradient(180deg,#031f19_0%,#072c23_28%,#0a3e31_62%,#0d5a45_100%)] text-white"
-                    : "bg-[linear-gradient(180deg,#042f25_0%,#0a4637_28%,#0d5b47_62%,#12785b_100%)] text-white"
+                    ? "border-white/10 bg-[linear-gradient(180deg,#031f19_0%,#072c23_28%,#0a3e31_62%,#0d5a45_100%)] text-white"
+                    : "border-white/10 bg-[linear-gradient(180deg,#042f25_0%,#0a4637_28%,#0d5b47_62%,#12785b_100%)] text-white"
                 }`}
         >
             <div className="pointer-events-none absolute inset-0">
@@ -59,7 +59,9 @@ function AdminSidebar({ theme = "light" }) {
                 <h1 className="text-[20px] font-extrabold tracking-tight text-[#f5d36a]">
                     Ebit's Catering
                 </h1>
-                <p className="mt-1 text-xs text-white/70">Admin Workspace</p>
+                <p className="mt-1 text-xs font-medium text-white/75">
+                    Admin Workspace
+                </p>
             </div>
 
             <nav className="relative flex-1 space-y-2 overflow-y-auto px-3 py-4">
@@ -77,30 +79,37 @@ function AdminSidebar({ theme = "light" }) {
                                 to={item.path}
                                 onClick={() => setMobileOpen(false)}
                                 className={({ isActive }) =>
-                                    `group flex items-center gap-3 rounded-2xl px-3.5 py-3 text-sm font-semibold transition-all duration-300 ${isActive
-                                        ? "bg-[linear-gradient(135deg,#fff5d7_0%,#f4db86_100%)] text-[#0b4a3a] shadow-[0_14px_30px_rgba(0,0,0,0.16)]"
-                                        : "text-white/85 hover:bg-white/10 hover:text-white"
+                                    `group flex items-center gap-3 rounded-2xl border px-3.5 py-3 text-sm font-semibold transition-all duration-300 ${isActive
+                                        ? "border-[#f5d36a] bg-[linear-gradient(135deg,#fff5d7_0%,#f1d57b_100%)] text-[#08382d] shadow-[0_14px_30px_rgba(0,0,0,0.18)]"
+                                        : "border-transparent text-white/95 hover:border-white/10 hover:bg-white/12 hover:text-white"
                                     }`
                                 }
                             >
                                 {({ isActive }) => (
                                     <>
                                         <div
-                                            className={`flex h-10 w-10 items-center justify-center rounded-2xl transition-all duration-300 ${isActive
-                                                    ? "bg-white text-[#0b4a3a] shadow-sm"
-                                                    : "bg-white/10 text-white/90 group-hover:bg-white/15 group-hover:text-white"
+                                            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl transition-all duration-300 ${isActive
+                                                    ? "bg-[#08382d] text-[#f5d36a] shadow-[0_8px_18px_rgba(8,56,45,0.25)]"
+                                                    : "bg-white/10 text-white group-hover:bg-white/20 group-hover:text-[#ffe28a]"
                                                 }`}
                                         >
-                                            <Icon size={17} />
+                                            <Icon size={17} strokeWidth={2.2} />
                                         </div>
 
-                                        <span className="flex-1 truncate">{item.label}</span>
+                                        <span
+                                            className={`flex-1 truncate font-semibold transition-colors duration-300 ${isActive
+                                                    ? "text-[#08382d]"
+                                                    : "text-white/95 group-hover:text-white"
+                                                }`}
+                                        >
+                                            {item.label}
+                                        </span>
 
                                         <ChevronRight
                                             size={15}
-                                            className={`transition-all duration-300 ${isActive
-                                                    ? "translate-x-0 text-[#0b4a3a]"
-                                                    : "translate-x-[-2px] opacity-0 group-hover:translate-x-0 group-hover:opacity-100"
+                                            className={`shrink-0 transition-all duration-300 ${isActive
+                                                    ? "translate-x-0 text-[#08382d] opacity-100"
+                                                    : "translate-x-[-2px] text-white/80 opacity-0 group-hover:translate-x-0 group-hover:opacity-100"
                                                 }`}
                                         />
                                     </>

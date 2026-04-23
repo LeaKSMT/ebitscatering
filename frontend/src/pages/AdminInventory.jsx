@@ -111,9 +111,13 @@ function AdminInventory() {
     };
 
     const getStatusStyle = (status) => {
-        if (status === "In Stock") return "bg-green-100 text-green-700";
-        if (status === "Low Stock") return "bg-[#fff8e6] text-[#b99117]";
-        return "bg-red-100 text-red-600";
+        if (status === "In Stock") {
+            return "border border-emerald-300/60 bg-emerald-500/20 text-emerald-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]";
+        }
+        if (status === "Low Stock") {
+            return "border border-amber-300/60 bg-amber-400/20 text-amber-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]";
+        }
+        return "border border-rose-300/60 bg-rose-500/20 text-rose-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]";
     };
 
     return (
@@ -126,7 +130,7 @@ function AdminInventory() {
             <motion.section
                 variants={fadeUp}
                 transition={{ duration: 0.46, ease: "easeOut" }}
-                className="overflow-hidden rounded-[30px] border border-[#dce7e2] bg-white shadow-[0_18px_50px_rgba(14,61,47,0.07)]"
+                className="overflow-hidden rounded-[30px] border border-[#1d5a48] bg-[rgba(6,27,22,0.92)] shadow-[0_18px_50px_rgba(14,61,47,0.18)]"
             >
                 <div className="relative overflow-hidden bg-[linear-gradient(135deg,#07382d_0%,#0c4d3d_34%,#0f6b52_68%,#18a06c_100%)] px-6 py-7 text-white md:px-8">
                     <div className="pointer-events-none absolute inset-0">
@@ -177,9 +181,9 @@ function AdminInventory() {
                 <motion.div
                     variants={fadeUp}
                     transition={{ duration: 0.46, ease: "easeOut" }}
-                    className="rounded-[28px] border border-[#dce7e2] bg-white p-6 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
+                    className="rounded-[28px] border border-[#1d5a48] bg-[rgba(6,27,22,0.9)] p-6 shadow-[0_14px_36px_rgba(14,61,47,0.12)] backdrop-blur-sm"
                 >
-                    <h2 className="text-2xl font-extrabold text-[#0f4d3c]">
+                    <h2 className="text-2xl font-extrabold text-white">
                         Add Inventory Item
                     </h2>
 
@@ -218,18 +222,24 @@ function AdminInventory() {
                         />
 
                         <div>
-                            <label className="mb-2 block text-sm font-semibold text-[#0f4d3c]">
+                            <label className="mb-2 block text-sm font-semibold text-white">
                                 Status
                             </label>
                             <select
                                 name="status"
                                 value={form.status}
                                 onChange={handleChange}
-                                className="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
+                                className="w-full rounded-2xl border border-[#2a6a56] bg-[rgba(7,37,29,0.88)] px-4 py-3 text-white outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
                             >
-                                <option value="In Stock">In Stock</option>
-                                <option value="Low Stock">Low Stock</option>
-                                <option value="Out of Stock">Out of Stock</option>
+                                <option value="In Stock" className="bg-[#0b2c23] text-white">
+                                    In Stock
+                                </option>
+                                <option value="Low Stock" className="bg-[#0b2c23] text-white">
+                                    Low Stock
+                                </option>
+                                <option value="Out of Stock" className="bg-[#0b2c23] text-white">
+                                    Out of Stock
+                                </option>
                             </select>
                         </div>
 
@@ -247,14 +257,14 @@ function AdminInventory() {
                 <motion.div
                     variants={fadeUp}
                     transition={{ duration: 0.46, ease: "easeOut" }}
-                    className="rounded-[28px] border border-[#dce7e2] bg-white p-6 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
+                    className="rounded-[28px] border border-[#1d5a48] bg-[rgba(6,27,22,0.9)] p-6 shadow-[0_14px_36px_rgba(14,61,47,0.12)] backdrop-blur-sm"
                 >
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                         <div>
-                            <h2 className="text-2xl font-extrabold text-[#0f4d3c]">
+                            <h2 className="text-2xl font-extrabold text-white">
                                 Inventory Management
                             </h2>
-                            <p className="mt-1 text-sm text-gray-500">
+                            <p className="mt-1 text-sm text-white/65">
                                 Track equipment, utensils, ingredients, and supplies.
                             </p>
                         </div>
@@ -263,7 +273,7 @@ function AdminInventory() {
                             whileHover={{ y: -2, scale: 1.01 }}
                             whileTap={{ scale: 0.98 }}
                             onClick={handlePrintInventory}
-                            className="inline-flex items-center gap-2 rounded-2xl bg-[#0b4a3a] px-5 py-3 font-bold text-white transition hover:bg-[#09382d]"
+                            className="inline-flex items-center gap-2 rounded-2xl bg-[#0b8f68] px-5 py-3 font-bold text-white transition hover:bg-[#087c59]"
                         >
                             <FileSpreadsheet size={18} />
                             Generate PDF Report
@@ -271,7 +281,7 @@ function AdminInventory() {
                     </div>
 
                     {inventory.length === 0 ? (
-                        <div className="mt-6 rounded-2xl border border-dashed border-gray-200 bg-gray-50 p-8 text-center text-gray-500">
+                        <div className="mt-6 rounded-2xl border border-dashed border-[#2a6a56] bg-[rgba(255,255,255,0.03)] p-8 text-center text-white/60">
                             No inventory records yet.
                         </div>
                     ) : (
@@ -283,21 +293,21 @@ function AdminInventory() {
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 0.38, delay: index * 0.04, ease: "easeOut" }}
                                     whileHover={{ y: -3 }}
-                                    className="rounded-2xl border border-gray-200 bg-[#f8fafc] p-4 transition-shadow hover:shadow-md"
+                                    className="rounded-2xl border border-[#1d5a48] bg-[linear-gradient(135deg,rgba(8,36,29,0.96)_0%,rgba(8,46,36,0.96)_100%)] p-4 transition-shadow hover:shadow-[0_16px_36px_rgba(0,0,0,0.18)]"
                                 >
                                     <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                                         <div>
-                                            <h4 className="font-bold text-[#0f4d3c]">
+                                            <h4 className="font-bold text-white">
                                                 {item.itemName}
                                             </h4>
-                                            <p className="mt-1 text-sm text-gray-500">
+                                            <p className="mt-1 text-sm text-white/65">
                                                 {item.category} • {item.quantity} {item.unit}
                                             </p>
                                         </div>
 
-                                        <div className="flex items-center gap-3">
+                                        <div className="flex flex-wrap items-center gap-3">
                                             <span
-                                                className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${getStatusStyle(
+                                                className={`inline-flex min-w-[110px] justify-center rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-[0.08em] ${getStatusStyle(
                                                     item.status
                                                 )}`}
                                             >
@@ -332,15 +342,15 @@ function SummaryCard({ icon: Icon, title, value, delay = 0 }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.42, delay, ease: "easeOut" }}
             whileHover={{ y: -4 }}
-            className="rounded-[24px] border border-[#dce7e2] bg-white p-5 shadow-[0_14px_36px_rgba(14,61,47,0.06)] transition-shadow hover:shadow-md"
+            className="rounded-[24px] border border-[#1d5a48] bg-[rgba(6,27,22,0.9)] p-5 shadow-[0_14px_36px_rgba(14,61,47,0.12)] backdrop-blur-sm transition-shadow hover:shadow-md"
         >
             <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#edf8f3] text-[#0f4d3c]">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-200">
                     <Icon size={20} />
                 </div>
                 <div>
-                    <p className="text-sm text-gray-500">{title}</p>
-                    <h2 className="mt-2 text-3xl font-extrabold text-[#0f4d3c]">
+                    <p className="text-sm text-white/60">{title}</p>
+                    <h2 className="mt-2 text-3xl font-extrabold text-white">
                         {value}
                     </h2>
                 </div>
@@ -361,7 +371,7 @@ function Field({
 }) {
     return (
         <div>
-            <label className="mb-2 block text-sm font-semibold text-[#0f4d3c]">
+            <label className="mb-2 block text-sm font-semibold text-white">
                 {label}
             </label>
             <input
@@ -372,7 +382,7 @@ function Field({
                 onChange={onChange}
                 placeholder={placeholder}
                 required={required}
-                className="w-full rounded-2xl border border-gray-300 px-4 py-3 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
+                className="w-full rounded-2xl border border-[#2a6a56] bg-[rgba(7,37,29,0.88)] px-4 py-3 text-white placeholder:text-white/35 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
             />
         </div>
     );
