@@ -2,7 +2,7 @@ const db = require("../config/db");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
 
 const signToken = (user) => {
     return jwt.sign(
@@ -25,19 +25,18 @@ const cookieOptions = {
     path: "/",
 };
 
-function getMailTransporter() {
-    const emailUser = (process.env.EMAIL_USER || "").trim();
-    const emailPass = (process.env.EMAIL_PASS || "").trim();
+function getResendClient() {
+    const apiKey = (process.env.RESEND_API_KEY || "").trim();
+    if (!apiKey) return null;
+    return new Resend(apiKey);
+}
 
-    if (!emailUser || !emailPass) return null;
-
-    return nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-            user: emailUser,
-            pass: emailPass,
-        },
-    });
+function getEmailFrom() {
+    return (
+        process.env.RESEND_FROM_EMAIL ||
+        process.env.EMAIL_FROM ||
+        "Ebit's Catering <onboarding@resend.dev>"
+    );
 }
 
 exports.register = async (req, res) => {
@@ -374,37 +373,41 @@ exports.forgotPassword = (req, res) => {
                     }
 
                     const frontendUrl = (
-                        process.env.FRONTEND_URL || "http://localhost:5173"
+                        process.env.FRONTEND_URL ||
+                        "https://ebitscatering.vercel.app"
                     ).replace(/\/+$/, "");
 
                     const resetLink = `${frontendUrl}/reset-password?token=${rawToken}`;
 
                     try {
-                        const transporter = getMailTransporter();
+                        const resend = getResendClient();
 
-                        if (!transporter) {
+                        if (!resend) {
                             console.log("RESET LINK DEV ONLY:", resetLink);
 
                             return res.status(200).json({
                                 success: true,
                                 message:
-                                    "Reset link generated successfully. Email sending is not configured yet.",
-                                resetLink,
+                                    "Reset link generated. Email sending is not configured on the server.",
+                                resetLink:
+                                    process.env.NODE_ENV === "production"
+                                        ? undefined
+                                        : resetLink,
                             });
                         }
 
-                        await transporter.sendMail({
-                            from: `"Ebit's Catering" <${process.env.EMAIL_USER}>`,
+                        const emailResult = await resend.emails.send({
+                            from: getEmailFrom(),
                             to: email,
                             subject: "Reset Your Ebit's Catering Password",
                             html: `
-                                <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #1f2937; max-width: 620px; margin: 0 auto; padding: 24px;">
-                                    <div style="background: #0f4d3c; color: #ffffff; padding: 22px; border-radius: 18px 18px 0 0;">
-                                        <h1 style="margin: 0; font-size: 24px;">Ebit's Catering</h1>
-                                        <p style="margin: 6px 0 0; color: #d9f99d;">Password Reset Request</p>
+                                <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #1f2937; max-width: 620px; margin: 0 auto; padding: 24px; background:#f7f4ee;">
+                                    <div style="background: linear-gradient(135deg,#0f4d3c,#18a06c); color: #ffffff; padding: 24px; border-radius: 20px 20px 0 0;">
+                                        <h1 style="margin: 0; font-size: 26px;">Ebit's Catering</h1>
+                                        <p style="margin: 8px 0 0; color: #f5d56a;">Password Reset Request</p>
                                     </div>
 
-                                    <div style="border: 1px solid #e5e7eb; border-top: none; padding: 24px; border-radius: 0 0 18px 18px;">
+                                    <div style="border: 1px solid #e5e7eb; border-top: none; background:#ffffff; padding: 26px; border-radius: 0 0 20px 20px;">
                                         <h2 style="color: #0f4d3c; margin-top: 0;">Reset Your Password</h2>
 
                                         <p>Hello ${user.name || "User"},</p>
@@ -413,8 +416,8 @@ exports.forgotPassword = (req, res) => {
 
                                         <p>Click the button below to reset your password:</p>
 
-                                        <p style="margin: 28px 0;">
-                                            <a href="${resetLink}" style="background:#0f4d3c;color:#ffffff;padding:13px 22px;border-radius:12px;text-decoration:none;display:inline-block;font-weight:700;">
+                                        <p style="margin: 30px 0;">
+                                            <a href="${resetLink}" style="background:#0f4d3c;color:#ffffff;padding:14px 24px;border-radius:14px;text-decoration:none;display:inline-block;font-weight:700;">
                                                 Reset Password
                                             </a>
                                         </p>
@@ -423,7 +426,7 @@ exports.forgotPassword = (req, res) => {
 
                                         <p style="color:#4b5563;">If the button does not work, copy and paste this link into your browser:</p>
 
-                                        <p style="word-break: break-all; background:#f3f4f6; padding:12px; border-radius:10px; color:#0f4d3c;">
+                                        <p style="word-break: break-all; background:#f3f4f6; padding:13px; border-radius:12px; color:#0f4d3c;">
                                             ${resetLink}
                                         </p>
 
@@ -435,19 +438,37 @@ exports.forgotPassword = (req, res) => {
                             `,
                         });
 
+                        if (emailResult?.error) {
+                            console.error("Resend email error:", emailResult.error);
+
+                            return res.status(500).json({
+                                success: false,
+                                message:
+                                    emailResult.error.message ||
+                                    "Reset link generated, but email sending failed.",
+                                resetLink:
+                                    process.env.NODE_ENV === "production"
+                                        ? undefined
+                                        : resetLink,
+                            });
+                        }
+
                         return res.status(200).json({
                             success: true,
                             message: "Reset instructions have been sent to your email.",
                         });
                     } catch (mailErr) {
-                        console.error("Email sending exception:", mailErr);
+                        console.error("Resend sending exception:", mailErr);
 
                         return res.status(500).json({
                             success: false,
                             message:
                                 mailErr.message ||
                                 "Reset link generated, but email sending failed.",
-                            resetLink,
+                            resetLink:
+                                process.env.NODE_ENV === "production"
+                                    ? undefined
+                                    : resetLink,
                         });
                     }
                 }
