@@ -13,7 +13,6 @@ app.set("trust proxy", 1);
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 const { httpLogger } = require("./utils/logger");
 
-// ✅ FIXED CORS (clean version)
 const allowedOrigins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
@@ -24,21 +23,19 @@ app.use(
     cors({
         origin: function (origin, callback) {
             if (!origin) return callback(null, true);
+
             if (allowedOrigins.includes(origin)) {
                 return callback(null, true);
             }
+
             return callback(new Error("Not allowed by CORS"));
         },
         credentials: true,
     })
 );
 
-// ✅ FIX COOP issue
 app.use((req, res, next) => {
-    res.setHeader(
-        "Cross-Origin-Opener-Policy",
-        "same-origin-allow-popups"
-    );
+    res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
     next();
 });
 
@@ -48,7 +45,6 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(httpLogger);
 
-// ROUTES
 app.get("/", (req, res) => {
     res.status(200).json({
         success: true,
@@ -76,6 +72,7 @@ app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/bookings", require("./routes/bookingRoutes"));
 app.use("/api/payments", require("./routes/paymentRoutes"));
 app.use("/api/quotations", require("./routes/quotationRoutes"));
+app.use("/api/inquiries", require("./routes/inquiryRoutes"));
 
 app.use(notFound);
 app.use(errorHandler);
@@ -86,7 +83,6 @@ const server = app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on port ${PORT}`);
 });
 
-// ERROR HANDLERS
 process.on("unhandledRejection", (err) => {
     console.error("Unhandled Rejection:", err);
 });
