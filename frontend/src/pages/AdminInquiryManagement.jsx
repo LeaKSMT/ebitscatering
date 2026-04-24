@@ -27,7 +27,11 @@ function safeParse(key, fallback = []) {
 
 function formatDateTime(dateString) {
     if (!dateString) return "No date";
-    return new Date(dateString).toLocaleString("en-PH", {
+
+    const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) return "No date";
+
+    return date.toLocaleString("en-PH", {
         month: "short",
         day: "numeric",
         year: "numeric",
@@ -36,19 +40,37 @@ function formatDateTime(dateString) {
     });
 }
 
+function dispatchInquiryUpdate() {
+    window.dispatchEvent(new Event("inquiries-updated"));
+}
+
 function getAllInquiryThreads() {
     const threads = [];
+    const keysFromStorage = [];
 
-    for (let i = 0; i < localStorage.length; i++) {
+    for (let i = 0; i < localStorage.length; i += 1) {
         const key = localStorage.key(i);
 
-        if (!key || !key.startsWith("clientInquiries_")) continue;
+        if (key && key.startsWith("clientInquiries_")) {
+            keysFromStorage.push(key);
+        }
+    }
 
+    const keysFromIndex = safeParse("adminInquiryKeys", []);
+    const allKeys = Array.from(new Set([...keysFromStorage, ...keysFromIndex]));
+
+    allKeys.forEach((key) => {
         const messages = safeParse(key, []);
-        if (!Array.isArray(messages) || messages.length === 0) continue;
+        if (!Array.isArray(messages) || messages.length === 0) return;
 
         const clientMessages = messages.filter((msg) => msg.sender === "client");
-        const adminMessages = messages.filter((msg) => msg.sender === "admin");
+
+        const realAdminMessages = messages.filter(
+            (msg) =>
+                msg.sender === "admin" &&
+                msg.text !== DEFAULT_ACKNOWLEDGMENT &&
+                !msg.isAutoAcknowledgment
+        );
 
         const latestMessage =
             [...messages].sort(
@@ -73,11 +95,11 @@ function getAllInquiryThreads() {
             clientName,
             messages,
             clientMessageCount: clientMessages.length,
-            adminMessageCount: adminMessages.length,
+            adminMessageCount: realAdminMessages.length,
             latestMessage,
             latestAt: latestMessage?.createdAt || null,
         });
-    }
+    });
 
     return threads.sort(
         (a, b) => new Date(b.latestAt || 0) - new Date(a.latestAt || 0)
@@ -179,17 +201,20 @@ function AdminInquiryManagement() {
     useEffect(() => {
         loadThreads();
 
-        const interval = setInterval(() => {
-            loadThreads();
-        }, 1000);
+        const interval = setInterval(loadThreads, 1000);
 
-        return () => clearInterval(interval);
+        window.addEventListener("storage", loadThreads);
+        window.addEventListener("inquiries-updated", loadThreads);
+
+        return () => {
+            clearInterval(interval);
+            window.removeEventListener("storage", loadThreads);
+            window.removeEventListener("inquiries-updated", loadThreads);
+        };
     }, [selectedThreadKey]);
 
     const selectedThread = useMemo(() => {
-        return (
-            threads.find((thread) => thread.storageKey === selectedThreadKey) || null
-        );
+        return threads.find((thread) => thread.storageKey === selectedThreadKey) || null;
     }, [threads, selectedThreadKey]);
 
     const pendingThreadCount = useMemo(() => {
@@ -208,7 +233,8 @@ function AdminInquiryManagement() {
             (message) =>
                 !(
                     message.sender === "admin" &&
-                    message.text === DEFAULT_ACKNOWLEDGMENT
+                    (message.text === DEFAULT_ACKNOWLEDGMENT ||
+                        message.isAutoAcknowledgment)
                 )
         );
 
@@ -225,12 +251,10 @@ function AdminInquiryManagement() {
             },
         ];
 
-        localStorage.setItem(
-            selectedThread.storageKey,
-            JSON.stringify(updatedMessages)
-        );
+        localStorage.setItem(selectedThread.storageKey, JSON.stringify(updatedMessages));
 
         setReplyText("");
+        dispatchInquiryUpdate();
         loadThreads();
     };
 
@@ -239,9 +263,14 @@ function AdminInquiryManagement() {
 
         localStorage.removeItem(selectedThread.storageKey);
 
+        const keys = safeParse("adminInquiryKeys", []);
+        const nextKeys = keys.filter((key) => key !== selectedThread.storageKey);
+        localStorage.setItem("adminInquiryKeys", JSON.stringify(nextKeys));
+
         setShowDeleteModal(false);
         setReplyText("");
         setSelectedThreadKey("");
+        dispatchInquiryUpdate();
         loadThreads();
     };
 
@@ -385,7 +414,9 @@ function AdminInquiryManagement() {
                                                     <div className="min-w-0">
                                                         <div className="flex items-center gap-2">
                                                             <p
-                                                                className={`truncate text-base font-bold ${isDark ? "text-white" : "text-[#0f4d3c]"
+                                                                className={`truncate text-base font-bold ${isDark
+                                                                        ? "text-white"
+                                                                        : "text-[#0f4d3c]"
                                                                     }`}
                                                             >
                                                                 {thread.clientName}
@@ -404,7 +435,9 @@ function AdminInquiryManagement() {
                                                         </div>
 
                                                         <p
-                                                            className={`mt-1 flex items-center gap-2 truncate text-xs ${isDark ? "text-[#a8beb5]" : "text-slate-500"
+                                                            className={`mt-1 flex items-center gap-2 truncate text-xs ${isDark
+                                                                    ? "text-[#a8beb5]"
+                                                                    : "text-slate-500"
                                                                 }`}
                                                         >
                                                             <Mail size={12} />
@@ -417,9 +450,7 @@ function AdminInquiryManagement() {
                                                             {thread.clientMessageCount}
                                                         </span>
                                                         <motion.div
-                                                            animate={{
-                                                                x: isActive ? 4 : 0,
-                                                            }}
+                                                            animate={{ x: isActive ? 4 : 0 }}
                                                             transition={{ duration: 0.22 }}
                                                         >
                                                             <ChevronRight
@@ -438,14 +469,18 @@ function AdminInquiryManagement() {
                                                 </div>
 
                                                 <p
-                                                    className={`mt-3 line-clamp-2 text-sm leading-6 ${isDark ? "text-[#d4e2dd]" : "text-slate-600"
+                                                    className={`mt-3 line-clamp-2 text-sm leading-6 ${isDark
+                                                            ? "text-[#d4e2dd]"
+                                                            : "text-slate-600"
                                                         }`}
                                                 >
                                                     {thread.latestMessage?.text || "No message"}
                                                 </p>
 
                                                 <p
-                                                    className={`mt-3 text-xs ${isDark ? "text-white/35" : "text-slate-400"
+                                                    className={`mt-3 text-xs ${isDark
+                                                            ? "text-white/35"
+                                                            : "text-slate-400"
                                                         }`}
                                                 >
                                                     {formatDateTime(thread.latestAt)}

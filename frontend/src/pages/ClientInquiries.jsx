@@ -101,6 +101,16 @@ function buildAutoReply(messageText) {
     return DEFAULT_ACKNOWLEDGMENT;
 }
 
+function registerInquiryKey(storageKey) {
+    const allKeys = safeParse("adminInquiryKeys", []);
+    const nextKeys = Array.from(new Set([...allKeys, storageKey]));
+    localStorage.setItem("adminInquiryKeys", JSON.stringify(nextKeys));
+}
+
+function dispatchInquiryUpdate() {
+    window.dispatchEvent(new Event("inquiries-updated"));
+}
+
 const fadeUp = {
     hidden: { opacity: 0, y: 18 },
     show: {
@@ -134,6 +144,11 @@ function ClientInquiries() {
 
     const messagesEndRef = useRef(null);
     const typingTimeoutRef = useRef(null);
+
+    useEffect(() => {
+        registerInquiryKey(storageKey);
+        dispatchInquiryUpdate();
+    }, [storageKey]);
 
     useEffect(() => {
         const syncTheme = () => {
@@ -170,6 +185,8 @@ function ClientInquiries() {
     const saveMessages = (updated) => {
         setMessages(updated);
         localStorage.setItem(storageKey, JSON.stringify(updated));
+        registerInquiryKey(storageKey);
+        dispatchInquiryUpdate();
     };
 
     const scrollToBottom = () => {
@@ -197,7 +214,8 @@ function ClientInquiries() {
                 (msg) =>
                     msg.sender === "admin" &&
                     msg.text &&
-                    msg.text !== DEFAULT_ACKNOWLEDGMENT
+                    msg.text !== DEFAULT_ACKNOWLEDGMENT &&
+                    !msg.isAutoAcknowledgment
             );
 
             if (hasRealAdminReply) {
@@ -207,10 +225,13 @@ function ClientInquiries() {
         };
 
         window.addEventListener("storage", syncMessages);
+        window.addEventListener("inquiries-updated", syncMessages);
+
         const interval = setInterval(syncMessages, 1000);
 
         return () => {
             window.removeEventListener("storage", syncMessages);
+            window.removeEventListener("inquiries-updated", syncMessages);
             clearInterval(interval);
         };
     }, [storageKey]);
@@ -218,6 +239,8 @@ function ClientInquiries() {
     const handleSendMessage = () => {
         const trimmed = input.trim();
         if (!trimmed) return;
+
+        const latestMessages = safeParse(storageKey, messages);
 
         const clientMessage = {
             id: `INQ-${Date.now()}`,
@@ -229,7 +252,7 @@ function ClientInquiries() {
             status: "sent",
         };
 
-        const updatedMessages = [...messages, clientMessage];
+        const updatedMessages = [...latestMessages, clientMessage];
         saveMessages(updatedMessages);
         setInput("");
 
@@ -244,7 +267,8 @@ function ClientInquiries() {
                 msg.sender === "admin" &&
                 msg.text &&
                 msg.text !== DEFAULT_ACKNOWLEDGMENT &&
-                msg.text !== acknowledgmentText
+                msg.text !== acknowledgmentText &&
+                !msg.isAutoAcknowledgment
         );
 
         const hasDefaultAcknowledgmentAlready = updatedMessages.some(
@@ -266,16 +290,17 @@ function ClientInquiries() {
         clearTimeout(typingTimeoutRef.current);
 
         typingTimeoutRef.current = setTimeout(() => {
-            const latestMessages = safeParse(storageKey, []);
+            const latest = safeParse(storageKey, []);
 
-            const latestHasRealAdminReply = latestMessages.some(
+            const latestHasRealAdminReply = latest.some(
                 (msg) =>
                     msg.sender === "admin" &&
                     msg.text &&
-                    msg.text !== DEFAULT_ACKNOWLEDGMENT
+                    msg.text !== DEFAULT_ACKNOWLEDGMENT &&
+                    !msg.isAutoAcknowledgment
             );
 
-            const latestHasAcknowledgment = latestMessages.some(
+            const latestHasAcknowledgment = latest.some(
                 (msg) =>
                     msg.sender === "admin" &&
                     msg.text === acknowledgmentText
@@ -297,9 +322,8 @@ function ClientInquiries() {
                 isAutoAcknowledgment: true,
             };
 
-            const finalMessages = [...latestMessages, autoReply];
-            localStorage.setItem(storageKey, JSON.stringify(finalMessages));
-            setMessages(finalMessages);
+            const finalMessages = [...latest, autoReply];
+            saveMessages(finalMessages);
             setIsAdminTyping(false);
         }, 1600);
     };
@@ -330,7 +354,6 @@ function ClientInquiries() {
 
     const titleColor = isDark ? "text-white" : "text-[#0d5c46]";
     const subtitleColor = isDark ? "text-white/72" : "text-slate-500";
-    const bodyColor = isDark ? "text-white/82" : "text-slate-500";
 
     return (
         <motion.div
@@ -341,7 +364,7 @@ function ClientInquiries() {
         >
             <motion.section
                 variants={fadeUp}
-                className="relative overflow-hidden rounded-[34px] border border-[#dbe6e1] bg-white shadow-[0_18px_50px_rgba(14,61,47,0.08)]"
+                className={`relative overflow-hidden rounded-[34px] ${shellCard}`}
             >
                 <div className="pointer-events-none absolute inset-0">
                     <div className="absolute -top-10 right-[-20px] h-44 w-44 rounded-full bg-[#d4af37]/15 blur-3xl" />
