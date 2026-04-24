@@ -46,7 +46,6 @@ function buildHeaders(extra = {}) {
 
 function formatDateTime(dateString) {
     if (!dateString) return "No date";
-
     const date = new Date(dateString);
     if (Number.isNaN(date.getTime())) return "No date";
 
@@ -94,10 +93,7 @@ function groupInquiries(rows = []) {
 
         grouped[email].messages.push(message);
 
-        if (row.sender === "client") {
-            grouped[email].clientMessageCount += 1;
-        }
-
+        if (row.sender === "client") grouped[email].clientMessageCount += 1;
         if (row.sender === "admin" && !row.is_auto_acknowledgment) {
             grouped[email].adminMessageCount += 1;
         }
@@ -108,7 +104,6 @@ function groupInquiries(rows = []) {
             const sortedMessages = [...thread.messages].sort(
                 (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
             );
-
             const latestMessage = sortedMessages[sortedMessages.length - 1] || null;
 
             return {
@@ -221,9 +216,7 @@ function AdminInquiryManagement() {
 
             if (
                 selectedThreadKey &&
-                !groupedThreads.some(
-                    (thread) => thread.storageKey === selectedThreadKey
-                )
+                !groupedThreads.some((thread) => thread.storageKey === selectedThreadKey)
             ) {
                 setSelectedThreadKey(groupedThreads[0]?.storageKey || "");
             }
@@ -234,9 +227,7 @@ function AdminInquiryManagement() {
 
     useEffect(() => {
         loadThreads();
-
         const interval = setInterval(loadThreads, 2000);
-
         return () => clearInterval(interval);
     }, [selectedThreadKey]);
 
@@ -334,24 +325,6 @@ function AdminInquiryManagement() {
                 variants={fadeUp}
                 className={`relative overflow-hidden rounded-[30px] border ${shellCardClass}`}
             >
-                <div className="pointer-events-none absolute inset-0">
-                    <motion.div
-                        animate={{ scale: [1, 1.08, 1], opacity: [0.15, 0.22, 0.15] }}
-                        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-                        className="absolute -top-12 right-[-50px] h-44 w-44 rounded-full bg-[#d4af37]/15 blur-3xl"
-                    />
-                    <motion.div
-                        animate={{ scale: [1, 1.1, 1], opacity: [0.08, 0.16, 0.08] }}
-                        transition={{
-                            duration: 8,
-                            repeat: Infinity,
-                            ease: "easeInOut",
-                            delay: 0.4,
-                        }}
-                        className="absolute bottom-[-30px] left-[-20px] h-32 w-32 rounded-full bg-[#22b67f]/10 blur-3xl"
-                    />
-                </div>
-
                 <div className="relative bg-[linear-gradient(135deg,#0b5a43_0%,#0f6d51_55%,#138062_100%)] px-6 py-8 text-white md:px-8 md:py-9">
                     <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
                         <div>
@@ -372,21 +345,9 @@ function AdminInquiryManagement() {
                         </div>
 
                         <div className="grid gap-3 sm:grid-cols-3">
-                            <TopStatCard
-                                icon={<MessageSquareText size={18} />}
-                                label="Total Threads"
-                                value={threads.length}
-                            />
-                            <TopStatCard
-                                icon={<Clock3 size={18} />}
-                                label="Waiting Reply"
-                                value={pendingThreadCount}
-                            />
-                            <TopStatCard
-                                icon={<ShieldCheck size={18} />}
-                                label="Replied"
-                                value={repliedThreadCount}
-                            />
+                            <TopStatCard icon={<MessageSquareText size={18} />} label="Total Threads" value={threads.length} />
+                            <TopStatCard icon={<Clock3 size={18} />} label="Waiting Reply" value={pendingThreadCount} />
+                            <TopStatCard icon={<ShieldCheck size={18} />} label="Replied" value={repliedThreadCount} />
                         </div>
                     </div>
                 </div>
@@ -406,9 +367,7 @@ function AdminInquiryManagement() {
                             No inquiries yet
                         </h2>
 
-                        <p
-                            className={`mx-auto mt-3 max-w-2xl text-sm leading-7 md:text-base ${mutedTextClass}`}
-                        >
+                        <p className={`mx-auto mt-3 max-w-2xl text-sm leading-7 md:text-base ${mutedTextClass}`}>
                             Client messages will appear here once they send an inquiry.
                             This page will help you monitor, review, and respond to each
                             conversation professionally.
@@ -432,8 +391,7 @@ function AdminInquiryManagement() {
                             <div className="space-y-3">
                                 <AnimatePresence mode="popLayout">
                                     {threads.map((thread, index) => {
-                                        const isActive =
-                                            selectedThreadKey === thread.storageKey;
+                                        const isActive = selectedThreadKey === thread.storageKey;
                                         const waitingReply = thread.adminMessageCount === 0;
 
                                         return (
@@ -446,49 +404,35 @@ function AdminInquiryManagement() {
                                                 exit={{ opacity: 0, y: 10 }}
                                                 transition={{ delay: index * 0.02 }}
                                                 type="button"
-                                                onClick={() =>
-                                                    setSelectedThreadKey(thread.storageKey)
-                                                }
+                                                onClick={() => setSelectedThreadKey(thread.storageKey)}
                                                 whileHover={{ y: -3, scale: 1.01 }}
                                                 className={`w-full rounded-[24px] border px-4 py-4 text-left transition ${isActive
-                                                        ? isDark
-                                                            ? "border-[#d4af37]/60 bg-[linear-gradient(135deg,rgba(87,66,20,0.26)_0%,rgba(20,48,38,0.9)_100%)] shadow-sm"
-                                                            : "border-[#d4af37] bg-[linear-gradient(135deg,#fff8e6_0%,#fffdf6_100%)] shadow-sm"
-                                                        : isDark
-                                                            ? "border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.02)_0%,rgba(255,255,255,0.015)_100%)] hover:border-[#22b67f]/35 hover:bg-[rgba(255,255,255,0.04)]"
-                                                            : "border-[#e6eeea] bg-white hover:border-[#cfe0d8] hover:bg-[#fbfdfc]"
+                                                    ? isDark
+                                                        ? "border-[#d4af37]/60 bg-[linear-gradient(135deg,rgba(87,66,20,0.26)_0%,rgba(20,48,38,0.9)_100%)] shadow-sm"
+                                                        : "border-[#d4af37] bg-[linear-gradient(135deg,#fff8e6_0%,#fffdf6_100%)] shadow-sm"
+                                                    : isDark
+                                                        ? "border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.02)_0%,rgba(255,255,255,0.015)_100%)] hover:border-[#22b67f]/35 hover:bg-[rgba(255,255,255,0.04)]"
+                                                        : "border-[#e6eeea] bg-white hover:border-[#cfe0d8] hover:bg-[#fbfdfc]"
                                                     }`}
                                             >
                                                 <div className="flex items-start justify-between gap-3">
                                                     <div className="min-w-0">
                                                         <div className="flex items-center gap-2">
-                                                            <p
-                                                                className={`truncate text-base font-bold ${isDark
-                                                                        ? "text-white"
-                                                                        : "text-[#0f4d3c]"
-                                                                    }`}
-                                                            >
+                                                            <p className={`truncate text-base font-bold ${isDark ? "text-white" : "text-[#0f4d3c]"}`}>
                                                                 {thread.clientName}
                                                             </p>
 
                                                             {waitingReply && (
-                                                                <span
-                                                                    className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${isDark
-                                                                            ? "bg-amber-400/15 text-[#f5cf67] border border-[#d4af37]/20"
-                                                                            : "bg-amber-100 text-amber-700"
-                                                                        }`}
-                                                                >
+                                                                <span className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${isDark
+                                                                    ? "bg-amber-400/15 text-[#f5cf67] border border-[#d4af37]/20"
+                                                                    : "bg-amber-100 text-amber-700"
+                                                                    }`}>
                                                                     New
                                                                 </span>
                                                             )}
                                                         </div>
 
-                                                        <p
-                                                            className={`mt-1 flex items-center gap-2 truncate text-xs ${isDark
-                                                                    ? "text-[#a8beb5]"
-                                                                    : "text-slate-500"
-                                                                }`}
-                                                        >
+                                                        <p className={`mt-1 flex items-center gap-2 truncate text-xs ${isDark ? "text-[#a8beb5]" : "text-slate-500"}`}>
                                                             <Mail size={12} />
                                                             {thread.email}
                                                         </p>
@@ -498,40 +442,18 @@ function AdminInquiryManagement() {
                                                         <span className="inline-flex min-w-[34px] items-center justify-center rounded-full bg-[#0f4d3c] px-2.5 py-1 text-xs font-semibold text-white">
                                                             {thread.clientMessageCount}
                                                         </span>
-                                                        <motion.div
-                                                            animate={{ x: isActive ? 4 : 0 }}
-                                                            transition={{ duration: 0.22 }}
-                                                        >
-                                                            <ChevronRight
-                                                                size={16}
-                                                                className={`transition ${isActive
-                                                                        ? isDark
-                                                                            ? "text-[#f5cf67]"
-                                                                            : "text-[#0f4d3c]"
-                                                                        : isDark
-                                                                            ? "text-white/35"
-                                                                            : "text-slate-400"
-                                                                    }`}
-                                                            />
-                                                        </motion.div>
+                                                        <ChevronRight
+                                                            size={16}
+                                                            className={isActive ? "text-[#f5cf67]" : isDark ? "text-white/35" : "text-slate-400"}
+                                                        />
                                                     </div>
                                                 </div>
 
-                                                <p
-                                                    className={`mt-3 line-clamp-2 text-sm leading-6 ${isDark
-                                                            ? "text-[#d4e2dd]"
-                                                            : "text-slate-600"
-                                                        }`}
-                                                >
+                                                <p className={`mt-3 line-clamp-2 text-sm leading-6 ${isDark ? "text-[#d4e2dd]" : "text-slate-600"}`}>
                                                     {thread.latestMessage?.text || "No message"}
                                                 </p>
 
-                                                <p
-                                                    className={`mt-3 text-xs ${isDark
-                                                            ? "text-white/35"
-                                                            : "text-slate-400"
-                                                        }`}
-                                                >
+                                                <p className={`mt-3 text-xs ${isDark ? "text-white/35" : "text-slate-400"}`}>
                                                     {formatDateTime(thread.latestAt)}
                                                 </p>
                                             </motion.button>
@@ -547,10 +469,7 @@ function AdminInquiryManagement() {
                         className={`overflow-hidden rounded-[30px] border ${shellCardClass}`}
                     >
                         {!selectedThread ? (
-                            <div
-                                className={`px-6 py-16 text-center ${isDark ? "text-[#b7cbc3]" : "text-slate-500"
-                                    }`}
-                            >
+                            <div className={`px-6 py-16 text-center ${isDark ? "text-[#b7cbc3]" : "text-slate-500"}`}>
                                 Select a conversation to view messages.
                             </div>
                         ) : (
@@ -573,9 +492,7 @@ function AdminInquiryManagement() {
                                             <div className="rounded-[20px] border border-white/10 bg-white/10 px-4 py-3 text-sm backdrop-blur-md">
                                                 {selectedThread.clientMessageCount} client message(s) •{" "}
                                                 {selectedThread.adminMessageCount} admin repl
-                                                {selectedThread.adminMessageCount === 1
-                                                    ? "y"
-                                                    : "ies"}
+                                                {selectedThread.adminMessageCount === 1 ? "y" : "ies"}
                                             </div>
 
                                             <motion.button
@@ -591,9 +508,7 @@ function AdminInquiryManagement() {
                                     </div>
                                 </div>
 
-                                <div
-                                    className={`min-h-[520px] max-h-[520px] space-y-4 overflow-y-auto p-5 md:p-6 ${panelBgClass}`}
-                                >
+                                <div className={`min-h-[520px] max-h-[520px] space-y-4 overflow-y-auto p-5 md:p-6 ${panelBgClass}`}>
                                     <AnimatePresence mode="popLayout">
                                         {selectedThread.messages.map((message) => {
                                             const isAdmin = message.sender === "admin";
@@ -605,37 +520,27 @@ function AdminInquiryManagement() {
                                                     initial={{ opacity: 0, y: 18, scale: 0.98 }}
                                                     animate={{ opacity: 1, y: 0, scale: 1 }}
                                                     exit={{ opacity: 0, y: 10, scale: 0.98 }}
-                                                    transition={{
-                                                        duration: 0.34,
-                                                        ease: [0.22, 1, 0.36, 1],
-                                                    }}
-                                                    className={`flex ${isAdmin ? "justify-end" : "justify-start"
-                                                        }`}
+                                                    transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
+                                                    className={`flex ${isAdmin ? "justify-end" : "justify-start"}`}
                                                 >
                                                     <div
                                                         className={`max-w-[88%] rounded-[24px] px-4 py-4 shadow-sm md:max-w-[72%] ${isAdmin
-                                                                ? isDark
-                                                                    ? "border border-[#d4af37]/25 bg-[linear-gradient(135deg,rgba(93,71,21,0.36)_0%,rgba(128,96,26,0.24)_100%)] text-[#f7f0d0]"
-                                                                    : "border border-[#e7d18c] bg-[linear-gradient(135deg,#fff4ca_0%,#f6dfa0_100%)] text-[#0f4d3c]"
-                                                                : isDark
-                                                                    ? "border border-white/10 bg-[linear-gradient(180deg,rgba(13,31,25,0.98)_0%,rgba(17,39,31,0.98)_100%)] text-[#eef7f3]"
-                                                                    : "border border-[#e6ece9] bg-white text-slate-700"
+                                                            ? isDark
+                                                                ? "border border-[#d4af37]/25 bg-[linear-gradient(135deg,rgba(93,71,21,0.36)_0%,rgba(128,96,26,0.24)_100%)] text-[#f7f0d0]"
+                                                                : "border border-[#e7d18c] bg-[linear-gradient(135deg,#fff4ca_0%,#f6dfa0_100%)] text-[#0f4d3c]"
+                                                            : isDark
+                                                                ? "border border-white/10 bg-[linear-gradient(180deg,rgba(13,31,25,0.98)_0%,rgba(17,39,31,0.98)_100%)] text-[#eef7f3]"
+                                                                : "border border-[#e6ece9] bg-white text-slate-700"
                                                             }`}
                                                     >
                                                         <div className="mb-2 flex items-center gap-2">
-                                                            <div
-                                                                className={`flex h-8 w-8 items-center justify-center rounded-full ${isAdmin
-                                                                        ? "bg-[#0f4d3c] text-white"
-                                                                        : isDark
-                                                                            ? "bg-white/10 text-[#98efcc]"
-                                                                            : "bg-[#eef5f1] text-[#0f4d3c]"
-                                                                    }`}
-                                                            >
-                                                                {isAdmin ? (
-                                                                    <ShieldCheck size={15} />
-                                                                ) : (
-                                                                    <UserRound size={15} />
-                                                                )}
+                                                            <div className={`flex h-8 w-8 items-center justify-center rounded-full ${isAdmin
+                                                                ? "bg-[#0f4d3c] text-white"
+                                                                : isDark
+                                                                    ? "bg-white/10 text-[#98efcc]"
+                                                                    : "bg-[#eef5f1] text-[#0f4d3c]"
+                                                                }`}>
+                                                                {isAdmin ? <ShieldCheck size={15} /> : <UserRound size={15} />}
                                                             </div>
 
                                                             <p className="text-xs font-bold uppercase tracking-[0.15em] opacity-80">
@@ -659,12 +564,7 @@ function AdminInquiryManagement() {
                                     </AnimatePresence>
                                 </div>
 
-                                <div
-                                    className={`border-t p-5 md:p-6 ${isDark
-                                            ? "border-white/10 bg-[rgba(255,255,255,0.015)]"
-                                            : "border-[#edf2ef] bg-white"
-                                        }`}
-                                >
+                                <div className={`border-t p-5 md:p-6 ${isDark ? "border-white/10 bg-[rgba(255,255,255,0.015)]" : "border-[#edf2ef] bg-white"}`}>
                                     <div className="flex flex-col gap-3 md:flex-row">
                                         <div className="relative flex-1">
                                             <input
@@ -672,17 +572,14 @@ function AdminInquiryManagement() {
                                                 value={replyText}
                                                 onChange={(e) => setReplyText(e.target.value)}
                                                 onKeyDown={(e) => {
-                                                    if (e.key === "Enter") {
-                                                        handleSendReply();
-                                                    }
+                                                    if (e.key === "Enter") handleSendReply();
                                                 }}
                                                 placeholder="Type your reply here..."
                                                 className={`w-full rounded-[22px] border px-4 py-3.5 pr-12 outline-none transition ${inputClass}`}
                                             />
                                             <Send
                                                 size={17}
-                                                className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 ${isDark ? "text-white/35" : "text-slate-400"
-                                                    }`}
+                                                className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 ${isDark ? "text-white/35" : "text-slate-400"}`}
                                             />
                                         </div>
 
@@ -698,10 +595,7 @@ function AdminInquiryManagement() {
                                         </motion.button>
                                     </div>
 
-                                    <p
-                                        className={`mt-3 text-xs ${isDark ? "text-white/35" : "text-slate-400"
-                                            }`}
-                                    >
+                                    <p className={`mt-3 text-xs ${isDark ? "text-white/35" : "text-slate-400"}`}>
                                         Replies sent here will also appear in the client inquiry
                                         page through the online database.
                                     </p>
@@ -726,8 +620,8 @@ function AdminInquiryManagement() {
                             exit={{ opacity: 0, y: 18, scale: 0.96 }}
                             transition={{ type: "spring", stiffness: 260, damping: 22 }}
                             className={`w-full max-w-md overflow-hidden rounded-[30px] border shadow-[0_30px_70px_rgba(0,0,0,0.28)] ${isDark
-                                    ? "border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.99)_0%,rgba(13,40,32,0.99)_100%)]"
-                                    : "border-white/10 bg-white"
+                                ? "border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.99)_0%,rgba(13,40,32,0.99)_100%)]"
+                                : "border-white/10 bg-white"
                                 }`}
                         >
                             <div className="bg-[linear-gradient(135deg,#dc2626_0%,#ef4444_100%)] px-6 py-5 text-white">
@@ -747,16 +641,10 @@ function AdminInquiryManagement() {
                             </div>
 
                             <div className="p-6">
-                                <p
-                                    className={`leading-7 ${isDark ? "text-[#dce9e4]" : "text-slate-600"
-                                        }`}
-                                >
+                                <p className={`leading-7 ${isDark ? "text-[#dce9e4]" : "text-slate-600"}`}>
                                     Are you sure you want to permanently remove the
                                     conversation of{" "}
-                                    <span
-                                        className={`font-semibold ${isDark ? "text-white" : "text-[#0f4d3c]"
-                                            }`}
-                                    >
+                                    <span className={`font-semibold ${isDark ? "text-white" : "text-[#0f4d3c]"}`}>
                                         {selectedThread.clientName}
                                     </span>
                                     ? This action cannot be undone.
@@ -768,8 +656,8 @@ function AdminInquiryManagement() {
                                         type="button"
                                         onClick={() => setShowDeleteModal(false)}
                                         className={`rounded-xl border px-5 py-2.5 font-semibold transition ${isDark
-                                                ? "border-white/10 text-[#dce9e4] hover:bg-white/5"
-                                                : "border-gray-200 text-slate-600 hover:bg-gray-50"
+                                            ? "border-white/10 text-[#dce9e4] hover:bg-white/5"
+                                            : "border-gray-200 text-slate-600 hover:bg-gray-50"
                                             }`}
                                     >
                                         Cancel

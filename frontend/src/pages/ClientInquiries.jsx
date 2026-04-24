@@ -305,15 +305,11 @@ function ClientInquiries() {
             const acknowledgmentText = buildAutoReply(trimmed);
 
             const hasAdminReply = messages.some(
-                (msg) =>
-                    msg.sender === "admin" &&
-                    !msg.isAutoAcknowledgment
+                (msg) => msg.sender === "admin" && !msg.isAutoAcknowledgment
             );
 
             const hasSameAcknowledgment = messages.some(
-                (msg) =>
-                    msg.sender === "admin" &&
-                    msg.text === acknowledgmentText
+                (msg) => msg.sender === "admin" && msg.text === acknowledgmentText
             );
 
             if (hasAdminReply || hasSameAcknowledgment) {
@@ -416,8 +412,8 @@ function ClientInquiries() {
                                 <div className="mt-2 flex items-center gap-2">
                                     <div
                                         className={`h-2.5 w-2.5 rounded-full ${isAdminTyping
-                                                ? "bg-[#f5c94a] shadow-[0_0_14px_rgba(245,201,74,0.8)]"
-                                                : "bg-[#5df1a6] shadow-[0_0_14px_rgba(93,241,166,0.75)]"
+                                            ? "bg-[#f5c94a] shadow-[0_0_14px_rgba(245,201,74,0.8)]"
+                                            : "bg-[#5df1a6] shadow-[0_0_14px_rgba(93,241,166,0.75)]"
                                             }`}
                                     />
                                     <p className="text-lg font-bold text-white">
@@ -501,8 +497,8 @@ function ClientInquiries() {
             >
                 <div
                     className={`px-6 py-5 ${isDark
-                            ? "border-b border-white/10 bg-[linear-gradient(90deg,rgba(13,38,31,0.98)_0%,rgba(23,58,45,0.96)_100%)]"
-                            : "border-b border-[#edf2ef] bg-[linear-gradient(90deg,#f3fbf8_0%,#fff8ea_100%)]"
+                        ? "border-b border-white/10 bg-[linear-gradient(90deg,rgba(13,38,31,0.98)_0%,rgba(23,58,45,0.96)_100%)]"
+                        : "border-b border-[#edf2ef] bg-[linear-gradient(90deg,#f3fbf8_0%,#fff8ea_100%)]"
                         }`}
                 >
                     <div className="flex flex-wrap items-center justify-between gap-4">
@@ -517,8 +513,8 @@ function ClientInquiries() {
 
                         <div
                             className={`rounded-2xl px-4 py-2 text-sm font-semibold shadow-sm ${isDark
-                                    ? "border border-[rgba(97,76,24,0.34)] bg-[rgba(97,76,24,0.28)] text-[#f5cf67]"
-                                    : "border border-[#f1d98a] bg-[#fff8e6] text-[#b99117]"
+                                ? "border border-[rgba(97,76,24,0.34)] bg-[rgba(97,76,24,0.28)] text-[#f5cf67]"
+                                : "border border-[#f1d98a] bg-[#fff8e6] text-[#b99117]"
                                 }`}
                         >
                             {isAdminTyping
@@ -575,17 +571,17 @@ function ClientInquiries() {
                                         >
                                             <div
                                                 className={`max-w-[90%] md:max-w-[72%] rounded-[28px] px-4 py-4 shadow-sm md:px-5 ${isClient
-                                                        ? "border border-[#e8c95e] bg-[linear-gradient(135deg,#d4af37_0%,#f0cb58_100%)] text-[#0f4d3c] shadow-[0_14px_28px_rgba(212,175,55,0.2)]"
-                                                        : incomingBubble
+                                                    ? "border border-[#e8c95e] bg-[linear-gradient(135deg,#d4af37_0%,#f0cb58_100%)] text-[#0f4d3c] shadow-[0_14px_28px_rgba(212,175,55,0.2)]"
+                                                    : incomingBubble
                                                     }`}
                                             >
                                                 <div className="mb-3 flex items-center gap-2">
                                                     <div
                                                         className={`flex h-8 w-8 items-center justify-center rounded-xl ${isClient
-                                                                ? "bg-white/30"
-                                                                : isDark
-                                                                    ? "bg-[linear-gradient(135deg,rgba(21,64,50,0.95)_0%,rgba(24,77,60,0.95)_100%)] text-[#98efcc]"
-                                                                    : "bg-[#edf8f3] text-[#0d5c46]"
+                                                            ? "bg-white/30"
+                                                            : isDark
+                                                                ? "bg-[linear-gradient(135deg,rgba(21,64,50,0.95)_0%,rgba(24,77,60,0.95)_100%)] text-[#98efcc]"
+                                                                : "bg-[#edf8f3] text-[#0d5c46]"
                                                             }`}
                                                     >
                                                         {isClient ? (
@@ -664,8 +660,8 @@ function ClientInquiries() {
                             }}
                             placeholder="Type your message here..."
                             className={`flex-1 rounded-[22px] px-4 py-3.5 text-sm outline-none transition ${isDark
-                                    ? "border border-white/10 bg-[rgba(12,38,30,0.96)] text-white placeholder:text-white/35 focus:border-[#d4af37] focus:ring-4 focus:ring-[rgba(212,175,55,0.18)]"
-                                    : "border border-[#d7e1dc] bg-white focus:border-[#d4af37] focus:ring-4 focus:ring-[#f6e8b9]"
+                                ? "border border-white/10 bg-[rgba(12,38,30,0.96)] text-white placeholder:text-white/35 focus:border-[#d4af37] focus:ring-4 focus:ring-[rgba(212,175,55,0.18)]"
+                                : "border border-[#d7e1dc] bg-white focus:border-[#d4af37] focus:ring-4 focus:ring-[#f6e8b9]"
                                 }`}
                         />
 
