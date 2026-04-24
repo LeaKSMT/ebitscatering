@@ -2,7 +2,7 @@ const db = require("../config/db");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-const { Resend } = require("resend");
+const nodemailer = require("nodemailer");
 
 const signToken = (user) => {
     return jwt.sign(
@@ -25,9 +25,19 @@ const cookieOptions = {
     path: "/",
 };
 
-function getResendClient() {
-    const apiKey = (process.env.RESEND_API_KEY || "").trim();
-    return apiKey ? new Resend(apiKey) : null;
+function getMailTransporter() {
+    const emailUser = (process.env.EMAIL_USER || "").trim();
+    const emailPass = (process.env.EMAIL_PASS || "").trim();
+
+    if (!emailUser || !emailPass) return null;
+
+    return nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+            user: emailUser,
+            pass: emailPass,
+        },
+    });
 }
 
 exports.register = async (req, res) => {
@@ -366,12 +376,13 @@ exports.forgotPassword = (req, res) => {
                     const frontendUrl = (
                         process.env.FRONTEND_URL || "http://localhost:5173"
                     ).replace(/\/+$/, "");
+
                     const resetLink = `${frontendUrl}/reset-password?token=${rawToken}`;
 
                     try {
-                        const resendClient = getResendClient();
+                        const transporter = getMailTransporter();
 
-                        if (!resendClient) {
+                        if (!transporter) {
                             console.log("RESET LINK DEV ONLY:", resetLink);
 
                             return res.status(200).json({
@@ -382,47 +393,54 @@ exports.forgotPassword = (req, res) => {
                             });
                         }
 
-                        const emailResponse = await resendClient.emails.send({
-                            from: "Ebit's Catering <onboarding@resend.dev>",
-                            to: user.email,
+                        await transporter.sendMail({
+                            from: `"Ebit's Catering" <${process.env.EMAIL_USER}>`,
+                            to: email,
                             subject: "Reset Your Ebit's Catering Password",
                             html: `
-                                <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #1f2937;">
-                                    <h2 style="color: #0f4d3c;">Password Reset Request</h2>
-                                    <p>Hello ${user.name || "User"},</p>
-                                    <p>We received a request to reset your password.</p>
-                                    <p>Click the button below to reset your password:</p>
-                                    <p style="margin: 24px 0;">
-                                        <a href="${resetLink}" style="background:#0f4d3c;color:#ffffff;padding:12px 20px;border-radius:10px;text-decoration:none;display:inline-block;">
-                                            Reset Password
-                                        </a>
-                                    </p>
-                                    <p>This link will expire in 15 minutes.</p>
-                                    <p>If you did not request this, you can safely ignore this email.</p>
+                                <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #1f2937; max-width: 620px; margin: 0 auto; padding: 24px;">
+                                    <div style="background: #0f4d3c; color: #ffffff; padding: 22px; border-radius: 18px 18px 0 0;">
+                                        <h1 style="margin: 0; font-size: 24px;">Ebit's Catering</h1>
+                                        <p style="margin: 6px 0 0; color: #d9f99d;">Password Reset Request</p>
+                                    </div>
+
+                                    <div style="border: 1px solid #e5e7eb; border-top: none; padding: 24px; border-radius: 0 0 18px 18px;">
+                                        <h2 style="color: #0f4d3c; margin-top: 0;">Reset Your Password</h2>
+
+                                        <p>Hello ${user.name || "User"},</p>
+
+                                        <p>We received a request to reset your password for your Ebit's Catering account.</p>
+
+                                        <p>Click the button below to reset your password:</p>
+
+                                        <p style="margin: 28px 0;">
+                                            <a href="${resetLink}" style="background:#0f4d3c;color:#ffffff;padding:13px 22px;border-radius:12px;text-decoration:none;display:inline-block;font-weight:700;">
+                                                Reset Password
+                                            </a>
+                                        </p>
+
+                                        <p style="color:#4b5563;">This link will expire in <strong>15 minutes</strong>.</p>
+
+                                        <p style="color:#4b5563;">If the button does not work, copy and paste this link into your browser:</p>
+
+                                        <p style="word-break: break-all; background:#f3f4f6; padding:12px; border-radius:10px; color:#0f4d3c;">
+                                            ${resetLink}
+                                        </p>
+
+                                        <p style="color:#6b7280; font-size:13px; margin-top:24px;">
+                                            If you did not request this, you can safely ignore this email.
+                                        </p>
+                                    </div>
                                 </div>
                             `,
                         });
-
-                        if (emailResponse?.error) {
-                            console.error("Resend error:", emailResponse.error);
-
-                            return res.status(500).json({
-                                success: false,
-                                message:
-                                    emailResponse.error.message ||
-                                    "Email sending failed.",
-                                resetLink,
-                            });
-                        }
-
-                        console.log("Resend success:", emailResponse?.data || emailResponse);
 
                         return res.status(200).json({
                             success: true,
                             message: "Reset instructions have been sent to your email.",
                         });
                     } catch (mailErr) {
-                        console.error("Resend exception:", mailErr);
+                        console.error("Email sending exception:", mailErr);
 
                         return res.status(500).json({
                             success: false,
