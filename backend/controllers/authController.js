@@ -36,16 +36,16 @@ function getMailTransporter() {
 
     return nodemailer.createTransport({
         host: "smtp.gmail.com",
-        port: 587,
-        secure: false,
+        port: 465,
+        secure: true,
         family: 4,
         auth: {
             user: emailUser,
             pass: emailPass,
         },
-        tls: {
-            rejectUnauthorized: false,
-        },
+        connectionTimeout: 15000,
+        greetingTimeout: 15000,
+        socketTimeout: 20000,
     });
 }
 
@@ -398,8 +398,6 @@ exports.forgotPassword = (req, res) => {
                                 message: "Email service is not configured.",
                             });
                         }
-
-                        await transporter.verify();
 
                         await transporter.sendMail({
                             from: `"Ebit's Catering" <${process.env.EMAIL_USER}>`,
