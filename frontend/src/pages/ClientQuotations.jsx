@@ -114,6 +114,18 @@ function formatTime(timeString) {
     });
 }
 
+function formatSchedule(startTime, endTime, fallbackTime) {
+    if (startTime && endTime) {
+        return `${formatTime(startTime)} - ${formatTime(endTime)}`;
+    }
+
+    if (startTime) return `${formatTime(startTime)} - End time not set`;
+    if (endTime) return `Start time not set - ${formatTime(endTime)}`;
+    if (fallbackTime) return formatTime(fallbackTime);
+
+    return "Not specified";
+}
+
 function getStatusClasses(status, isDark) {
     const normalized = (status || "pending").toLowerCase();
 
@@ -176,6 +188,8 @@ function normalizeQuotation(item) {
         contactNumber: item.contact_number || "",
         eventType: item.event_type || "",
         eventDate: item.preferred_date || "",
+        eventStartTime: item.event_start_time || item.eventStartTime || "",
+        eventEndTime: item.event_end_time || item.eventEndTime || "",
         eventTime: item.event_time || "",
         venue: item.venue || "",
         guests: Number(item.guests || 0),
@@ -449,8 +463,8 @@ function ClientQuotations() {
                 >
                     <div
                         className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full ${isDark
-                            ? "bg-[linear-gradient(135deg,rgba(21,64,50,0.95)_0%,rgba(24,77,60,0.95)_100%)] text-[#98efcc]"
-                            : "bg-[#eef8f4] text-[#0d5c46]"
+                                ? "bg-[linear-gradient(135deg,rgba(21,64,50,0.95)_0%,rgba(24,77,60,0.95)_100%)] text-[#98efcc]"
+                                : "bg-[#eef8f4] text-[#0d5c46]"
                             }`}
                     >
                         <FileText className="h-8 w-8" />
@@ -486,8 +500,8 @@ function ClientQuotations() {
                                 >
                                     <div
                                         className={`px-6 py-5 ${isDark
-                                            ? "border-b border-white/10 bg-[linear-gradient(90deg,rgba(13,38,31,0.98)_0%,rgba(23,58,45,0.96)_100%)]"
-                                            : "border-b border-[#edf2ef] bg-[linear-gradient(90deg,#f3fbf8_0%,#fffaf0_100%)]"
+                                                ? "border-b border-white/10 bg-[linear-gradient(90deg,rgba(13,38,31,0.98)_0%,rgba(23,58,45,0.96)_100%)]"
+                                                : "border-b border-[#edf2ef] bg-[linear-gradient(90deg,#f3fbf8_0%,#fffaf0_100%)]"
                                             }`}
                                     >
                                         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -559,13 +573,17 @@ function ClientQuotations() {
 
                                                 <div className={`rounded-[26px] px-4 py-4 ${softBlock}`}>
                                                     <div className={`flex items-center gap-2 ${softText}`}>
-                                                        <MapPin className="h-4 w-4" />
+                                                        <Clock3 className="h-4 w-4" />
                                                         <p className="text-xs font-semibold uppercase tracking-wide">
-                                                            Venue
+                                                            Event Schedule
                                                         </p>
                                                     </div>
                                                     <p className={`mt-2 text-sm font-semibold ${strongText}`}>
-                                                        {quote.venue || "No venue provided"}
+                                                        {formatSchedule(
+                                                            quote.eventStartTime,
+                                                            quote.eventEndTime,
+                                                            quote.eventTime
+                                                        )}
                                                     </p>
                                                 </div>
 
@@ -622,11 +640,11 @@ function ClientQuotations() {
 
                                                     <div className={`rounded-2xl p-4 ${labelCard}`}>
                                                         <p className={`flex items-center gap-2 text-xs ${softText}`}>
-                                                            <Clock3 size={14} />
-                                                            Event Time
+                                                            <MapPin size={14} />
+                                                            Venue
                                                         </p>
                                                         <p className={`mt-2 text-sm font-semibold ${strongText}`}>
-                                                            {formatTime(quote.eventTime)}
+                                                            {quote.venue || "No venue provided"}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -643,8 +661,8 @@ function ClientQuotations() {
                                                                 <span
                                                                     key={`${addon}-${addonIndex}`}
                                                                     className={`rounded-full px-3 py-1 text-sm font-medium ${isDark
-                                                                        ? "bg-[rgba(21,90,60,0.3)] text-[#98efcc] border border-emerald-400/15"
-                                                                        : "bg-emerald-50 text-emerald-700"
+                                                                            ? "bg-[rgba(21,90,60,0.3)] text-[#98efcc] border border-emerald-400/15"
+                                                                            : "bg-emerald-50 text-emerald-700"
                                                                         }`}
                                                                 >
                                                                     {addon}
@@ -672,8 +690,8 @@ function ClientQuotations() {
                                         <div className="space-y-4">
                                             <div
                                                 className={`rounded-[30px] px-5 py-6 text-right ${isDark
-                                                    ? "border border-[rgba(97,76,24,0.34)] bg-[linear-gradient(135deg,rgba(88,67,20,0.3)_0%,rgba(120,91,27,0.24)_100%)] shadow-[0_10px_22px_rgba(0,0,0,0.18)]"
-                                                    : "bg-[linear-gradient(135deg,#fffaf0_0%,#fff3d0_100%)] shadow-sm border border-[#f2e1aa]"
+                                                        ? "border border-[rgba(97,76,24,0.34)] bg-[linear-gradient(135deg,rgba(88,67,20,0.3)_0%,rgba(120,91,27,0.24)_100%)] shadow-[0_10px_22px_rgba(0,0,0,0.18)]"
+                                                        : "bg-[linear-gradient(135deg,#fffaf0_0%,#fff3d0_100%)] shadow-sm border border-[#f2e1aa]"
                                                     }`}
                                             >
                                                 <div className="flex items-center justify-end gap-2 text-[#f5cf67]">
@@ -685,6 +703,46 @@ function ClientQuotations() {
                                                 <p className="mt-2 text-3xl font-extrabold tracking-tight text-[#f5cf67]">
                                                     {formatCurrency(quote.estimatedTotal)}
                                                 </p>
+                                            </div>
+
+                                            <div className={`rounded-[28px] px-5 py-5 ${softBlock}`}>
+                                                <p className={`text-xs font-semibold uppercase tracking-wide ${softText}`}>
+                                                    Event Summary
+                                                </p>
+
+                                                <div className="mt-4 space-y-3 text-sm">
+                                                    <div className="flex items-start justify-between gap-4">
+                                                        <span className={softText}>Type</span>
+                                                        <span className={`text-right font-semibold ${strongText}`}>
+                                                            {quote.eventType || "Not specified"}
+                                                        </span>
+                                                    </div>
+
+                                                    <div className="flex items-start justify-between gap-4">
+                                                        <span className={softText}>Date</span>
+                                                        <span className={`text-right font-semibold ${strongText}`}>
+                                                            {formatDate(quote.eventDate)}
+                                                        </span>
+                                                    </div>
+
+                                                    <div className="flex items-start justify-between gap-4">
+                                                        <span className={softText}>Time</span>
+                                                        <span className={`text-right font-semibold ${strongText}`}>
+                                                            {formatSchedule(
+                                                                quote.eventStartTime,
+                                                                quote.eventEndTime,
+                                                                quote.eventTime
+                                                            )}
+                                                        </span>
+                                                    </div>
+
+                                                    <div className="flex items-start justify-between gap-4">
+                                                        <span className={softText}>Venue</span>
+                                                        <span className={`max-w-[180px] text-right font-semibold ${strongText}`}>
+                                                            {quote.venue || "No venue"}
+                                                        </span>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

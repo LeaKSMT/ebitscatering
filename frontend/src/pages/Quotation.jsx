@@ -363,14 +363,31 @@ function formatCurrency(value) {
     return `₱${Number(value || 0).toLocaleString()}`;
 }
 
-function formatTimeDisplay(value) {
-    if (!value) return "Select event time";
+function formatTimeDisplay(value, fallback = "Select time") {
+    if (!value) return fallback;
     const parsed = new Date(`2000-01-01T${value}`);
     if (Number.isNaN(parsed.getTime())) return value;
     return parsed.toLocaleTimeString("en-PH", {
         hour: "numeric",
         minute: "2-digit",
     });
+}
+
+function getScheduleLabel(startTime, endTime) {
+    if (startTime && endTime) {
+        return `${formatTimeDisplay(startTime)} - ${formatTimeDisplay(endTime)}`;
+    }
+
+    if (startTime) return `${formatTimeDisplay(startTime)} - End time not set`;
+    if (endTime) return `Start time not set - ${formatTimeDisplay(endTime)}`;
+
+    return "No time set";
+}
+
+function timeToMinutes(value) {
+    if (!value || !/^\d{2}:\d{2}$/.test(value)) return null;
+    const [hour, minute] = value.split(":").map(Number);
+    return hour * 60 + minute;
 }
 
 function parseDateParts(value) {
@@ -481,6 +498,8 @@ function Quotation({ mode = "public" }) {
         email: isClientMode ? currentClient.email : "",
         eventType: "",
         preferredDate: "",
+        eventStartTime: "",
+        eventEndTime: "",
         eventTime: "",
         venue: "",
         guests: "",
@@ -611,6 +630,8 @@ function Quotation({ mode = "public" }) {
             formData.email,
             formData.eventType,
             formData.preferredDate,
+            formData.eventStartTime,
+            formData.eventEndTime,
             formData.venue,
             formData.guests,
             formData.packageType,
@@ -628,7 +649,9 @@ function Quotation({ mode = "public" }) {
             {
                 icon: CalendarDays,
                 label: "Event Schedule",
-                value: formData.preferredDate ? "Date selected" : "No date set",
+                value: formData.preferredDate
+                    ? getScheduleLabel(formData.eventStartTime, formData.eventEndTime)
+                    : "No date set",
             },
             {
                 icon: Users,
@@ -641,7 +664,7 @@ function Quotation({ mode = "public" }) {
                 value: estimatedTotal > 0 ? formatCurrency(estimatedTotal) : "Not calculated",
             },
         ];
-    }, [formData.preferredDate, guestCount, estimatedTotal]);
+    }, [formData.preferredDate, formData.eventStartTime, formData.eventEndTime, guestCount, estimatedTotal]);
 
     const isDark = theme === "dark";
 
@@ -706,11 +729,17 @@ function Quotation({ mode = "public" }) {
         });
     };
 
-    const handleTimeChange = (value) => {
-        setFormData((prev) => ({
-            ...prev,
-            eventTime: value,
-        }));
+    const handleTimeChange = (field, value) => {
+        setFormData((prev) => {
+            const updated = {
+                ...prev,
+                [field]: value,
+            };
+
+            updated.eventTime = updated.eventStartTime || "";
+
+            return updated;
+        });
     };
 
     const handleDateChange = (value) => {
@@ -724,6 +753,19 @@ function Quotation({ mode = "public" }) {
         e.preventDefault();
 
         if (isSubmitting) return;
+
+        const startMinutes = timeToMinutes(formData.eventStartTime);
+        const endMinutes = timeToMinutes(formData.eventEndTime);
+
+        if (startMinutes === null || endMinutes === null) {
+            alert("Please select both event start time and end time.");
+            return;
+        }
+
+        if (endMinutes <= startMinutes) {
+            alert("End time must be later than start time.");
+            return;
+        }
 
         try {
             setIsSubmitting(true);
@@ -749,7 +791,9 @@ function Quotation({ mode = "public" }) {
                 contact_number: formData.contactNumber,
                 event_type: formData.eventType,
                 preferred_date: formData.preferredDate,
-                event_time: formData.eventTime || null,
+                event_start_time: formData.eventStartTime || null,
+                event_end_time: formData.eventEndTime || null,
+                event_time: formData.eventStartTime || null,
                 venue: formData.venue,
                 guests: Number(formData.guests || 0),
                 package_type: formData.packageType,
@@ -802,7 +846,6 @@ function Quotation({ mode = "public" }) {
             navigate("/");
         }
     };
-
     return (
         <div className={pageShell}>
             <motion.div
@@ -878,10 +921,13 @@ function Quotation({ mode = "public" }) {
 
                     <div className="mt-8 grid gap-8 xl:grid-cols-[0.97fr_1.23fr]">
                         <motion.aside variants={softReveal} className="space-y-6">
-                            <div className={isDark
-                                ? "overflow-hidden rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,#0d5b44_0%,#0a4a39_100%)] p-6 text-white shadow-[0_22px_55px_rgba(0,0,0,0.25)] sm:p-7"
-                                : "overflow-hidden rounded-[32px] border border-[#dce7e2] bg-[linear-gradient(180deg,#0d5b44_0%,#0a4a39_100%)] p-6 text-white shadow-[0_22px_55px_rgba(11,90,67,0.2)] sm:p-7"
-                            }>
+                            <div
+                                className={
+                                    isDark
+                                        ? "overflow-hidden rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,#0d5b44_0%,#0a4a39_100%)] p-6 text-white shadow-[0_22px_55px_rgba(0,0,0,0.25)] sm:p-7"
+                                        : "overflow-hidden rounded-[32px] border border-[#dce7e2] bg-[linear-gradient(180deg,#0d5b44_0%,#0a4a39_100%)] p-6 text-white shadow-[0_22px_55px_rgba(11,90,67,0.2)] sm:p-7"
+                                }
+                            >
                                 <div className="flex items-start gap-4">
                                     <motion.div
                                         animate={{ rotate: [0, -6, 0], scale: [1, 1.04, 1] }}
@@ -939,9 +985,10 @@ function Quotation({ mode = "public" }) {
 
                             <motion.div
                                 variants={softReveal}
-                                className={isDark
-                                    ? "overflow-hidden rounded-[32px] border border-[rgba(212,175,55,0.28)] bg-[linear-gradient(180deg,rgba(88,67,20,0.16)_0%,rgba(120,91,27,0.12)_100%)] shadow-[0_18px_42px_rgba(0,0,0,0.18)]"
-                                    : "overflow-hidden rounded-[32px] border border-[#ead48d] bg-[linear-gradient(180deg,#fffdf7_0%,#fff7e5_100%)] shadow-[0_18px_42px_rgba(212,175,55,0.14)]"
+                                className={
+                                    isDark
+                                        ? "overflow-hidden rounded-[32px] border border-[rgba(212,175,55,0.28)] bg-[linear-gradient(180deg,rgba(88,67,20,0.16)_0%,rgba(120,91,27,0.12)_100%)] shadow-[0_18px_42px_rgba(0,0,0,0.18)]"
+                                        : "overflow-hidden rounded-[32px] border border-[#ead48d] bg-[linear-gradient(180deg,#fffdf7_0%,#fff7e5_100%)] shadow-[0_18px_42px_rgba(212,175,55,0.14)]"
                                 }
                             >
                                 <div className={isDark ? "border-b border-[rgba(212,175,55,0.22)] px-6 py-5" : "border-b border-[#ecd88d] px-6 py-5"}>
@@ -955,16 +1002,20 @@ function Quotation({ mode = "public" }) {
                                             </h3>
                                         </div>
 
-                                        <div className={isDark
-                                            ? "rounded-full bg-[#d4af37]/15 px-3 py-1 text-xs font-bold text-[#f5cf67]"
-                                            : "rounded-full bg-[#d4af37]/15 px-3 py-1 text-xs font-bold text-[#9b7400]"
-                                        }>
+                                        <div
+                                            className={
+                                                isDark
+                                                    ? "rounded-full bg-[#d4af37]/15 px-3 py-1 text-xs font-bold text-[#f5cf67]"
+                                                    : "rounded-full bg-[#d4af37]/15 px-3 py-1 text-xs font-bold text-[#9b7400]"
+                                            }
+                                        >
                                             Real Time
                                         </div>
                                     </div>
                                 </div>
 
                                 <div className="space-y-4 px-6 py-6 text-sm">
+                                    <SummaryRow label="Event Schedule" value={getScheduleLabel(formData.eventStartTime, formData.eventEndTime)} multiLine isDark={isDark} />
                                     <SummaryRow label="Selected Package" value={formData.packageType || "Not selected"} multiLine isDark={isDark} />
                                     <SummaryRow label="Package Coverage" value={packageCoverageText} multiLine isDark={isDark} />
                                     <SummaryRow label="Classic Menu" value={formData.classicMenu || "Not selected"} isDark={isDark} />
@@ -979,10 +1030,13 @@ function Quotation({ mode = "public" }) {
 
                                     <SummaryRow label="Add-ons Total" value={addOnsTotal ? formatCurrency(addOnsTotal) : "₱0"} isDark={isDark} />
 
-                                    <div className={isDark
-                                        ? "rounded-[24px] border border-[rgba(212,175,55,0.22)] bg-[rgba(255,255,255,0.04)] px-4 py-4 shadow-sm"
-                                        : "rounded-[24px] border border-[#ecd88d] bg-white/75 px-4 py-4 shadow-sm"
-                                    }>
+                                    <div
+                                        className={
+                                            isDark
+                                                ? "rounded-[24px] border border-[rgba(212,175,55,0.22)] bg-[rgba(255,255,255,0.04)] px-4 py-4 shadow-sm"
+                                                : "rounded-[24px] border border-[#ecd88d] bg-white/75 px-4 py-4 shadow-sm"
+                                        }
+                                    >
                                         <div className="flex items-center justify-between gap-4">
                                             <span className={`text-base font-bold ${strongText}`}>
                                                 Estimated Total
@@ -997,10 +1051,13 @@ function Quotation({ mode = "public" }) {
 
                             <motion.div variants={softReveal} className={softCard}>
                                 <div className="flex items-center gap-3">
-                                    <div className={isDark
-                                        ? "flex h-12 w-12 items-center justify-center rounded-2xl bg-[rgba(21,64,50,0.78)] text-[#98efcc]"
-                                        : "flex h-12 w-12 items-center justify-center rounded-2xl bg-[#edf8f3] text-[#0f4d3c]"
-                                    }>
+                                    <div
+                                        className={
+                                            isDark
+                                                ? "flex h-12 w-12 items-center justify-center rounded-2xl bg-[rgba(21,64,50,0.78)] text-[#98efcc]"
+                                                : "flex h-12 w-12 items-center justify-center rounded-2xl bg-[#edf8f3] text-[#0f4d3c]"
+                                        }
+                                    >
                                         <BadgeCheck size={22} />
                                     </div>
                                     <div>
@@ -1027,10 +1084,7 @@ function Quotation({ mode = "public" }) {
                                         <motion.div
                                             initial={{ width: 0 }}
                                             animate={{ width: `${completionStats.percent}%` }}
-                                            transition={{
-                                                duration: 0.7,
-                                                ease: [0.22, 1, 0.36, 1],
-                                            }}
+                                            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
                                             className="h-full rounded-full bg-[linear-gradient(90deg,#0f4d3c_0%,#22b67f_55%,#d4af37_100%)]"
                                         />
                                     </div>
@@ -1041,6 +1095,11 @@ function Quotation({ mode = "public" }) {
                                     <ProgressTag active={!!formData.packageType} label="Package selected" isDark={isDark} />
                                     <ProgressTag active={guestCount > 0} label="Guest count added" isDark={isDark} />
                                     <ProgressTag active={!!formData.preferredDate} label="Preferred date chosen" isDark={isDark} />
+                                    <ProgressTag
+                                        active={!!formData.eventStartTime && !!formData.eventEndTime}
+                                        label="Start and end time selected"
+                                        isDark={isDark}
+                                    />
                                 </div>
                             </motion.div>
 
@@ -1055,10 +1114,13 @@ function Quotation({ mode = "public" }) {
                                         className={softCard}
                                     >
                                         <div className="flex items-center gap-3">
-                                            <div className={isDark
-                                                ? "flex h-12 w-12 items-center justify-center rounded-2xl bg-[rgba(21,64,50,0.78)] text-[#98efcc]"
-                                                : "flex h-12 w-12 items-center justify-center rounded-2xl bg-[#edf8f3] text-[#0f4d3c]"
-                                            }>
+                                            <div
+                                                className={
+                                                    isDark
+                                                        ? "flex h-12 w-12 items-center justify-center rounded-2xl bg-[rgba(21,64,50,0.78)] text-[#98efcc]"
+                                                        : "flex h-12 w-12 items-center justify-center rounded-2xl bg-[#edf8f3] text-[#0f4d3c]"
+                                                }
+                                            >
                                                 <CheckCircle2 size={22} />
                                             </div>
                                             <div>
@@ -1078,9 +1140,10 @@ function Quotation({ mode = "public" }) {
                                                     initial={{ opacity: 0, x: -10 }}
                                                     animate={{ opacity: 1, x: 0 }}
                                                     transition={{ duration: 0.24, delay: index * 0.02 }}
-                                                    className={isDark
-                                                        ? "flex items-start gap-3 rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(12,36,29,0.98)_0%,rgba(16,44,35,0.98)_100%)] px-4 py-3 shadow-sm"
-                                                        : "flex items-start gap-3 rounded-2xl border border-[#edf2ef] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] px-4 py-3 shadow-sm"
+                                                    className={
+                                                        isDark
+                                                            ? "flex items-start gap-3 rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(12,36,29,0.98)_0%,rgba(16,44,35,0.98)_100%)] px-4 py-3 shadow-sm"
+                                                            : "flex items-start gap-3 rounded-2xl border border-[#edf2ef] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] px-4 py-3 shadow-sm"
                                                     }
                                                 >
                                                     <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#0f4d3c] text-white">
@@ -1098,10 +1161,13 @@ function Quotation({ mode = "public" }) {
                         </motion.aside>
 
                         <motion.section variants={softReveal} className={shellCard}>
-                            <div className={isDark
-                                ? "border-b border-white/10 bg-[linear-gradient(90deg,rgba(13,38,31,0.98)_0%,rgba(88,67,20,0.14)_100%)] px-6 py-6 sm:px-8"
-                                : "border-b border-[#edf2ef] bg-[linear-gradient(90deg,#f8fbf9_0%,#fff8ea_100%)] px-6 py-6 sm:px-8"
-                            }>
+                            <div
+                                className={
+                                    isDark
+                                        ? "border-b border-white/10 bg-[linear-gradient(90deg,rgba(13,38,31,0.98)_0%,rgba(88,67,20,0.14)_100%)] px-6 py-6 sm:px-8"
+                                        : "border-b border-[#edf2ef] bg-[linear-gradient(90deg,#f8fbf9_0%,#fff8ea_100%)] px-6 py-6 sm:px-8"
+                                }
+                            >
                                 <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                                     <div>
                                         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#b99117]">
@@ -1116,10 +1182,13 @@ function Quotation({ mode = "public" }) {
                                         </p>
                                     </div>
 
-                                    <div className={isDark
-                                        ? "inline-flex items-center gap-2 self-start rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white shadow-sm"
-                                        : "inline-flex items-center gap-2 self-start rounded-full border border-[#e6d69d] bg-white px-4 py-2 text-sm font-medium text-[#0f4d3c] shadow-sm"
-                                    }>
+                                    <div
+                                        className={
+                                            isDark
+                                                ? "inline-flex items-center gap-2 self-start rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white shadow-sm"
+                                                : "inline-flex items-center gap-2 self-start rounded-full border border-[#e6d69d] bg-white px-4 py-2 text-sm font-medium text-[#0f4d3c] shadow-sm"
+                                        }
+                                    >
                                         <span className="h-2.5 w-2.5 rounded-full bg-[#0f8a61]" />
                                         Ready to submit
                                     </div>
@@ -1129,50 +1198,20 @@ function Quotation({ mode = "public" }) {
                             <form onSubmit={handleSubmit} className="p-6 sm:p-8">
                                 <div className="grid gap-5 md:grid-cols-2">
                                     <Field label="Full Name" required filled={!!formData.fullName} isDark={isDark}>
-                                        <input
-                                            type="text"
-                                            name="fullName"
-                                            value={formData.fullName}
-                                            onChange={handleChange}
-                                            placeholder="Enter your full name"
-                                            className={inputClass}
-                                            required
-                                        />
+                                        <input type="text" name="fullName" value={formData.fullName} onChange={handleChange} placeholder="Enter your full name" className={inputClass} required />
                                     </Field>
 
                                     <Field label="Contact Number" required filled={!!formData.contactNumber} isDark={isDark}>
-                                        <input
-                                            type="text"
-                                            name="contactNumber"
-                                            value={formData.contactNumber}
-                                            onChange={handleChange}
-                                            placeholder="Enter your contact number"
-                                            className={inputClass}
-                                            required
-                                        />
+                                        <input type="text" name="contactNumber" value={formData.contactNumber} onChange={handleChange} placeholder="Enter your contact number" className={inputClass} required />
                                     </Field>
 
                                     <Field label="Email Address" required filled={!!formData.email} isDark={isDark}>
-                                        <input
-                                            type="email"
-                                            name="email"
-                                            value={formData.email}
-                                            onChange={handleChange}
-                                            placeholder="Enter your email address"
-                                            className={inputClass}
-                                            required
-                                        />
+                                        <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Enter your email address" className={inputClass} required />
                                     </Field>
 
                                     <Field label="Event Type" required filled={!!formData.eventType} isDark={isDark}>
                                         <div className="relative">
-                                            <select
-                                                name="eventType"
-                                                value={formData.eventType}
-                                                onChange={handleChange}
-                                                className={`${inputClass} appearance-none pr-12`}
-                                                required
-                                            >
+                                            <select name="eventType" value={formData.eventType} onChange={handleChange} className={`${inputClass} appearance-none pr-12`} required>
                                                 <option value="">Select event type</option>
                                                 <option value="Wedding">Wedding</option>
                                                 <option value="Debut">Debut</option>
@@ -1180,94 +1219,111 @@ function Quotation({ mode = "public" }) {
                                                 <option value="Anniversary">Anniversary</option>
                                                 <option value="Baptismal">Baptismal</option>
                                             </select>
-                                            <ChevronDown
-                                                size={18}
-                                                className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 ${isDark ? "text-white/60" : "text-slate-500"}`}
-                                            />
+                                            <ChevronDown size={18} className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 ${isDark ? "text-white/60" : "text-slate-500"}`} />
                                         </div>
                                     </Field>
 
                                     <Field label="Preferred Date" required filled={!!formData.preferredDate} isDark={isDark}>
-                                        <PremiumDatePicker
-                                            value={formData.preferredDate}
-                                            onChange={handleDateChange}
-                                            isDark={isDark}
-                                        />
+                                        <PremiumDatePicker value={formData.preferredDate} onChange={handleDateChange} isDark={isDark} />
                                     </Field>
 
-                                    <Field label="Event Time" filled={!!formData.eventTime} isDark={isDark}>
-                                        <PremiumTimePicker
-                                            value={formData.eventTime}
-                                            onChange={handleTimeChange}
+                                    <div className="md:col-span-2">
+                                        <Field
+                                            label="Event Schedule"
+                                            required
+                                            filled={!!formData.eventStartTime && !!formData.eventEndTime}
+                                            caption={
+                                                formData.eventStartTime && formData.eventEndTime
+                                                    ? getScheduleLabel(formData.eventStartTime, formData.eventEndTime)
+                                                    : ""
+                                            }
                                             isDark={isDark}
-                                        />
-                                    </Field>
+                                        >
+                                            <div
+                                                className={
+                                                    isDark
+                                                        ? "rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(12,36,29,0.98)_0%,rgba(16,44,35,0.98)_100%)] p-4 shadow-[0_14px_34px_rgba(0,0,0,0.16)]"
+                                                        : "rounded-[28px] border border-[#dce7e2] bg-[linear-gradient(180deg,#ffffff_0%,#f7fbf9_100%)] p-4 shadow-[0_14px_34px_rgba(14,61,47,0.06)]"
+                                                }
+                                            >
+                                                <div className="grid gap-4 md:grid-cols-2">
+                                                    <div>
+                                                        <p className={`mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] ${isDark ? "text-white/55" : "text-slate-400"}`}>
+                                                            <Clock3 size={14} className="text-[#b99117]" />
+                                                            Start Time
+                                                        </p>
+                                                        <PremiumTimePicker
+                                                            value={formData.eventStartTime}
+                                                            onChange={(value) => handleTimeChange("eventStartTime", value)}
+                                                            isDark={isDark}
+                                                            placeholder="Select start time"
+                                                            title="Start Time"
+                                                        />
+                                                    </div>
+
+                                                    <div>
+                                                        <p className={`mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] ${isDark ? "text-white/55" : "text-slate-400"}`}>
+                                                            <Clock3 size={14} className="text-[#b99117]" />
+                                                            End Time
+                                                        </p>
+                                                        <PremiumTimePicker
+                                                            value={formData.eventEndTime}
+                                                            onChange={(value) => handleTimeChange("eventEndTime", value)}
+                                                            isDark={isDark}
+                                                            placeholder="Select end time"
+                                                            title="End Time"
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div
+                                                    className={
+                                                        isDark
+                                                            ? "mt-4 rounded-2xl border border-[rgba(212,175,55,0.2)] bg-[rgba(97,76,24,0.16)] px-4 py-3"
+                                                            : "mt-4 rounded-2xl border border-[#ecd88d] bg-[#fff8e6] px-4 py-3"
+                                                    }
+                                                >
+                                                    <p className={`text-xs font-semibold uppercase tracking-[0.16em] ${isDark ? "text-[#f5cf67]" : "text-[#9b7400]"}`}>
+                                                        Selected Schedule
+                                                    </p>
+                                                    <p className={`mt-1 text-sm font-bold ${strongText}`}>
+                                                        {getScheduleLabel(formData.eventStartTime, formData.eventEndTime)}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </Field>
+                                    </div>
 
                                     <Field label="Venue / Location" required filled={!!formData.venue} isDark={isDark}>
-                                        <input
-                                            type="text"
-                                            name="venue"
-                                            value={formData.venue}
-                                            onChange={handleChange}
-                                            placeholder="Enter venue or event location"
-                                            className={inputClass}
-                                            required
-                                        />
+                                        <input type="text" name="venue" value={formData.venue} onChange={handleChange} placeholder="Enter venue or event location" className={inputClass} required />
                                     </Field>
 
                                     <Field label="Number of Guests" required filled={!!formData.guests} isDark={isDark}>
-                                        <input
-                                            type="number"
-                                            name="guests"
-                                            value={formData.guests}
-                                            onChange={handleChange}
-                                            placeholder="Enter number of guests"
-                                            className={inputClass}
-                                            min="1"
-                                            required
-                                        />
+                                        <input type="number" name="guests" value={formData.guests} onChange={handleChange} placeholder="Enter number of guests" className={inputClass} min="1" required />
                                     </Field>
 
                                     <Field label="Preferred Package" required filled={!!formData.packageType} isDark={isDark}>
                                         <div className="relative">
-                                            <select
-                                                name="packageType"
-                                                value={formData.packageType}
-                                                onChange={handleChange}
-                                                className={`${inputClass} appearance-none pr-12`}
-                                                required
-                                                disabled={!formData.eventType}
-                                            >
+                                            <select name="packageType" value={formData.packageType} onChange={handleChange} className={`${inputClass} appearance-none pr-12`} required disabled={!formData.eventType}>
                                                 <option value="">
                                                     {formData.eventType ? "Select package" : "Select event type first"}
                                                 </option>
 
                                                 {availablePackages.map((pkg, index) => (
-                                                    <option
-                                                        key={`${pkg.eventType}-${pkg.name}-${index}`}
-                                                        value={pkg.name}
-                                                    >
+                                                    <option key={`${pkg.eventType}-${pkg.name}-${index}`} value={pkg.name}>
                                                         {pkg.pricingType === "perPax"
                                                             ? `${pkg.name} (₱${pkg.ratePerPax}/pax)`
                                                             : `${pkg.name} (${formatCurrency(pkg.price)} • ${pkg.includedPax} pax included)`}
                                                     </option>
                                                 ))}
                                             </select>
-                                            <ChevronDown
-                                                size={18}
-                                                className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 ${isDark ? "text-white/60" : "text-slate-500"}`}
-                                            />
+                                            <ChevronDown size={18} className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 ${isDark ? "text-white/60" : "text-slate-500"}`} />
                                         </div>
                                     </Field>
 
                                     <Field label="Classic Menu" filled={!!formData.classicMenu} isDark={isDark}>
                                         <div className="relative">
-                                            <select
-                                                name="classicMenu"
-                                                value={formData.classicMenu}
-                                                onChange={handleChange}
-                                                className={`${inputClass} appearance-none pr-12`}
-                                            >
+                                            <select name="classicMenu" value={formData.classicMenu} onChange={handleChange} className={`${inputClass} appearance-none pr-12`}>
                                                 <option value="">Select classic menu</option>
                                                 {classicMenus.map((menu) => (
                                                     <option key={menu} value={menu}>
@@ -1275,10 +1331,7 @@ function Quotation({ mode = "public" }) {
                                                     </option>
                                                 ))}
                                             </select>
-                                            <ChevronDown
-                                                size={18}
-                                                className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 ${isDark ? "text-white/60" : "text-slate-500"}`}
-                                            />
+                                            <ChevronDown size={18} className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 ${isDark ? "text-white/60" : "text-slate-500"}`} />
                                         </div>
                                     </Field>
 
@@ -1310,12 +1363,7 @@ function Quotation({ mode = "public" }) {
                                                                 }`}
                                                         >
                                                             <div className="flex items-center gap-3">
-                                                                <input
-                                                                    type="checkbox"
-                                                                    checked={checked}
-                                                                    onChange={() => handleAddonChange(item.name)}
-                                                                    className="accent-[#0f4d3c]"
-                                                                />
+                                                                <input type="checkbox" checked={checked} onChange={() => handleAddonChange(item.name)} className="accent-[#0f4d3c]" />
                                                                 <span className={isDark ? "font-medium text-white" : "font-medium text-[#0f4d3c]"}>
                                                                     {item.name}
                                                                 </span>
@@ -1333,27 +1381,13 @@ function Quotation({ mode = "public" }) {
 
                                     <div className="md:col-span-2">
                                         <Field label="Theme / Style Preference" filled={!!formData.themePreference} isDark={isDark}>
-                                            <input
-                                                type="text"
-                                                name="themePreference"
-                                                value={formData.themePreference}
-                                                onChange={handleChange}
-                                                placeholder="Enter preferred motif, theme, or style"
-                                                className={inputClass}
-                                            />
+                                            <input type="text" name="themePreference" value={formData.themePreference} onChange={handleChange} placeholder="Enter preferred motif, theme, or style" className={inputClass} />
                                         </Field>
                                     </div>
 
                                     <div className="md:col-span-2">
                                         <Field label="Special Requests" filled={!!formData.specialRequests} isDark={isDark}>
-                                            <textarea
-                                                name="specialRequests"
-                                                value={formData.specialRequests}
-                                                onChange={handleChange}
-                                                rows="5"
-                                                placeholder="Add your preferred menu, setup, add-ons, or other requests"
-                                                className={textareaClass}
-                                            />
+                                            <textarea name="specialRequests" value={formData.specialRequests} onChange={handleChange} rows="5" placeholder="Add your preferred menu, setup, add-ons, or other requests" className={textareaClass} />
                                         </Field>
                                     </div>
                                 </div>
@@ -1367,10 +1401,7 @@ function Quotation({ mode = "public" }) {
                                             className={smartCard}
                                         >
                                             <div className="flex items-center gap-3">
-                                                <div className={isDark
-                                                    ? "flex h-11 w-11 items-center justify-center rounded-2xl bg-[rgba(21,64,50,0.78)] text-[#98efcc]"
-                                                    : "flex h-11 w-11 items-center justify-center rounded-2xl bg-[#edf8f3] text-[#0f4d3c]"
-                                                }>
+                                                <div className={isDark ? "flex h-11 w-11 items-center justify-center rounded-2xl bg-[rgba(21,64,50,0.78)] text-[#98efcc]" : "flex h-11 w-11 items-center justify-center rounded-2xl bg-[#edf8f3] text-[#0f4d3c]"}>
                                                     <Sparkles size={20} />
                                                 </div>
                                                 <div>
@@ -1384,10 +1415,7 @@ function Quotation({ mode = "public" }) {
                                             </div>
 
                                             <div className="mt-4 grid gap-4 md:grid-cols-2">
-                                                <div className={isDark
-                                                    ? "rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.98)_0%,rgba(13,40,32,0.98)_100%)] p-4"
-                                                    : "rounded-2xl border border-[#e3ebe7] bg-white p-4"
-                                                }>
+                                                <div className={isDark ? "rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.98)_0%,rgba(13,40,32,0.98)_100%)] p-4" : "rounded-2xl border border-[#e3ebe7] bg-white p-4"}>
                                                     <p className={`text-xs font-semibold uppercase tracking-[0.16em] ${mutedText2}`}>
                                                         Selected Add-ons
                                                     </p>
@@ -1396,9 +1424,10 @@ function Quotation({ mode = "public" }) {
                                                             selectedAddOnObjects.map((item) => (
                                                                 <span
                                                                     key={item.name}
-                                                                    className={isDark
-                                                                        ? "rounded-full border border-[rgba(212,175,55,0.24)] bg-[rgba(97,76,24,0.22)] px-3 py-1 text-sm font-semibold text-[#f5cf67]"
-                                                                        : "rounded-full bg-[#fff8e6] px-3 py-1 text-sm font-semibold text-[#0f4d3c] border border-[#ecd88d]"
+                                                                    className={
+                                                                        isDark
+                                                                            ? "rounded-full border border-[rgba(212,175,55,0.24)] bg-[rgba(97,76,24,0.22)] px-3 py-1 text-sm font-semibold text-[#f5cf67]"
+                                                                            : "rounded-full bg-[#fff8e6] px-3 py-1 text-sm font-semibold text-[#0f4d3c] border border-[#ecd88d]"
                                                                     }
                                                                 >
                                                                     {item.name}
@@ -1412,10 +1441,7 @@ function Quotation({ mode = "public" }) {
                                                     </div>
                                                 </div>
 
-                                                <div className={isDark
-                                                    ? "rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.98)_0%,rgba(13,40,32,0.98)_100%)] p-4"
-                                                    : "rounded-2xl border border-[#e3ebe7] bg-white p-4"
-                                                }>
+                                                <div className={isDark ? "rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.98)_0%,rgba(13,40,32,0.98)_100%)] p-4" : "rounded-2xl border border-[#e3ebe7] bg-white p-4"}>
                                                     <p className={`text-xs font-semibold uppercase tracking-[0.16em] ${mutedText2}`}>
                                                         Extra Preferences
                                                     </p>
@@ -1468,151 +1494,15 @@ function Quotation({ mode = "public" }) {
 
                 <AnimatePresence>
                     {showSuccessModal && submittedQuotation && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="fixed inset-0 z-50 flex items-center justify-center bg-[#06261d]/50 px-4 py-6 backdrop-blur-[4px]"
-                        >
-                            <motion.div
-                                initial={{ opacity: 0, y: 24, scale: 0.94 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                exit={{ opacity: 0, y: 18, scale: 0.96 }}
-                                transition={{ type: "spring", stiffness: 260, damping: 22 }}
-                                className={isDark
-                                    ? "w-full max-w-3xl overflow-hidden rounded-[34px] border border-[rgba(212,175,55,0.28)] bg-[linear-gradient(180deg,rgba(10,33,27,0.99)_0%,rgba(13,40,32,0.99)_100%)] shadow-[0_35px_90px_rgba(0,0,0,0.38)]"
-                                    : "w-full max-w-3xl overflow-hidden rounded-[34px] border border-[#ead48d] bg-white shadow-[0_35px_90px_rgba(0,0,0,0.24)]"
-                                }
-                            >
-                                <div className="relative bg-[linear-gradient(135deg,#0b5a43_0%,#0e6a4f_46%,#0f4d3c_100%)] px-7 py-7 text-white sm:px-8">
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowSuccessModal(false)}
-                                        className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20"
-                                    >
-                                        <X size={18} />
-                                    </button>
-
-                                    <div className="flex items-start gap-4 pr-10">
-                                        <motion.div
-                                            initial={{ scale: 0.9, rotate: -8 }}
-                                            animate={{ scale: 1, rotate: 0 }}
-                                            transition={{ type: "spring", stiffness: 250, damping: 16 }}
-                                            className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[22px] bg-[#f5c94a] text-[#0b4a3a] shadow-lg"
-                                        >
-                                            <CheckCircle2 size={32} />
-                                        </motion.div>
-
-                                        <div>
-                                            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/75">
-                                                Request Confirmed
-                                            </p>
-                                            <h3 className="mt-2 text-2xl font-extrabold leading-tight sm:text-3xl">
-                                                Your quotation has been submitted successfully
-                                            </h3>
-                                            <p className="mt-3 max-w-2xl text-sm leading-7 text-white/80">
-                                                Thank you for choosing Ebit&apos;s Catering.
-                                                Your quotation request is now recorded and ready
-                                                for admin review.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="p-7 sm:p-8">
-                                    <div className="grid gap-5 md:grid-cols-[1.12fr_0.88fr]">
-                                        <div className={isDark
-                                            ? "rounded-[28px] border border-[rgba(212,175,55,0.22)] bg-[linear-gradient(180deg,rgba(88,67,20,0.14)_0%,rgba(120,91,27,0.12)_100%)] p-5"
-                                            : "rounded-[28px] border border-[#ead48d] bg-[linear-gradient(180deg,#fffdf7_0%,#fff6dd_100%)] p-5"
-                                        }>
-                                            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#b99117]">
-                                                Quotation Details
-                                            </p>
-
-                                            <div className="mt-4 space-y-3 text-sm">
-                                                <SummaryRow label="Quotation ID" value={submittedQuotation.quotationId} isDark={isDark} />
-                                                <SummaryRow label="Client Name" value={submittedQuotation.fullName} multiLine isDark={isDark} />
-                                                <SummaryRow label="Event Type" value={submittedQuotation.eventType} isDark={isDark} />
-
-                                                <div className="flex items-center justify-between gap-4">
-                                                    <span className={isDark ? "text-white/60" : "text-gray-500"}>Status</span>
-                                                    <span className={isDark
-                                                        ? "inline-flex items-center rounded-full bg-[rgba(97,76,24,0.34)] px-3 py-1 text-xs font-bold text-[#f5cf67]"
-                                                        : "inline-flex items-center rounded-full bg-[#fff1c4] px-3 py-1 text-xs font-bold text-[#9b7400]"
-                                                    }>
-                                                        {submittedQuotation.status}
-                                                    </span>
-                                                </div>
-
-                                                <div className={isDark
-                                                    ? "rounded-[24px] border border-[rgba(212,175,55,0.22)] bg-white/5 px-4 py-4 shadow-sm"
-                                                    : "rounded-[24px] border border-[#ecd88d] bg-white/70 px-4 py-4 shadow-sm"
-                                                }>
-                                                    <div className="flex items-center justify-between gap-4">
-                                                        <span className={`font-semibold ${strongText}`}>
-                                                            Estimated Total
-                                                        </span>
-                                                        <span className={`text-xl font-extrabold ${strongText}`}>
-                                                            {formatCurrency(submittedQuotation.estimatedTotal)}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className={isDark
-                                            ? "rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(12,36,29,0.98)_0%,rgba(16,44,35,0.98)_100%)] p-5"
-                                            : "rounded-[28px] border border-[#dfe7e3] bg-[#f8fbfa] p-5"
-                                        }>
-                                            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#0f8a61]">
-                                                What happens next?
-                                            </p>
-
-                                            <div className="mt-4 space-y-4">
-                                                <StepItem
-                                                    number="1"
-                                                    numberClass="bg-[#0f4d3c] text-white"
-                                                    text="The admin will review your selected package, date, guest count, and add-ons."
-                                                    isDark={isDark}
-                                                />
-                                                <StepItem
-                                                    number="2"
-                                                    numberClass="bg-[#d4af37] text-[#0f4d3c]"
-                                                    text="Your quotation status will appear in your client quotations page once updated."
-                                                    isDark={isDark}
-                                                />
-                                                <StepItem
-                                                    number="3"
-                                                    numberClass="border border-[#bcd7cb] bg-[#e8f3ef] text-[#0f4d3c]"
-                                                    text="You may proceed to your portal to monitor the request and wait for confirmation."
-                                                    isDark={isDark}
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="mt-7 grid gap-4 sm:grid-cols-2">
-                                        <motion.button
-                                            whileTap={{ scale: 0.985 }}
-                                            type="button"
-                                            onClick={handleViewMyQuotations}
-                                            className="w-full rounded-2xl bg-[linear-gradient(135deg,#0f4d3c_0%,#126650_100%)] py-3.5 font-bold text-white shadow-[0_12px_30px_rgba(15,77,60,0.18)] transition hover:brightness-95"
-                                        >
-                                            View My Quotations
-                                        </motion.button>
-
-                                        <motion.button
-                                            whileTap={{ scale: 0.985 }}
-                                            type="button"
-                                            onClick={handleBackAfterSubmit}
-                                            className="w-full rounded-2xl bg-[linear-gradient(135deg,#e1b93e_0%,#d4af37_100%)] py-3.5 font-bold text-[#0b4a3a] shadow-sm transition hover:brightness-95"
-                                        >
-                                            {isClientMode ? "Back to Dashboard" : "Back to Home"}
-                                        </motion.button>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        </motion.div>
+                        <SuccessModal
+                            submittedQuotation={submittedQuotation}
+                            isDark={isDark}
+                            strongText={strongText}
+                            onClose={() => setShowSuccessModal(false)}
+                            onViewMyQuotations={handleViewMyQuotations}
+                            onBack={handleBackAfterSubmit}
+                            isClientMode={isClientMode}
+                        />
                     )}
                 </AnimatePresence>
             </motion.div>
@@ -1630,13 +1520,10 @@ function PremiumDatePicker({ value, onChange, isDark }) {
     }, []);
 
     const selectedDate = useMemo(() => dateFromInputValue(value), [value]);
-
     const [viewDate, setViewDate] = useState(selectedDate || today);
 
     useEffect(() => {
-        if (selectedDate) {
-            setViewDate(selectedDate);
-        }
+        if (selectedDate) setViewDate(selectedDate);
     }, [selectedDate]);
 
     useEffect(() => {
@@ -1674,32 +1561,19 @@ function PremiumDatePicker({ value, onChange, isDark }) {
 
     return (
         <div className="relative" ref={rootRef}>
-            <button
-                type="button"
-                onClick={() => setOpen((prev) => !prev)}
-                className={pickerButtonClass}
-            >
+            <button type="button" onClick={() => setOpen((prev) => !prev)} className={pickerButtonClass}>
                 <div className="flex items-center gap-3">
                     <CalendarDays size={17} className="text-[#b99117]" />
                     <span className={value ? "" : isDark ? "text-white/35" : "text-slate-400"}>
                         {formatDateDisplay(value)}
                     </span>
                 </div>
-                <ChevronDown
-                    size={18}
-                    className={`transition ${open ? "rotate-180" : ""} ${isDark ? "text-white/65" : "text-slate-500"}`}
-                />
+                <ChevronDown size={18} className={`transition ${open ? "rotate-180" : ""} ${isDark ? "text-white/65" : "text-slate-500"}`} />
             </button>
 
             <AnimatePresence>
                 {open && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 8, scale: 0.98 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 6, scale: 0.98 }}
-                        transition={{ duration: 0.18 }}
-                        className={dropdownClass}
-                    >
+                    <motion.div initial={{ opacity: 0, y: 8, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 6, scale: 0.98 }} transition={{ duration: 0.18 }} className={dropdownClass}>
                         <div className="mb-4 flex items-center justify-between gap-3">
                             <div>
                                 <p className={`text-xs font-semibold uppercase tracking-[0.18em] ${isDark ? "text-white/50" : "text-slate-400"}`}>
@@ -1712,47 +1586,19 @@ function PremiumDatePicker({ value, onChange, isDark }) {
 
                             <div className="flex items-center gap-2">
                                 {value ? (
-                                    <button
-                                        type="button"
-                                        onClick={() => onChange("")}
-                                        className={isDark
-                                            ? "rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-white/80 transition hover:bg-white/10"
-                                            : "rounded-full border border-[#e3ebe7] bg-[#fbfdfc] px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-[#f3fbf7]"
-                                        }
-                                    >
+                                    <button type="button" onClick={() => onChange("")} className={isDark ? "rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-white/80 transition hover:bg-white/10" : "rounded-full border border-[#e3ebe7] bg-[#fbfdfc] px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-[#f3fbf7]"}>
                                         Clear
                                     </button>
                                 ) : null}
 
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setViewDate(today);
-                                        onChange(toInputDateValue(today));
-                                    }}
-                                    className={isDark
-                                        ? "rounded-full border border-[rgba(212,175,55,0.24)] bg-[rgba(97,76,24,0.22)] px-3 py-1 text-xs font-semibold text-[#f5cf67] transition hover:brightness-110"
-                                        : "rounded-full border border-[#ecd88d] bg-[#fff8e6] px-3 py-1 text-xs font-semibold text-[#9b7400] transition hover:brightness-95"
-                                    }
-                                >
+                                <button type="button" onClick={() => { setViewDate(today); onChange(toInputDateValue(today)); }} className={isDark ? "rounded-full border border-[rgba(212,175,55,0.24)] bg-[rgba(97,76,24,0.22)] px-3 py-1 text-xs font-semibold text-[#f5cf67] transition hover:brightness-110" : "rounded-full border border-[#ecd88d] bg-[#fff8e6] px-3 py-1 text-xs font-semibold text-[#9b7400] transition hover:brightness-95"}>
                                     Today
                                 </button>
                             </div>
                         </div>
 
                         <div className="mb-4 flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-3 py-3">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    const next = new Date(viewDate);
-                                    next.setMonth(viewDate.getMonth() - 1);
-                                    setViewDate(next);
-                                }}
-                                className={isDark
-                                    ? "flex h-10 w-10 items-center justify-center rounded-xl text-white/80 transition hover:bg-white/10"
-                                    : "flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 transition hover:bg-white"
-                                }
-                            >
+                            <button type="button" onClick={() => { const next = new Date(viewDate); next.setMonth(viewDate.getMonth() - 1); setViewDate(next); }} className={isDark ? "flex h-10 w-10 items-center justify-center rounded-xl text-white/80 transition hover:bg-white/10" : "flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 transition hover:bg-white"}>
                                 <ChevronLeft size={18} />
                             </button>
 
@@ -1760,18 +1606,7 @@ function PremiumDatePicker({ value, onChange, isDark }) {
                                 {monthLabel}
                             </div>
 
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    const next = new Date(viewDate);
-                                    next.setMonth(viewDate.getMonth() + 1);
-                                    setViewDate(next);
-                                }}
-                                className={isDark
-                                    ? "flex h-10 w-10 items-center justify-center rounded-xl text-white/80 transition hover:bg-white/10"
-                                    : "flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 transition hover:bg-white"
-                                }
-                            >
+                            <button type="button" onClick={() => { const next = new Date(viewDate); next.setMonth(viewDate.getMonth() + 1); setViewDate(next); }} className={isDark ? "flex h-10 w-10 items-center justify-center rounded-xl text-white/80 transition hover:bg-white/10" : "flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 transition hover:bg-white"}>
                                 <ChevronRight size={18} />
                             </button>
                         </div>
@@ -1803,15 +1638,7 @@ function PremiumDatePicker({ value, onChange, isDark }) {
                                 }
 
                                 return (
-                                    <button
-                                        key={date.toISOString()}
-                                        type="button"
-                                        onClick={() => {
-                                            onChange(toInputDateValue(date));
-                                            setOpen(false);
-                                        }}
-                                        className={dayClass}
-                                    >
+                                    <button key={date.toISOString()} type="button" onClick={() => { onChange(toInputDateValue(date)); setOpen(false); }} className={dayClass}>
                                         {date.getDate()}
                                     </button>
                                 );
@@ -1824,7 +1651,7 @@ function PremiumDatePicker({ value, onChange, isDark }) {
     );
 }
 
-function PremiumTimePicker({ value, onChange, isDark }) {
+function PremiumTimePicker({ value, onChange, isDark, placeholder = "Select event time", title = "Event Time" }) {
     const [open, setOpen] = useState(false);
     const rootRef = useRef(null);
 
@@ -1874,9 +1701,10 @@ function PremiumTimePicker({ value, onChange, isDark }) {
         let hour24 = Number(hour);
         if (period === "AM") {
             if (hour24 === 12) hour24 = 0;
-        } else {
-            if (hour24 !== 12) hour24 += 12;
+        } else if (hour24 !== 12) {
+            hour24 += 12;
         }
+
         onChange(`${String(hour24).padStart(2, "0")}:${minute}`);
     };
 
@@ -1901,51 +1729,31 @@ function PremiumTimePicker({ value, onChange, isDark }) {
 
     return (
         <div className="relative" ref={rootRef}>
-            <button
-                type="button"
-                onClick={() => setOpen((prev) => !prev)}
-                className={pickerButtonClass}
-            >
+            <button type="button" onClick={() => setOpen((prev) => !prev)} className={pickerButtonClass}>
                 <div className="flex items-center gap-3">
                     <Clock3 size={17} className="text-[#b99117]" />
                     <span className={value ? "" : isDark ? "text-white/35" : "text-slate-400"}>
-                        {formatTimeDisplay(value)}
+                        {formatTimeDisplay(value, placeholder)}
                     </span>
                 </div>
-                <ChevronDown
-                    size={18}
-                    className={`transition ${open ? "rotate-180" : ""} ${isDark ? "text-white/65" : "text-slate-500"}`}
-                />
+                <ChevronDown size={18} className={`transition ${open ? "rotate-180" : ""} ${isDark ? "text-white/65" : "text-slate-500"}`} />
             </button>
 
             <AnimatePresence>
                 {open && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 8, scale: 0.98 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 6, scale: 0.98 }}
-                        transition={{ duration: 0.18 }}
-                        className={dropdownClass}
-                    >
+                    <motion.div initial={{ opacity: 0, y: 8, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 6, scale: 0.98 }} transition={{ duration: 0.18 }} className={dropdownClass}>
                         <div className="mb-4 flex items-center justify-between gap-3">
                             <div>
                                 <p className={`text-xs font-semibold uppercase tracking-[0.18em] ${isDark ? "text-white/50" : "text-slate-400"}`}>
-                                    Event Time
+                                    {title}
                                 </p>
                                 <p className={`mt-1 text-sm font-bold ${isDark ? "text-white" : "text-[#0f4d3c]"}`}>
-                                    {formatTimeDisplay(value)}
+                                    {formatTimeDisplay(value, placeholder)}
                                 </p>
                             </div>
 
                             {value ? (
-                                <button
-                                    type="button"
-                                    onClick={() => onChange("")}
-                                    className={isDark
-                                        ? "rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-white/80 transition hover:bg-white/10"
-                                        : "rounded-full border border-[#e3ebe7] bg-[#fbfdfc] px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-[#f3fbf7]"
-                                    }
-                                >
+                                <button type="button" onClick={() => onChange("")} className={isDark ? "rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-white/80 transition hover:bg-white/10" : "rounded-full border border-[#e3ebe7] bg-[#fbfdfc] px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-[#f3fbf7]"}>
                                     Clear
                                 </button>
                             ) : null}
@@ -1958,15 +1766,7 @@ function PremiumTimePicker({ value, onChange, isDark }) {
                                 </p>
                                 <div className={columnClass}>
                                     {hours.map((hour) => (
-                                        <button
-                                            key={hour}
-                                            type="button"
-                                            onClick={() => {
-                                                setSelectedHour(hour);
-                                                applyTime(hour, selectedMinute, selectedPeriod);
-                                            }}
-                                            className={itemClass(selectedHour === hour)}
-                                        >
+                                        <button key={hour} type="button" onClick={() => { setSelectedHour(hour); applyTime(hour, selectedMinute, selectedPeriod); }} className={itemClass(selectedHour === hour)}>
                                             {hour}
                                         </button>
                                     ))}
@@ -1979,15 +1779,7 @@ function PremiumTimePicker({ value, onChange, isDark }) {
                                 </p>
                                 <div className={columnClass}>
                                     {minutes.map((minute) => (
-                                        <button
-                                            key={minute}
-                                            type="button"
-                                            onClick={() => {
-                                                setSelectedMinute(minute);
-                                                applyTime(selectedHour, minute, selectedPeriod);
-                                            }}
-                                            className={itemClass(selectedMinute === minute)}
-                                        >
+                                        <button key={minute} type="button" onClick={() => { setSelectedMinute(minute); applyTime(selectedHour, minute, selectedPeriod); }} className={itemClass(selectedMinute === minute)}>
                                             {minute}
                                         </button>
                                     ))}
@@ -2000,15 +1792,7 @@ function PremiumTimePicker({ value, onChange, isDark }) {
                                 </p>
                                 <div className={columnClass}>
                                     {periods.map((period) => (
-                                        <button
-                                            key={period}
-                                            type="button"
-                                            onClick={() => {
-                                                setSelectedPeriod(period);
-                                                applyTime(selectedHour, selectedMinute, period);
-                                            }}
-                                            className={itemClass(selectedPeriod === period)}
-                                        >
+                                        <button key={period} type="button" onClick={() => { setSelectedPeriod(period); applyTime(selectedHour, selectedMinute, period); }} className={itemClass(selectedPeriod === period)}>
                                             {period}
                                         </button>
                                     ))}
@@ -2024,11 +1808,7 @@ function PremiumTimePicker({ value, onChange, isDark }) {
 
 function MiniHeroCard({ icon: Icon, label, value }) {
     return (
-        <motion.div
-            whileHover={{ y: -3 }}
-            transition={{ type: "spring", stiffness: 220, damping: 18 }}
-            className="rounded-[22px] border border-white/10 bg-white/10 p-4 backdrop-blur-md"
-        >
+        <motion.div whileHover={{ y: -3 }} transition={{ type: "spring", stiffness: 220, damping: 18 }} className="rounded-[22px] border border-white/10 bg-white/10 p-4 backdrop-blur-md">
             <div className="flex items-center gap-3">
                 <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-white">
                     <Icon size={20} />
@@ -2064,17 +1844,11 @@ function Field({ label, required, filled, caption, children, isDark }) {
                 </label>
 
                 {caption ? (
-                    <span className={isDark
-                        ? "hidden rounded-full bg-[rgba(21,64,50,0.82)] px-2.5 py-1 text-[11px] font-semibold text-[#98efcc] sm:inline-flex"
-                        : "hidden rounded-full bg-[#eef8f4] px-2.5 py-1 text-[11px] font-semibold text-[#0f6b52] sm:inline-flex"
-                    }>
+                    <span className={isDark ? "hidden rounded-full bg-[rgba(21,64,50,0.82)] px-2.5 py-1 text-[11px] font-semibold text-[#98efcc] sm:inline-flex" : "hidden rounded-full bg-[#eef8f4] px-2.5 py-1 text-[11px] font-semibold text-[#0f6b52] sm:inline-flex"}>
                         {caption}
                     </span>
                 ) : filled ? (
-                    <span className={isDark
-                        ? "hidden rounded-full bg-[rgba(21,64,50,0.82)] px-2.5 py-1 text-[11px] font-semibold text-[#98efcc] sm:inline-flex"
-                        : "hidden rounded-full bg-[#eef8f4] px-2.5 py-1 text-[11px] font-semibold text-[#0f6b52] sm:inline-flex"
-                    }>
+                    <span className={isDark ? "hidden rounded-full bg-[rgba(21,64,50,0.82)] px-2.5 py-1 text-[11px] font-semibold text-[#98efcc] sm:inline-flex" : "hidden rounded-full bg-[#eef8f4] px-2.5 py-1 text-[11px] font-semibold text-[#0f6b52] sm:inline-flex"}>
                         Filled
                     </span>
                 ) : null}
@@ -2130,6 +1904,117 @@ function StepItem({ number, numberClass, text, isDark }) {
             </div>
             <p className={`text-sm leading-6 ${isDark ? "text-white/70" : "text-gray-600"}`}>{text}</p>
         </div>
+    );
+}
+
+function SuccessModal({
+    submittedQuotation,
+    isDark,
+    strongText,
+    onClose,
+    onViewMyQuotations,
+    onBack,
+    isClientMode,
+}) {
+    return (
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-[#06261d]/50 px-4 py-6 backdrop-blur-[4px]"
+        >
+            <motion.div
+                initial={{ opacity: 0, y: 24, scale: 0.94 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 18, scale: 0.96 }}
+                transition={{ type: "spring", stiffness: 260, damping: 22 }}
+                className={
+                    isDark
+                        ? "w-full max-w-3xl overflow-hidden rounded-[34px] border border-[rgba(212,175,55,0.28)] bg-[linear-gradient(180deg,rgba(10,33,27,0.99)_0%,rgba(13,40,32,0.99)_100%)] shadow-[0_35px_90px_rgba(0,0,0,0.38)]"
+                        : "w-full max-w-3xl overflow-hidden rounded-[34px] border border-[#ead48d] bg-white shadow-[0_35px_90px_rgba(0,0,0,0.24)]"
+                }
+            >
+                <div className="relative bg-[linear-gradient(135deg,#0b5a43_0%,#0e6a4f_46%,#0f4d3c_100%)] px-7 py-7 text-white sm:px-8">
+                    <button type="button" onClick={onClose} className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20">
+                        <X size={18} />
+                    </button>
+
+                    <div className="flex items-start gap-4 pr-10">
+                        <motion.div initial={{ scale: 0.9, rotate: -8 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: "spring", stiffness: 250, damping: 16 }} className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[22px] bg-[#f5c94a] text-[#0b4a3a] shadow-lg">
+                            <CheckCircle2 size={32} />
+                        </motion.div>
+
+                        <div>
+                            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/75">
+                                Request Confirmed
+                            </p>
+                            <h3 className="mt-2 text-2xl font-extrabold leading-tight sm:text-3xl">
+                                Your quotation has been submitted successfully
+                            </h3>
+                            <p className="mt-3 max-w-2xl text-sm leading-7 text-white/80">
+                                Thank you for choosing Ebit&apos;s Catering. Your quotation request is now recorded and ready for admin review.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="p-7 sm:p-8">
+                    <div className="grid gap-5 md:grid-cols-[1.12fr_0.88fr]">
+                        <div className={isDark ? "rounded-[28px] border border-[rgba(212,175,55,0.22)] bg-[linear-gradient(180deg,rgba(88,67,20,0.14)_0%,rgba(120,91,27,0.12)_100%)] p-5" : "rounded-[28px] border border-[#ead48d] bg-[linear-gradient(180deg,#fffdf7_0%,#fff6dd_100%)] p-5"}>
+                            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#b99117]">
+                                Quotation Details
+                            </p>
+
+                            <div className="mt-4 space-y-3 text-sm">
+                                <SummaryRow label="Quotation ID" value={submittedQuotation.quotationId} isDark={isDark} />
+                                <SummaryRow label="Client Name" value={submittedQuotation.fullName} multiLine isDark={isDark} />
+                                <SummaryRow label="Event Type" value={submittedQuotation.eventType} isDark={isDark} />
+
+                                <div className="flex items-center justify-between gap-4">
+                                    <span className={isDark ? "text-white/60" : "text-gray-500"}>Status</span>
+                                    <span className={isDark ? "inline-flex items-center rounded-full bg-[rgba(97,76,24,0.34)] px-3 py-1 text-xs font-bold text-[#f5cf67]" : "inline-flex items-center rounded-full bg-[#fff1c4] px-3 py-1 text-xs font-bold text-[#9b7400]"}>
+                                        {submittedQuotation.status}
+                                    </span>
+                                </div>
+
+                                <div className={isDark ? "rounded-[24px] border border-[rgba(212,175,55,0.22)] bg-white/5 px-4 py-4 shadow-sm" : "rounded-[24px] border border-[#ecd88d] bg-white/70 px-4 py-4 shadow-sm"}>
+                                    <div className="flex items-center justify-between gap-4">
+                                        <span className={`font-semibold ${strongText}`}>
+                                            Estimated Total
+                                        </span>
+                                        <span className={`text-xl font-extrabold ${strongText}`}>
+                                            {formatCurrency(submittedQuotation.estimatedTotal)}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className={isDark ? "rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(12,36,29,0.98)_0%,rgba(16,44,35,0.98)_100%)] p-5" : "rounded-[28px] border border-[#dfe7e3] bg-[#f8fbfa] p-5"}>
+                            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#0f8a61]">
+                                What happens next?
+                            </p>
+
+                            <div className="mt-4 space-y-4">
+                                <StepItem number="1" numberClass="bg-[#0f4d3c] text-white" text="The admin will review your selected package, date, guest count, event time, and add-ons." isDark={isDark} />
+                                <StepItem number="2" numberClass="bg-[#d4af37] text-[#0f4d3c]" text="Your quotation status will appear in your client quotations page once updated." isDark={isDark} />
+                                <StepItem number="3" numberClass="border border-[#bcd7cb] bg-[#e8f3ef] text-[#0f4d3c]" text="You may proceed to your portal to monitor the request and wait for confirmation." isDark={isDark} />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mt-7 grid gap-4 sm:grid-cols-2">
+                        <motion.button whileTap={{ scale: 0.985 }} type="button" onClick={onViewMyQuotations} className="w-full rounded-2xl bg-[linear-gradient(135deg,#0f4d3c_0%,#126650_100%)] py-3.5 font-bold text-white shadow-[0_12px_30px_rgba(15,77,60,0.18)] transition hover:brightness-95">
+                            View My Quotations
+                        </motion.button>
+
+                        <motion.button whileTap={{ scale: 0.985 }} type="button" onClick={onBack} className="w-full rounded-2xl bg-[linear-gradient(135deg,#e1b93e_0%,#d4af37_100%)] py-3.5 font-bold text-[#0b4a3a] shadow-sm transition hover:brightness-95">
+                            {isClientMode ? "Back to Dashboard" : "Back to Home"}
+                        </motion.button>
+                    </div>
+                </div>
+            </motion.div>
+        </motion.div>
     );
 }
 
