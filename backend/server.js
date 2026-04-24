@@ -13,51 +13,42 @@ app.set("trust proxy", 1);
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 const { httpLogger } = require("./utils/logger");
 
-const allowedOrigins = new Set([
+// ✅ FIXED CORS (clean version)
+const allowedOrigins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "https://ebitscatering.vercel.app",
-]);
+];
 
-const corsOptions = {
-    origin(origin, callback) {
-        if (!origin) return callback(null, true);
-        if (allowedOrigins.has(origin)) return callback(null, true);
-        return callback(new Error("Not allowed by CORS"));
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    optionsSuccessStatus: 204,
-};
+app.use(
+    cors({
+        origin: function (origin, callback) {
+            if (!origin) return callback(null, true);
+            if (allowedOrigins.includes(origin)) {
+                return callback(null, true);
+            }
+            return callback(new Error("Not allowed by CORS"));
+        },
+        credentials: true,
+    })
+);
 
+// ✅ FIX COOP issue
 app.use((req, res, next) => {
-    const origin = req.headers.origin;
-
-    if (origin && allowedOrigins.has(origin)) {
-        res.header("Access-Control-Allow-Origin", origin);
-        res.header("Vary", "Origin");
-        res.header("Access-Control-Allow-Credentials", "true");
-        res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
-        res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-    }
-
-    res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
-
-    if (req.method === "OPTIONS") {
-        return res.sendStatus(204);
-    }
-
+    res.setHeader(
+        "Cross-Origin-Opener-Policy",
+        "same-origin-allow-popups"
+    );
     next();
 });
 
-app.use(cors(corsOptions));
 app.use(compression());
 app.use(cookieParser());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(httpLogger);
 
+// ROUTES
 app.get("/", (req, res) => {
     res.status(200).json({
         success: true,
@@ -95,6 +86,7 @@ const server = app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on port ${PORT}`);
 });
 
+// ERROR HANDLERS
 process.on("unhandledRejection", (err) => {
     console.error("Unhandled Rejection:", err);
 });
@@ -104,17 +96,11 @@ process.on("uncaughtException", (err) => {
 });
 
 process.on("SIGTERM", () => {
-    console.log("SIGTERM received. Shutting down gracefully...");
-    server.close(() => {
-        console.log("Server closed.");
-        process.exit(0);
-    });
+    console.log("SIGTERM received. Shutting down...");
+    server.close(() => process.exit(0));
 });
 
 process.on("SIGINT", () => {
-    console.log("SIGINT received. Shutting down gracefully...");
-    server.close(() => {
-        console.log("Server closed.");
-        process.exit(0);
-    });
+    console.log("SIGINT received. Shutting down...");
+    server.close(() => process.exit(0));
 });
