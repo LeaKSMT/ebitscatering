@@ -2,7 +2,6 @@ const db = require("../config/db");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-const nodemailer = require("nodemailer");
 
 const signToken = (user) => {
     return jwt.sign(
@@ -25,28 +24,49 @@ const cookieOptions = {
     path: "/",
 };
 
-function getMailTransporter() {
-    const emailUser = (process.env.EMAIL_USER || "").trim();
-    const emailPass = (process.env.EMAIL_PASS || "").replace(/\s+/g, "").trim();
+async function sendMailViaScript({ to, subject, html }) {
+    const url = (process.env.MAIL_SCRIPT_URL || "").trim();
+    const secret = (process.env.MAIL_SCRIPT_SECRET || "").trim();
 
-    if (!emailUser || !emailPass) {
-        console.log("Missing EMAIL_USER or EMAIL_PASS");
-        return null;
+    if (!url || !secret) {
+        throw new Error("MAIL_SCRIPT_URL or MAIL_SCRIPT_SECRET is missing.");
     }
 
-    return nodemailer.createTransport({
-        host: "smtp.gmail.com",
-        port: 465,
-        secure: true,
-        family: 4,
-        auth: {
-            user: emailUser,
-            pass: emailPass,
-        },
-        connectionTimeout: 15000,
-        greetingTimeout: 15000,
-        socketTimeout: 20000,
-    });
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 20000);
+
+    try {
+        const response = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "text/plain;charset=utf-8",
+            },
+            body: JSON.stringify({
+                secret,
+                to,
+                subject,
+                html,
+            }),
+            signal: controller.signal,
+        });
+
+        const text = await response.text();
+        let data = {};
+
+        try {
+            data = JSON.parse(text);
+        } catch {
+            data = { success: response.ok, message: text };
+        }
+
+        if (!response.ok || data.success === false) {
+            throw new Error(data.message || "Google Apps Script email failed.");
+        }
+
+        return data;
+    } finally {
+        clearTimeout(timer);
+    }
 }
 
 exports.register = async (req, res) => {
@@ -389,56 +409,48 @@ exports.forgotPassword = (req, res) => {
 
                     const resetLink = `${frontendUrl}/reset-password?token=${rawToken}`;
 
+                    const html = `
+                        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #1f2937; max-width: 620px; margin: 0 auto; padding: 24px; background:#f7f4ee;">
+                            <div style="background: linear-gradient(135deg,#0f4d3c,#18a06c); color: #ffffff; padding: 24px; border-radius: 20px 20px 0 0;">
+                                <h1 style="margin: 0; font-size: 26px;">Ebit's Catering</h1>
+                                <p style="margin: 8px 0 0; color: #f5d56a;">Password Reset Request</p>
+                            </div>
+
+                            <div style="border: 1px solid #e5e7eb; border-top: none; background:#ffffff; padding: 26px; border-radius: 0 0 20px 20px;">
+                                <h2 style="color: #0f4d3c; margin-top: 0;">Reset Your Password</h2>
+
+                                <p>Hello ${user.name || "User"},</p>
+
+                                <p>We received a request to reset your password for your Ebit's Catering account.</p>
+
+                                <p>Click the button below to reset your password:</p>
+
+                                <p style="margin: 30px 0;">
+                                    <a href="${resetLink}" style="background:#0f4d3c;color:#ffffff;padding:14px 24px;border-radius:14px;text-decoration:none;display:inline-block;font-weight:700;">
+                                        Reset Password
+                                    </a>
+                                </p>
+
+                                <p style="color:#4b5563;">This link will expire in <strong>15 minutes</strong>.</p>
+
+                                <p style="color:#4b5563;">If the button does not work, copy and paste this link into your browser:</p>
+
+                                <p style="word-break: break-all; background:#f3f4f6; padding:13px; border-radius:12px; color:#0f4d3c;">
+                                    ${resetLink}
+                                </p>
+
+                                <p style="color:#6b7280; font-size:13px; margin-top:24px;">
+                                    If you did not request this, you can safely ignore this email.
+                                </p>
+                            </div>
+                        </div>
+                    `;
+
                     try {
-                        const transporter = getMailTransporter();
-
-                        if (!transporter) {
-                            return res.status(500).json({
-                                success: false,
-                                message: "Email service is not configured.",
-                            });
-                        }
-
-                        await transporter.sendMail({
-                            from: `"Ebit's Catering" <${process.env.EMAIL_USER}>`,
+                        await sendMailViaScript({
                             to: email,
                             subject: "Reset Your Ebit's Catering Password",
-                            html: `
-                                <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #1f2937; max-width: 620px; margin: 0 auto; padding: 24px; background:#f7f4ee;">
-                                    <div style="background: linear-gradient(135deg,#0f4d3c,#18a06c); color: #ffffff; padding: 24px; border-radius: 20px 20px 0 0;">
-                                        <h1 style="margin: 0; font-size: 26px;">Ebit's Catering</h1>
-                                        <p style="margin: 8px 0 0; color: #f5d56a;">Password Reset Request</p>
-                                    </div>
-
-                                    <div style="border: 1px solid #e5e7eb; border-top: none; background:#ffffff; padding: 26px; border-radius: 0 0 20px 20px;">
-                                        <h2 style="color: #0f4d3c; margin-top: 0;">Reset Your Password</h2>
-
-                                        <p>Hello ${user.name || "User"},</p>
-
-                                        <p>We received a request to reset your password for your Ebit's Catering account.</p>
-
-                                        <p>Click the button below to reset your password:</p>
-
-                                        <p style="margin: 30px 0;">
-                                            <a href="${resetLink}" style="background:#0f4d3c;color:#ffffff;padding:14px 24px;border-radius:14px;text-decoration:none;display:inline-block;font-weight:700;">
-                                                Reset Password
-                                            </a>
-                                        </p>
-
-                                        <p style="color:#4b5563;">This link will expire in <strong>15 minutes</strong>.</p>
-
-                                        <p style="color:#4b5563;">If the button does not work, copy and paste this link into your browser:</p>
-
-                                        <p style="word-break: break-all; background:#f3f4f6; padding:13px; border-radius:12px; color:#0f4d3c;">
-                                            ${resetLink}
-                                        </p>
-
-                                        <p style="color:#6b7280; font-size:13px; margin-top:24px;">
-                                            If you did not request this, you can safely ignore this email.
-                                        </p>
-                                    </div>
-                                </div>
-                            `,
+                            html,
                         });
 
                         return res.status(200).json({
@@ -446,7 +458,7 @@ exports.forgotPassword = (req, res) => {
                             message: "Reset instructions have been sent to your email.",
                         });
                     } catch (mailErr) {
-                        console.error("Gmail sending exception:", mailErr);
+                        console.error("Apps Script email exception:", mailErr);
 
                         return res.status(500).json({
                             success: false,
