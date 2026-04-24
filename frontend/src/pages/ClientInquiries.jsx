@@ -15,13 +15,35 @@ import {
 const DEFAULT_ACKNOWLEDGMENT =
     "Thank you for your inquiry. Our admin has received your message and will respond as soon as possible.";
 
-function safeParse(key, fallback = []) {
-    try {
-        const raw = localStorage.getItem(key);
-        return raw ? JSON.parse(raw) : fallback;
-    } catch {
-        return fallback;
+function getApiBaseUrl() {
+    const envUrl = import.meta.env.VITE_API_URL?.trim();
+
+    if (!envUrl) {
+        return "https://ebitscatering-production.up.railway.app/api";
     }
+
+    const cleaned = envUrl.replace(/\/+$/, "");
+    return cleaned.endsWith("/api") ? cleaned : `${cleaned}/api`;
+}
+
+const API_BASE_URL = getApiBaseUrl();
+
+function getStoredToken() {
+    return (
+        localStorage.getItem("clientToken") ||
+        localStorage.getItem("token") ||
+        localStorage.getItem("adminToken") ||
+        ""
+    );
+}
+
+function buildHeaders(extra = {}) {
+    const token = getStoredToken();
+
+    return {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...extra,
+    };
 }
 
 function getClientUser() {
@@ -46,12 +68,11 @@ function getCurrentClientEmail() {
     );
 }
 
-function getScopedKey(baseKey, email) {
-    return email ? `${baseKey}_${email}` : `${baseKey}_guest`;
-}
-
 function formatDateTime(dateString) {
-    return new Date(dateString).toLocaleString("en-PH", {
+    const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) return "No date";
+
+    return date.toLocaleString("en-PH", {
         month: "short",
         day: "numeric",
         year: "numeric",
@@ -101,14 +122,17 @@ function buildAutoReply(messageText) {
     return DEFAULT_ACKNOWLEDGMENT;
 }
 
-function registerInquiryKey(storageKey) {
-    const allKeys = safeParse("adminInquiryKeys", []);
-    const nextKeys = Array.from(new Set([...allKeys, storageKey]));
-    localStorage.setItem("adminInquiryKeys", JSON.stringify(nextKeys));
-}
-
-function dispatchInquiryUpdate() {
-    window.dispatchEvent(new Event("inquiries-updated"));
+function normalizeInquiry(row, clientName = "Client") {
+    return {
+        id: row.id,
+        sender: row.sender,
+        senderName: row.sender === "admin" ? "Admin" : row.client_name || clientName,
+        email: row.client_email,
+        text: row.message,
+        createdAt: row.created_at,
+        status: "delivered",
+        isAutoAcknowledgment: Boolean(row.is_auto_acknowledgment),
+    };
 }
 
 const fadeUp = {
@@ -132,23 +156,76 @@ const staggerContainer = {
 function ClientInquiries() {
     const clientUser = getClientUser();
     const email = getCurrentClientEmail();
-    const storageKey = getScopedKey("clientInquiries", email);
 
     const [theme, setTheme] = useState(
         () => localStorage.getItem("clientPortalTheme") || "light"
     );
 
-    const [messages, setMessages] = useState(() => safeParse(storageKey, []));
+    const [messages, setMessages] = useState([]);
     const [input, setInput] = useState("");
     const [isAdminTyping, setIsAdminTyping] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     const messagesEndRef = useRef(null);
     const typingTimeoutRef = useRef(null);
 
-    useEffect(() => {
-        registerInquiryKey(storageKey);
-        dispatchInquiryUpdate();
-    }, [storageKey]);
+    const loadMessages = async () => {
+        if (!email) return;
+
+        try {
+            const res = await fetch(
+                `${API_BASE_URL}/inquiries/${encodeURIComponent(email)}`,
+                {
+                    method: "GET",
+                    headers: buildHeaders(),
+                    credentials: "include",
+                }
+            );
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data?.message || "Failed to load inquiries.");
+            }
+
+            const normalized = Array.isArray(data)
+                ? data.map((row) => normalizeInquiry(row, clientUser?.name || "Client"))
+                : [];
+
+            setMessages(normalized);
+        } catch (err) {
+            console.error("Load client inquiries error:", err);
+        }
+    };
+
+    const createInquiryMessage = async ({
+        sender,
+        message,
+        isAutoAcknowledgment = false,
+    }) => {
+        const res = await fetch(`${API_BASE_URL}/inquiries`, {
+            method: "POST",
+            headers: buildHeaders({
+                "Content-Type": "application/json",
+            }),
+            credentials: "include",
+            body: JSON.stringify({
+                client_name: clientUser?.name || "Client",
+                client_email: email,
+                sender,
+                message,
+                is_auto_acknowledgment: isAutoAcknowledgment ? 1 : 0,
+            }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            throw new Error(data?.message || "Failed to send inquiry.");
+        }
+
+        return data;
+    };
 
     useEffect(() => {
         const syncTheme = () => {
@@ -163,6 +240,13 @@ function ClientInquiries() {
             window.removeEventListener("client-theme-change", syncTheme);
         };
     }, []);
+
+    useEffect(() => {
+        loadMessages();
+        const interval = setInterval(loadMessages, 2000);
+
+        return () => clearInterval(interval);
+    }, [email]);
 
     const sortedMessages = useMemo(() => {
         return [...messages].sort(
@@ -182,13 +266,6 @@ function ClientInquiries() {
         return { total, clientCount, adminCount };
     }, [sortedMessages]);
 
-    const saveMessages = (updated) => {
-        setMessages(updated);
-        localStorage.setItem(storageKey, JSON.stringify(updated));
-        registerInquiryKey(storageKey);
-        dispatchInquiryUpdate();
-    };
-
     const scrollToBottom = () => {
         setTimeout(() => {
             messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -205,127 +282,68 @@ function ClientInquiries() {
         };
     }, []);
 
-    useEffect(() => {
-        const syncMessages = () => {
-            const latest = safeParse(storageKey, []);
-            setMessages(latest);
-
-            const hasRealAdminReply = latest.some(
-                (msg) =>
-                    msg.sender === "admin" &&
-                    msg.text &&
-                    msg.text !== DEFAULT_ACKNOWLEDGMENT &&
-                    !msg.isAutoAcknowledgment
-            );
-
-            if (hasRealAdminReply) {
-                setIsAdminTyping(false);
-                clearTimeout(typingTimeoutRef.current);
-            }
-        };
-
-        window.addEventListener("storage", syncMessages);
-        window.addEventListener("inquiries-updated", syncMessages);
-
-        const interval = setInterval(syncMessages, 1000);
-
-        return () => {
-            window.removeEventListener("storage", syncMessages);
-            window.removeEventListener("inquiries-updated", syncMessages);
-            clearInterval(interval);
-        };
-    }, [storageKey]);
-
-    const handleSendMessage = () => {
+    const handleSendMessage = async () => {
         const trimmed = input.trim();
-        if (!trimmed) return;
+        if (!trimmed || loading) return;
 
-        const latestMessages = safeParse(storageKey, messages);
-
-        const clientMessage = {
-            id: `INQ-${Date.now()}`,
-            sender: "client",
-            senderName: clientUser?.name || "Client",
-            email,
-            text: trimmed,
-            createdAt: new Date().toISOString(),
-            status: "sent",
-        };
-
-        const updatedMessages = [...latestMessages, clientMessage];
-        saveMessages(updatedMessages);
-        setInput("");
-
-        const acknowledgmentText = buildAutoReply(trimmed);
-
-        const hasAcknowledgmentAlready = updatedMessages.some(
-            (msg) => msg.sender === "admin" && msg.text === acknowledgmentText
-        );
-
-        const hasAnyRealAdminReplyAlready = updatedMessages.some(
-            (msg) =>
-                msg.sender === "admin" &&
-                msg.text &&
-                msg.text !== DEFAULT_ACKNOWLEDGMENT &&
-                msg.text !== acknowledgmentText &&
-                !msg.isAutoAcknowledgment
-        );
-
-        const hasDefaultAcknowledgmentAlready = updatedMessages.some(
-            (msg) =>
-                msg.sender === "admin" &&
-                msg.text === DEFAULT_ACKNOWLEDGMENT
-        );
-
-        if (
-            hasAcknowledgmentAlready ||
-            hasAnyRealAdminReplyAlready ||
-            hasDefaultAcknowledgmentAlready
-        ) {
-            setIsAdminTyping(false);
+        if (!email) {
+            alert("No client email found. Please login again.");
             return;
         }
 
-        setIsAdminTyping(true);
-        clearTimeout(typingTimeoutRef.current);
+        try {
+            setLoading(true);
 
-        typingTimeoutRef.current = setTimeout(() => {
-            const latest = safeParse(storageKey, []);
+            await createInquiryMessage({
+                sender: "client",
+                message: trimmed,
+            });
 
-            const latestHasRealAdminReply = latest.some(
+            setInput("");
+            await loadMessages();
+
+            const acknowledgmentText = buildAutoReply(trimmed);
+
+            const hasAdminReply = messages.some(
                 (msg) =>
                     msg.sender === "admin" &&
-                    msg.text &&
-                    msg.text !== DEFAULT_ACKNOWLEDGMENT &&
                     !msg.isAutoAcknowledgment
             );
 
-            const latestHasAcknowledgment = latest.some(
+            const hasSameAcknowledgment = messages.some(
                 (msg) =>
                     msg.sender === "admin" &&
                     msg.text === acknowledgmentText
             );
 
-            if (latestHasRealAdminReply || latestHasAcknowledgment) {
+            if (hasAdminReply || hasSameAcknowledgment) {
                 setIsAdminTyping(false);
                 return;
             }
 
-            const autoReply = {
-                id: `ADM-${Date.now() + 1}`,
-                sender: "admin",
-                senderName: "Admin",
-                email,
-                text: acknowledgmentText,
-                createdAt: new Date().toISOString(),
-                status: "delivered",
-                isAutoAcknowledgment: true,
-            };
+            setIsAdminTyping(true);
+            clearTimeout(typingTimeoutRef.current);
 
-            const finalMessages = [...latest, autoReply];
-            saveMessages(finalMessages);
-            setIsAdminTyping(false);
-        }, 1600);
+            typingTimeoutRef.current = setTimeout(async () => {
+                try {
+                    await createInquiryMessage({
+                        sender: "admin",
+                        message: acknowledgmentText,
+                        isAutoAcknowledgment: true,
+                    });
+                    await loadMessages();
+                } catch (err) {
+                    console.error("Auto acknowledgment error:", err);
+                } finally {
+                    setIsAdminTyping(false);
+                }
+            }, 1400);
+        } catch (err) {
+            console.error("Send inquiry error:", err);
+            alert(err.message || "Failed to send message.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const isDark = theme === "dark";
@@ -409,7 +427,7 @@ function ClientInquiries() {
                                     </p>
                                 </div>
                                 <p className="mt-1 text-sm text-white/75">
-                                    Messages are saved in your account
+                                    Messages are saved online in your account
                                 </p>
                             </div>
                         </div>
@@ -618,25 +636,6 @@ function ClientInquiries() {
                                         className="flex justify-start"
                                     >
                                         <div className={`max-w-[85%] rounded-[28px] px-4 py-4 md:max-w-[70%] md:px-5 ${typingBubble}`}>
-                                            <div className="mb-3 flex items-center gap-2">
-                                                <div
-                                                    className={`flex h-8 w-8 items-center justify-center rounded-xl ${isDark
-                                                            ? "bg-[linear-gradient(135deg,rgba(21,64,50,0.95)_0%,rgba(24,77,60,0.95)_100%)] text-[#98efcc]"
-                                                            : "bg-[#edf8f3] text-[#0d5c46]"
-                                                        }`}
-                                                >
-                                                    <Bot size={16} />
-                                                </div>
-                                                <div>
-                                                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] opacity-80">
-                                                        Admin
-                                                    </p>
-                                                    <p className="text-[11px] opacity-60">
-                                                        Preparing response
-                                                    </p>
-                                                </div>
-                                            </div>
-
                                             <div className="flex items-center gap-2">
                                                 <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-[#0f6d51]" />
                                                 <span className="h-2.5 w-2.5 animate-bounce rounded-full bg-[#0f6d51] [animation-delay:0.15s]" />
@@ -675,15 +674,16 @@ function ClientInquiries() {
                             whileTap={{ scale: 0.98 }}
                             type="button"
                             onClick={handleSendMessage}
-                            className="inline-flex items-center justify-center gap-2 rounded-[22px] bg-[linear-gradient(135deg,#0f4d3c_0%,#127254_100%)] px-6 py-3.5 font-semibold text-white shadow-[0_14px_26px_rgba(15,77,60,0.2)] transition hover:shadow-[0_18px_32px_rgba(15,77,60,0.26)]"
+                            disabled={loading}
+                            className="inline-flex items-center justify-center gap-2 rounded-[22px] bg-[linear-gradient(135deg,#0f4d3c_0%,#127254_100%)] px-6 py-3.5 font-semibold text-white shadow-[0_14px_26px_rgba(15,77,60,0.2)] transition hover:shadow-[0_18px_32px_rgba(15,77,60,0.26)] disabled:cursor-not-allowed disabled:opacity-70"
                         >
                             <Send size={16} />
-                            Send Message
+                            {loading ? "Sending..." : "Send Message"}
                         </motion.button>
                     </div>
 
                     <p className={`mt-3 text-xs ${isDark ? "text-white/40" : "text-slate-400"}`}>
-                        This chat saves your inquiries in the current client account.
+                        This chat saves your inquiries online through the system database.
                     </p>
                 </div>
             </motion.section>

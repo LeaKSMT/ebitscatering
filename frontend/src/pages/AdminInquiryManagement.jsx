@@ -13,16 +13,35 @@ import {
     AlertTriangle,
 } from "lucide-react";
 
-const DEFAULT_ACKNOWLEDGMENT =
-    "Thank you for your inquiry. Our admin has received your message and will respond as soon as possible.";
+function getApiBaseUrl() {
+    const envUrl = import.meta.env.VITE_API_URL?.trim();
 
-function safeParse(key, fallback = []) {
-    try {
-        const raw = localStorage.getItem(key);
-        return raw ? JSON.parse(raw) : fallback;
-    } catch {
-        return fallback;
+    if (!envUrl) {
+        return "https://ebitscatering-production.up.railway.app/api";
     }
+
+    const cleaned = envUrl.replace(/\/+$/, "");
+    return cleaned.endsWith("/api") ? cleaned : `${cleaned}/api`;
+}
+
+const API_BASE_URL = getApiBaseUrl();
+
+function getStoredToken() {
+    return (
+        localStorage.getItem("adminToken") ||
+        localStorage.getItem("token") ||
+        localStorage.getItem("clientToken") ||
+        ""
+    );
+}
+
+function buildHeaders(extra = {}) {
+    const token = getStoredToken();
+
+    return {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...extra,
+    };
 }
 
 function formatDateTime(dateString) {
@@ -40,70 +59,66 @@ function formatDateTime(dateString) {
     });
 }
 
-function dispatchInquiryUpdate() {
-    window.dispatchEvent(new Event("inquiries-updated"));
-}
+function groupInquiries(rows = []) {
+    const grouped = {};
 
-function getAllInquiryThreads() {
-    const threads = [];
-    const keysFromStorage = [];
+    rows.forEach((row) => {
+        const email = row.client_email || "unknown@email.com";
 
-    for (let i = 0; i < localStorage.length; i += 1) {
-        const key = localStorage.key(i);
-
-        if (key && key.startsWith("clientInquiries_")) {
-            keysFromStorage.push(key);
+        if (!grouped[email]) {
+            grouped[email] = {
+                storageKey: email,
+                email,
+                clientName: row.client_name || "Client",
+                messages: [],
+                clientMessageCount: 0,
+                adminMessageCount: 0,
+                latestMessage: null,
+                latestAt: null,
+            };
         }
-    }
 
-    const keysFromIndex = safeParse("adminInquiryKeys", []);
-    const allKeys = Array.from(new Set([...keysFromStorage, ...keysFromIndex]));
+        const message = {
+            id: row.id,
+            sender: row.sender,
+            senderName:
+                row.sender === "admin"
+                    ? "Ebit's Admin"
+                    : row.client_name || "Client",
+            email: row.client_email,
+            text: row.message,
+            createdAt: row.created_at,
+            status: "delivered",
+            isAutoAcknowledgment: Boolean(row.is_auto_acknowledgment),
+        };
 
-    allKeys.forEach((key) => {
-        const messages = safeParse(key, []);
-        if (!Array.isArray(messages) || messages.length === 0) return;
+        grouped[email].messages.push(message);
 
-        const clientMessages = messages.filter((msg) => msg.sender === "client");
+        if (row.sender === "client") {
+            grouped[email].clientMessageCount += 1;
+        }
 
-        const realAdminMessages = messages.filter(
-            (msg) =>
-                msg.sender === "admin" &&
-                msg.text !== DEFAULT_ACKNOWLEDGMENT &&
-                !msg.isAutoAcknowledgment
-        );
-
-        const latestMessage =
-            [...messages].sort(
-                (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
-            )[0] || null;
-
-        const firstClientMessage = clientMessages[0] || messages[0] || null;
-
-        const email =
-            firstClientMessage?.email ||
-            key.replace("clientInquiries_", "") ||
-            "Unknown";
-
-        const clientName =
-            firstClientMessage?.senderName ||
-            firstClientMessage?.name ||
-            "Client";
-
-        threads.push({
-            storageKey: key,
-            email,
-            clientName,
-            messages,
-            clientMessageCount: clientMessages.length,
-            adminMessageCount: realAdminMessages.length,
-            latestMessage,
-            latestAt: latestMessage?.createdAt || null,
-        });
+        if (row.sender === "admin" && !row.is_auto_acknowledgment) {
+            grouped[email].adminMessageCount += 1;
+        }
     });
 
-    return threads.sort(
-        (a, b) => new Date(b.latestAt || 0) - new Date(a.latestAt || 0)
-    );
+    return Object.values(grouped)
+        .map((thread) => {
+            const sortedMessages = [...thread.messages].sort(
+                (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+            );
+
+            const latestMessage = sortedMessages[sortedMessages.length - 1] || null;
+
+            return {
+                ...thread,
+                messages: sortedMessages,
+                latestMessage,
+                latestAt: latestMessage?.createdAt || null,
+            };
+        })
+        .sort((a, b) => new Date(b.latestAt || 0) - new Date(a.latestAt || 0));
 }
 
 const containerVariants = {
@@ -164,6 +179,7 @@ function AdminInquiryManagement() {
     const [selectedThreadKey, setSelectedThreadKey] = useState("");
     const [replyText, setReplyText] = useState("");
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     const isDark = theme === "dark";
 
@@ -181,36 +197,47 @@ function AdminInquiryManagement() {
         ? "border-white/10 bg-[rgba(255,255,255,0.03)] text-white placeholder:text-white/35 focus:border-[#d4af37] focus:ring-4 focus:ring-[#d4af37]/15"
         : "border-[#d5dfda] bg-[#fbfcfc] text-[#0f4d3c] placeholder:text-slate-400 focus:border-[#d4af37] focus:ring-4 focus:ring-[#f6e7b0]";
 
-    const loadThreads = () => {
-        const allThreads = getAllInquiryThreads();
-        setThreads(allThreads);
+    const loadThreads = async () => {
+        try {
+            const res = await fetch(`${API_BASE_URL}/inquiries`, {
+                method: "GET",
+                headers: buildHeaders(),
+                credentials: "include",
+            });
 
-        if (!selectedThreadKey && allThreads.length > 0) {
-            setSelectedThreadKey(allThreads[0].storageKey);
-            return;
-        }
+            const data = await res.json();
 
-        if (
-            selectedThreadKey &&
-            !allThreads.some((thread) => thread.storageKey === selectedThreadKey)
-        ) {
-            setSelectedThreadKey(allThreads[0]?.storageKey || "");
+            if (!res.ok) {
+                throw new Error(data?.message || "Failed to load inquiries.");
+            }
+
+            const groupedThreads = groupInquiries(Array.isArray(data) ? data : []);
+            setThreads(groupedThreads);
+
+            if (!selectedThreadKey && groupedThreads.length > 0) {
+                setSelectedThreadKey(groupedThreads[0].storageKey);
+                return;
+            }
+
+            if (
+                selectedThreadKey &&
+                !groupedThreads.some(
+                    (thread) => thread.storageKey === selectedThreadKey
+                )
+            ) {
+                setSelectedThreadKey(groupedThreads[0]?.storageKey || "");
+            }
+        } catch (err) {
+            console.error("Load admin inquiries error:", err);
         }
     };
 
     useEffect(() => {
         loadThreads();
 
-        const interval = setInterval(loadThreads, 1000);
+        const interval = setInterval(loadThreads, 2000);
 
-        window.addEventListener("storage", loadThreads);
-        window.addEventListener("inquiries-updated", loadThreads);
-
-        return () => {
-            clearInterval(interval);
-            window.removeEventListener("storage", loadThreads);
-            window.removeEventListener("inquiries-updated", loadThreads);
-        };
+        return () => clearInterval(interval);
     }, [selectedThreadKey]);
 
     const selectedThread = useMemo(() => {
@@ -225,53 +252,75 @@ function AdminInquiryManagement() {
         return threads.filter((thread) => thread.adminMessageCount > 0).length;
     }, [threads]);
 
-    const handleSendReply = () => {
+    const handleSendReply = async () => {
         const trimmed = replyText.trim();
-        if (!trimmed || !selectedThread) return;
+        if (!trimmed || !selectedThread || loading) return;
 
-        const cleanedMessages = selectedThread.messages.filter(
-            (message) =>
-                !(
-                    message.sender === "admin" &&
-                    (message.text === DEFAULT_ACKNOWLEDGMENT ||
-                        message.isAutoAcknowledgment)
-                )
-        );
+        try {
+            setLoading(true);
 
-        const updatedMessages = [
-            ...cleanedMessages,
-            {
-                id: `ADM-${Date.now()}`,
-                sender: "admin",
-                senderName: "Ebit's Admin",
-                email: selectedThread.email,
-                text: trimmed,
-                createdAt: new Date().toISOString(),
-                status: "delivered",
-            },
-        ];
+            const res = await fetch(`${API_BASE_URL}/inquiries`, {
+                method: "POST",
+                headers: buildHeaders({
+                    "Content-Type": "application/json",
+                }),
+                credentials: "include",
+                body: JSON.stringify({
+                    client_name: selectedThread.clientName || "Client",
+                    client_email: selectedThread.email,
+                    sender: "admin",
+                    message: trimmed,
+                    is_auto_acknowledgment: 0,
+                }),
+            });
 
-        localStorage.setItem(selectedThread.storageKey, JSON.stringify(updatedMessages));
+            const data = await res.json();
 
-        setReplyText("");
-        dispatchInquiryUpdate();
-        loadThreads();
+            if (!res.ok) {
+                throw new Error(data?.message || "Failed to send reply.");
+            }
+
+            setReplyText("");
+            await loadThreads();
+        } catch (err) {
+            console.error("Send admin reply error:", err);
+            alert(err.message || "Failed to send reply.");
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const handleDeleteConversation = () => {
+    const handleDeleteConversation = async () => {
         if (!selectedThread) return;
 
-        localStorage.removeItem(selectedThread.storageKey);
+        try {
+            setLoading(true);
 
-        const keys = safeParse("adminInquiryKeys", []);
-        const nextKeys = keys.filter((key) => key !== selectedThread.storageKey);
-        localStorage.setItem("adminInquiryKeys", JSON.stringify(nextKeys));
+            const res = await fetch(
+                `${API_BASE_URL}/inquiries/${encodeURIComponent(selectedThread.email)}`,
+                {
+                    method: "DELETE",
+                    headers: buildHeaders(),
+                    credentials: "include",
+                }
+            );
 
-        setShowDeleteModal(false);
-        setReplyText("");
-        setSelectedThreadKey("");
-        dispatchInquiryUpdate();
-        loadThreads();
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data?.message || "Failed to delete conversation.");
+            }
+
+            setShowDeleteModal(false);
+            setReplyText("");
+            setSelectedThreadKey("");
+            await loadThreads();
+        } catch (err) {
+            console.error("Delete conversation error:", err);
+            alert(err.message || "Failed to delete conversation.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -641,10 +690,11 @@ function AdminInquiryManagement() {
                                             whileTap={{ scale: 0.985 }}
                                             type="button"
                                             onClick={handleSendReply}
-                                            className="inline-flex items-center justify-center gap-2 rounded-[22px] bg-[linear-gradient(135deg,#0f4d3c_0%,#137255_100%)] px-6 py-3.5 font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                                            disabled={loading}
+                                            className="inline-flex items-center justify-center gap-2 rounded-[22px] bg-[linear-gradient(135deg,#0f4d3c_0%,#137255_100%)] px-6 py-3.5 font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-70"
                                         >
                                             <Send size={16} />
-                                            Send Reply
+                                            {loading ? "Sending..." : "Send Reply"}
                                         </motion.button>
                                     </div>
 
@@ -653,7 +703,7 @@ function AdminInquiryManagement() {
                                             }`}
                                     >
                                         Replies sent here will also appear in the client inquiry
-                                        page.
+                                        page through the online database.
                                     </p>
                                 </div>
                             </>
@@ -729,9 +779,10 @@ function AdminInquiryManagement() {
                                         whileTap={{ scale: 0.985 }}
                                         type="button"
                                         onClick={handleDeleteConversation}
-                                        className="rounded-xl bg-red-500 px-5 py-2.5 font-semibold text-white transition hover:bg-red-600"
+                                        disabled={loading}
+                                        className="rounded-xl bg-red-500 px-5 py-2.5 font-semibold text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-70"
                                     >
-                                        Delete
+                                        {loading ? "Deleting..." : "Delete"}
                                     </motion.button>
                                 </div>
                             </div>
