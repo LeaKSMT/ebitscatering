@@ -2,7 +2,7 @@ const db = require("../config/db");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-const { Resend } = require("resend");
+const nodemailer = require("nodemailer");
 
 const signToken = (user) => {
     return jwt.sign(
@@ -25,18 +25,28 @@ const cookieOptions = {
     path: "/",
 };
 
-function getResendClient() {
-    const apiKey = (process.env.RESEND_API_KEY || "").trim();
-    if (!apiKey) return null;
-    return new Resend(apiKey);
-}
+function getMailTransporter() {
+    const emailUser = (process.env.EMAIL_USER || "").trim();
+    const emailPass = (process.env.EMAIL_PASS || "").replace(/\s+/g, "").trim();
 
-function getEmailFrom() {
-    return (
-        process.env.RESEND_FROM_EMAIL ||
-        process.env.EMAIL_FROM ||
-        "Ebit's Catering <onboarding@resend.dev>"
-    );
+    if (!emailUser || !emailPass) {
+        console.log("Missing EMAIL_USER or EMAIL_PASS");
+        return null;
+    }
+
+    return nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        port: 587,
+        secure: false,
+        family: 4,
+        auth: {
+            user: emailUser,
+            pass: emailPass,
+        },
+        tls: {
+            rejectUnauthorized: false,
+        },
+    });
 }
 
 exports.register = async (req, res) => {
@@ -380,24 +390,19 @@ exports.forgotPassword = (req, res) => {
                     const resetLink = `${frontendUrl}/reset-password?token=${rawToken}`;
 
                     try {
-                        const resend = getResendClient();
+                        const transporter = getMailTransporter();
 
-                        if (!resend) {
-                            console.log("RESET LINK DEV ONLY:", resetLink);
-
-                            return res.status(200).json({
-                                success: true,
-                                message:
-                                    "Reset link generated. Email sending is not configured on the server.",
-                                resetLink:
-                                    process.env.NODE_ENV === "production"
-                                        ? undefined
-                                        : resetLink,
+                        if (!transporter) {
+                            return res.status(500).json({
+                                success: false,
+                                message: "Email service is not configured.",
                             });
                         }
 
-                        const emailResult = await resend.emails.send({
-                            from: getEmailFrom(),
+                        await transporter.verify();
+
+                        await transporter.sendMail({
+                            from: `"Ebit's Catering" <${process.env.EMAIL_USER}>`,
                             to: email,
                             subject: "Reset Your Ebit's Catering Password",
                             html: `
@@ -438,27 +443,12 @@ exports.forgotPassword = (req, res) => {
                             `,
                         });
 
-                        if (emailResult?.error) {
-                            console.error("Resend email error:", emailResult.error);
-
-                            return res.status(500).json({
-                                success: false,
-                                message:
-                                    emailResult.error.message ||
-                                    "Reset link generated, but email sending failed.",
-                                resetLink:
-                                    process.env.NODE_ENV === "production"
-                                        ? undefined
-                                        : resetLink,
-                            });
-                        }
-
                         return res.status(200).json({
                             success: true,
                             message: "Reset instructions have been sent to your email.",
                         });
                     } catch (mailErr) {
-                        console.error("Resend sending exception:", mailErr);
+                        console.error("Gmail sending exception:", mailErr);
 
                         return res.status(500).json({
                             success: false,
