@@ -49,7 +49,7 @@ function getApiBaseUrl() {
 
     if (!envUrl) {
         console.warn("VITE_API_URL is missing. Using Railway fallback.");
-        return "https://ebitscatering-production.up.railway.app/api";
+        return "https://ebitscatering.onrender.com/api";
     }
 
     const cleaned = envUrl.replace(/\/+$/, "");
@@ -986,8 +986,8 @@ function DashboardCard({ theme, title, subtitle, children, variants }) {
             transition={{ duration: 0.46, ease: "easeOut" }}
             whileHover={{ y: -4 }}
             className={`rounded-[28px] border p-5 transition-shadow ${isDark
-                    ? "border-white/10 bg-[linear-gradient(180deg,rgba(8,28,22,0.96)_0%,rgba(9,34,26,0.96)_100%)] shadow-[0_16px_34px_rgba(0,0,0,0.22)] hover:shadow-[0_22px_40px_rgba(0,0,0,0.28)]"
-                    : "border-[#dfe8e3] bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(245,249,247,0.98)_100%)] shadow-[0_16px_34px_rgba(15,77,60,0.08)] hover:shadow-[0_22px_40px_rgba(15,77,60,0.12)]"
+                ? "border-white/10 bg-[linear-gradient(180deg,rgba(8,28,22,0.96)_0%,rgba(9,34,26,0.96)_100%)] shadow-[0_16px_34px_rgba(0,0,0,0.22)] hover:shadow-[0_22px_40px_rgba(0,0,0,0.28)]"
+                : "border-[#dfe8e3] bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(245,249,247,0.98)_100%)] shadow-[0_16px_34px_rgba(15,77,60,0.08)] hover:shadow-[0_22px_40px_rgba(15,77,60,0.12)]"
                 }`}
         >
             <SectionHeader theme={theme} title={title} subtitle={subtitle} />
@@ -1023,8 +1023,8 @@ function StatCard({
             transition={{ duration: 0.42, delay, ease: "easeOut" }}
             whileHover={{ y: -6, scale: 1.012 }}
             className={`group rounded-[24px] border p-5 transition ${isDark
-                    ? "border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] shadow-[0_12px_24px_rgba(0,0,0,0.22)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.30)]"
-                    : "border-[#dfe8e3] bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(246,250,248,0.98)_100%)] shadow-[0_12px_24px_rgba(15,77,60,0.08)] hover:shadow-[0_20px_40px_rgba(15,77,60,0.12)]"
+                ? "border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] shadow-[0_12px_24px_rgba(0,0,0,0.22)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.30)]"
+                : "border-[#dfe8e3] bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(246,250,248,0.98)_100%)] shadow-[0_12px_24px_rgba(15,77,60,0.08)] hover:shadow-[0_20px_40px_rgba(15,77,60,0.12)]"
                 }`}
         >
             <div className="flex items-start justify-between gap-4">
@@ -1065,8 +1065,8 @@ function MiniMetricCard({ theme, title, value, icon: Icon }) {
             whileHover={{ y: -5, scale: 1.012 }}
             transition={{ duration: 0.22, ease: "easeOut" }}
             className={`rounded-[24px] border p-4 transition ${isDark
-                    ? "border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] shadow-[0_10px_24px_rgba(0,0,0,0.22)] hover:shadow-[0_16px_34px_rgba(0,0,0,0.28)]"
-                    : "border-[#dfe8e3] bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(246,250,248,0.98)_100%)] shadow-[0_10px_24px_rgba(15,77,60,0.08)] hover:shadow-[0_16px_34px_rgba(15,77,60,0.12)]"
+                ? "border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] shadow-[0_10px_24px_rgba(0,0,0,0.22)] hover:shadow-[0_16px_34px_rgba(0,0,0,0.28)]"
+                : "border-[#dfe8e3] bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(246,250,248,0.98)_100%)] shadow-[0_10px_24px_rgba(15,77,60,0.08)] hover:shadow-[0_16px_34px_rgba(15,77,60,0.12)]"
                 }`}
         >
             <div className="flex items-center gap-3">
@@ -1074,8 +1074,8 @@ function MiniMetricCard({ theme, title, value, icon: Icon }) {
                     whileHover={{ rotate: -8, scale: 1.05 }}
                     transition={{ duration: 0.22, ease: "easeOut" }}
                     className={`flex h-11 w-11 items-center justify-center rounded-2xl shadow-sm ${isDark
-                            ? "border border-[#22c58b]/18 bg-[linear-gradient(135deg,rgba(16,96,69,0.45)_0%,rgba(22,146,102,0.24)_100%)] text-[#98efcc]"
-                            : "border border-[#22c58b]/16 bg-[linear-gradient(135deg,rgba(34,197,139,0.14)_0%,rgba(34,197,139,0.08)_100%)] text-[#0f7a57]"
+                        ? "border border-[#22c58b]/18 bg-[linear-gradient(135deg,rgba(16,96,69,0.45)_0%,rgba(22,146,102,0.24)_100%)] text-[#98efcc]"
+                        : "border border-[#22c58b]/16 bg-[linear-gradient(135deg,rgba(34,197,139,0.14)_0%,rgba(34,197,139,0.08)_100%)] text-[#0f7a57]"
                         }`}
                 >
                     <Icon size={20} />
@@ -1153,8 +1153,8 @@ function ListRow({ theme, title, metaLeft, metaRight, status, delay = 0 }) {
             transition={{ duration: 0.38, delay, ease: "easeOut" }}
             whileHover={{ y: -3 }}
             className={`flex flex-col gap-3 rounded-[22px] border p-4 transition-shadow hover:shadow-md sm:flex-row sm:items-center sm:justify-between ${isDark
-                    ? "border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)]"
-                    : "border-[#dfe8e3] bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(246,250,248,0.98)_100%)]"
+                ? "border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)]"
+                : "border-[#dfe8e3] bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(246,250,248,0.98)_100%)]"
                 }`}
         >
             <div className="min-w-0">
@@ -1184,8 +1184,8 @@ function SectionHeader({ theme, title, subtitle }) {
         <div className="mb-4">
             <div
                 className={`mb-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] ${isDark
-                        ? "border-white/10 bg-white/5 text-[#b8d5ca]"
-                        : "border-[#d7e5de] bg-[#f4f8f6] text-[#527468]"
+                    ? "border-white/10 bg-white/5 text-[#b8d5ca]"
+                    : "border-[#d7e5de] bg-[#f4f8f6] text-[#527468]"
                     }`}
             >
                 <TrendingUp size={12} />
@@ -1207,8 +1207,8 @@ function EmptyChartState({ theme, message }) {
     return (
         <div
             className={`flex h-full items-center justify-center rounded-2xl border text-sm ${isDark
-                    ? "border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] text-[#b4c8c0]"
-                    : "border-[#dfe8e3] bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(246,250,248,0.98)_100%)] text-[#5f7b71]"
+                ? "border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] text-[#b4c8c0]"
+                : "border-[#dfe8e3] bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(246,250,248,0.98)_100%)] text-[#5f7b71]"
                 }`}
         >
             {message}
@@ -1222,8 +1222,8 @@ function EmptyListState({ theme, message }) {
     return (
         <div
             className={`flex min-h-[220px] items-center justify-center rounded-[24px] border p-6 text-center text-sm ${isDark
-                    ? "border-dashed border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] text-[#b4c8c0]"
-                    : "border-dashed border-[#dfe8e3] bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(246,250,248,0.98)_100%)] text-[#5f7b71]"
+                ? "border-dashed border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] text-[#b4c8c0]"
+                : "border-dashed border-[#dfe8e3] bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(246,250,248,0.98)_100%)] text-[#5f7b71]"
                 }`}
         >
             {message}

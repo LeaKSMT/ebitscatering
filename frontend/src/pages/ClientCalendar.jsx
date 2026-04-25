@@ -61,7 +61,7 @@ function getApiBaseUrl() {
 
     if (!envUrl) {
         console.warn("VITE_API_URL is missing. Using Railway fallback.");
-        return "https://ebitscatering-production.up.railway.app/api";
+        return "https://ebitscatering.onrender.com/api";
     }
 
     const cleaned = envUrl.replace(/\/+$/, "");
@@ -570,20 +570,20 @@ export default function ClientCalendar() {
                                             key={index}
                                             onClick={() => setSelectedDate(date)}
                                             className={`relative h-16 rounded-[22px] border text-sm font-bold transition sm:h-20 md:h-24 md:text-lg ${selected
+                                                ? isDark
+                                                    ? "border-[#98efcc] bg-[linear-gradient(180deg,rgba(16,61,49,0.98)_0%,rgba(20,73,58,0.98)_100%)] text-[#98efcc] ring-2 ring-[#98efcc]/15 shadow-[0_12px_24px_rgba(0,0,0,0.22)]"
+                                                    : "border-[#0d5c46] bg-[linear-gradient(180deg,#f3fbf8_0%,#eaf7f1_100%)] text-[#0d5c46] ring-2 ring-[#0d5c46]/15 shadow-[0_12px_24px_rgba(13,92,70,0.12)]"
+                                                : booked
                                                     ? isDark
-                                                        ? "border-[#98efcc] bg-[linear-gradient(180deg,rgba(16,61,49,0.98)_0%,rgba(20,73,58,0.98)_100%)] text-[#98efcc] ring-2 ring-[#98efcc]/15 shadow-[0_12px_24px_rgba(0,0,0,0.22)]"
-                                                        : "border-[#0d5c46] bg-[linear-gradient(180deg,#f3fbf8_0%,#eaf7f1_100%)] text-[#0d5c46] ring-2 ring-[#0d5c46]/15 shadow-[0_12px_24px_rgba(13,92,70,0.12)]"
-                                                    : booked
+                                                        ? "border-[rgba(97,76,24,0.34)] bg-[linear-gradient(180deg,rgba(88,67,20,0.34)_0%,rgba(120,91,27,0.26)_100%)] text-[#f5cf67] shadow-sm"
+                                                        : "border-[#e5c96b] bg-[linear-gradient(180deg,#fff8e3_0%,#fff1c4_100%)] text-[#8a6b00] shadow-sm"
+                                                    : todayMatch
                                                         ? isDark
-                                                            ? "border-[rgba(97,76,24,0.34)] bg-[linear-gradient(180deg,rgba(88,67,20,0.34)_0%,rgba(120,91,27,0.26)_100%)] text-[#f5cf67] shadow-sm"
-                                                            : "border-[#e5c96b] bg-[linear-gradient(180deg,#fff8e3_0%,#fff1c4_100%)] text-[#8a6b00] shadow-sm"
-                                                        : todayMatch
-                                                            ? isDark
-                                                                ? "border-[#5dc6a0]/40 bg-[linear-gradient(180deg,rgba(16,54,44,0.98)_0%,rgba(18,62,49,0.98)_100%)] text-[#98efcc]"
-                                                                : "border-[#89d2ba] bg-[linear-gradient(180deg,#f2fbf8_0%,#eaf7f1_100%)] text-[#0d5c46]"
-                                                            : isDark
-                                                                ? "border-white/10 bg-[linear-gradient(180deg,rgba(11,35,28,0.98)_0%,rgba(14,42,34,0.98)_100%)] text-white/82 hover:border-white/20"
-                                                                : "border-[#edf2ef] bg-[#f8faf9] text-[#143c2f] hover:border-[#d5e2dc] hover:bg-white"
+                                                            ? "border-[#5dc6a0]/40 bg-[linear-gradient(180deg,rgba(16,54,44,0.98)_0%,rgba(18,62,49,0.98)_100%)] text-[#98efcc]"
+                                                            : "border-[#89d2ba] bg-[linear-gradient(180deg,#f2fbf8_0%,#eaf7f1_100%)] text-[#0d5c46]"
+                                                        : isDark
+                                                            ? "border-white/10 bg-[linear-gradient(180deg,rgba(11,35,28,0.98)_0%,rgba(14,42,34,0.98)_100%)] text-white/82 hover:border-white/20"
+                                                            : "border-[#edf2ef] bg-[#f8faf9] text-[#143c2f] hover:border-[#d5e2dc] hover:bg-white"
                                                 }`}
                                         >
                                             <span>{date.getDate()}</span>
@@ -702,8 +702,8 @@ export default function ClientCalendar() {
                                             key={booking.id || `${booking.date}-${index}`}
                                             onClick={() => handleSelectUpcoming(booking.date)}
                                             className={`w-full rounded-[24px] p-4 text-left transition hover:shadow-md ${isDark
-                                                    ? "border border-white/10 bg-[linear-gradient(180deg,rgba(11,35,28,0.98)_0%,rgba(14,42,34,0.98)_100%)] hover:border-[#22b47d]/40"
-                                                    : "border border-[#e3ebe7] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] shadow-sm hover:border-[#22b47d]/40"
+                                                ? "border border-white/10 bg-[linear-gradient(180deg,rgba(11,35,28,0.98)_0%,rgba(14,42,34,0.98)_100%)] hover:border-[#22b47d]/40"
+                                                : "border border-[#e3ebe7] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] shadow-sm hover:border-[#22b47d]/40"
                                                 }`}
                                         >
                                             <div className="flex items-start justify-between gap-3">
@@ -899,8 +899,8 @@ export default function ClientCalendar() {
 
                                                     <div
                                                         className={`inline-flex items-center gap-2 self-start rounded-full px-3 py-1.5 text-xs font-semibold ${isDark
-                                                                ? "bg-[rgba(21,90,60,0.3)] text-[#98efcc]"
-                                                                : "bg-[#eef9f5] text-[#0d5c46]"
+                                                            ? "bg-[rgba(21,90,60,0.3)] text-[#98efcc]"
+                                                            : "bg-[#eef9f5] text-[#0d5c46]"
                                                             }`}
                                                     >
                                                         <CheckCircle2 size={14} />

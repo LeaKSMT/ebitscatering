@@ -253,7 +253,7 @@ function getApiBaseUrl() {
     const envUrl = import.meta.env.VITE_API_URL?.trim();
 
     if (!envUrl) {
-        return "https://ebitscatering-production.up.railway.app/api";
+        return "https://ebitscatering.onrender.com/api";
     }
 
     const cleaned = envUrl.replace(/\/+$/, "");
@@ -325,8 +325,8 @@ function SummaryCard({ icon: Icon, title, value, subtitle, isDark }) {
             whileHover={{ y: -4, scale: 1.01 }}
             transition={{ type: "spring", stiffness: 220, damping: 18 }}
             className={`rounded-[24px] border p-5 ${isDark
-                    ? "border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] shadow-[0_14px_36px_rgba(0,0,0,0.22)]"
-                    : "border-[#dce7e2] bg-white shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
+                ? "border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] shadow-[0_14px_36px_rgba(0,0,0,0.22)]"
+                : "border-[#dce7e2] bg-white shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
                 }`}
         >
             <div className="flex items-start justify-between gap-3">
@@ -350,8 +350,8 @@ function SummaryCard({ icon: Icon, title, value, subtitle, isDark }) {
 
                 <div
                     className={`flex h-12 w-12 items-center justify-center rounded-2xl ${isDark
-                            ? "border border-[#22c58b]/18 bg-[linear-gradient(135deg,rgba(16,96,69,0.45)_0%,rgba(22,146,102,0.24)_100%)] text-[#98efcc]"
-                            : "bg-[linear-gradient(135deg,#edf8f3_0%,#dff1e8_100%)] text-[#0f4d3c]"
+                        ? "border border-[#22c58b]/18 bg-[linear-gradient(135deg,rgba(16,96,69,0.45)_0%,rgba(22,146,102,0.24)_100%)] text-[#98efcc]"
+                        : "bg-[linear-gradient(135deg,#edf8f3_0%,#dff1e8_100%)] text-[#0f4d3c]"
                         }`}
                 >
                     <Icon size={22} />
@@ -365,8 +365,8 @@ function EmptyState({ title, description, isDark }) {
     return (
         <div
             className={`rounded-[24px] border border-dashed px-6 py-12 text-center ${isDark
-                    ? "border-white/10 bg-[rgba(255,255,255,0.02)]"
-                    : "border-[#d9e5e0] bg-[#fbfdfc]"
+                ? "border-white/10 bg-[rgba(255,255,255,0.02)]"
+                : "border-[#d9e5e0] bg-[#fbfdfc]"
                 }`}
         >
             <div
@@ -775,8 +775,8 @@ function AdminFinancialManagement() {
             <motion.section
                 variants={fadeUp}
                 className={`overflow-hidden rounded-[30px] border ${isDark
-                        ? "border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] shadow-[0_18px_50px_rgba(0,0,0,0.25)]"
-                        : "border-[#dce7e2] bg-white shadow-[0_18px_50px_rgba(14,61,47,0.07)]"
+                    ? "border-white/10 bg-[linear-gradient(180deg,rgba(7,25,19,0.96)_0%,rgba(10,31,24,0.96)_100%)] shadow-[0_18px_50px_rgba(0,0,0,0.25)]"
+                    : "border-[#dce7e2] bg-white shadow-[0_18px_50px_rgba(14,61,47,0.07)]"
                     }`}
             >
                 <div className="relative overflow-hidden bg-[linear-gradient(135deg,#07382d_0%,#0c4d3d_34%,#0f6b52_68%,#18a06c_100%)] px-6 py-7 text-white md:px-8">
@@ -905,8 +905,8 @@ function AdminFinancialManagement() {
                     <div className="mb-5 flex items-center gap-3">
                         <div
                             className={`flex h-11 w-11 items-center justify-center rounded-2xl ${isDark
-                                    ? "border border-[#22c58b]/18 bg-[linear-gradient(135deg,rgba(16,96,69,0.45)_0%,rgba(22,146,102,0.24)_100%)] text-[#98efcc]"
-                                    : "bg-[#edf8f3] text-[#0f4d3c]"
+                                ? "border border-[#22c58b]/18 bg-[linear-gradient(135deg,rgba(16,96,69,0.45)_0%,rgba(22,146,102,0.24)_100%)] text-[#98efcc]"
+                                : "bg-[#edf8f3] text-[#0f4d3c]"
                                 }`}
                         >
                             <BarChart3 size={20} />
@@ -996,8 +996,8 @@ function AdminFinancialManagement() {
                                             <td className="py-4">
                                                 <span
                                                     className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${isDark
-                                                            ? "border border-[#d4af37]/18 bg-[rgba(133,102,26,0.24)] text-[#f5cf67]"
-                                                            : "bg-[#fff8e6] text-[#b99117]"
+                                                        ? "border border-[#d4af37]/18 bg-[rgba(133,102,26,0.24)] text-[#f5cf67]"
+                                                        : "bg-[#fff8e6] text-[#b99117]"
                                                         }`}
                                                 >
                                                     {row.margin}%
@@ -1016,8 +1016,8 @@ function AdminFinancialManagement() {
                         <div className="mb-5 flex items-center gap-3">
                             <div
                                 className={`flex h-11 w-11 items-center justify-center rounded-2xl ${isDark
-                                        ? "border border-[#d4af37]/18 bg-[rgba(133,102,26,0.24)] text-[#f5cf67]"
-                                        : "bg-[#fff7e3] text-[#b99117]"
+                                    ? "border border-[#d4af37]/18 bg-[rgba(133,102,26,0.24)] text-[#f5cf67]"
+                                    : "bg-[#fff7e3] text-[#b99117]"
                                     }`}
                             >
                                 <PlusCircle size={20} />
@@ -1149,8 +1149,8 @@ function AdminFinancialManagement() {
                         <div className="mb-5 flex items-center gap-3">
                             <div
                                 className={`flex h-11 w-11 items-center justify-center rounded-2xl ${isDark
-                                        ? "border border-[#22c58b]/18 bg-[linear-gradient(135deg,rgba(16,96,69,0.45)_0%,rgba(22,146,102,0.24)_100%)] text-[#98efcc]"
-                                        : "bg-[#edf8f3] text-[#0f4d3c]"
+                                    ? "border border-[#22c58b]/18 bg-[linear-gradient(135deg,rgba(16,96,69,0.45)_0%,rgba(22,146,102,0.24)_100%)] text-[#98efcc]"
+                                    : "bg-[#edf8f3] text-[#0f4d3c]"
                                     }`}
                             >
                                 <TrendingUp size={20} />
@@ -1220,8 +1220,8 @@ function AdminFinancialManagement() {
                 <div className="mb-5 flex items-center gap-3">
                     <div
                         className={`flex h-11 w-11 items-center justify-center rounded-2xl ${isDark
-                                ? "border border-[#22c58b]/18 bg-[linear-gradient(135deg,rgba(16,96,69,0.45)_0%,rgba(22,146,102,0.24)_100%)] text-[#98efcc]"
-                                : "bg-[#edf8f3] text-[#0f4d3c]"
+                            ? "border border-[#22c58b]/18 bg-[linear-gradient(135deg,rgba(16,96,69,0.45)_0%,rgba(22,146,102,0.24)_100%)] text-[#98efcc]"
+                            : "bg-[#edf8f3] text-[#0f4d3c]"
                             }`}
                     >
                         <CalendarRange size={20} />
@@ -1293,8 +1293,8 @@ function AdminFinancialManagement() {
                                         <td className="py-4">
                                             <span
                                                 className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${isDark
-                                                        ? "border border-[#22c58b]/18 bg-[rgba(16,131,94,0.24)] text-[#98efcc]"
-                                                        : "bg-[#ecfdf5] text-[#0f766e]"
+                                                    ? "border border-[#22c58b]/18 bg-[rgba(16,131,94,0.24)] text-[#98efcc]"
+                                                    : "bg-[#ecfdf5] text-[#0f766e]"
                                                     }`}
                                             >
                                                 {row.margin.toFixed(1)}%
@@ -1312,8 +1312,8 @@ function AdminFinancialManagement() {
                 <div className="mb-5 flex items-center gap-3">
                     <div
                         className={`flex h-11 w-11 items-center justify-center rounded-2xl ${isDark
-                                ? "border border-[#d4af37]/18 bg-[rgba(133,102,26,0.24)] text-[#f5cf67]"
-                                : "bg-[#fff7e3] text-[#b99117]"
+                            ? "border border-[#d4af37]/18 bg-[rgba(133,102,26,0.24)] text-[#f5cf67]"
+                            : "bg-[#fff7e3] text-[#b99117]"
                             }`}
                     >
                         <BriefcaseBusiness size={20} />
@@ -1424,8 +1424,8 @@ function AdminFinancialManagement() {
                             exit={{ opacity: 0, y: 18, scale: 0.96 }}
                             transition={{ type: "spring", stiffness: 260, damping: 22 }}
                             className={`w-full max-w-md overflow-hidden rounded-[28px] border shadow-[0_25px_60px_rgba(0,0,0,0.2)] ${isDark
-                                    ? "border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.99)_0%,rgba(13,40,32,0.99)_100%)]"
-                                    : "border-gray-100 bg-white"
+                                ? "border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.99)_0%,rgba(13,40,32,0.99)_100%)]"
+                                : "border-gray-100 bg-white"
                                 }`}
                         >
                             <div className="bg-[linear-gradient(135deg,#0f4d3c_0%,#137255_100%)] px-6 py-5 text-white">

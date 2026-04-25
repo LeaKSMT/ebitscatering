@@ -19,7 +19,7 @@ function getApiBaseUrl() {
     const envUrl = import.meta.env.VITE_API_URL?.trim();
 
     if (!envUrl) {
-        return "https://ebitscatering-production.up.railway.app/api";
+        return "https://ebitscatering.onrender.com/api";
     }
 
     const cleaned = envUrl.replace(/\/+$/, "");
