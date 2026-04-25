@@ -61,8 +61,8 @@ function getApiBaseUrl() {
     const envUrl = import.meta.env.VITE_API_URL?.trim();
 
     if (!envUrl) {
-        console.warn("VITE_API_URL is missing. Using Railway fallback.");
-        return "https://ebitscatering-production.up.railway.app/api";
+        console.warn("VITE_API_URL is missing. Using Render fallback.");
+        return "https://ebitscatering.onrender.com/api";
     }
 
     const cleaned = envUrl.replace(/\/+$/, "");
@@ -463,8 +463,8 @@ function ClientQuotations() {
                 >
                     <div
                         className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full ${isDark
-                            ? "bg-[linear-gradient(135deg,rgba(21,64,50,0.95)_0%,rgba(24,77,60,0.95)_100%)] text-[#98efcc]"
-                            : "bg-[#eef8f4] text-[#0d5c46]"
+                                ? "bg-[linear-gradient(135deg,rgba(21,64,50,0.95)_0%,rgba(24,77,60,0.95)_100%)] text-[#98efcc]"
+                                : "bg-[#eef8f4] text-[#0d5c46]"
                             }`}
                     >
                         <FileText className="h-8 w-8" />
@@ -500,8 +500,8 @@ function ClientQuotations() {
                                 >
                                     <div
                                         className={`px-6 py-5 ${isDark
-                                            ? "border-b border-white/10 bg-[linear-gradient(90deg,rgba(13,38,31,0.98)_0%,rgba(23,58,45,0.96)_100%)]"
-                                            : "border-b border-[#edf2ef] bg-[linear-gradient(90deg,#f3fbf8_0%,#fffaf0_100%)]"
+                                                ? "border-b border-white/10 bg-[linear-gradient(90deg,rgba(13,38,31,0.98)_0%,rgba(23,58,45,0.96)_100%)]"
+                                                : "border-b border-[#edf2ef] bg-[linear-gradient(90deg,#f3fbf8_0%,#fffaf0_100%)]"
                                             }`}
                                     >
                                         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -661,8 +661,8 @@ function ClientQuotations() {
                                                                 <span
                                                                     key={`${addon}-${addonIndex}`}
                                                                     className={`rounded-full px-3 py-1 text-sm font-medium ${isDark
-                                                                        ? "bg-[rgba(21,90,60,0.3)] text-[#98efcc] border border-emerald-400/15"
-                                                                        : "bg-emerald-50 text-emerald-700"
+                                                                            ? "bg-[rgba(21,90,60,0.3)] text-[#98efcc] border border-emerald-400/15"
+                                                                            : "bg-emerald-50 text-emerald-700"
                                                                         }`}
                                                                 >
                                                                     {addon}
@@ -690,8 +690,8 @@ function ClientQuotations() {
                                         <div className="space-y-4">
                                             <div
                                                 className={`rounded-[30px] px-5 py-6 text-right ${isDark
-                                                    ? "border border-[rgba(97,76,24,0.34)] bg-[linear-gradient(135deg,rgba(88,67,20,0.3)_0%,rgba(120,91,27,0.24)_100%)] shadow-[0_10px_22px_rgba(0,0,0,0.18)]"
-                                                    : "bg-[linear-gradient(135deg,#fffaf0_0%,#fff3d0_100%)] shadow-sm border border-[#f2e1aa]"
+                                                        ? "border border-[rgba(97,76,24,0.34)] bg-[linear-gradient(135deg,rgba(88,67,20,0.3)_0%,rgba(120,91,27,0.24)_100%)] shadow-[0_10px_22px_rgba(0,0,0,0.18)]"
+                                                        : "bg-[linear-gradient(135deg,#fffaf0_0%,#fff3d0_100%)] shadow-sm border border-[#f2e1aa]"
                                                     }`}
                                             >
                                                 <div className="flex items-center justify-end gap-2 text-[#f5cf67]">
