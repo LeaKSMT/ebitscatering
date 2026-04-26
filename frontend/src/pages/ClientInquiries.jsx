@@ -267,8 +267,15 @@ function ClientInquiries() {
     }, [sortedMessages]);
 
     const scrollToBottom = () => {
+        const isMobile = window.innerWidth <= 768;
+
+        if (isMobile) return;
+
         setTimeout(() => {
-            messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+            messagesEndRef.current?.scrollIntoView({
+                behavior: "smooth",
+                block: "end",
+            });
         }, 100);
     };
 
