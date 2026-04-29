@@ -1594,36 +1594,17 @@ function PremiumTimePicker({ value, onChange, isDark, placeholder = "Select even
     const [open, setOpen] = useState(false);
     const rootRef = useRef(null);
 
-    const hours = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"];
-    const minutes = Array.from({ length: 60 }, (_, index) => String(index).padStart(2, "0"));
-    const periods = ["AM", "PM"];
+    const pickerButtonClass = isDark
+        ? "flex w-full items-center justify-between rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(11,35,28,0.98)_0%,rgba(15,43,35,0.98)_100%)] px-4 py-3.5 text-left text-white shadow-sm transition hover:border-[#d4af37] focus:border-[#d4af37]"
+        : "flex w-full items-center justify-between rounded-2xl border border-[#d7e1dc] bg-[linear-gradient(180deg,#fbfdfc_0%,#f3f8f5_100%)] px-4 py-3.5 text-left text-slate-800 shadow-sm transition hover:border-[#d4af37] focus:border-[#d4af37]";
 
-    const parsed = useMemo(() => {
-        if (!value || !/^\d{2}:\d{2}$/.test(value)) {
-            return { hour: "07", minute: "00", period: "PM" };
-        }
+    const dropdownClass = isDark
+        ? "absolute left-0 top-[calc(100%+10px)] z-30 w-full rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.99)_0%,rgba(13,40,32,0.99)_100%)] p-4 shadow-[0_24px_54px_rgba(0,0,0,0.28)]"
+        : "absolute left-0 top-[calc(100%+10px)] z-30 w-full rounded-[24px] border border-[#dce7e2] bg-[linear-gradient(180deg,#ffffff_0%,#f7fbf9_100%)] p-4 shadow-[0_24px_54px_rgba(14,61,47,0.12)]";
 
-        const [hour24, minute] = value.split(":").map(Number);
-        const period = hour24 >= 12 ? "PM" : "AM";
-        let hour12 = hour24 % 12;
-        if (hour12 === 0) hour12 = 12;
-
-        return {
-            hour: String(hour12).padStart(2, "0"),
-            minute: String(minute).padStart(2, "0"),
-            period,
-        };
-    }, [value]);
-
-    const [selectedHour, setSelectedHour] = useState(parsed.hour);
-    const [selectedMinute, setSelectedMinute] = useState(parsed.minute);
-    const [selectedPeriod, setSelectedPeriod] = useState(parsed.period);
-
-    useEffect(() => {
-        setSelectedHour(parsed.hour);
-        setSelectedMinute(parsed.minute);
-        setSelectedPeriod(parsed.period);
-    }, [parsed.hour, parsed.minute, parsed.period]);
+    const inputTimeClass = isDark
+        ? "w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-white outline-none focus:border-[#d4af37]"
+        : "w-full rounded-2xl border border-[#d7e1dc] bg-white px-4 py-3 text-sm font-bold text-[#0f4d3c] outline-none focus:border-[#d4af37]";
 
     useEffect(() => {
         const handleOutside = (event) => {
@@ -1635,36 +1616,6 @@ function PremiumTimePicker({ value, onChange, isDark, placeholder = "Select even
         document.addEventListener("mousedown", handleOutside);
         return () => document.removeEventListener("mousedown", handleOutside);
     }, []);
-
-    const applyTime = (hour, minute, period) => {
-        let hour24 = Number(hour);
-        if (period === "AM") {
-            if (hour24 === 12) hour24 = 0;
-        } else if (hour24 !== 12) {
-            hour24 += 12;
-        }
-
-        onChange(`${String(hour24).padStart(2, "0")}:${minute}`);
-    };
-
-    const pickerButtonClass = isDark
-        ? "flex w-full items-center justify-between rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(11,35,28,0.98)_0%,rgba(15,43,35,0.98)_100%)] px-4 py-3.5 text-left text-white shadow-sm transition hover:border-[#d4af37] focus:border-[#d4af37]"
-        : "flex w-full items-center justify-between rounded-2xl border border-[#d7e1dc] bg-[linear-gradient(180deg,#fbfdfc_0%,#f3f8f5_100%)] px-4 py-3.5 text-left text-slate-800 shadow-sm transition hover:border-[#d4af37] focus:border-[#d4af37]";
-
-    const dropdownClass = isDark
-        ? "absolute left-0 top-[calc(100%+10px)] z-30 w-full rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.99)_0%,rgba(13,40,32,0.99)_100%)] p-4 shadow-[0_24px_54px_rgba(0,0,0,0.28)]"
-        : "absolute left-0 top-[calc(100%+10px)] z-30 w-full rounded-[24px] border border-[#dce7e2] bg-[linear-gradient(180deg,#ffffff_0%,#f7fbf9_100%)] p-4 shadow-[0_24px_54px_rgba(14,61,47,0.12)]";
-
-    const columnClass = isDark
-        ? "max-h-48 space-y-2 overflow-y-auto rounded-2xl border border-white/10 bg-white/5 p-2"
-        : "max-h-48 space-y-2 overflow-y-auto rounded-2xl border border-[#e6eeea] bg-[#fbfdfc] p-2";
-
-    const itemClass = (active) =>
-        active
-            ? "w-full rounded-xl bg-[linear-gradient(135deg,#0f4d3c_0%,#126650_100%)] px-3 py-2 text-sm font-bold text-white"
-            : isDark
-                ? "w-full rounded-xl px-3 py-2 text-sm font-medium text-white/80 transition hover:bg-white/8"
-                : "w-full rounded-xl px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-[#eef8f4]";
 
     return (
         <div className="relative" ref={rootRef}>
@@ -1698,46 +1649,13 @@ function PremiumTimePicker({ value, onChange, isDark, placeholder = "Select even
                             ) : null}
                         </div>
 
-                        <div className="grid grid-cols-3 gap-3">
-                            <div>
-                                <p className={`mb-2 text-xs font-semibold uppercase tracking-[0.14em] ${isDark ? "text-white/45" : "text-slate-400"}`}>
-                                    Hour
-                                </p>
-                                <div className={columnClass}>
-                                    {hours.map((hour) => (
-                                        <button key={hour} type="button" onClick={() => { setSelectedHour(hour); applyTime(hour, selectedMinute, selectedPeriod); }} className={itemClass(selectedHour === hour)}>
-                                            {hour}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div>
-                                <p className={`mb-2 text-xs font-semibold uppercase tracking-[0.14em] ${isDark ? "text-white/45" : "text-slate-400"}`}>
-                                    Minute
-                                </p>
-                                <div className={columnClass}>
-                                    {minutes.map((minute) => (
-                                        <button key={minute} type="button" onClick={() => { setSelectedMinute(minute); applyTime(selectedHour, minute, selectedPeriod); }} className={itemClass(selectedMinute === minute)}>
-                                            {minute}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div>
-                                <p className={`mb-2 text-xs font-semibold uppercase tracking-[0.14em] ${isDark ? "text-white/45" : "text-slate-400"}`}>
-                                    Period
-                                </p>
-                                <div className={columnClass}>
-                                    {periods.map((period) => (
-                                        <button key={period} type="button" onClick={() => { setSelectedPeriod(period); applyTime(selectedHour, selectedMinute, period); }} className={itemClass(selectedPeriod === period)}>
-                                            {period}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
+                        <input
+                            type="time"
+                            step="60"
+                            value={value || ""}
+                            onChange={(e) => onChange(e.target.value)}
+                            className={inputTimeClass}
+                        />
                     </motion.div>
                 )}
             </AnimatePresence>
