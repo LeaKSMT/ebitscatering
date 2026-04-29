@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Swal from "sweetalert2";
+import "sweetalert2/dist/sweetalert2.min.css";
 import {
     Wallet,
     CircleDollarSign,
@@ -464,15 +466,59 @@ function AdminPaymentTracking() {
     };
 
     const handleDeletePayment = async (payment) => {
-        const confirmed = window.confirm(
-            "Are you sure you want to delete this payment record?"
+        if (!selectedRow) return;
+
+        const amountValue = normalizeNumber(
+            payment?.amount ||
+            payment?.paymentAmount ||
+            payment?.payment_amount
         );
 
-        if (!confirmed || !selectedRow) return;
+        const result = await Swal.fire({
+            title: "Delete Payment Record?",
+            html: `
+                <div style="text-align:center;">
+                    <p style="margin:0 0 10px;color:#64748b;font-size:15px;">
+                        Are you sure you want to remove this payment record?
+                    </p>
 
-        const filteredPayments = (selectedRow.payments || []).filter((item, index) => {
-            return !isSamePaymentRecord(item, payment, index);
+                    <div style="
+                        margin:14px auto 0;
+                        padding:14px 18px;
+                        border-radius:18px;
+                        background:#fff1f2;
+                        border:1px solid #fecdd3;
+                        color:#be123c;
+                        font-weight:800;
+                        max-width:260px;
+                    ">
+                        ${formatCurrency(amountValue)}
+                    </div>
+
+                    <p style="margin:14px 0 0;color:#94a3b8;font-size:13px;">
+                        This action cannot be undone.
+                    </p>
+                </div>
+            `,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, delete it",
+            cancelButtonText: "Cancel",
+            reverseButtons: true,
+            focusCancel: true,
+            background: "#ffffff",
+            color: "#0f172a",
+            confirmButtonColor: "#e11d48",
+            cancelButtonColor: "#64748b",
         });
+
+        if (!result.isConfirmed) return;
+
+        const filteredPayments = (selectedRow.payments || []).filter(
+            (item, index) => {
+                return !isSamePaymentRecord(item, payment, index);
+            }
+        );
 
         try {
             setSaving(true);
@@ -486,18 +532,27 @@ function AdminPaymentTracking() {
             setEditingAmount("");
             await loadRows();
 
-            showFeedback(
-                "success",
-                "Payment Deleted",
-                "The payment record was removed successfully."
-            );
+            await Swal.fire({
+                title: "Payment Deleted",
+                text: "The payment record was removed successfully.",
+                icon: "success",
+                confirmButtonText: "Done",
+                confirmButtonColor: "#0b4a3a",
+                background: "#ffffff",
+                color: "#0f172a",
+            });
         } catch (error) {
             console.error("Failed to delete payment:", error);
-            showFeedback(
-                "error",
-                "Delete Failed",
-                error.message || "Failed to delete payment."
-            );
+
+            await Swal.fire({
+                title: "Delete Failed",
+                text: error.message || "Failed to delete payment.",
+                icon: "error",
+                confirmButtonText: "Okay",
+                confirmButtonColor: "#e11d48",
+                background: "#ffffff",
+                color: "#0f172a",
+            });
         } finally {
             setSaving(false);
         }
@@ -914,7 +969,9 @@ function AdminPaymentTracking() {
                                                 <MiniInfo
                                                     label="Status"
                                                     value={selectedRow.paymentStatus}
-                                                    valueClassName={getMiniStatusStyle(selectedRow.paymentStatus)}
+                                                    valueClassName={getMiniStatusStyle(
+                                                        selectedRow.paymentStatus
+                                                    )}
                                                 />
                                             </div>
                                         </div>
