@@ -921,36 +921,6 @@ function Quotation({ mode = "public" }) {
 
                     <div className="mt-8 grid gap-8 xl:grid-cols-[0.97fr_1.23fr]">
                         <motion.aside variants={softReveal} className="space-y-6">
-                            <div
-                                className={
-                                    isDark
-                                        ? "overflow-hidden rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,#0d5b44_0%,#0a4a39_100%)] p-6 text-white shadow-[0_22px_55px_rgba(0,0,0,0.25)] sm:p-7"
-                                        : "overflow-hidden rounded-[32px] border border-[#dce7e2] bg-[linear-gradient(180deg,#0d5b44_0%,#0a4a39_100%)] p-6 text-white shadow-[0_22px_55px_rgba(11,90,67,0.2)] sm:p-7"
-                                }
-                            >
-                                <div className="flex items-start gap-4">
-                                    <motion.div
-                                        animate={{ rotate: [0, -6, 0], scale: [1, 1.04, 1] }}
-                                        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                                        className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[20px] bg-[#f5c94a] text-[#0b4a3a] shadow-lg"
-                                    >
-                                        <Sparkles size={24} />
-                                    </motion.div>
-
-                                </div>
-
-
-                                <div className="mt-6 rounded-[24px] border border-white/10 bg-white/10 p-5 backdrop-blur-sm">
-                                    <h3 className="text-lg font-extrabold text-[#f5c94a]">
-                                        Contact Information
-                                    </h3>
-                                    <div className="mt-4 space-y-3 text-sm text-white/90">
-                                        <ContactRow icon={Phone} text="0917 679 0643" />
-                                        <ContactRow icon={Mail} text="facebook.com/ebitscateringandservices" />
-                                        <ContactRow icon={MapPin} text="Dasmariñas City, Cavite" />
-                                    </div>
-                                </div>
-                            </div>
 
                             <motion.div
                                 variants={softReveal}
