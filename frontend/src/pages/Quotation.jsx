@@ -937,17 +937,6 @@ function Quotation({ mode = "public" }) {
                                         <Sparkles size={24} />
                                     </motion.div>
 
-                                    <div>
-                                        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/70">
-                                            Event Planning Suite
-                                        </p>
-                                        <h2 className="mt-2 text-2xl font-extrabold sm:text-3xl">
-                                            Design your event with confidence
-                                        </h2>
-                                        <p className="mt-3 text-sm leading-7 text-white/85">
-                                            Select the right event type, match it with the best package, and let the system prepare a live estimate for your celebration.
-                                        </p>
-                                    </div>
                                 </div>
 
                                 <div className="mt-6 grid gap-3 sm:grid-cols-2">
@@ -1656,7 +1645,7 @@ function PremiumTimePicker({ value, onChange, isDark, placeholder = "Select even
     const rootRef = useRef(null);
 
     const hours = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"];
-    const minutes = ["00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55"];
+    const minutes = Array.from({ length: 60 }, (_, index) => String(index).padStart(2, "0"));
     const periods = ["AM", "PM"];
 
     const parsed = useMemo(() => {
