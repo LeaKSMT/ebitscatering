@@ -17,6 +17,9 @@ import {
     Star,
     Trash2,
     Lock,
+    Pencil,
+    X,
+    Save,
 } from "lucide-react";
 
 function getClientUser() {
@@ -154,7 +157,6 @@ function normalizeQuotation(item) {
     if (!item || typeof item !== "object") return null;
 
     let parsedAddOns = [];
-    let parsedInclusions = [];
 
     try {
         parsedAddOns = Array.isArray(item.add_ons)
@@ -162,14 +164,6 @@ function normalizeQuotation(item) {
             : JSON.parse(item.add_ons || "[]");
     } catch {
         parsedAddOns = [];
-    }
-
-    try {
-        parsedInclusions = Array.isArray(item.package_inclusions)
-            ? item.package_inclusions
-            : JSON.parse(item.package_inclusions || "[]");
-    } catch {
-        parsedInclusions = [];
     }
 
     return {
@@ -188,21 +182,11 @@ function normalizeQuotation(item) {
         venue: item.venue || "",
         guests: Number(item.guests || 0),
         packageName: item.package_type || "",
-        packageType: item.package_type || "",
         classicMenu: item.classic_menu || "",
         addOns: parsedAddOns,
         themePreference: item.theme_preference || "",
         specialRequests: item.special_requests || "",
         estimatedTotal: Number(item.estimated_total || 0),
-        totalPrice: Number(item.estimated_total || 0),
-        packagePrice: Number(item.package_price || 0),
-        addOnsTotal: Number(item.add_ons_total || 0),
-        includedPax: item.included_pax,
-        pricingType: item.pricing_type || "",
-        ratePerPax: item.rate_per_pax,
-        excessGuests: Number(item.excess_guests || 0),
-        excessCost: Number(item.excess_cost || 0),
-        packageInclusions: parsedInclusions,
         status: item.status || "Pending",
         createdAt: item.created_at || "",
         submittedAt: item.created_at || "",
@@ -214,7 +198,7 @@ const fadeUp = {
     show: { opacity: 1, y: 0 },
 };
 
-function ClientQuotations() {
+export default function ClientQuotations() {
     const clientEmail = getCurrentClientEmail().toLowerCase().trim();
     const clientName = getCurrentClientName().toLowerCase().trim();
     const token = getStoredToken();
@@ -222,10 +206,24 @@ function ClientQuotations() {
     const [theme, setTheme] = useState(
         () => localStorage.getItem("clientPortalTheme") || "light"
     );
-
     const [quotations, setQuotations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [deletingId, setDeletingId] = useState(null);
+    const [savingId, setSavingId] = useState(null);
+    const [editingQuote, setEditingQuote] = useState(null);
+    const [editForm, setEditForm] = useState({
+        fullName: "",
+        email: "",
+        contactNumber: "",
+        eventType: "",
+        eventDate: "",
+        eventStartTime: "",
+        eventEndTime: "",
+        venue: "",
+        guests: "",
+        themePreference: "",
+        specialRequests: "",
+    });
     const [error, setError] = useState("");
 
     const isDark = theme === "dark";
@@ -303,6 +301,120 @@ function ClientQuotations() {
             setQuotations([]);
         } finally {
             setLoading(false);
+        }
+    }
+
+    function openEditModal(quote) {
+        const status = String(quote.status || "pending").toLowerCase();
+
+        if (status !== "pending") {
+            alert("Approved quotations can no longer be edited.");
+            return;
+        }
+
+        setEditingQuote(quote);
+        setEditForm({
+            fullName: quote.fullName || quote.clientName || "",
+            email: quote.email || "",
+            contactNumber: quote.contactNumber || "",
+            eventType: quote.eventType || "",
+            eventDate: quote.eventDate ? String(quote.eventDate).slice(0, 10) : "",
+            eventStartTime: quote.eventStartTime || quote.eventTime || "",
+            eventEndTime: quote.eventEndTime || "",
+            venue: quote.venue || "",
+            guests: quote.guests || "",
+            themePreference: quote.themePreference || "",
+            specialRequests: quote.specialRequests || "",
+        });
+    }
+
+    function closeEditModal() {
+        setEditingQuote(null);
+    }
+
+    function handleEditChange(e) {
+        const { name, value } = e.target;
+        setEditForm((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
+    }
+
+    async function handleSaveEdit(e) {
+        e.preventDefault();
+
+        if (!editingQuote) return;
+
+        const status = String(editingQuote.status || "pending").toLowerCase();
+
+        if (status !== "pending") {
+            alert("Approved quotations can no longer be edited.");
+            return;
+        }
+
+        try {
+            setSavingId(editingQuote.id);
+
+            const payload = {
+                full_name: editForm.fullName,
+                email: editForm.email,
+                contact_number: editForm.contactNumber,
+                event_type: editForm.eventType,
+                preferred_date: editForm.eventDate,
+                event_start_time: editForm.eventStartTime,
+                event_end_time: editForm.eventEndTime,
+                event_time: editForm.eventStartTime,
+                venue: editForm.venue,
+                guests: Number(editForm.guests || 0),
+                theme_preference: editForm.themePreference,
+                special_requests: editForm.specialRequests,
+            };
+
+            const res = await fetch(`${API_BASE_URL}/quotations/${editingQuote.id}`, {
+                method: "PUT",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                },
+                body: JSON.stringify(payload),
+            });
+
+            const data = await res.json().catch(() => ({}));
+
+            if (!res.ok) {
+                throw new Error(data?.message || "Failed to update quotation.");
+            }
+
+            setQuotations((prev) =>
+                prev.map((item) =>
+                    item.id === editingQuote.id
+                        ? {
+                            ...item,
+                            fullName: editForm.fullName,
+                            clientName: editForm.fullName,
+                            email: editForm.email,
+                            contactNumber: editForm.contactNumber,
+                            eventType: editForm.eventType,
+                            eventDate: editForm.eventDate,
+                            eventStartTime: editForm.eventStartTime,
+                            eventEndTime: editForm.eventEndTime,
+                            eventTime: editForm.eventStartTime,
+                            venue: editForm.venue,
+                            guests: Number(editForm.guests || 0),
+                            themePreference: editForm.themePreference,
+                            specialRequests: editForm.specialRequests,
+                        }
+                        : item
+                )
+            );
+
+            closeEditModal();
+        } catch (err) {
+            console.error("Update quotation error:", err);
+            alert(err.message || "Failed to update quotation.");
+        } finally {
+            setSavingId(null);
         }
     }
 
@@ -386,6 +498,9 @@ function ClientQuotations() {
 
         return { total, pending, approved, rejected };
     }, [quotations]);
+
+    const inputClass =
+        "w-full rounded-2xl border border-[#cfded8] bg-white px-4 py-3 text-sm font-bold text-[#111827] outline-none focus:border-[#d4af37] focus:ring-4 focus:ring-[#d4af37]/15";
 
     return (
         <motion.div
@@ -511,19 +626,30 @@ function ClientQuotations() {
                                             </div>
 
                                             {isPending ? (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleDeleteQuotation(quote)}
-                                                    disabled={deletingId === quote.id}
-                                                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-red-600 px-4 py-2.5 text-sm font-extrabold text-white shadow-sm transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
-                                                >
-                                                    <Trash2 size={16} />
-                                                    {deletingId === quote.id ? "Deleting..." : "Delete"}
-                                                </button>
+                                                <div className="flex flex-wrap gap-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => openEditModal(quote)}
+                                                        className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#0d5c46] px-4 py-2.5 text-sm font-extrabold text-white shadow-sm transition hover:bg-[#0b4f3d]"
+                                                    >
+                                                        <Pencil size={16} />
+                                                        Edit
+                                                    </button>
+
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleDeleteQuotation(quote)}
+                                                        disabled={deletingId === quote.id}
+                                                        className="inline-flex items-center justify-center gap-2 rounded-2xl bg-red-600 px-4 py-2.5 text-sm font-extrabold text-white shadow-sm transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                        {deletingId === quote.id ? "Deleting..." : "Delete"}
+                                                    </button>
+                                                </div>
                                             ) : (
                                                 <span className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-slate-100 px-4 py-2.5 text-sm font-extrabold text-slate-600">
                                                     <Lock size={16} />
-                                                    Delete locked
+                                                    Approved / Locked
                                                 </span>
                                             )}
                                         </div>
@@ -721,8 +847,84 @@ function ClientQuotations() {
                     </AnimatePresence>
                 </div>
             )}
+
+            <AnimatePresence>
+                {editingQuote ? (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4 py-6 backdrop-blur-sm"
+                    >
+                        <motion.form
+                            initial={{ scale: 0.95, y: 18 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.95, y: 18 }}
+                            onSubmit={handleSaveEdit}
+                            className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-[32px] border border-[#dbe6e1] bg-white p-6 shadow-2xl"
+                        >
+                            <div className="flex items-start justify-between gap-4">
+                                <div>
+                                    <h2 className="text-2xl font-extrabold text-[#063f30]">
+                                        Edit Pending Quotation
+                                    </h2>
+                                    <p className="mt-1 text-sm font-semibold text-[#4b5563]">
+                                        You can only edit quotations while they are still pending.
+                                    </p>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={closeEditModal}
+                                    className="rounded-2xl border border-slate-200 p-2 text-slate-600 hover:bg-slate-50"
+                                >
+                                    <X size={20} />
+                                </button>
+                            </div>
+
+                            <div className="mt-6 grid gap-4 md:grid-cols-2">
+                                <input className={inputClass} name="fullName" value={editForm.fullName} onChange={handleEditChange} placeholder="Full Name" />
+                                <input className={inputClass} name="email" value={editForm.email} onChange={handleEditChange} placeholder="Email" />
+                                <input className={inputClass} name="contactNumber" value={editForm.contactNumber} onChange={handleEditChange} placeholder="Contact Number" />
+                                <input className={inputClass} name="eventType" value={editForm.eventType} onChange={handleEditChange} placeholder="Event Type" />
+                                <input className={inputClass} type="date" name="eventDate" value={editForm.eventDate} onChange={handleEditChange} />
+                                <input className={inputClass} type="time" name="eventStartTime" value={editForm.eventStartTime} onChange={handleEditChange} />
+                                <input className={inputClass} type="time" name="eventEndTime" value={editForm.eventEndTime} onChange={handleEditChange} />
+                                <input className={inputClass} name="guests" value={editForm.guests} onChange={handleEditChange} placeholder="Guests" />
+                                <input className={inputClass} name="venue" value={editForm.venue} onChange={handleEditChange} placeholder="Venue" />
+                                <input className={inputClass} name="themePreference" value={editForm.themePreference} onChange={handleEditChange} placeholder="Theme Preference" />
+                            </div>
+
+                            <textarea
+                                className={`${inputClass} mt-4 min-h-[120px] resize-none`}
+                                name="specialRequests"
+                                value={editForm.specialRequests}
+                                onChange={handleEditChange}
+                                placeholder="Special Requests"
+                            />
+
+                            <div className="mt-6 flex flex-wrap justify-end gap-3">
+                                <button
+                                    type="button"
+                                    onClick={closeEditModal}
+                                    className="rounded-2xl border border-slate-300 px-5 py-3 text-sm font-extrabold text-slate-700 hover:bg-slate-50"
+                                >
+                                    Cancel
+                                </button>
+
+                                <button
+                                    type="submit"
+                                    disabled={savingId === editingQuote.id}
+                                    className="inline-flex items-center gap-2 rounded-2xl bg-[#0d5c46] px-5 py-3 text-sm font-extrabold text-white hover:bg-[#0b4f3d] disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                    <Save size={16} />
+                                    {savingId === editingQuote.id ? "Saving..." : "Save Changes"}
+                                </button>
+                            </div>
+                        </motion.form>
+                    </motion.div>
+                ) : null}
+            </AnimatePresence>
         </motion.div>
     );
 }
-
-export default ClientQuotations;
