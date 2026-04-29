@@ -1594,18 +1594,6 @@ function PremiumTimePicker({ value, onChange, isDark, placeholder = "Select even
     const [open, setOpen] = useState(false);
     const rootRef = useRef(null);
 
-    const pickerButtonClass = isDark
-        ? "flex w-full items-center justify-between rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(11,35,28,0.98)_0%,rgba(15,43,35,0.98)_100%)] px-4 py-3.5 text-left text-white shadow-sm transition hover:border-[#d4af37] focus:border-[#d4af37]"
-        : "flex w-full items-center justify-between rounded-2xl border border-[#d7e1dc] bg-[linear-gradient(180deg,#fbfdfc_0%,#f3f8f5_100%)] px-4 py-3.5 text-left text-slate-800 shadow-sm transition hover:border-[#d4af37] focus:border-[#d4af37]";
-
-    const dropdownClass = isDark
-        ? "absolute left-0 top-[calc(100%+10px)] z-30 w-full rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.99)_0%,rgba(13,40,32,0.99)_100%)] p-4 shadow-[0_24px_54px_rgba(0,0,0,0.28)]"
-        : "absolute left-0 top-[calc(100%+10px)] z-30 w-full rounded-[24px] border border-[#dce7e2] bg-[linear-gradient(180deg,#ffffff_0%,#f7fbf9_100%)] p-4 shadow-[0_24px_54px_rgba(14,61,47,0.12)]";
-
-    const inputTimeClass = isDark
-        ? "w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-white outline-none focus:border-[#d4af37]"
-        : "w-full rounded-2xl border border-[#d7e1dc] bg-white px-4 py-3 text-sm font-bold text-[#0f4d3c] outline-none focus:border-[#d4af37]";
-
     useEffect(() => {
         const handleOutside = (event) => {
             if (rootRef.current && !rootRef.current.contains(event.target)) {
@@ -1617,60 +1605,95 @@ function PremiumTimePicker({ value, onChange, isDark, placeholder = "Select even
         return () => document.removeEventListener("mousedown", handleOutside);
     }, []);
 
+    const pickerButtonClass = isDark
+        ? "group flex w-full items-center justify-between rounded-[20px] border border-white/10 bg-[linear-gradient(180deg,rgba(7,32,25,0.98)_0%,rgba(13,52,40,0.98)_100%)] px-4 py-3.5 text-left text-white shadow-[0_12px_28px_rgba(0,0,0,0.18)] transition hover:-translate-y-0.5 hover:border-[#d4af37]/70 focus:border-[#d4af37]"
+        : "group flex w-full items-center justify-between rounded-[20px] border border-[#d7e1dc] bg-[linear-gradient(180deg,#ffffff_0%,#f4faf7_100%)] px-4 py-3.5 text-left text-slate-800 shadow-[0_12px_28px_rgba(14,61,47,0.08)] transition hover:-translate-y-0.5 hover:border-[#d4af37] focus:border-[#d4af37]";
+
+    const dropdownClass = isDark
+        ? "absolute left-0 top-[calc(100%+12px)] z-40 w-[340px] overflow-hidden rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(5,31,24,0.99)_0%,rgba(10,58,43,0.99)_100%)] shadow-[0_34px_80px_rgba(0,0,0,0.45)]"
+        : "absolute left-0 top-[calc(100%+12px)] z-40 w-[340px] overflow-hidden rounded-[30px] border border-[#dce7e2] bg-white shadow-[0_34px_80px_rgba(14,61,47,0.22)]";
+
+    const inputTimeClass = isDark
+        ? "h-14 w-full rounded-[20px] border border-white/10 bg-white/8 px-4 text-lg font-extrabold tracking-wide text-white outline-none transition focus:border-[#d4af37] focus:ring-4 focus:ring-[#d4af37]/15"
+        : "h-14 w-full rounded-[20px] border border-[#d7e1dc] bg-white px-4 text-lg font-extrabold tracking-wide text-[#0f4d3c] outline-none transition focus:border-[#d4af37] focus:ring-4 focus:ring-[#d4af37]/15";
+
     return (
         <div className="relative" ref={rootRef}>
             <button type="button" onClick={() => setOpen((prev) => !prev)} className={pickerButtonClass}>
                 <div className="flex items-center gap-3">
-                    <Clock3 size={17} className="text-[#b99117]" />
-                    <span className={value ? "" : isDark ? "text-white/35" : "text-slate-400"}>
-                        {formatTimeDisplay(value, placeholder)}
+                    <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#f5c94a_0%,#d4af37_100%)] text-[#0b4a3a] shadow-[0_10px_20px_rgba(212,175,55,0.28)]">
+                        <Clock3 size={18} />
                     </span>
+
+                    <div>
+                        <p className={`text-[10px] font-bold uppercase tracking-[0.2em] ${isDark ? "text-white/45" : "text-slate-400"}`}>
+                            {title}
+                        </p>
+                        <p className={`mt-0.5 text-sm font-extrabold ${value ? (isDark ? "text-white" : "text-[#0f4d3c]") : isDark ? "text-white/35" : "text-slate-400"}`}>
+                            {formatTimeDisplay(value, placeholder)}
+                        </p>
+                    </div>
                 </div>
-                <ChevronDown size={18} className={`transition ${open ? "rotate-180" : ""} ${isDark ? "text-white/65" : "text-slate-500"}`} />
+
+                <ChevronDown
+                    size={18}
+                    className={`transition duration-300 ${open ? "rotate-180 text-[#d4af37]" : isDark ? "text-white/60" : "text-slate-500"}`}
+                />
             </button>
 
             <AnimatePresence>
                 {open && (
                     <motion.div
-                        initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                        initial={{ opacity: 0, y: 14, scale: 0.94 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 6, scale: 0.98 }}
-                        transition={{ duration: 0.18 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.96 }}
+                        transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
                         className={dropdownClass}
                     >
-                        <div className="mb-4 flex items-center justify-between gap-3">
-                            <div>
-                                <p className={`text-xs font-semibold uppercase tracking-[0.18em] ${isDark ? "text-white/50" : "text-slate-400"}`}>
-                                    {title}
-                                </p>
-                                <p className={`mt-1 text-sm font-bold ${isDark ? "text-white" : "text-[#0f4d3c]"}`}>
-                                    {formatTimeDisplay(value, placeholder)}
-                                </p>
-                            </div>
+                        <div className="relative overflow-hidden bg-[linear-gradient(135deg,#07382d_0%,#0f6b52_70%,#18a06c_100%)] px-5 py-5 text-white">
+                            <div className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-[#f5c94a]/25 blur-2xl" />
+                            <div className="relative flex items-start justify-between gap-3">
+                                <div>
+                                    <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-white/60">
+                                        Premium Time Picker
+                                    </p>
+                                    <h3 className="mt-1 text-2xl font-extrabold text-[#f5c94a]">
+                                        {formatTimeDisplay(value, placeholder)}
+                                    </h3>
+                                </div>
 
-                            {value ? (
-                                <button
-                                    type="button"
-                                    onClick={() => onChange("")}
-                                    className={isDark ? "rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-white/80 transition hover:bg-white/10" : "rounded-full border border-[#e3ebe7] bg-[#fbfdfc] px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-[#f3fbf7]"}
-                                >
-                                    Clear
-                                </button>
-                            ) : null}
+                                {value ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => onChange("")}
+                                        className="rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-white/20"
+                                    >
+                                        Clear
+                                    </button>
+                                ) : null}
+                            </div>
                         </div>
 
-                        <div className="space-y-2">
-                            <p className={`text-xs font-semibold uppercase tracking-[0.14em] ${isDark ? "text-white/45" : "text-slate-400"}`}>
-                                Edit exact time
-                            </p>
+                        <div className={isDark ? "p-5" : "bg-[linear-gradient(180deg,#ffffff_0%,#f8fcfa_100%)] p-5"}>
+                            <div className={isDark ? "rounded-[24px] border border-white/10 bg-white/5 p-4" : "rounded-[24px] border border-[#e6eeea] bg-white p-4 shadow-sm"}>
+                                <p className={`mb-3 text-[11px] font-bold uppercase tracking-[0.2em] ${isDark ? "text-[#f5cf67]" : "text-[#9b7400]"}`}>
+                                    Edit exact time
+                                </p>
 
-                            <input
-                                type="time"
-                                step="60"
-                                value={value || ""}
-                                onChange={(e) => onChange(e.target.value)}
-                                className={inputTimeClass}
-                            />
+                                <input
+                                    type="time"
+                                    step="60"
+                                    value={value || ""}
+                                    onChange={(e) => onChange(e.target.value)}
+                                    className={inputTimeClass}
+                                />
+
+                                <div className={isDark ? "mt-4 rounded-2xl border border-white/10 bg-black/10 px-4 py-3" : "mt-4 rounded-2xl border border-[#f0e0a8] bg-[#fff9e8] px-4 py-3"}>
+                                    <p className={`text-xs font-semibold leading-5 ${isDark ? "text-white/60" : "text-slate-600"}`}>
+                                        Type any exact time like <b>11:59</b>, or click the time field icon to open the browser selector.
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     </motion.div>
                 )}
