@@ -73,6 +73,7 @@ app.use("/api/bookings", require("./routes/bookingRoutes"));
 app.use("/api/payments", require("./routes/paymentRoutes"));
 app.use("/api/quotations", require("./routes/quotationRoutes"));
 app.use("/api/inquiries", require("./routes/inquiryRoutes"));
+app.use("/api/notifications", require("./routes/notificationRoutes"));
 
 app.use(notFound);
 app.use(errorHandler);

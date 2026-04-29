@@ -20,6 +20,19 @@ import {
     CheckCircle2,
 } from "lucide-react";
 
+function getApiBaseUrl() {
+    const envUrl = import.meta.env.VITE_API_URL?.trim();
+
+    if (!envUrl) {
+        return "https://ebitscatering.onrender.com/api";
+    }
+
+    const cleaned = envUrl.replace(/\/+$/, "");
+    return cleaned.endsWith("/api") ? cleaned : `${cleaned}/api`;
+}
+
+const API_BASE_URL = getApiBaseUrl();
+
 function getSafeJson(key, fallback) {
     try {
         const raw = localStorage.getItem(key);
@@ -43,6 +56,16 @@ function getClientUserSafe() {
     }
 }
 
+function getClientToken() {
+    return (
+        localStorage.getItem("clientToken") ||
+        localStorage.getItem("token") ||
+        localStorage.getItem("authToken") ||
+        localStorage.getItem("adminToken") ||
+        ""
+    );
+}
+
 function getCurrentClientEmailSafe() {
     const clientUser = getClientUserSafe();
     return (
@@ -51,10 +74,6 @@ function getCurrentClientEmailSafe() {
         clientUser?.email ||
         ""
     );
-}
-
-function getScopedKey(baseKey, email) {
-    return email ? `${baseKey}_${email}` : `${baseKey}_guest`;
 }
 
 function formatNotificationTime(dateValue) {
@@ -71,61 +90,33 @@ function formatNotificationTime(dateValue) {
     });
 }
 
-function buildNotifications({ quotations, bookings, inquiries }) {
-    const notificationItems = [];
+function getNotificationTitle(type) {
+    const normalized = String(type || "").toLowerCase();
 
-    quotations.slice(0, 3).forEach((item) => {
-        notificationItems.push({
-            id: `quotation-${item.id}-${item.createdAt || ""}`,
-            title: "Quotation update",
-            message:
-                item?.eventType ||
-                item?.packageName ||
-                item?.packageType ||
-                "New quotation activity",
-            meta: item?.status || "Pending",
-            createdAt: item?.createdAt || new Date().toISOString(),
-            to: "/client/quotations",
-        });
-    });
+    if (normalized.includes("booking")) return "Booking approved";
 
-    bookings.slice(0, 3).forEach((item) => {
-        notificationItems.push({
-            id: `booking-${item.id}-${item.createdAt || item.date || ""}`,
-            title: "Booking activity",
-            message: item?.eventType || item?.packageName || "Booking record",
-            meta: item?.status || "Pending",
-            createdAt: item?.createdAt || item?.date || new Date().toISOString(),
-            to: "/client/bookings",
-        });
-    });
+    return "Notification";
+}
 
-    inquiries
-        .filter((item) => item?.sender === "admin")
-        .slice(-3)
-        .reverse()
-        .forEach((item, index) => {
-            notificationItems.push({
-                id: `inquiry-${item.id || index}`,
-                title: "Admin reply received",
-                message: String(item?.text || "New reply").slice(0, 72),
-                meta: "Support",
-                createdAt: item?.createdAt || new Date().toISOString(),
-                to: "/client/inquiries",
-            });
-        });
+function getNotificationRoute(type) {
+    const normalized = String(type || "").toLowerCase();
 
-    return notificationItems
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-        .slice(0, 8);
+    if (normalized.includes("booking")) return "/client/bookings";
+    if (normalized.includes("quotation")) return "/client/quotations";
+    if (normalized.includes("inquiry")) return "/client/inquiries";
+
+    return "/client/dashboard";
 }
 
 function ClientTopbar() {
     const navigate = useNavigate();
+
     const [showLogoutModal, setShowLogoutModal] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [showProfileDropdown, setShowProfileDropdown] = useState(false);
     const [showNotifications, setShowNotifications] = useState(false);
+    const [notifications, setNotifications] = useState([]);
+    const [loadingNotifications, setLoadingNotifications] = useState(false);
 
     const profileRef = useRef(null);
     const notificationsRef = useRef(null);
@@ -136,26 +127,98 @@ function ClientTopbar() {
         []
     );
 
-    const notificationSeenKey = useMemo(
-        () => getScopedKey("clientSeenNotifications", clientEmail),
-        [clientEmail]
-    );
-
     const [theme, setTheme] = useState(() => {
         return localStorage.getItem("clientPortalTheme") || "light";
     });
 
-    const [seenNotificationIds, setSeenNotificationIds] = useState(() => {
-        return getSafeJson(notificationSeenKey, []);
-    });
+    const fetchNotifications = async () => {
+        const token = getClientToken();
+
+        if (!token) return;
+
+        try {
+            setLoadingNotifications(true);
+
+            const response = await fetch(`${API_BASE_URL}/notifications`, {
+                method: "GET",
+                credentials: "include",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (!response.ok) return;
+
+            const data = await response.json();
+            setNotifications(Array.isArray(data) ? data : []);
+        } catch (error) {
+            console.error("Fetch notifications error:", error);
+        } finally {
+            setLoadingNotifications(false);
+        }
+    };
+
+    const markAllNotificationsAsRead = async () => {
+        const token = getClientToken();
+
+        if (!token) return;
+
+        setNotifications((prev) =>
+            prev.map((item) => ({
+                ...item,
+                is_read: 1,
+            }))
+        );
+
+        try {
+            await fetch(`${API_BASE_URL}/notifications/read/all`, {
+                method: "PUT",
+                credentials: "include",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+        } catch (error) {
+            console.error("Mark all notifications error:", error);
+        }
+    };
+
+    const markNotificationAsRead = async (id) => {
+        const token = getClientToken();
+
+        if (!token || !id) return;
+
+        setNotifications((prev) =>
+            prev.map((item) =>
+                Number(item.id) === Number(id)
+                    ? {
+                        ...item,
+                        is_read: 1,
+                    }
+                    : item
+            )
+        );
+
+        try {
+            await fetch(`${API_BASE_URL}/notifications/${id}/read`, {
+                method: "PUT",
+                credentials: "include",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+        } catch (error) {
+            console.error("Mark notification error:", error);
+        }
+    };
 
     useEffect(() => {
-        setSeenNotificationIds(getSafeJson(notificationSeenKey, []));
-    }, [notificationSeenKey]);
+        fetchNotifications();
 
-    useEffect(() => {
-        localStorage.setItem(notificationSeenKey, JSON.stringify(seenNotificationIds));
-    }, [notificationSeenKey, seenNotificationIds]);
+        const interval = setInterval(fetchNotifications, 5000);
+
+        return () => clearInterval(interval);
+    }, []);
 
     useEffect(() => {
         localStorage.setItem("clientPortalTheme", theme);
@@ -181,49 +244,17 @@ function ClientTopbar() {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const quotations = useMemo(() => {
-        const all = getSafeJson("clientQuotations", []);
-        const scoped = getSafeJson(getScopedKey("clientQuotations", clientEmail), []);
-        return scoped.length ? scoped : all;
-    }, [clientEmail]);
-
-    const bookings = useMemo(() => {
-        const all = getSafeJson("clientBookings", []);
-        const scoped = getSafeJson(getScopedKey("clientBookings", clientEmail), []);
-        return scoped.length ? scoped : all;
-    }, [clientEmail]);
-
-    const inquiries = useMemo(() => {
-        return getSafeJson(getScopedKey("clientInquiries", clientEmail), []);
-    }, [clientEmail]);
-
-    const notifications = useMemo(() => {
-        return buildNotifications({ quotations, bookings, inquiries });
-    }, [quotations, bookings, inquiries]);
-
-    useEffect(() => {
-        const validIds = notifications.map((item) => item.id);
-        setSeenNotificationIds((prev) => prev.filter((id) => validIds.includes(id)));
-    }, [notifications]);
-
-    const unreadNotifications = useMemo(() => {
-        return notifications.filter((item) => !seenNotificationIds.includes(item.id));
-    }, [notifications, seenNotificationIds]);
-
-    const unreadCount = unreadNotifications.length;
-
-    const markNotificationsAsSeen = (ids = []) => {
-        if (!ids.length) return;
-        setSeenNotificationIds((prev) => Array.from(new Set([...prev, ...ids])));
-    };
+    const unreadCount = notifications.filter(
+        (item) => !item.is_read && item.is_read !== 1
+    ).length;
 
     const handleOpenNotifications = () => {
         const nextOpen = !showNotifications;
         setShowNotifications(nextOpen);
         setShowProfileDropdown(false);
 
-        if (nextOpen) {
-            markNotificationsAsSeen(notifications.map((item) => item.id));
+        if (nextOpen && unreadCount > 0) {
+            markAllNotificationsAsRead();
         }
     };
 
@@ -239,6 +270,9 @@ function ClientTopbar() {
         localStorage.removeItem("currentClientName");
         localStorage.removeItem("isClientLoggedIn");
         localStorage.removeItem("redirectAfterLogin");
+        localStorage.removeItem("clientToken");
+        localStorage.removeItem("token");
+        localStorage.removeItem("authToken");
 
         setShowLogoutModal(false);
         setMobileMenuOpen(false);
@@ -251,28 +285,6 @@ function ClientTopbar() {
         setTheme((prev) => (prev === "light" ? "dark" : "light"));
     };
 
-    const isDark = theme === "dark";
-
-    const profileButtonClass = isDark
-        ? "flex h-[50px] max-w-[210px] items-center gap-2 rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.98)_0%,rgba(13,40,32,0.98)_100%)] px-4 py-2.5 text-sm font-bold text-[#98efcc] shadow-[0_14px_30px_rgba(0,0,0,0.18)]"
-        : "flex h-[50px] max-w-[210px] items-center gap-2 rounded-2xl border border-white/10 bg-white/95 px-4 py-2.5 text-sm font-bold text-[#0b5a43] shadow-[0_14px_30px_rgba(0,0,0,0.08)]";
-
-    const profileInitialClass = isDark
-        ? "flex h-8 w-8 items-center justify-center rounded-xl bg-[linear-gradient(135deg,#0d5c46_0%,#0f6d51_100%)] text-xs font-extrabold text-white"
-        : "flex h-8 w-8 items-center justify-center rounded-xl bg-[linear-gradient(135deg,#0b5a43_0%,#0f6d51_100%)] text-xs font-extrabold text-white";
-
-    const dropdownClass = isDark
-        ? "absolute right-0 top-[calc(100%+12px)] z-[80] w-[280px] overflow-hidden rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.99)_0%,rgba(13,40,32,0.99)_100%)] text-white shadow-[0_30px_60px_rgba(0,0,0,0.28)]"
-        : "absolute right-0 top-[calc(100%+12px)] z-[80] w-[280px] overflow-hidden rounded-[28px] border border-[#dfe8e4] bg-white text-slate-800 shadow-[0_30px_60px_rgba(0,0,0,0.18)]";
-
-    const dropdownItemClass = isDark
-        ? "flex w-full items-center gap-3 rounded-[20px] px-4 py-3 text-left text-sm font-semibold text-white/90 transition hover:bg-white/5"
-        : "flex w-full items-center gap-3 rounded-[20px] px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-[#f7fbf9]";
-
-    const mobileSignedInCardClass = isDark
-        ? "relative mt-5 rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.98)_0%,rgba(13,40,32,0.98)_100%)] px-4 py-4 text-[#98efcc] shadow-[0_14px_30px_rgba(0,0,0,0.18)]"
-        : "relative mt-5 rounded-[24px] border border-white/10 bg-white/95 px-4 py-4 text-[#0b5a43] shadow-[0_14px_30px_rgba(0,0,0,0.12)]";
-
     const navItems = [
         { to: "/client/dashboard", label: "Dashboard", icon: LayoutDashboard },
         { to: "/client/quotations", label: "Quotations", icon: FileText },
@@ -282,17 +294,18 @@ function ClientTopbar() {
     ];
 
     const navClass = ({ isActive }) =>
-        `client-topbar-link ${isActive ? "client-topbar-link-active" : "client-topbar-link-idle"}`;
+        `client-topbar-link ${isActive ? "client-topbar-link-active" : "client-topbar-link-idle"
+        }`;
+
+    const isDark = theme === "dark";
+
+    const profileButtonClass = isDark
+        ? "flex h-[50px] max-w-[210px] items-center gap-2 rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.98)_0%,rgba(13,40,32,0.98)_100%)] px-4 py-2.5 text-sm font-bold text-[#98efcc] shadow-[0_14px_30px_rgba(0,0,0,0.18)]"
+        : "flex h-[50px] max-w-[210px] items-center gap-2 rounded-2xl border border-white/10 bg-white/95 px-4 py-2.5 text-sm font-bold text-[#0b5a43] shadow-[0_14px_30px_rgba(0,0,0,0.08)]";
 
     return (
         <>
             <header className="sticky top-0 z-50 border-b border-white/10 bg-[linear-gradient(135deg,rgba(7,62,47,0.96)_0%,rgba(10,87,65,0.96)_58%,rgba(15,117,88,0.96)_100%)] text-white shadow-[0_18px_48px_rgba(6,40,31,0.22)] backdrop-blur-xl">
-                <div className="pointer-events-none absolute inset-0 overflow-hidden">
-                    <div className="absolute -left-16 top-[-60px] h-40 w-40 rounded-full bg-[#d4af37]/12 blur-3xl" />
-                    <div className="absolute right-[-80px] top-0 h-44 w-44 rounded-full bg-white/8 blur-3xl" />
-                    <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
-                </div>
-
                 <div className="relative mx-auto max-w-[1380px] px-3 sm:px-5 lg:px-6">
                     <div className="flex min-h-[76px] items-center justify-between gap-3 py-3 xl:min-h-[84px] xl:py-4">
                         <motion.div
@@ -331,12 +344,7 @@ function ClientTopbar() {
                             </nav>
                         </div>
 
-                        <motion.div
-                            initial={{ opacity: 0, x: 18 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.45 }}
-                            className="hidden items-center self-center gap-2.5 pl-2 min-[1450px]:flex"
-                        >
+                        <div className="hidden items-center self-center gap-2.5 pl-2 min-[1450px]:flex">
                             <div ref={notificationsRef} className="relative">
                                 <button
                                     onClick={handleOpenNotifications}
@@ -344,7 +352,7 @@ function ClientTopbar() {
                                 >
                                     <Bell size={18} />
                                     {unreadCount > 0 ? (
-                                        <span className="absolute -right-1 -top-1 inline-flex min-h-[22px] min-w-[22px] items-center justify-center rounded-full bg-[#f5c94a] px-1.5 text-[11px] font-extrabold text-[#0b5a43] shadow-[0_10px_18px_rgba(245,201,74,0.35)]">
+                                        <span className="absolute -right-1 -top-1 inline-flex min-h-[22px] min-w-[22px] items-center justify-center rounded-full bg-[#f5c94a] px-1.5 text-[11px] font-extrabold text-[#0b5a43]">
                                             {unreadCount > 9 ? "9+" : unreadCount}
                                         </span>
                                     ) : null}
@@ -360,30 +368,24 @@ function ClientTopbar() {
                                             className="absolute right-0 top-[calc(100%+12px)] z-[80] w-[360px] overflow-hidden rounded-[28px] border border-[#dfe8e4] bg-white text-slate-800 shadow-[0_30px_60px_rgba(0,0,0,0.18)]"
                                         >
                                             <div className="border-b border-[#edf2ef] bg-[linear-gradient(90deg,#f3fbf8_0%,#fffaf0_100%)] px-5 py-4">
-                                                <div className="flex items-center justify-between gap-3">
-                                                    <div>
-                                                        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-                                                            Notifications
-                                                        </p>
-                                                        <h3 className="mt-1 text-lg font-extrabold text-[#0d5c46]">
-                                                            Activity Updates
-                                                        </h3>
-                                                    </div>
-                                                    <div className="rounded-full bg-[#eef8f3] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-[#0d5c46]">
-                                                        {unreadCount} items
-                                                    </div>
-                                                </div>
+                                                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                                                    Notifications
+                                                </p>
+                                                <h3 className="mt-1 text-lg font-extrabold text-[#0d5c46]">
+                                                    Activity Updates
+                                                </h3>
                                             </div>
 
                                             <div className="max-h-[380px] overflow-y-auto p-3">
-                                                {notifications.length === 0 ? (
+                                                {loadingNotifications && notifications.length === 0 ? (
+                                                    <div className="rounded-[22px] border border-dashed border-[#d8e3de] bg-[#fbfdfc] px-4 py-8 text-center text-sm font-semibold text-slate-500">
+                                                        Loading notifications...
+                                                    </div>
+                                                ) : notifications.length === 0 ? (
                                                     <div className="rounded-[22px] border border-dashed border-[#d8e3de] bg-[#fbfdfc] px-4 py-8 text-center">
                                                         <Bell size={24} className="mx-auto text-slate-400" />
                                                         <p className="mt-3 text-sm font-semibold text-slate-600">
                                                             No notifications yet
-                                                        </p>
-                                                        <p className="mt-1 text-xs text-slate-400">
-                                                            New activity will appear here.
                                                         </p>
                                                     </div>
                                                 ) : (
@@ -392,9 +394,9 @@ function ClientTopbar() {
                                                             <button
                                                                 key={item.id}
                                                                 onClick={() => {
-                                                                    markNotificationsAsSeen([item.id]);
+                                                                    markNotificationAsRead(item.id);
                                                                     setShowNotifications(false);
-                                                                    navigate(item.to);
+                                                                    navigate(getNotificationRoute(item.type));
                                                                 }}
                                                                 className="w-full rounded-[22px] border border-[#e8efeb] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-4 text-left transition hover:border-[#d4af37]/40 hover:shadow-sm"
                                                             >
@@ -406,10 +408,10 @@ function ClientTopbar() {
                                                                     <div className="min-w-0 flex-1">
                                                                         <div className="flex items-center justify-between gap-3">
                                                                             <p className="truncate text-sm font-bold text-[#0d5c46]">
-                                                                                {item.title}
+                                                                                {getNotificationTitle(item.type)}
                                                                             </p>
                                                                             <span className="shrink-0 text-[11px] text-slate-400">
-                                                                                {formatNotificationTime(item.createdAt)}
+                                                                                {formatNotificationTime(item.created_at)}
                                                                             </span>
                                                                         </div>
 
@@ -418,7 +420,7 @@ function ClientTopbar() {
                                                                         </p>
 
                                                                         <div className="mt-2 inline-flex rounded-full bg-[#fff8e6] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-[#8f6a0f]">
-                                                                            {item.meta}
+                                                                            {item.type || "Update"}
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -440,15 +442,16 @@ function ClientTopbar() {
                                     }}
                                     className={profileButtonClass}
                                 >
-                                    <div className={profileInitialClass}>
+                                    <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[linear-gradient(135deg,#0b5a43_0%,#0f6d51_100%)] text-xs font-extrabold text-white">
                                         {String(clientUser?.name || "C").charAt(0).toUpperCase()}
                                     </div>
-                                    <span className={`truncate ${isDark ? "text-[#98efcc]" : "text-[#0b5a43]"}`}>
+                                    <span className="truncate">
                                         {clientUser?.name || "Client"}
                                     </span>
                                     <ChevronRight
                                         size={15}
-                                        className={`shrink-0 transition ${showProfileDropdown ? "rotate-90" : ""}`}
+                                        className={`shrink-0 transition ${showProfileDropdown ? "rotate-90" : ""
+                                            }`}
                                     />
                                 </button>
 
@@ -459,22 +462,15 @@ function ClientTopbar() {
                                             animate={{ opacity: 1, y: 0, scale: 1 }}
                                             exit={{ opacity: 0, y: 8, scale: 0.98 }}
                                             transition={{ duration: 0.2 }}
-                                            className={dropdownClass}
+                                            className="absolute right-0 top-[calc(100%+12px)] z-[80] w-[280px] overflow-hidden rounded-[28px] border border-[#dfe8e4] bg-white text-slate-800 shadow-[0_30px_60px_rgba(0,0,0,0.18)]"
                                         >
                                             <div className="bg-[linear-gradient(135deg,#0b5a43_0%,#0f6d51_100%)] px-5 py-5 text-white">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-base font-extrabold text-[#f5c94a]">
-                                                        {String(clientUser?.name || "C").charAt(0).toUpperCase()}
-                                                    </div>
-                                                    <div className="min-w-0">
-                                                        <p className="truncate text-base font-bold">
-                                                            {clientUser?.name || "Client"}
-                                                        </p>
-                                                        <p className="truncate text-sm text-white/75">
-                                                            {clientEmail || "No email"}
-                                                        </p>
-                                                    </div>
-                                                </div>
+                                                <p className="truncate text-base font-bold">
+                                                    {clientUser?.name || "Client"}
+                                                </p>
+                                                <p className="truncate text-sm text-white/75">
+                                                    {clientEmail || "No email"}
+                                                </p>
                                             </div>
 
                                             <div className="p-3">
@@ -483,7 +479,7 @@ function ClientTopbar() {
                                                         setShowProfileDropdown(false);
                                                         navigate("/client/dashboard");
                                                     }}
-                                                    className={dropdownItemClass}
+                                                    className="flex w-full items-center gap-3 rounded-[20px] px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-[#f7fbf9]"
                                                 >
                                                     <User size={17} className="text-[#0d5c46]" />
                                                     <span>Profile Overview</span>
@@ -494,7 +490,7 @@ function ClientTopbar() {
                                                         toggleTheme();
                                                         setShowProfileDropdown(false);
                                                     }}
-                                                    className={dropdownItemClass}
+                                                    className="flex w-full items-center gap-3 rounded-[20px] px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-[#f7fbf9]"
                                                 >
                                                     {theme === "light" ? (
                                                         <Moon size={17} className="text-[#0d5c46]" />
@@ -523,7 +519,7 @@ function ClientTopbar() {
                                     )}
                                 </AnimatePresence>
                             </div>
-                        </motion.div>
+                        </div>
 
                         <button
                             onClick={() => setMobileMenuOpen(true)}
@@ -553,13 +549,8 @@ function ClientTopbar() {
                             transition={{ duration: 0.32, ease: "easeOut" }}
                             className="fixed right-0 top-0 z-[60] h-full w-[88%] max-w-sm overflow-y-auto bg-[linear-gradient(180deg,#ffffff_0%,#f7fbf9_100%)] shadow-[0_24px_60px_rgba(0,0,0,0.22)] min-[1450px]:hidden"
                         >
-                            <div className="relative overflow-hidden bg-[linear-gradient(135deg,#0b5a43_0%,#0f6d51_58%,#138062_100%)] px-5 py-5 text-white">
-                                <div className="pointer-events-none absolute inset-0">
-                                    <div className="absolute -right-8 top-0 h-28 w-28 rounded-full bg-white/10 blur-2xl" />
-                                    <div className="absolute -left-8 bottom-0 h-24 w-24 rounded-full bg-[#d4af37]/20 blur-2xl" />
-                                </div>
-
-                                <div className="relative flex items-start justify-between gap-4">
+                            <div className="bg-[linear-gradient(135deg,#0b5a43_0%,#0f6d51_58%,#138062_100%)] px-5 py-5 text-white">
+                                <div className="flex items-start justify-between gap-4">
                                     <div className="min-w-0">
                                         <h2 className="truncate text-2xl font-extrabold text-[#f5c94a]">
                                             Ebit&apos;s Catering
@@ -577,7 +568,7 @@ function ClientTopbar() {
                                     </button>
                                 </div>
 
-                                <div className={mobileSignedInCardClass}>
+                                <div className="mt-5 rounded-[24px] border border-white/10 bg-white/95 px-4 py-4 text-[#0b5a43]">
                                     <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#0b5a43]/60">
                                         Signed in as
                                     </p>
@@ -586,29 +577,17 @@ function ClientTopbar() {
                                     </p>
                                 </div>
 
-                                <div className="mt-4 flex items-center justify-end">
-                                    <button
-                                        onClick={() => {
-                                            const nextOpen = !showNotifications;
-                                            setShowNotifications(nextOpen);
-                                            setShowProfileDropdown(false);
-
-                                            if (nextOpen) {
-                                                markNotificationsAsSeen(
-                                                    notifications.map((item) => item.id)
-                                                );
-                                            }
-                                        }}
-                                        className="relative inline-flex h-[50px] w-[50px] items-center justify-center rounded-[18px] border border-white/10 bg-white/10 text-white"
-                                    >
-                                        <Bell size={18} />
-                                        {unreadCount > 0 ? (
-                                            <span className="absolute -right-1 -top-1 inline-flex min-h-[20px] min-w-[20px] items-center justify-center rounded-full bg-[#f5c94a] px-1 text-[10px] font-extrabold text-[#0b5a43]">
-                                                {unreadCount > 9 ? "9+" : unreadCount}
-                                            </span>
-                                        ) : null}
-                                    </button>
-                                </div>
+                                <button
+                                    onClick={handleOpenNotifications}
+                                    className="relative mt-4 inline-flex h-[50px] w-[50px] items-center justify-center rounded-[18px] border border-white/10 bg-white/10 text-white"
+                                >
+                                    <Bell size={18} />
+                                    {unreadCount > 0 ? (
+                                        <span className="absolute -right-1 -top-1 inline-flex min-h-[20px] min-w-[20px] items-center justify-center rounded-full bg-[#f5c94a] px-1 text-[10px] font-extrabold text-[#0b5a43]">
+                                            {unreadCount > 9 ? "9+" : unreadCount}
+                                        </span>
+                                    ) : null}
+                                </button>
                             </div>
 
                             <div className="p-5">
@@ -631,32 +610,10 @@ function ClientTopbar() {
                                                 </div>
                                                 <span>{label}</span>
                                             </div>
-                                            <ChevronRight
-                                                size={16}
-                                                className="opacity-60 transition group-hover:translate-x-0.5"
-                                            />
+                                            <ChevronRight size={16} className="opacity-60" />
                                         </NavLink>
                                     ))}
                                 </nav>
-
-                                <div className="mt-5 rounded-[24px] border border-[#e3ebe7] bg-white p-4 shadow-sm">
-                                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-                                        Quick Profile
-                                    </p>
-                                    <div className="mt-3 flex items-center gap-3">
-                                        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#0d5c46] font-extrabold text-white">
-                                            {String(clientUser?.name || "C").charAt(0).toUpperCase()}
-                                        </div>
-                                        <div className="min-w-0">
-                                            <p className="truncate text-sm font-bold text-[#0d5c46]">
-                                                {clientUser?.name || "Client"}
-                                            </p>
-                                            <p className="truncate text-xs text-slate-500">
-                                                {clientEmail || "No email"}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
 
                                 {showNotifications ? (
                                     <div className="mt-5 rounded-[24px] border border-[#e3ebe7] bg-white p-3 shadow-sm">
@@ -672,19 +629,19 @@ function ClientTopbar() {
                                                     </p>
                                                 </div>
                                             ) : (
-                                                notifications.slice(0, 4).map((item) => (
+                                                notifications.slice(0, 5).map((item) => (
                                                     <button
                                                         key={item.id}
                                                         onClick={() => {
-                                                            markNotificationsAsSeen([item.id]);
+                                                            markNotificationAsRead(item.id);
                                                             setMobileMenuOpen(false);
                                                             setShowNotifications(false);
-                                                            navigate(item.to);
+                                                            navigate(getNotificationRoute(item.type));
                                                         }}
                                                         className="w-full rounded-[18px] border border-[#e8efeb] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfc_100%)] p-3 text-left"
                                                     >
                                                         <p className="text-sm font-bold text-[#0d5c46]">
-                                                            {item.title}
+                                                            {getNotificationTitle(item.type)}
                                                         </p>
                                                         <p className="mt-1 line-clamp-2 text-xs text-slate-500">
                                                             {item.message}
@@ -696,27 +653,25 @@ function ClientTopbar() {
                                     </div>
                                 ) : null}
 
-                                <div className="mt-5 rounded-[24px] border border-[#e3ebe7] bg-white p-3 shadow-sm">
-                                    <button
-                                        onClick={toggleTheme}
-                                        className="flex w-full items-center gap-3 rounded-[18px] px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-[#f7fbf9]"
-                                    >
-                                        {theme === "light" ? (
-                                            <Moon size={17} className="text-[#0d5c46]" />
-                                        ) : (
-                                            <Sun size={17} className="text-[#0d5c46]" />
-                                        )}
-                                        <span>
-                                            {theme === "light"
-                                                ? "Switch to Dark Mode"
-                                                : "Switch to Light Mode"}
-                                        </span>
-                                    </button>
-                                </div>
+                                <button
+                                    onClick={toggleTheme}
+                                    className="mt-5 flex w-full items-center gap-3 rounded-[18px] bg-white px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-[#f7fbf9]"
+                                >
+                                    {theme === "light" ? (
+                                        <Moon size={17} className="text-[#0d5c46]" />
+                                    ) : (
+                                        <Sun size={17} className="text-[#0d5c46]" />
+                                    )}
+                                    <span>
+                                        {theme === "light"
+                                            ? "Switch to Dark Mode"
+                                            : "Switch to Light Mode"}
+                                    </span>
+                                </button>
 
                                 <button
                                     onClick={() => setShowLogoutModal(true)}
-                                    className="mt-5 flex w-full items-center justify-center gap-2 rounded-[22px] bg-[linear-gradient(135deg,#0b5a43_0%,#0f6d51_100%)] px-4 py-3.5 font-bold text-white shadow-[0_14px_26px_rgba(11,90,67,0.18)] transition hover:-translate-y-0.5 hover:bg-[#084633]"
+                                    className="mt-5 flex w-full items-center justify-center gap-2 rounded-[22px] bg-[linear-gradient(135deg,#0b5a43_0%,#0f6d51_100%)] px-4 py-3.5 font-bold text-white"
                                 >
                                     <LogOut size={18} />
                                     Logout
@@ -745,20 +700,13 @@ function ClientTopbar() {
                                 transition={{ duration: 0.25 }}
                                 className="w-full max-w-md overflow-hidden rounded-[32px] border border-[#efe2a9] bg-white shadow-[0_30px_70px_rgba(0,0,0,0.24)]"
                             >
-                                <div className="relative overflow-hidden bg-[linear-gradient(135deg,#0b5a43_0%,#0f6d51_100%)] px-6 py-5">
-                                    <div className="pointer-events-none absolute inset-0">
-                                        <div className="absolute -top-8 right-0 h-24 w-24 rounded-full bg-white/10 blur-2xl" />
-                                        <div className="absolute -left-6 bottom-0 h-20 w-20 rounded-full bg-[#d4af37]/20 blur-2xl" />
-                                    </div>
-
-                                    <div className="relative">
-                                        <h2 className="text-xl font-bold text-[#f5c94a]">
-                                            Confirm Logout
-                                        </h2>
-                                        <p className="mt-1 text-sm text-white/80">
-                                            Are you sure you want to log out from your account?
-                                        </p>
-                                    </div>
+                                <div className="bg-[linear-gradient(135deg,#0b5a43_0%,#0f6d51_100%)] px-6 py-5">
+                                    <h2 className="text-xl font-bold text-[#f5c94a]">
+                                        Confirm Logout
+                                    </h2>
+                                    <p className="mt-1 text-sm text-white/80">
+                                        Are you sure you want to log out from your account?
+                                    </p>
                                 </div>
 
                                 <div className="px-6 py-6">
@@ -776,7 +724,7 @@ function ClientTopbar() {
 
                                         <button
                                             onClick={handleConfirmLogout}
-                                            className="rounded-2xl bg-[linear-gradient(135deg,#0b5a43_0%,#0f6d51_100%)] px-5 py-2.5 font-semibold text-white shadow-[0_12px_24px_rgba(11,90,67,0.18)] transition hover:bg-[#084633]"
+                                            className="rounded-2xl bg-[linear-gradient(135deg,#0b5a43_0%,#0f6d51_100%)] px-5 py-2.5 font-semibold text-white"
                                         >
                                             Yes, Logout
                                         </button>

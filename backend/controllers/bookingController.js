@@ -13,6 +13,35 @@ function getUserEmail(req) {
     return normalizeValue(req.user?.email);
 }
 
+function createBookingApprovedNotification(booking) {
+    return new Promise((resolve, reject) => {
+        const message = `Your booking for ${booking.event_type || "your event"} on ${booking.event_date || "your selected date"} has been approved.`;
+
+        const query = `
+            INSERT INTO notifications
+            (
+                user_email,
+                message,
+                type,
+                is_read,
+                created_at
+            )
+            VALUES (?, ?, ?, FALSE, NOW())
+        `;
+
+        const values = [
+            booking.client_email,
+            message,
+            "booking_approved",
+        ];
+
+        db.query(query, values, (err, result) => {
+            if (err) return reject(err);
+            resolve(result);
+        });
+    });
+}
+
 exports.getBookings = (req, res) => {
     const admin = isAdminUser(req);
     const userEmail = getUserEmail(req);
@@ -281,34 +310,42 @@ exports.updateBooking = (req, res) => {
                 return res.status(404).json({ message: "Booking not found" });
             }
 
-            const shouldSendEmail =
+            const shouldNotify =
                 admin &&
                 oldStatus !== "approved" &&
                 newStatus === "approved";
 
-            if (shouldSendEmail) {
+            if (shouldNotify) {
+                const approvedBooking = {
+                    id,
+                    client_name,
+                    client_email: normalizedClientEmail,
+                    contact_number,
+                    event_type,
+                    package_name,
+                    event_date,
+                    event_time,
+                    venue,
+                    guests,
+                    total_price,
+                };
+
                 try {
-                    await sendBookingApprovedEmail({
-                        id,
-                        client_name,
-                        client_email: normalizedClientEmail,
-                        contact_number,
-                        event_type,
-                        package_name,
-                        event_date,
-                        event_time,
-                        venue,
-                        guests,
-                        total_price,
-                    });
+                    await createBookingApprovedNotification(approvedBooking);
+                } catch (notifErr) {
+                    console.error("Booking approved notification error:", notifErr);
+                }
+
+                try {
+                    await sendBookingApprovedEmail(approvedBooking);
                 } catch (emailErr) {
                     console.error("Booking approved email error:", emailErr);
                 }
             }
 
             return res.status(200).json({
-                message: shouldSendEmail
-                    ? "Booking updated successfully and approval email sent"
+                message: shouldNotify
+                    ? "Booking updated successfully, notification created, and approval email sent"
                     : "Booking updated successfully",
             });
         });
