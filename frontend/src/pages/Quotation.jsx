@@ -939,26 +939,6 @@ function Quotation({ mode = "public" }) {
 
                                 </div>
 
-                                <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                                    {[
-                                        "Weddings",
-                                        "Debuts",
-                                        "Birthdays",
-                                        "Anniversaries",
-                                        "Baptismal celebrations",
-                                    ].map((item, index) => (
-                                        <motion.div
-                                            key={item}
-                                            initial={{ opacity: 0, y: 8 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ duration: 0.28, delay: index * 0.04 }}
-                                            whileHover={{ y: -2 }}
-                                            className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm font-medium backdrop-blur-sm"
-                                        >
-                                            {item}
-                                        </motion.div>
-                                    ))}
-                                </div>
 
                                 <div className="mt-6 rounded-[24px] border border-white/10 bg-white/10 p-5 backdrop-blur-sm">
                                     <h3 className="text-lg font-extrabold text-[#f5c94a]">
