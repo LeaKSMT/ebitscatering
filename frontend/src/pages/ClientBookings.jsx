@@ -17,6 +17,7 @@ import {
     ShieldCheck,
     PartyPopper,
     CalendarClock,
+    Trash2,
 } from "lucide-react";
 
 function getClientUser() {
@@ -52,11 +53,7 @@ function getCurrentClientName() {
 }
 
 function getStoredToken() {
-    return (
-        localStorage.getItem("clientToken") ||
-        localStorage.getItem("token") ||
-        ""
-    );
+    return localStorage.getItem("clientToken") || localStorage.getItem("token") || "";
 }
 
 function formatCurrency(value) {
@@ -65,7 +62,6 @@ function formatCurrency(value) {
 
 function formatDate(dateStr) {
     if (!dateStr) return "Not specified";
-
     const date = new Date(dateStr);
     if (Number.isNaN(date.getTime())) return dateStr;
 
@@ -78,7 +74,6 @@ function formatDate(dateStr) {
 
 function formatTime(timeStr) {
     if (!timeStr) return "Not specified";
-
     const parsed = new Date(`2000-01-01T${timeStr}`);
     if (Number.isNaN(parsed.getTime())) return timeStr;
 
@@ -113,7 +108,7 @@ function getApiBaseUrl() {
     const envUrl = import.meta.env.VITE_API_URL?.trim();
 
     if (!envUrl) {
-        console.warn("VITE_API_URL is missing. Using Railway fallback.");
+        console.warn("VITE_API_URL is missing. Using Render fallback.");
         return "https://ebitscatering.onrender.com/api";
     }
 
@@ -124,41 +119,27 @@ function getApiBaseUrl() {
 function getStatusClasses(status, isDark) {
     const normalized = String(status || "").toLowerCase();
 
-    if (
-        normalized === "approved" ||
-        normalized === "confirmed" ||
-        normalized === "paid"
-    ) {
+    if (["approved", "confirmed", "paid"].includes(normalized)) {
         return isDark
-            ? "bg-[rgba(21,90,60,0.34)] text-[#8df0bf] border border-emerald-400/20"
-            : "bg-green-50 text-green-700 border-green-200";
+            ? "bg-emerald-500/15 text-emerald-200 border-emerald-300/30"
+            : "bg-emerald-50 text-emerald-700 border-emerald-200";
     }
 
     if (normalized === "pending") {
         return isDark
-            ? "bg-[rgba(125,95,28,0.3)] text-[#f5cf67] border border-amber-400/20"
-            : "bg-yellow-50 text-yellow-700 border-yellow-200";
+            ? "bg-amber-500/15 text-amber-200 border-amber-300/30"
+            : "bg-amber-50 text-amber-700 border-amber-200";
     }
 
-    if (
-        normalized === "rejected" ||
-        normalized === "cancelled" ||
-        normalized === "canceled"
-    ) {
+    if (["rejected", "cancelled", "canceled"].includes(normalized)) {
         return isDark
-            ? "bg-[rgba(120,34,55,0.28)] text-[#ff9bb0] border border-rose-400/20"
-            : "bg-red-50 text-red-700 border-red-200";
-    }
-
-    if (normalized === "ongoing" || normalized === "upcoming") {
-        return isDark
-            ? "bg-[rgba(34,74,120,0.28)] text-[#90c6ff] border border-blue-400/20"
-            : "bg-blue-50 text-blue-700 border-blue-200";
+            ? "bg-rose-500/15 text-rose-200 border-rose-300/30"
+            : "bg-rose-50 text-rose-700 border-rose-200";
     }
 
     return isDark
-        ? "bg-white/10 text-white/80 border border-white/10"
-        : "bg-gray-50 text-gray-700 border-gray-200";
+        ? "bg-white/10 text-white/80 border-white/10"
+        : "bg-slate-50 text-slate-700 border-slate-200";
 }
 
 const fadeUp = {
@@ -179,7 +160,10 @@ export default function ClientBookings() {
 
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [deletingId, setDeletingId] = useState(null);
     const [error, setError] = useState("");
+
+    const isDark = theme === "dark";
 
     useEffect(() => {
         const syncTheme = () => {
@@ -196,84 +180,119 @@ export default function ClientBookings() {
     }, []);
 
     useEffect(() => {
-        const fetchBookings = async () => {
-            try {
-                setLoading(true);
-                setError("");
-
-                const res = await fetch(`${API_BASE_URL}/bookings`, {
-                    method: "GET",
-                    credentials: "include",
-                    headers: {
-                        "Content-Type": "application/json",
-                        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-                    },
-                });
-
-                const data = await res.json().catch(() => []);
-
-                if (!res.ok) {
-                    throw new Error(data?.message || "Failed to fetch bookings.");
-                }
-
-                const normalized = Array.isArray(data)
-                    ? data.map(normalizeBooking).filter(Boolean)
-                    : [];
-
-                const filtered = normalized.filter((item) => {
-                    const itemEmail = String(item.email || "").toLowerCase().trim();
-                    const itemName = String(item.clientName || "").toLowerCase().trim();
-
-                    return (
-                        (email && itemEmail === email) ||
-                        (clientName && itemName === clientName)
-                    );
-                });
-
-                filtered.sort((a, b) => {
-                    const first = new Date(a.date || a.createdAt || 0).getTime();
-                    const second = new Date(b.date || b.createdAt || 0).getTime();
-                    return first - second;
-                });
-
-                setBookings(filtered);
-            } catch (err) {
-                console.error("Fetch bookings error:", err);
-                setError(err.message || "Failed to load bookings.");
-                setBookings([]);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        if (!email && !clientName) {
-            setBookings([]);
-            setLoading(false);
-            setError("No client session found.");
-            return;
-        }
-
         fetchBookings();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [email, clientName, token]);
 
-    const isDark = theme === "dark";
+    async function fetchBookings() {
+        try {
+            if (!email && !clientName) {
+                setBookings([]);
+                setLoading(false);
+                setError("No client session found.");
+                return;
+            }
+
+            setLoading(true);
+            setError("");
+
+            const res = await fetch(`${API_BASE_URL}/bookings`, {
+                method: "GET",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                },
+            });
+
+            const data = await res.json().catch(() => []);
+
+            if (!res.ok) {
+                throw new Error(data?.message || "Failed to fetch bookings.");
+            }
+
+            const normalized = Array.isArray(data)
+                ? data.map(normalizeBooking).filter(Boolean)
+                : [];
+
+            const filtered = normalized.filter((item) => {
+                const itemEmail = String(item.email || "").toLowerCase().trim();
+                const itemName = String(item.clientName || "").toLowerCase().trim();
+
+                return (
+                    (email && itemEmail === email) ||
+                    (clientName && itemName === clientName)
+                );
+            });
+
+            filtered.sort((a, b) => {
+                const first = new Date(a.date || a.createdAt || 0).getTime();
+                const second = new Date(b.date || b.createdAt || 0).getTime();
+                return first - second;
+            });
+
+            setBookings(filtered);
+        } catch (err) {
+            console.error("Fetch bookings error:", err);
+            setError(err.message || "Failed to load bookings.");
+            setBookings([]);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    async function handleDeleteBooking(booking) {
+        const confirmed = window.confirm(
+            `Delete this booking?\n\n${booking.eventType || "Event Booking"} - Booking ID: ${booking.bookingId || booking.id
+            }`
+        );
+
+        if (!confirmed) return;
+
+        try {
+            setDeletingId(booking.id);
+
+            const res = await fetch(`${API_BASE_URL}/bookings/${booking.id}`, {
+                method: "DELETE",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                },
+            });
+
+            const data = await res.json().catch(() => ({}));
+
+            if (!res.ok) {
+                throw new Error(data?.message || "Failed to delete booking.");
+            }
+
+            setBookings((prev) => prev.filter((item) => item.id !== booking.id));
+        } catch (err) {
+            console.error("Delete booking error:", err);
+            alert(err.message || "Failed to delete booking.");
+        } finally {
+            setDeletingId(null);
+        }
+    }
 
     const statCard = isDark
         ? "border border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.96)_0%,rgba(13,40,32,0.96)_100%)] shadow-[0_18px_40px_rgba(0,0,0,0.22)]"
-        : "border border-[#e3ebe7] bg-white shadow-sm";
+        : "border border-[#d8e4df] bg-white shadow-sm";
 
     const detailCard = isDark
         ? "border border-white/10 bg-[linear-gradient(180deg,rgba(12,38,30,0.96)_0%,rgba(15,43,35,0.96)_100%)]"
-        : "border border-[#e3ebe7] bg-[#f8fbfa]";
+        : "border border-[#d8e4df] bg-[#fbfdfc]";
 
     const outlineCard = isDark
         ? "border border-white/10 bg-[linear-gradient(180deg,rgba(11,35,28,0.98)_0%,rgba(15,42,34,0.98)_100%)]"
-        : "border border-[#e3ebe7] bg-white";
+        : "border border-[#d8e4df] bg-white";
 
-    const titleColor = isDark ? "text-white" : "text-[#0d5c46]";
-    const subtitleColor = isDark ? "text-white/72" : "text-slate-500";
-    const bodyColor = isDark ? "text-white/80" : "text-slate-600";
-    const strongText = isDark ? "text-white/95" : "text-slate-700";
+    const titleColor = isDark ? "text-white" : "text-[#064734]";
+    const subtitleColor = isDark ? "text-white/75" : "text-slate-600";
+    const bodyColor = isDark ? "text-white/85" : "text-slate-700";
+    const labelColor = isDark ? "text-[#a7f3d0]" : "text-[#07835f]";
+    const strongText = isDark ? "text-white" : "text-slate-900";
 
     const summary = useMemo(() => {
         const total = bookings.length;
@@ -304,19 +323,10 @@ export default function ClientBookings() {
                 variants={fadeUp}
                 className="portal-card-premium relative overflow-hidden"
             >
-                <div className="pointer-events-none absolute inset-0">
-                    <div className="absolute -top-10 right-[-30px] h-44 w-44 rounded-full bg-[#d4af37]/15 blur-3xl" />
-                    <div className="absolute bottom-[-45px] left-[-30px] h-40 w-40 rounded-full bg-white/10 blur-3xl" />
-                </div>
-
                 <div className="relative overflow-hidden bg-[linear-gradient(135deg,#073c2e_0%,#0b5641_28%,#0f6d51_58%,#14906b_100%)] px-6 py-8 text-white md:px-8 md:py-10">
-                    <div className="absolute inset-0 opacity-[0.08]">
-                        <div className="h-full w-full bg-[linear-gradient(to_right,rgba(255,255,255,0.2)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.2)_1px,transparent_1px)] bg-[size:44px_44px]" />
-                    </div>
-
                     <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
                         <div className="max-w-3xl">
-                            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.22em] text-white/80">
+                            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.22em] text-white/90">
                                 <Sparkles size={14} />
                                 Booking Overview
                             </div>
@@ -324,18 +334,19 @@ export default function ClientBookings() {
                             <h1 className="mt-4 text-3xl font-extrabold tracking-tight md:text-5xl">
                                 My Bookings
                             </h1>
-                            <p className="mt-3 max-w-2xl text-sm leading-7 text-white/85 md:text-base">
+
+                            <p className="mt-3 max-w-2xl text-sm font-medium leading-7 text-white/90 md:text-base">
                                 View your confirmed, approved, and pending event bookings
-                                with a cleaner, more premium, and more elegant presentation.
+                                with clearer details, readable records, and premium event tracking.
                             </p>
 
                             <div className="mt-5 flex flex-wrap items-center gap-3">
-                                <div className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white/90 backdrop-blur">
+                                <div className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur">
                                     <ShieldCheck size={16} className="text-[#f5c94a]" />
                                     Premium booking records and event tracking
                                 </div>
 
-                                <div className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-black/10 px-4 py-2.5 text-sm font-semibold text-white/80">
+                                <div className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-black/10 px-4 py-2.5 text-sm font-semibold text-white">
                                     <PartyPopper size={15} className="text-[#f5c94a]" />
                                     Organized for smoother client review
                                 </div>
@@ -344,77 +355,44 @@ export default function ClientBookings() {
 
                         <Link
                             to="/client/quotation"
-                            className="group relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-2xl bg-[linear-gradient(135deg,#d4af37_0%,#f0cb58_100%)] px-5 py-3 text-sm font-bold text-[#143c2f] shadow-[0_12px_24px_rgba(212,175,55,0.28)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_30px_rgba(212,175,55,0.35)]"
+                            className="group relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-2xl bg-[linear-gradient(135deg,#d4af37_0%,#f0cb58_100%)] px-5 py-3 text-sm font-bold text-[#143c2f] shadow-[0_12px_24px_rgba(212,175,55,0.28)] transition duration-300 hover:-translate-y-0.5"
                         >
-                            <span className="absolute inset-0 bg-white/20 opacity-0 transition group-hover:opacity-100" />
-                            <span className="relative">New Booking Request</span>
-                            <ArrowRight
-                                size={16}
-                                className="relative transition group-hover:translate-x-1"
-                            />
+                            <span>New Booking Request</span>
+                            <ArrowRight size={16} className="transition group-hover:translate-x-1" />
                         </Link>
                     </div>
                 </div>
 
                 <div className="grid gap-4 px-6 py-6 md:grid-cols-2 xl:grid-cols-4 md:px-8">
-                    <div className={`portal-panel-hover rounded-[28px] p-5 ${statCard}`}>
-                        <p className={`text-sm font-medium ${subtitleColor}`}>Total Bookings</p>
-                        <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-[#98efcc]">
-                            {summary.total}
-                        </h2>
-                    </div>
-
-                    <div className={`portal-panel-hover rounded-[28px] p-5 ${statCard}`}>
-                        <p className={`text-sm font-medium ${subtitleColor}`}>Confirmed</p>
-                        <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-[#8df0bf]">
-                            {summary.confirmed}
-                        </h2>
-                    </div>
-
-                    <div className={`portal-panel-hover rounded-[28px] p-5 ${statCard}`}>
-                        <p className={`text-sm font-medium ${subtitleColor}`}>Pending</p>
-                        <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-[#f5cf67]">
-                            {summary.pending}
-                        </h2>
-                    </div>
-
-                    <div className={`portal-panel-hover rounded-[28px] p-5 ${statCard}`}>
-                        <p className={`text-sm font-medium ${subtitleColor}`}>Estimated Total</p>
-                        <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-[#98efcc]">
-                            {formatCurrency(summary.totalSpent)}
-                        </h2>
-                    </div>
+                    {[
+                        ["Total Bookings", summary.total, "text-[#10b981]"],
+                        ["Confirmed", summary.confirmed, "text-[#059669]"],
+                        ["Pending", summary.pending, "text-[#d97706]"],
+                        ["Estimated Total", formatCurrency(summary.totalSpent), "text-[#10b981]"],
+                    ].map(([label, value, color]) => (
+                        <div key={label} className={`portal-panel-hover rounded-[28px] p-5 ${statCard}`}>
+                            <p className={`text-sm font-bold ${subtitleColor}`}>{label}</p>
+                            <h2 className={`mt-2 text-3xl font-extrabold tracking-tight ${color}`}>
+                                {value}
+                            </h2>
+                        </div>
+                    ))}
                 </div>
             </motion.div>
 
             {loading ? (
-                <motion.div
-                    variants={fadeUp}
-                    className="portal-card-premium px-6 py-14 text-center"
-                >
-                    <h2 className={`text-2xl font-extrabold ${titleColor}`}>
-                        Loading bookings...
-                    </h2>
+                <motion.div variants={fadeUp} className="portal-card-premium px-6 py-14 text-center">
+                    <h2 className={`text-2xl font-extrabold ${titleColor}`}>Loading bookings...</h2>
                 </motion.div>
             ) : error ? (
-                <motion.div
-                    variants={fadeUp}
-                    className={`rounded-[32px] px-6 py-14 text-center ${outlineCard}`}
-                >
-                    <h2 className="text-2xl font-extrabold text-red-400">
-                        Failed to load bookings
-                    </h2>
+                <motion.div variants={fadeUp} className={`rounded-[32px] px-6 py-14 text-center ${outlineCard}`}>
+                    <h2 className="text-2xl font-extrabold text-red-500">Failed to load bookings</h2>
                     <p className={`mt-3 ${subtitleColor}`}>{error}</p>
                 </motion.div>
             ) : bookings.length === 0 ? (
-                <motion.div
-                    variants={fadeUp}
-                    className="portal-card-premium px-6 py-14 text-center"
-                >
+                <motion.div variants={fadeUp} className="portal-card-premium px-6 py-14 text-center">
                     <div
-                        className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full ${isDark
-                            ? "bg-[linear-gradient(135deg,rgba(21,64,50,0.95)_0%,rgba(24,77,60,0.95)_100%)] text-[#98efcc]"
-                            : "bg-[#eef9f5] text-[#0d5c46]"
+                        className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full ${isDark ? "bg-white/10 text-[#98efcc]" : "bg-[#eef9f5] text-[#0d5c46]"
                             }`}
                     >
                         <ClipboardList size={28} />
@@ -423,9 +401,9 @@ export default function ClientBookings() {
                     <h2 className={`mt-5 text-3xl font-extrabold tracking-tight ${titleColor}`}>
                         No bookings yet
                     </h2>
-                    <p className={`mx-auto mt-3 max-w-xl ${subtitleColor}`}>
-                        You do not have any booking records yet. Your booking will appear
-                        here once your quotation is approved or confirmed by the admin.
+
+                    <p className={`mx-auto mt-3 max-w-xl font-medium ${subtitleColor}`}>
+                        Your booking records will appear here once your quotation is approved or confirmed.
                     </p>
 
                     <Link
@@ -452,7 +430,7 @@ export default function ClientBookings() {
                                         </h2>
 
                                         <span
-                                            className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold ${getStatusClasses(
+                                            className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-extrabold uppercase tracking-wide ${getStatusClasses(
                                                 booking.status,
                                                 isDark
                                             )}`}
@@ -461,91 +439,69 @@ export default function ClientBookings() {
                                         </span>
                                     </div>
 
-                                    <p className={`mt-2 text-sm ${subtitleColor}`}>
+                                    <p className={`mt-2 text-sm font-semibold ${subtitleColor}`}>
                                         Booking ID:{" "}
-                                        <span className={`font-semibold ${strongText}`}>
+                                        <span className={`font-extrabold ${strongText}`}>
                                             {booking.bookingId || booking.id}
                                         </span>
                                     </p>
                                 </div>
 
                                 <div
-                                    className={`px-5 py-4 text-left lg:min-w-[240px] rounded-[26px] ${isDark
-                                        ? "border border-[rgba(97,76,24,0.34)] bg-[linear-gradient(135deg,rgba(88,67,20,0.3)_0%,rgba(120,91,27,0.24)_100%)] shadow-[0_10px_22px_rgba(0,0,0,0.18)]"
-                                        : "bg-[linear-gradient(135deg,#fffaf0_0%,#fff3d0_100%)] shadow-sm"
+                                    className={`rounded-[26px] px-5 py-4 text-left lg:min-w-[240px] ${isDark
+                                            ? "border border-[rgba(97,76,24,0.34)] bg-[linear-gradient(135deg,rgba(88,67,20,0.3)_0%,rgba(120,91,27,0.24)_100%)]"
+                                            : "border border-[#fde68a] bg-[linear-gradient(135deg,#fffaf0_0%,#fff3d0_100%)] shadow-sm"
                                         }`}
                                 >
-                                    <div className="flex items-center gap-2 text-[#f5cf67]">
+                                    <div className="flex items-center gap-2 text-[#b7791f]">
                                         <Wallet size={18} />
-                                        <p className="text-xs font-semibold uppercase tracking-[0.18em]">
+                                        <p className="text-xs font-extrabold uppercase tracking-[0.18em]">
                                             Total Amount
                                         </p>
                                     </div>
-                                    <p className="mt-2 text-2xl font-extrabold tracking-tight text-[#98efcc]">
+
+                                    <p className="mt-2 text-2xl font-extrabold tracking-tight text-[#059669]">
                                         {formatCurrency(booking.totalAmount)}
                                     </p>
                                 </div>
                             </div>
 
                             <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                                <div className={`rounded-[26px] p-4 ${detailCard}`}>
-                                    <div className="flex items-center gap-2 text-[#98efcc]">
-                                        <CalendarDays size={18} />
-                                        <span className="text-sm font-bold">Date</span>
+                                {[
+                                    [CalendarDays, "Date", formatDate(booking.date)],
+                                    [Clock3, "Time", formatTime(booking.time)],
+                                    [MapPin, "Venue", booking.venue || "Not specified"],
+                                    [Users, "Guests", `${booking.guests || 0} pax`],
+                                ].map(([Icon, label, value]) => (
+                                    <div key={label} className={`rounded-[26px] p-4 ${detailCard}`}>
+                                        <div className={`flex items-center gap-2 ${labelColor}`}>
+                                            <Icon size={18} />
+                                            <span className="text-sm font-extrabold">{label}</span>
+                                        </div>
+                                        <p className={`mt-2 text-sm font-semibold leading-6 ${bodyColor}`}>
+                                            {value}
+                                        </p>
                                     </div>
-                                    <p className={`mt-2 text-sm ${bodyColor}`}>
-                                        {formatDate(booking.date)}
-                                    </p>
-                                </div>
-
-                                <div className={`rounded-[26px] p-4 ${detailCard}`}>
-                                    <div className="flex items-center gap-2 text-[#98efcc]">
-                                        <Clock3 size={18} />
-                                        <span className="text-sm font-bold">Time</span>
-                                    </div>
-                                    <p className={`mt-2 text-sm ${bodyColor}`}>
-                                        {formatTime(booking.time)}
-                                    </p>
-                                </div>
-
-                                <div className={`rounded-[26px] p-4 ${detailCard}`}>
-                                    <div className="flex items-center gap-2 text-[#98efcc]">
-                                        <MapPin size={18} />
-                                        <span className="text-sm font-bold">Venue</span>
-                                    </div>
-                                    <p className={`mt-2 text-sm ${bodyColor}`}>
-                                        {booking.venue || "Not specified"}
-                                    </p>
-                                </div>
-
-                                <div className={`rounded-[26px] p-4 ${detailCard}`}>
-                                    <div className="flex items-center gap-2 text-[#98efcc]">
-                                        <Users size={18} />
-                                        <span className="text-sm font-bold">Guests</span>
-                                    </div>
-                                    <p className={`mt-2 text-sm ${bodyColor}`}>
-                                        {booking.guests || 0} pax
-                                    </p>
-                                </div>
+                                ))}
                             </div>
 
                             <div className="mt-4 grid gap-4 md:grid-cols-2">
                                 <div className={`rounded-[26px] p-4 ${outlineCard}`}>
-                                    <div className="flex items-center gap-2 text-[#98efcc]">
+                                    <div className={`flex items-center gap-2 ${labelColor}`}>
                                         <Package size={18} />
-                                        <span className="text-sm font-bold">Package</span>
+                                        <span className="text-sm font-extrabold">Package</span>
                                     </div>
-                                    <p className={`mt-2 text-sm ${bodyColor}`}>
+                                    <p className={`mt-2 text-sm font-semibold leading-6 ${bodyColor}`}>
                                         {booking.packageName || "Not specified"}
                                     </p>
                                 </div>
 
                                 <div className={`rounded-[26px] p-4 ${outlineCard}`}>
-                                    <div className="flex items-center gap-2 text-[#98efcc]">
+                                    <div className={`flex items-center gap-2 ${labelColor}`}>
                                         <Receipt size={18} />
-                                        <span className="text-sm font-bold">Menu / Notes</span>
+                                        <span className="text-sm font-extrabold">Menu / Notes</span>
                                     </div>
-                                    <p className={`mt-2 text-sm ${bodyColor}`}>
+                                    <p className={`mt-2 text-sm font-semibold leading-6 ${bodyColor}`}>
                                         {booking.classicMenu || "No menu details provided"}
                                     </p>
                                 </div>
@@ -560,10 +516,20 @@ export default function ClientBookings() {
                                     View in Calendar
                                 </Link>
 
+                                <button
+                                    type="button"
+                                    onClick={() => handleDeleteBooking(booking)}
+                                    disabled={deletingId === booking.id}
+                                    className="inline-flex items-center gap-2 rounded-2xl bg-red-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                    <Trash2 size={16} />
+                                    {deletingId === booking.id ? "Deleting..." : "Delete"}
+                                </button>
+
                                 <span
-                                    className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-semibold ${isDark
-                                        ? "bg-[rgba(21,90,60,0.3)] text-[#98efcc]"
-                                        : "bg-[#eef9f5] text-[#0d5c46]"
+                                    className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-bold ${isDark
+                                            ? "bg-emerald-500/15 text-emerald-200"
+                                            : "bg-[#e8f8f1] text-[#075f46]"
                                         }`}
                                 >
                                     <CircleCheckBig size={16} />
@@ -571,9 +537,9 @@ export default function ClientBookings() {
                                 </span>
 
                                 <span
-                                    className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-semibold ${isDark
-                                        ? "bg-[rgba(97,76,24,0.34)] text-[#f5cf67]"
-                                        : "bg-[#fff8e6] text-[#8f6a0f]"
+                                    className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-bold ${isDark
+                                            ? "bg-amber-500/15 text-amber-200"
+                                            : "bg-[#fff4d6] text-[#7c5200]"
                                         }`}
                                 >
                                     <BadgeCheck size={16} />
