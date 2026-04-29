@@ -15,7 +15,9 @@ function getUserEmail(req) {
 
 function createBookingApprovedNotification(booking) {
     return new Promise((resolve, reject) => {
-        const message = `Your booking for ${booking.event_type || "your event"} on ${booking.event_date || "your selected date"} has been approved.`;
+        const message = `Your booking for ${booking.event_type || "your event"
+            } on ${booking.event_date || "your selected date"
+            } has been approved.`;
 
         const query = `
             INSERT INTO notifications
@@ -29,11 +31,7 @@ function createBookingApprovedNotification(booking) {
             VALUES (?, ?, ?, FALSE, NOW())
         `;
 
-        const values = [
-            booking.client_email,
-            message,
-            "booking_approved",
-        ];
+        const values = [booking.client_email, message, "booking_approved"];
 
         db.query(query, values, (err, result) => {
             if (err) return reject(err);
@@ -46,21 +44,15 @@ exports.getBookings = (req, res) => {
     const admin = isAdminUser(req);
     const userEmail = getUserEmail(req);
 
-    let query = `
-        SELECT * FROM bookings
-    `;
-    let values = [];
+    let query = `SELECT * FROM bookings`;
+    const values = [];
 
     if (!admin) {
         if (!userEmail) {
-            return res.status(401).json({
-                message: "Unauthorized user",
-            });
+            return res.status(401).json({ message: "Unauthorized user" });
         }
 
-        query += `
-            WHERE LOWER(COALESCE(client_email, '')) = ?
-        `;
+        query += ` WHERE LOWER(COALESCE(client_email, '')) = ?`;
         values.push(userEmail);
     }
 
@@ -84,16 +76,11 @@ exports.getBookingById = (req, res) => {
     const admin = isAdminUser(req);
     const userEmail = getUserEmail(req);
 
-    let query = `
-        SELECT * FROM bookings
-        WHERE id = ?
-    `;
-    let values = [id];
+    let query = `SELECT * FROM bookings WHERE id = ?`;
+    const values = [id];
 
     if (!admin) {
-        query += `
-            AND LOWER(COALESCE(client_email, '')) = ?
-        `;
+        query += ` AND LOWER(COALESCE(client_email, '')) = ?`;
         values.push(userEmail);
     }
 
@@ -223,14 +210,6 @@ exports.updateBooking = (req, res) => {
         notes,
     } = req.body;
 
-    const normalizedClientEmail = normalizeValue(client_email || userEmail);
-
-    if (!admin && normalizedClientEmail !== userEmail) {
-        return res.status(403).json({
-            message: "You can only update your own booking",
-        });
-    }
-
     let getQuery = `SELECT * FROM bookings WHERE id = ?`;
     const getValues = [id];
 
@@ -253,8 +232,31 @@ exports.updateBooking = (req, res) => {
         }
 
         const oldBooking = oldRows[0];
+
+        const nextClientName = client_name ?? oldBooking.client_name;
+        const nextClientEmail = normalizeValue(
+            client_email || oldBooking.client_email || userEmail
+        );
+        const nextContactNumber = contact_number ?? oldBooking.contact_number;
+        const nextEventType = event_type ?? oldBooking.event_type;
+        const nextPackageName = package_name ?? oldBooking.package_name;
+        const nextEventDate = event_date ?? oldBooking.event_date;
+        const nextEventTime = event_time ?? oldBooking.event_time;
+        const nextVenue = venue ?? oldBooking.venue;
+        const nextGuests = guests ?? oldBooking.guests;
+        const nextTotalPrice = total_price ?? oldBooking.total_price;
+        const nextPaymentStatus = payment_status ?? oldBooking.payment_status ?? "pending";
+        const nextBookingStatus = booking_status ?? oldBooking.booking_status ?? "pending";
+        const nextNotes = notes ?? oldBooking.notes;
+
+        if (!admin && nextClientEmail !== userEmail) {
+            return res.status(403).json({
+                message: "You can only update your own booking",
+            });
+        }
+
         const oldStatus = normalizeValue(oldBooking.booking_status);
-        const newStatus = normalizeValue(booking_status || "pending");
+        const newStatus = normalizeValue(nextBookingStatus);
 
         let query = `
             UPDATE bookings
@@ -276,19 +278,19 @@ exports.updateBooking = (req, res) => {
         `;
 
         const values = [
-            client_name,
-            normalizedClientEmail,
-            contact_number || null,
-            event_type || null,
-            package_name || null,
-            event_date,
-            event_time || null,
-            venue,
-            Number(guests || 0),
-            Number(total_price || 0),
-            payment_status || "pending",
-            booking_status || "pending",
-            notes || null,
+            nextClientName,
+            nextClientEmail,
+            nextContactNumber || null,
+            nextEventType || null,
+            nextPackageName || null,
+            nextEventDate,
+            nextEventTime || null,
+            nextVenue,
+            Number(nextGuests || 0),
+            Number(nextTotalPrice || 0),
+            nextPaymentStatus || "pending",
+            nextBookingStatus || "pending",
+            nextNotes || null,
             id,
         ];
 
@@ -311,23 +313,21 @@ exports.updateBooking = (req, res) => {
             }
 
             const shouldNotify =
-                admin &&
-                oldStatus !== "approved" &&
-                newStatus === "approved";
+                admin && oldStatus !== "approved" && newStatus === "approved";
 
             if (shouldNotify) {
                 const approvedBooking = {
                     id,
-                    client_name,
-                    client_email: normalizedClientEmail,
-                    contact_number,
-                    event_type,
-                    package_name,
-                    event_date,
-                    event_time,
-                    venue,
-                    guests,
-                    total_price,
+                    client_name: nextClientName,
+                    client_email: nextClientEmail,
+                    contact_number: nextContactNumber,
+                    event_type: nextEventType,
+                    package_name: nextPackageName,
+                    event_date: nextEventDate,
+                    event_time: nextEventTime,
+                    venue: nextVenue,
+                    guests: nextGuests,
+                    total_price: nextTotalPrice,
                 };
 
                 try {
@@ -357,27 +357,80 @@ exports.deleteBooking = (req, res) => {
     const admin = isAdminUser(req);
     const userEmail = getUserEmail(req);
 
-    let query = `DELETE FROM bookings WHERE id = ?`;
-    const values = [id];
-
-    if (!admin) {
-        query += ` AND LOWER(COALESCE(client_email, '')) = ?`;
-        values.push(userEmail);
+    if (!id) {
+        return res.status(400).json({
+            message: "Booking ID is required",
+        });
     }
 
-    db.query(query, values, (err, result) => {
-        if (err) {
-            console.error("Delete booking error:", err);
-            return res.status(500).json({
-                message: "Failed to delete booking",
-                error: err.message,
+    let checkQuery = `
+        SELECT * FROM bookings
+        WHERE id = ?
+    `;
+
+    const checkValues = [id];
+
+    if (!admin) {
+        if (!userEmail) {
+            return res.status(401).json({
+                message: "Unauthorized user",
             });
         }
 
-        if (!result || result.affectedRows === 0) {
-            return res.status(404).json({ message: "Booking not found" });
+        checkQuery += `
+            AND LOWER(COALESCE(client_email, '')) = ?
+        `;
+        checkValues.push(userEmail);
+    }
+
+    db.query(checkQuery, checkValues, (checkErr, rows) => {
+        if (checkErr) {
+            console.error("Check booking before delete error:", checkErr);
+            return res.status(500).json({
+                message: "Failed to check booking",
+                error: checkErr.message,
+            });
         }
 
-        return res.status(200).json({ message: "Booking deleted successfully" });
+        if (!rows || rows.length === 0) {
+            return res.status(404).json({
+                message: "Booking not found or you are not allowed to delete it",
+            });
+        }
+
+        let deleteQuery = `
+            DELETE FROM bookings
+            WHERE id = ?
+        `;
+
+        const deleteValues = [id];
+
+        if (!admin) {
+            deleteQuery += `
+                AND LOWER(COALESCE(client_email, '')) = ?
+            `;
+            deleteValues.push(userEmail);
+        }
+
+        db.query(deleteQuery, deleteValues, (deleteErr, result) => {
+            if (deleteErr) {
+                console.error("Delete booking error:", deleteErr);
+                return res.status(500).json({
+                    message: "Failed to delete booking",
+                    error: deleteErr.message,
+                });
+            }
+
+            if (!result || result.affectedRows === 0) {
+                return res.status(404).json({
+                    message: "Booking not found",
+                });
+            }
+
+            return res.status(200).json({
+                message: "Booking deleted successfully",
+                deletedId: Number(id),
+            });
+        });
     });
 };

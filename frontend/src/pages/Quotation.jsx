@@ -1590,9 +1590,69 @@ function PremiumDatePicker({ value, onChange, isDark }) {
     );
 }
 
-function PremiumTimePicker({ value, onChange, isDark, placeholder = "Select event time", title = "Event Time" }) {
+function PremiumTimePicker({
+    value,
+    onChange,
+    isDark,
+    placeholder = "Select event time",
+    title = "Event Time",
+}) {
     const [open, setOpen] = useState(false);
     const rootRef = useRef(null);
+
+    const parsed = value
+        ? (() => {
+            const [h, m] = value.split(":");
+            const hour24 = Number(h);
+            const minute = Number(m);
+            const period = hour24 >= 12 ? "PM" : "AM";
+            const hour12 = hour24 % 12 || 12;
+
+            return {
+                hour: String(hour12).padStart(2, "0"),
+                minute: String(minute).padStart(2, "0"),
+                period,
+            };
+        })()
+        : {
+            hour: "08",
+            minute: "00",
+            period: "AM",
+        };
+
+    const hours = Array.from({ length: 12 }, (_, i) =>
+        String(i + 1).padStart(2, "0")
+    );
+
+    const minutes = Array.from({ length: 12 }, (_, i) =>
+        String(i * 5).padStart(2, "0")
+    );
+
+    function buildTime(nextHour, nextMinute, nextPeriod) {
+        let hourNumber = Number(nextHour);
+
+        if (nextPeriod === "PM" && hourNumber !== 12) {
+            hourNumber += 12;
+        }
+
+        if (nextPeriod === "AM" && hourNumber === 12) {
+            hourNumber = 0;
+        }
+
+        onChange(`${String(hourNumber).padStart(2, "0")}:${nextMinute}`);
+    }
+
+    function selectHour(hour) {
+        buildTime(hour, parsed.minute, parsed.period);
+    }
+
+    function selectMinute(minute) {
+        buildTime(parsed.hour, minute, parsed.period);
+    }
+
+    function selectPeriod(period) {
+        buildTime(parsed.hour, parsed.minute, period);
+    }
 
     useEffect(() => {
         const handleOutside = (event) => {
@@ -1606,30 +1666,49 @@ function PremiumTimePicker({ value, onChange, isDark, placeholder = "Select even
     }, []);
 
     const pickerButtonClass = isDark
-        ? "group flex w-full items-center justify-between rounded-[20px] border border-white/10 bg-[linear-gradient(180deg,rgba(7,32,25,0.98)_0%,rgba(13,52,40,0.98)_100%)] px-4 py-3.5 text-left text-white shadow-[0_12px_28px_rgba(0,0,0,0.18)] transition hover:-translate-y-0.5 hover:border-[#d4af37]/70 focus:border-[#d4af37]"
-        : "group flex w-full items-center justify-between rounded-[20px] border border-[#d7e1dc] bg-[linear-gradient(180deg,#ffffff_0%,#f4faf7_100%)] px-4 py-3.5 text-left text-slate-800 shadow-[0_12px_28px_rgba(14,61,47,0.08)] transition hover:-translate-y-0.5 hover:border-[#d4af37] focus:border-[#d4af37]";
+        ? "group flex w-full items-center justify-between rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,rgba(7,32,25,0.98)_0%,rgba(13,52,40,0.98)_100%)] px-4 py-3.5 text-left text-white shadow-[0_14px_32px_rgba(0,0,0,0.22)] transition hover:-translate-y-0.5 hover:border-[#d4af37]/70"
+        : "group flex w-full items-center justify-between rounded-[22px] border border-[#d7e1dc] bg-[linear-gradient(180deg,#ffffff_0%,#f4faf7_100%)] px-4 py-3.5 text-left text-slate-800 shadow-[0_14px_32px_rgba(14,61,47,0.10)] transition hover:-translate-y-0.5 hover:border-[#d4af37]";
 
     const dropdownClass = isDark
-        ? "absolute left-0 top-[calc(100%+12px)] z-40 w-[340px] overflow-hidden rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(5,31,24,0.99)_0%,rgba(10,58,43,0.99)_100%)] shadow-[0_34px_80px_rgba(0,0,0,0.45)]"
-        : "absolute left-0 top-[calc(100%+12px)] z-40 w-[340px] overflow-hidden rounded-[30px] border border-[#dce7e2] bg-white shadow-[0_34px_80px_rgba(14,61,47,0.22)]";
+        ? "absolute left-0 top-[calc(100%+12px)] z-50 w-[360px] max-w-[calc(100vw-32px)] overflow-hidden rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(5,31,24,0.99)_0%,rgba(10,58,43,0.99)_100%)] shadow-[0_34px_90px_rgba(0,0,0,0.5)]"
+        : "absolute left-0 top-[calc(100%+12px)] z-50 w-[360px] max-w-[calc(100vw-32px)] overflow-hidden rounded-[32px] border border-[#dce7e2] bg-white shadow-[0_34px_90px_rgba(14,61,47,0.24)]";
 
-    const inputTimeClass = isDark
-        ? "h-14 w-full rounded-[20px] border border-white/10 bg-white/8 px-4 text-lg font-extrabold tracking-wide text-white outline-none transition focus:border-[#d4af37] focus:ring-4 focus:ring-[#d4af37]/15"
-        : "h-14 w-full rounded-[20px] border border-[#d7e1dc] bg-white px-4 text-lg font-extrabold tracking-wide text-[#0f4d3c] outline-none transition focus:border-[#d4af37] focus:ring-4 focus:ring-[#d4af37]/15";
+    const optionClass = (active) =>
+        active
+            ? "bg-[linear-gradient(135deg,#f5c94a_0%,#d4af37_100%)] text-[#083b2e] shadow-[0_10px_18px_rgba(212,175,55,0.25)]"
+            : isDark
+                ? "bg-white/6 text-white/80 hover:bg-white/12 hover:text-white"
+                : "bg-[#f6fbf8] text-slate-700 hover:bg-[#eef8f3] hover:text-[#0f4d3c]";
 
     return (
         <div className="relative" ref={rootRef}>
-            <button type="button" onClick={() => setOpen((prev) => !prev)} className={pickerButtonClass}>
+            <button
+                type="button"
+                onClick={() => setOpen((prev) => !prev)}
+                className={pickerButtonClass}
+            >
                 <div className="flex items-center gap-3">
                     <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#f5c94a_0%,#d4af37_100%)] text-[#0b4a3a] shadow-[0_10px_20px_rgba(212,175,55,0.28)]">
                         <Clock3 size={18} />
                     </span>
 
                     <div>
-                        <p className={`text-[10px] font-bold uppercase tracking-[0.2em] ${isDark ? "text-white/45" : "text-slate-400"}`}>
+                        <p
+                            className={`text-[10px] font-extrabold uppercase tracking-[0.2em] ${isDark ? "text-white/55" : "text-slate-500"
+                                }`}
+                        >
                             {title}
                         </p>
-                        <p className={`mt-0.5 text-sm font-extrabold ${value ? (isDark ? "text-white" : "text-[#0f4d3c]") : isDark ? "text-white/35" : "text-slate-400"}`}>
+                        <p
+                            className={`mt-0.5 text-sm font-extrabold ${value
+                                    ? isDark
+                                        ? "text-white"
+                                        : "text-[#0f4d3c]"
+                                    : isDark
+                                        ? "text-white/45"
+                                        : "text-slate-500"
+                                }`}
+                        >
                             {formatTimeDisplay(value, placeholder)}
                         </p>
                     </div>
@@ -1637,36 +1716,41 @@ function PremiumTimePicker({ value, onChange, isDark, placeholder = "Select even
 
                 <ChevronDown
                     size={18}
-                    className={`transition duration-300 ${open ? "rotate-180 text-[#d4af37]" : isDark ? "text-white/60" : "text-slate-500"}`}
+                    className={`transition duration-300 ${open
+                            ? "rotate-180 text-[#d4af37]"
+                            : isDark
+                                ? "text-white/60"
+                                : "text-slate-500"
+                        }`}
                 />
             </button>
 
             <AnimatePresence>
                 {open && (
                     <motion.div
-                        initial={{ opacity: 0, y: 14, scale: 0.94 }}
+                        initial={{ opacity: 0, y: 14, scale: 0.96 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.96 }}
                         transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
                         className={dropdownClass}
                     >
-                        <div className="relative overflow-hidden bg-[linear-gradient(135deg,#07382d_0%,#0f6b52_70%,#18a06c_100%)] px-5 py-5 text-white">
+                        <div className="relative overflow-hidden bg-[linear-gradient(135deg,#07382d_0%,#0f6b52_65%,#18a06c_100%)] px-5 py-5 text-white">
                             <div className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-[#f5c94a]/25 blur-2xl" />
-                            <div className="relative flex items-start justify-between gap-3">
-                                <div>
-                                    <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-white/60">
-                                        Premium Time Picker
-                                    </p>
-                                    <h3 className="mt-1 text-2xl font-extrabold text-[#f5c94a]">
-                                        {formatTimeDisplay(value, placeholder)}
-                                    </h3>
-                                </div>
+
+                            <p className="text-[10px] font-extrabold uppercase tracking-[0.24em] text-white/65">
+                                Premium Time Picker
+                            </p>
+
+                            <div className="mt-2 flex items-center justify-between gap-4">
+                                <h3 className="text-2xl font-black text-[#f5c94a]">
+                                    {formatTimeDisplay(value, placeholder)}
+                                </h3>
 
                                 {value ? (
                                     <button
                                         type="button"
                                         onClick={() => onChange("")}
-                                        className="rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-white/20"
+                                        className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-white/20"
                                     >
                                         Clear
                                     </button>
@@ -1674,25 +1758,108 @@ function PremiumTimePicker({ value, onChange, isDark, placeholder = "Select even
                             </div>
                         </div>
 
-                        <div className={isDark ? "p-5" : "bg-[linear-gradient(180deg,#ffffff_0%,#f8fcfa_100%)] p-5"}>
-                            <div className={isDark ? "rounded-[24px] border border-white/10 bg-white/5 p-4" : "rounded-[24px] border border-[#e6eeea] bg-white p-4 shadow-sm"}>
-                                <p className={`mb-3 text-[11px] font-bold uppercase tracking-[0.2em] ${isDark ? "text-[#f5cf67]" : "text-[#9b7400]"}`}>
-                                    Edit exact time
+                        <div
+                            className={
+                                isDark
+                                    ? "p-5"
+                                    : "bg-[linear-gradient(180deg,#ffffff_0%,#f8fcfa_100%)] p-5"
+                            }
+                        >
+                            <div
+                                className={
+                                    isDark
+                                        ? "rounded-[26px] border border-white/10 bg-white/5 p-4"
+                                        : "rounded-[26px] border border-[#e6eeea] bg-white p-4 shadow-sm"
+                                }
+                            >
+                                <p
+                                    className={`mb-4 text-[11px] font-extrabold uppercase tracking-[0.2em] ${isDark ? "text-[#f5cf67]" : "text-[#9b7400]"
+                                        }`}
+                                >
+                                    Select exact time
                                 </p>
 
-                                <input
-                                    type="time"
-                                    step="60"
-                                    value={value || ""}
-                                    onChange={(e) => onChange(e.target.value)}
-                                    className={inputTimeClass}
-                                />
+                                <div className="grid grid-cols-[1fr_1fr_72px] gap-3">
+                                    <div>
+                                        <p
+                                            className={`mb-2 text-[10px] font-bold uppercase tracking-[0.18em] ${isDark ? "text-white/45" : "text-slate-500"
+                                                }`}
+                                        >
+                                            Hour
+                                        </p>
 
-                                <div className={isDark ? "mt-4 rounded-2xl border border-white/10 bg-black/10 px-4 py-3" : "mt-4 rounded-2xl border border-[#f0e0a8] bg-[#fff9e8] px-4 py-3"}>
-                                    <p className={`text-xs font-semibold leading-5 ${isDark ? "text-white/60" : "text-slate-600"}`}>
-                                        Type any exact time like <b>11:59</b>, or click the time field icon to open the browser selector.
-                                    </p>
+                                        <div className="max-h-[190px] space-y-2 overflow-y-auto pr-1">
+                                            {hours.map((hour) => (
+                                                <button
+                                                    key={hour}
+                                                    type="button"
+                                                    onClick={() => selectHour(hour)}
+                                                    className={`w-full rounded-2xl px-3 py-2.5 text-sm font-extrabold transition ${optionClass(
+                                                        parsed.hour === hour
+                                                    )}`}
+                                                >
+                                                    {hour}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <p
+                                            className={`mb-2 text-[10px] font-bold uppercase tracking-[0.18em] ${isDark ? "text-white/45" : "text-slate-500"
+                                                }`}
+                                        >
+                                            Minute
+                                        </p>
+
+                                        <div className="max-h-[190px] space-y-2 overflow-y-auto pr-1">
+                                            {minutes.map((minute) => (
+                                                <button
+                                                    key={minute}
+                                                    type="button"
+                                                    onClick={() => selectMinute(minute)}
+                                                    className={`w-full rounded-2xl px-3 py-2.5 text-sm font-extrabold transition ${optionClass(
+                                                        parsed.minute === minute
+                                                    )}`}
+                                                >
+                                                    {minute}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <p
+                                            className={`mb-2 text-[10px] font-bold uppercase tracking-[0.18em] ${isDark ? "text-white/45" : "text-slate-500"
+                                                }`}
+                                        >
+                                            AM/PM
+                                        </p>
+
+                                        <div className="space-y-2">
+                                            {["AM", "PM"].map((period) => (
+                                                <button
+                                                    key={period}
+                                                    type="button"
+                                                    onClick={() => selectPeriod(period)}
+                                                    className={`w-full rounded-2xl px-3 py-2.5 text-sm font-extrabold transition ${optionClass(
+                                                        parsed.period === period
+                                                    )}`}
+                                                >
+                                                    {period}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
                                 </div>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setOpen(false)}
+                                    className="mt-5 flex w-full items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#0f6b52_0%,#12966c_100%)] px-4 py-3 text-sm font-extrabold text-white shadow-[0_14px_26px_rgba(15,107,82,0.24)] transition hover:-translate-y-0.5"
+                                >
+                                    Done
+                                </button>
                             </div>
                         </div>
                     </motion.div>
