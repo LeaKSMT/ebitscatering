@@ -1615,7 +1615,7 @@ function PremiumTimePicker({
             };
         })()
         : {
-            hour: "08",
+            hour: "01",
             minute: "00",
             period: "AM",
         };
@@ -1631,27 +1631,15 @@ function PremiumTimePicker({
     function buildTime(nextHour, nextMinute, nextPeriod) {
         let hourNumber = Number(nextHour);
 
-        if (nextPeriod === "PM" && hourNumber !== 12) {
-            hourNumber += 12;
-        }
-
-        if (nextPeriod === "AM" && hourNumber === 12) {
-            hourNumber = 0;
-        }
+        if (nextPeriod === "PM" && hourNumber !== 12) hourNumber += 12;
+        if (nextPeriod === "AM" && hourNumber === 12) hourNumber = 0;
 
         onChange(`${String(hourNumber).padStart(2, "0")}:${nextMinute}`);
     }
 
-    function selectHour(hour) {
-        buildTime(hour, parsed.minute, parsed.period);
-    }
-
-    function selectMinute(minute) {
-        buildTime(parsed.hour, minute, parsed.period);
-    }
-
-    function selectPeriod(period) {
-        buildTime(parsed.hour, parsed.minute, period);
+    function handleManualTimeChange(e) {
+        const rawValue = e.target.value;
+        onChange(rawValue);
     }
 
     useEffect(() => {
@@ -1688,27 +1676,15 @@ function PremiumTimePicker({
                 className={pickerButtonClass}
             >
                 <div className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#f5c94a_0%,#d4af37_100%)] text-[#0b4a3a] shadow-[0_10px_20px_rgba(212,175,55,0.28)]">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#f5c94a_0%,#d4af37_100%)] text-[#0b4a3a]">
                         <Clock3 size={18} />
                     </span>
 
                     <div>
-                        <p
-                            className={`text-[10px] font-extrabold uppercase tracking-[0.2em] ${isDark ? "text-white/55" : "text-slate-500"
-                                }`}
-                        >
+                        <p className={`text-[10px] font-extrabold uppercase tracking-[0.2em] ${isDark ? "text-white/55" : "text-slate-500"}`}>
                             {title}
                         </p>
-                        <p
-                            className={`mt-0.5 text-sm font-extrabold ${value
-                                    ? isDark
-                                        ? "text-white"
-                                        : "text-[#0f4d3c]"
-                                    : isDark
-                                        ? "text-white/45"
-                                        : "text-slate-500"
-                                }`}
-                        >
+                        <p className={`mt-0.5 text-sm font-extrabold ${value ? isDark ? "text-white" : "text-[#0f4d3c]" : "text-slate-500"}`}>
                             {formatTimeDisplay(value, placeholder)}
                         </p>
                     </div>
@@ -1716,11 +1692,7 @@ function PremiumTimePicker({
 
                 <ChevronDown
                     size={18}
-                    className={`transition duration-300 ${open
-                            ? "rotate-180 text-[#d4af37]"
-                            : isDark
-                                ? "text-white/60"
-                                : "text-slate-500"
+                    className={`transition duration-300 ${open ? "rotate-180 text-[#d4af37]" : isDark ? "text-white/60" : "text-slate-500"
                         }`}
                 />
             </button>
@@ -1731,12 +1703,10 @@ function PremiumTimePicker({
                         initial={{ opacity: 0, y: 14, scale: 0.96 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.96 }}
-                        transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                        transition={{ duration: 0.22 }}
                         className={dropdownClass}
                     >
                         <div className="relative overflow-hidden bg-[linear-gradient(135deg,#07382d_0%,#0f6b52_65%,#18a06c_100%)] px-5 py-5 text-white">
-                            <div className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-[#f5c94a]/25 blur-2xl" />
-
                             <p className="text-[10px] font-extrabold uppercase tracking-[0.24em] text-white/65">
                                 Premium Time Picker
                             </p>
@@ -1758,45 +1728,37 @@ function PremiumTimePicker({
                             </div>
                         </div>
 
-                        <div
-                            className={
-                                isDark
-                                    ? "p-5"
-                                    : "bg-[linear-gradient(180deg,#ffffff_0%,#f8fcfa_100%)] p-5"
-                            }
-                        >
-                            <div
-                                className={
-                                    isDark
-                                        ? "rounded-[26px] border border-white/10 bg-white/5 p-4"
-                                        : "rounded-[26px] border border-[#e6eeea] bg-white p-4 shadow-sm"
-                                }
-                            >
-                                <p
-                                    className={`mb-4 text-[11px] font-extrabold uppercase tracking-[0.2em] ${isDark ? "text-[#f5cf67]" : "text-[#9b7400]"
-                                        }`}
-                                >
-                                    Select exact time
+                        <div className={isDark ? "p-5" : "bg-[linear-gradient(180deg,#ffffff_0%,#f8fcfa_100%)] p-5"}>
+                            <div className={isDark ? "rounded-[26px] border border-white/10 bg-white/5 p-4" : "rounded-[26px] border border-[#e6eeea] bg-white p-4 shadow-sm"}>
+                                <p className={`mb-3 text-[11px] font-extrabold uppercase tracking-[0.2em] ${isDark ? "text-[#f5cf67]" : "text-[#9b7400]"}`}>
+                                    Edit exact time
                                 </p>
+
+                                <input
+                                    type="time"
+                                    step="60"
+                                    value={value || ""}
+                                    onChange={handleManualTimeChange}
+                                    className={
+                                        isDark
+                                            ? "mb-4 h-12 w-full rounded-2xl border border-white/10 bg-white/10 px-4 text-sm font-extrabold text-white outline-none focus:border-[#d4af37]"
+                                            : "mb-4 h-12 w-full rounded-2xl border border-[#d7e1dc] bg-white px-4 text-sm font-extrabold text-[#0f4d3c] outline-none focus:border-[#d4af37]"
+                                    }
+                                />
 
                                 <div className="grid grid-cols-[1fr_1fr_72px] gap-3">
                                     <div>
-                                        <p
-                                            className={`mb-2 text-[10px] font-bold uppercase tracking-[0.18em] ${isDark ? "text-white/45" : "text-slate-500"
-                                                }`}
-                                        >
+                                        <p className={`mb-2 text-[10px] font-bold uppercase tracking-[0.18em] ${isDark ? "text-white/45" : "text-slate-500"}`}>
                                             Hour
                                         </p>
 
-                                        <div className="max-h-[190px] space-y-2 overflow-y-auto pr-1">
+                                        <div className="max-h-[150px] space-y-2 overflow-y-auto pr-1">
                                             {hours.map((hour) => (
                                                 <button
                                                     key={hour}
                                                     type="button"
-                                                    onClick={() => selectHour(hour)}
-                                                    className={`w-full rounded-2xl px-3 py-2.5 text-sm font-extrabold transition ${optionClass(
-                                                        parsed.hour === hour
-                                                    )}`}
+                                                    onClick={() => buildTime(hour, parsed.minute, parsed.period)}
+                                                    className={`w-full rounded-2xl px-3 py-2.5 text-sm font-extrabold transition ${optionClass(parsed.hour === hour)}`}
                                                 >
                                                     {hour}
                                                 </button>
@@ -1805,22 +1767,17 @@ function PremiumTimePicker({
                                     </div>
 
                                     <div>
-                                        <p
-                                            className={`mb-2 text-[10px] font-bold uppercase tracking-[0.18em] ${isDark ? "text-white/45" : "text-slate-500"
-                                                }`}
-                                        >
+                                        <p className={`mb-2 text-[10px] font-bold uppercase tracking-[0.18em] ${isDark ? "text-white/45" : "text-slate-500"}`}>
                                             Minute
                                         </p>
 
-                                        <div className="max-h-[190px] space-y-2 overflow-y-auto pr-1">
+                                        <div className="max-h-[150px] space-y-2 overflow-y-auto pr-1">
                                             {minutes.map((minute) => (
                                                 <button
                                                     key={minute}
                                                     type="button"
-                                                    onClick={() => selectMinute(minute)}
-                                                    className={`w-full rounded-2xl px-3 py-2.5 text-sm font-extrabold transition ${optionClass(
-                                                        parsed.minute === minute
-                                                    )}`}
+                                                    onClick={() => buildTime(parsed.hour, minute, parsed.period)}
+                                                    className={`w-full rounded-2xl px-3 py-2.5 text-sm font-extrabold transition ${optionClass(parsed.minute === minute)}`}
                                                 >
                                                     {minute}
                                                 </button>
@@ -1829,10 +1786,7 @@ function PremiumTimePicker({
                                     </div>
 
                                     <div>
-                                        <p
-                                            className={`mb-2 text-[10px] font-bold uppercase tracking-[0.18em] ${isDark ? "text-white/45" : "text-slate-500"
-                                                }`}
-                                        >
+                                        <p className={`mb-2 text-[10px] font-bold uppercase tracking-[0.18em] ${isDark ? "text-white/45" : "text-slate-500"}`}>
                                             AM/PM
                                         </p>
 
@@ -1841,10 +1795,8 @@ function PremiumTimePicker({
                                                 <button
                                                     key={period}
                                                     type="button"
-                                                    onClick={() => selectPeriod(period)}
-                                                    className={`w-full rounded-2xl px-3 py-2.5 text-sm font-extrabold transition ${optionClass(
-                                                        parsed.period === period
-                                                    )}`}
+                                                    onClick={() => buildTime(parsed.hour, parsed.minute, period)}
+                                                    className={`w-full rounded-2xl px-3 py-2.5 text-sm font-extrabold transition ${optionClass(parsed.period === period)}`}
                                                 >
                                                     {period}
                                                 </button>

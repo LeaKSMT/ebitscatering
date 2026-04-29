@@ -18,6 +18,7 @@ import {
     PartyPopper,
     CalendarClock,
     Trash2,
+    Lock,
 } from "lucide-react";
 
 function getClientUser() {
@@ -121,25 +122,25 @@ function getStatusClasses(status, isDark) {
 
     if (["approved", "confirmed", "paid"].includes(normalized)) {
         return isDark
-            ? "bg-emerald-500/15 text-emerald-200 border-emerald-300/30"
-            : "bg-emerald-50 text-emerald-700 border-emerald-200";
+            ? "bg-emerald-500/20 text-emerald-100 border-emerald-300/40"
+            : "bg-emerald-100 text-emerald-800 border-emerald-300";
     }
 
     if (normalized === "pending") {
         return isDark
-            ? "bg-amber-500/15 text-amber-200 border-amber-300/30"
-            : "bg-amber-50 text-amber-700 border-amber-200";
+            ? "bg-amber-500/20 text-amber-100 border-amber-300/40"
+            : "bg-amber-100 text-amber-800 border-amber-300";
     }
 
     if (["rejected", "cancelled", "canceled"].includes(normalized)) {
         return isDark
-            ? "bg-rose-500/15 text-rose-200 border-rose-300/30"
-            : "bg-rose-50 text-rose-700 border-rose-200";
+            ? "bg-rose-500/20 text-rose-100 border-rose-300/40"
+            : "bg-rose-100 text-rose-800 border-rose-300";
     }
 
     return isDark
-        ? "bg-white/10 text-white/80 border-white/10"
-        : "bg-slate-50 text-slate-700 border-slate-200";
+        ? "bg-white/10 text-white border-white/10"
+        : "bg-slate-100 text-slate-800 border-slate-300";
 }
 
 const fadeUp = {
@@ -242,6 +243,13 @@ export default function ClientBookings() {
     }
 
     async function handleDeleteBooking(booking) {
+        const normalizedStatus = String(booking.status || "").toLowerCase();
+
+        if (normalizedStatus !== "pending") {
+            alert("This booking cannot be deleted because it is already approved.");
+            return;
+        }
+
         const confirmed = window.confirm(
             `Delete this booking?\n\n${booking.eventType || "Event Booking"} - Booking ID: ${booking.bookingId || booking.id
             }`
@@ -282,17 +290,17 @@ export default function ClientBookings() {
 
     const detailCard = isDark
         ? "border border-white/10 bg-[linear-gradient(180deg,rgba(12,38,30,0.96)_0%,rgba(15,43,35,0.96)_100%)]"
-        : "border border-[#d8e4df] bg-[#fbfdfc]";
+        : "border border-[#cfded8] bg-[#fbfdfc] shadow-sm";
 
     const outlineCard = isDark
         ? "border border-white/10 bg-[linear-gradient(180deg,rgba(11,35,28,0.98)_0%,rgba(15,42,34,0.98)_100%)]"
-        : "border border-[#d8e4df] bg-white";
+        : "border border-[#cfded8] bg-white shadow-sm";
 
-    const titleColor = isDark ? "text-white" : "text-[#064734]";
-    const subtitleColor = isDark ? "text-white/75" : "text-slate-600";
-    const bodyColor = isDark ? "text-white/85" : "text-slate-700";
-    const labelColor = isDark ? "text-[#a7f3d0]" : "text-[#07835f]";
-    const strongText = isDark ? "text-white" : "text-slate-900";
+    const titleColor = isDark ? "text-white" : "text-[#063f30]";
+    const subtitleColor = isDark ? "text-white/85" : "text-slate-700";
+    const bodyColor = isDark ? "text-white/90" : "text-slate-900";
+    const labelColor = isDark ? "text-[#a7f3d0]" : "text-[#047857]";
+    const strongText = isDark ? "text-white" : "text-slate-950";
 
     const summary = useMemo(() => {
         const total = bookings.length;
@@ -335,18 +343,18 @@ export default function ClientBookings() {
                                 My Bookings
                             </h1>
 
-                            <p className="mt-3 max-w-2xl text-sm font-medium leading-7 text-white/90 md:text-base">
+                            <p className="mt-3 max-w-2xl text-sm font-semibold leading-7 text-white md:text-base">
                                 View your confirmed, approved, and pending event bookings
                                 with clearer details, readable records, and premium event tracking.
                             </p>
 
                             <div className="mt-5 flex flex-wrap items-center gap-3">
-                                <div className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur">
+                                <div className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/10 px-4 py-2.5 text-sm font-bold text-white backdrop-blur">
                                     <ShieldCheck size={16} className="text-[#f5c94a]" />
                                     Premium booking records and event tracking
                                 </div>
 
-                                <div className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-black/10 px-4 py-2.5 text-sm font-semibold text-white">
+                                <div className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-black/10 px-4 py-2.5 text-sm font-bold text-white">
                                     <PartyPopper size={15} className="text-[#f5c94a]" />
                                     Organized for smoother client review
                                 </div>
@@ -355,7 +363,7 @@ export default function ClientBookings() {
 
                         <Link
                             to="/client/quotation"
-                            className="group relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-2xl bg-[linear-gradient(135deg,#d4af37_0%,#f0cb58_100%)] px-5 py-3 text-sm font-bold text-[#143c2f] shadow-[0_12px_24px_rgba(212,175,55,0.28)] transition duration-300 hover:-translate-y-0.5"
+                            className="group relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-2xl bg-[linear-gradient(135deg,#d4af37_0%,#f0cb58_100%)] px-5 py-3 text-sm font-extrabold text-[#143c2f] shadow-[0_12px_24px_rgba(212,175,55,0.28)] transition duration-300 hover:-translate-y-0.5"
                         >
                             <span>New Booking Request</span>
                             <ArrowRight size={16} className="transition group-hover:translate-x-1" />
@@ -371,7 +379,7 @@ export default function ClientBookings() {
                         ["Estimated Total", formatCurrency(summary.totalSpent), "text-[#10b981]"],
                     ].map(([label, value, color]) => (
                         <div key={label} className={`portal-panel-hover rounded-[28px] p-5 ${statCard}`}>
-                            <p className={`text-sm font-bold ${subtitleColor}`}>{label}</p>
+                            <p className={`text-sm font-extrabold ${subtitleColor}`}>{label}</p>
                             <h2 className={`mt-2 text-3xl font-extrabold tracking-tight ${color}`}>
                                 {value}
                             </h2>
@@ -387,7 +395,7 @@ export default function ClientBookings() {
             ) : error ? (
                 <motion.div variants={fadeUp} className={`rounded-[32px] px-6 py-14 text-center ${outlineCard}`}>
                     <h2 className="text-2xl font-extrabold text-red-500">Failed to load bookings</h2>
-                    <p className={`mt-3 ${subtitleColor}`}>{error}</p>
+                    <p className={`mt-3 font-semibold ${subtitleColor}`}>{error}</p>
                 </motion.div>
             ) : bookings.length === 0 ? (
                 <motion.div variants={fadeUp} className="portal-card-premium px-6 py-14 text-center">
@@ -402,152 +410,164 @@ export default function ClientBookings() {
                         No bookings yet
                     </h2>
 
-                    <p className={`mx-auto mt-3 max-w-xl font-medium ${subtitleColor}`}>
+                    <p className={`mx-auto mt-3 max-w-xl font-semibold ${subtitleColor}`}>
                         Your booking records will appear here once your quotation is approved or confirmed.
                     </p>
 
                     <Link
                         to="/client/quotation"
-                        className="mt-6 inline-flex items-center justify-center rounded-2xl bg-[#d4af37] px-6 py-3 text-sm font-bold text-[#143c2f] transition hover:bg-[#caa22c]"
+                        className="mt-6 inline-flex items-center justify-center rounded-2xl bg-[#d4af37] px-6 py-3 text-sm font-extrabold text-[#143c2f] transition hover:bg-[#caa22c]"
                     >
                         Create New Quotation
                     </Link>
                 </motion.div>
             ) : (
                 <div className="grid gap-5">
-                    {bookings.map((booking, index) => (
-                        <motion.div
-                            key={booking.id || index}
-                            variants={fadeUp}
-                            whileHover={{ y: -5, scale: 1.005 }}
-                            className="portal-card-premium p-6 transition"
-                        >
-                            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                                <div>
-                                    <div className="flex flex-wrap items-center gap-3">
-                                        <h2 className={`text-2xl font-extrabold tracking-tight ${titleColor}`}>
-                                            {booking.eventType || "Event Booking"}
-                                        </h2>
+                    {bookings.map((booking, index) => {
+                        const bookingStatus = String(booking.status || "pending").toLowerCase();
+                        const canDeleteBooking = bookingStatus === "pending";
 
-                                        <span
-                                            className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-extrabold uppercase tracking-wide ${getStatusClasses(
-                                                booking.status,
-                                                isDark
-                                            )}`}
-                                        >
-                                            {booking.status || "Pending"}
-                                        </span>
-                                    </div>
+                        return (
+                            <motion.div
+                                key={booking.id || index}
+                                variants={fadeUp}
+                                whileHover={{ y: -5, scale: 1.005 }}
+                                className="portal-card-premium p-6 transition"
+                            >
+                                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                                    <div>
+                                        <div className="flex flex-wrap items-center gap-3">
+                                            <h2 className={`text-2xl font-extrabold tracking-tight ${titleColor}`}>
+                                                {booking.eventType || "Event Booking"}
+                                            </h2>
 
-                                    <p className={`mt-2 text-sm font-semibold ${subtitleColor}`}>
-                                        Booking ID:{" "}
-                                        <span className={`font-extrabold ${strongText}`}>
-                                            {booking.bookingId || booking.id}
-                                        </span>
-                                    </p>
-                                </div>
-
-                                <div
-                                    className={`rounded-[26px] px-5 py-4 text-left lg:min-w-[240px] ${isDark
-                                            ? "border border-[rgba(97,76,24,0.34)] bg-[linear-gradient(135deg,rgba(88,67,20,0.3)_0%,rgba(120,91,27,0.24)_100%)]"
-                                            : "border border-[#fde68a] bg-[linear-gradient(135deg,#fffaf0_0%,#fff3d0_100%)] shadow-sm"
-                                        }`}
-                                >
-                                    <div className="flex items-center gap-2 text-[#b7791f]">
-                                        <Wallet size={18} />
-                                        <p className="text-xs font-extrabold uppercase tracking-[0.18em]">
-                                            Total Amount
-                                        </p>
-                                    </div>
-
-                                    <p className="mt-2 text-2xl font-extrabold tracking-tight text-[#059669]">
-                                        {formatCurrency(booking.totalAmount)}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                                {[
-                                    [CalendarDays, "Date", formatDate(booking.date)],
-                                    [Clock3, "Time", formatTime(booking.time)],
-                                    [MapPin, "Venue", booking.venue || "Not specified"],
-                                    [Users, "Guests", `${booking.guests || 0} pax`],
-                                ].map(([Icon, label, value]) => (
-                                    <div key={label} className={`rounded-[26px] p-4 ${detailCard}`}>
-                                        <div className={`flex items-center gap-2 ${labelColor}`}>
-                                            <Icon size={18} />
-                                            <span className="text-sm font-extrabold">{label}</span>
+                                            <span
+                                                className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-extrabold uppercase tracking-wide ${getStatusClasses(
+                                                    booking.status,
+                                                    isDark
+                                                )}`}
+                                            >
+                                                {booking.status || "Pending"}
+                                            </span>
                                         </div>
-                                        <p className={`mt-2 text-sm font-semibold leading-6 ${bodyColor}`}>
-                                            {value}
+
+                                        <p className={`mt-2 text-sm font-bold ${subtitleColor}`}>
+                                            Booking ID:{" "}
+                                            <span className={`font-extrabold ${strongText}`}>
+                                                {booking.bookingId || booking.id}
+                                            </span>
                                         </p>
                                     </div>
-                                ))}
-                            </div>
 
-                            <div className="mt-4 grid gap-4 md:grid-cols-2">
-                                <div className={`rounded-[26px] p-4 ${outlineCard}`}>
-                                    <div className={`flex items-center gap-2 ${labelColor}`}>
-                                        <Package size={18} />
-                                        <span className="text-sm font-extrabold">Package</span>
+                                    <div
+                                        className={`rounded-[26px] px-5 py-4 text-left lg:min-w-[240px] ${isDark
+                                                ? "border border-[rgba(97,76,24,0.34)] bg-[linear-gradient(135deg,rgba(88,67,20,0.3)_0%,rgba(120,91,27,0.24)_100%)]"
+                                                : "border border-[#fde68a] bg-[linear-gradient(135deg,#fffaf0_0%,#fff3d0_100%)] shadow-sm"
+                                            }`}
+                                    >
+                                        <div className="flex items-center gap-2 text-[#b7791f]">
+                                            <Wallet size={18} />
+                                            <p className="text-xs font-extrabold uppercase tracking-[0.18em]">
+                                                Total Amount
+                                            </p>
+                                        </div>
+
+                                        <p className="mt-2 text-2xl font-extrabold tracking-tight text-[#047857]">
+                                            {formatCurrency(booking.totalAmount)}
+                                        </p>
                                     </div>
-                                    <p className={`mt-2 text-sm font-semibold leading-6 ${bodyColor}`}>
-                                        {booking.packageName || "Not specified"}
-                                    </p>
                                 </div>
 
-                                <div className={`rounded-[26px] p-4 ${outlineCard}`}>
-                                    <div className={`flex items-center gap-2 ${labelColor}`}>
-                                        <Receipt size={18} />
-                                        <span className="text-sm font-extrabold">Menu / Notes</span>
-                                    </div>
-                                    <p className={`mt-2 text-sm font-semibold leading-6 ${bodyColor}`}>
-                                        {booking.classicMenu || "No menu details provided"}
-                                    </p>
+                                <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                                    {[
+                                        [CalendarDays, "Date", formatDate(booking.date)],
+                                        [Clock3, "Time", formatTime(booking.time)],
+                                        [MapPin, "Venue", booking.venue || "Not specified"],
+                                        [Users, "Guests", `${booking.guests || 0} pax`],
+                                    ].map(([Icon, label, value]) => (
+                                        <div key={label} className={`rounded-[26px] p-4 ${detailCard}`}>
+                                            <div className={`flex items-center gap-2 ${labelColor}`}>
+                                                <Icon size={18} />
+                                                <span className="text-sm font-extrabold">{label}</span>
+                                            </div>
+                                            <p className={`mt-2 text-sm font-bold leading-6 ${bodyColor}`}>
+                                                {value}
+                                            </p>
+                                        </div>
+                                    ))}
                                 </div>
-                            </div>
 
-                            <div className="mt-5 flex flex-wrap items-center gap-3">
-                                <Link
-                                    to="/client/calendar"
-                                    className="inline-flex items-center gap-2 rounded-2xl bg-[#0d5c46] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#0b4f3d]"
-                                >
-                                    <CalendarClock size={16} />
-                                    View in Calendar
-                                </Link>
+                                <div className="mt-4 grid gap-4 md:grid-cols-2">
+                                    <div className={`rounded-[26px] p-4 ${outlineCard}`}>
+                                        <div className={`flex items-center gap-2 ${labelColor}`}>
+                                            <Package size={18} />
+                                            <span className="text-sm font-extrabold">Package</span>
+                                        </div>
+                                        <p className={`mt-2 text-sm font-bold leading-6 ${bodyColor}`}>
+                                            {booking.packageName || "Not specified"}
+                                        </p>
+                                    </div>
 
-                                <button
-                                    type="button"
-                                    onClick={() => handleDeleteBooking(booking)}
-                                    disabled={deletingId === booking.id}
-                                    className="inline-flex items-center gap-2 rounded-2xl bg-red-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
-                                >
-                                    <Trash2 size={16} />
-                                    {deletingId === booking.id ? "Deleting..." : "Delete"}
-                                </button>
+                                    <div className={`rounded-[26px] p-4 ${outlineCard}`}>
+                                        <div className={`flex items-center gap-2 ${labelColor}`}>
+                                            <Receipt size={18} />
+                                            <span className="text-sm font-extrabold">Menu / Notes</span>
+                                        </div>
+                                        <p className={`mt-2 text-sm font-bold leading-6 ${bodyColor}`}>
+                                            {booking.classicMenu || "No menu details provided"}
+                                        </p>
+                                    </div>
+                                </div>
 
-                                <span
-                                    className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-bold ${isDark
-                                            ? "bg-emerald-500/15 text-emerald-200"
-                                            : "bg-[#e8f8f1] text-[#075f46]"
-                                        }`}
-                                >
-                                    <CircleCheckBig size={16} />
-                                    Keep checking this page for booking updates
-                                </span>
+                                <div className="mt-5 flex flex-wrap items-center gap-3">
+                                    <Link
+                                        to="/client/calendar"
+                                        className="inline-flex items-center gap-2 rounded-2xl bg-[#0d5c46] px-4 py-2.5 text-sm font-extrabold text-white transition hover:bg-[#0b4f3d]"
+                                    >
+                                        <CalendarClock size={16} />
+                                        View in Calendar
+                                    </Link>
 
-                                <span
-                                    className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-bold ${isDark
-                                            ? "bg-amber-500/15 text-amber-200"
-                                            : "bg-[#fff4d6] text-[#7c5200]"
-                                        }`}
-                                >
-                                    <BadgeCheck size={16} />
-                                    Premium record view
-                                </span>
-                            </div>
-                        </motion.div>
-                    ))}
+                                    {canDeleteBooking ? (
+                                        <button
+                                            type="button"
+                                            onClick={() => handleDeleteBooking(booking)}
+                                            disabled={deletingId === booking.id}
+                                            className="inline-flex items-center gap-2 rounded-2xl bg-red-600 px-4 py-2.5 text-sm font-extrabold text-white shadow-sm transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                                        >
+                                            <Trash2 size={16} />
+                                            {deletingId === booking.id ? "Deleting..." : "Delete"}
+                                        </button>
+                                    ) : (
+                                        <span className="inline-flex items-center gap-2 rounded-2xl border border-slate-300 bg-slate-100 px-4 py-2.5 text-sm font-extrabold text-slate-600">
+                                            <Lock size={16} />
+                                            Delete locked
+                                        </span>
+                                    )}
+
+                                    <span
+                                        className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-extrabold ${isDark
+                                                ? "bg-emerald-500/15 text-emerald-200"
+                                                : "bg-[#e8f8f1] text-[#075f46]"
+                                            }`}
+                                    >
+                                        <CircleCheckBig size={16} />
+                                        Keep checking this page for booking updates
+                                    </span>
+
+                                    <span
+                                        className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-extrabold ${isDark
+                                                ? "bg-amber-500/15 text-amber-200"
+                                                : "bg-[#fff4d6] text-[#7c5200]"
+                                            }`}
+                                    >
+                                        <BadgeCheck size={16} />
+                                        Premium record view
+                                    </span>
+                                </div>
+                            </motion.div>
+                        );
+                    })}
                 </div>
             )}
         </motion.div>
