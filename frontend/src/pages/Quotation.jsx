@@ -1631,7 +1631,13 @@ function PremiumTimePicker({ value, onChange, isDark, placeholder = "Select even
 
             <AnimatePresence>
                 {open && (
-                    <motion.div initial={{ opacity: 0, y: 8, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 6, scale: 0.98 }} transition={{ duration: 0.18 }} className={dropdownClass}>
+                    <motion.div
+                        initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 6, scale: 0.98 }}
+                        transition={{ duration: 0.18 }}
+                        className={dropdownClass}
+                    >
                         <div className="mb-4 flex items-center justify-between gap-3">
                             <div>
                                 <p className={`text-xs font-semibold uppercase tracking-[0.18em] ${isDark ? "text-white/50" : "text-slate-400"}`}>
@@ -1643,19 +1649,29 @@ function PremiumTimePicker({ value, onChange, isDark, placeholder = "Select even
                             </div>
 
                             {value ? (
-                                <button type="button" onClick={() => onChange("")} className={isDark ? "rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-white/80 transition hover:bg-white/10" : "rounded-full border border-[#e3ebe7] bg-[#fbfdfc] px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-[#f3fbf7]"}>
+                                <button
+                                    type="button"
+                                    onClick={() => onChange("")}
+                                    className={isDark ? "rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-white/80 transition hover:bg-white/10" : "rounded-full border border-[#e3ebe7] bg-[#fbfdfc] px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-[#f3fbf7]"}
+                                >
                                     Clear
                                 </button>
                             ) : null}
                         </div>
 
-                        <input
-                            type="time"
-                            step="60"
-                            value={value || ""}
-                            onChange={(e) => onChange(e.target.value)}
-                            className={inputTimeClass}
-                        />
+                        <div className="space-y-2">
+                            <p className={`text-xs font-semibold uppercase tracking-[0.14em] ${isDark ? "text-white/45" : "text-slate-400"}`}>
+                                Edit exact time
+                            </p>
+
+                            <input
+                                type="time"
+                                step="60"
+                                value={value || ""}
+                                onChange={(e) => onChange(e.target.value)}
+                                className={inputTimeClass}
+                            />
+                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>
