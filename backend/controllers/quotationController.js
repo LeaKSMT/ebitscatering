@@ -23,19 +23,23 @@ function getUserEmail(req) {
     return String(req.user?.email || "").trim().toLowerCase();
 }
 
+function safeJsonParse(value, fallback = []) {
+    try {
+        const parsed = JSON.parse(value || "[]");
+        return Array.isArray(parsed) ? parsed : fallback;
+    } catch {
+        return fallback;
+    }
+}
+
 exports.getQuotations = (req, res) => {
     const userEmail = getUserEmail(req);
 
     if (!userEmail) {
-        return res.status(401).json({
-            message: "Unauthorized user",
-        });
+        return res.status(401).json({ message: "Unauthorized user" });
     }
 
-    let query = `
-        SELECT *
-        FROM quotations
-    `;
+    let query = `SELECT * FROM quotations`;
     let values = [];
 
     if (!isAdminUser(req)) {
@@ -66,19 +70,15 @@ exports.getQuotationById = (req, res) => {
     const userEmail = getUserEmail(req);
     const admin = isAdminUser(req);
 
-    let query = `
-        SELECT *
-        FROM quotations
-        WHERE id = ?
-    `;
+    let query = `SELECT * FROM quotations WHERE id = ?`;
     let values = [id];
 
     if (!admin) {
         query += `
-          AND (
+            AND (
                 LOWER(COALESCE(owner_email, '')) = ?
-             OR LOWER(COALESCE(email, '')) = ?
-          )
+                OR LOWER(COALESCE(email, '')) = ?
+            )
         `;
         values.push(userEmail, userEmail);
     }
@@ -251,10 +251,7 @@ exports.updateQuotation = (req, res) => {
     const userEmail = getUserEmail(req);
     const admin = isAdminUser(req);
 
-    let fetchQuery = `
-        SELECT * FROM quotations
-        WHERE id = ?
-    `;
+    let fetchQuery = `SELECT * FROM quotations WHERE id = ?`;
     const fetchValues = [id];
 
     if (!admin) {
@@ -284,6 +281,13 @@ exports.updateQuotation = (req, res) => {
 
         const current = results[0];
         const body = req.body || {};
+        const currentStatus = normalizeStatus(current.status);
+
+        if (!admin && currentStatus !== "pending") {
+            return res.status(403).json({
+                message: "Only pending quotations can be edited.",
+            });
+        }
 
         const nextOwnerEmail = String(
             body.ownerEmail ||
@@ -295,74 +299,39 @@ exports.updateQuotation = (req, res) => {
             .trim()
             .toLowerCase();
 
-        const nextEmail = String(
-            body.email || current.email || nextOwnerEmail || ""
-        )
+        const nextEmail = String(body.email || current.email || nextOwnerEmail || "")
             .trim()
             .toLowerCase();
 
-        const payments =
-            body.payments ??
-            (() => {
-                try {
-                    return JSON.parse(current.payments || "[]");
-                } catch {
-                    return [];
-                }
-            })();
-
-        const expenses =
-            body.expenses ??
-            (() => {
-                try {
-                    return JSON.parse(current.expenses || "[]");
-                } catch {
-                    return [];
-                }
-            })();
-
-        const inquiries =
-            body.inquiries ??
-            (() => {
-                try {
-                    return JSON.parse(current.inquiries || "[]");
-                } catch {
-                    return [];
-                }
-            })();
+        const payments = admin && body.payments ? body.payments : safeJsonParse(current.payments);
+        const expenses = admin && body.expenses ? body.expenses : safeJsonParse(current.expenses);
+        const inquiries = admin && body.inquiries ? body.inquiries : safeJsonParse(current.inquiries);
 
         const addOns =
-            body.addOns ??
-            body.add_ons ??
-            (() => {
-                try {
-                    return JSON.parse(current.add_ons || "[]");
-                } catch {
-                    return [];
-                }
-            })();
+            admin && (body.addOns || body.add_ons)
+                ? body.addOns || body.add_ons
+                : safeJsonParse(current.add_ons);
 
         const packageInclusions =
-            body.packageInclusions ??
-            body.package_inclusions ??
-            (() => {
-                try {
-                    return JSON.parse(current.package_inclusions || "[]");
-                } catch {
-                    return [];
-                }
-            })();
+            admin && (body.packageInclusions || body.package_inclusions)
+                ? body.packageInclusions || body.package_inclusions
+                : safeJsonParse(current.package_inclusions);
 
         const assignedStaff =
-            body.assignedStaff ??
-            body.assigned_staff ??
-            (() => {
-                try {
-                    return JSON.parse(current.assigned_staff || "[]");
-                } catch {
-                    return [];
-                }
-            })();
+            admin && (body.assignedStaff || body.assigned_staff)
+                ? body.assignedStaff || body.assigned_staff
+                : safeJsonParse(current.assigned_staff);
+
+        const lockedPackagePrice = Number(current.package_price || 0);
+        const lockedAddOnsTotal = Number(current.add_ons_total || 0);
+        const lockedEstimatedTotal = Number(current.estimated_total || 0);
+        const lockedIncludedPax =
+            current.included_pax != null ? Number(current.included_pax) : null;
+        const lockedPricingType = current.pricing_type || "fixed";
+        const lockedRatePerPax =
+            current.rate_per_pax != null ? Number(current.rate_per_pax) : null;
+        const lockedExcessGuests = Number(current.excess_guests || 0);
+        const lockedExcessCost = Number(current.excess_cost || 0);
 
         const updateQuery = `
             UPDATE quotations
@@ -414,10 +383,7 @@ exports.updateQuotation = (req, res) => {
             null,
             body.fullName || body.full_name || current.full_name,
             nextEmail || null,
-            body.contactNumber ||
-            body.contact_number ||
-            current.contact_number ||
-            null,
+            body.contactNumber || body.contact_number || current.contact_number || null,
             body.eventType || body.event_type || current.event_type || null,
             body.preferredDate ||
             body.preferred_date ||
@@ -427,57 +393,73 @@ exports.updateQuotation = (req, res) => {
             body.eventTime || body.event_time || current.event_time || null,
             body.venue || current.venue || null,
             Number(body.guests ?? body.guestCount ?? current.guests ?? 0),
-            body.packageType || body.package_type || current.package_type || null,
-            body.classicMenu || body.classic_menu || current.classic_menu || null,
+
+            admin
+                ? body.packageType || body.package_type || current.package_type || null
+                : current.package_type || null,
+
+            admin
+                ? body.classicMenu || body.classic_menu || current.classic_menu || null
+                : current.classic_menu || null,
+
             JSON.stringify(Array.isArray(addOns) ? addOns : []),
-            body.themePreference ||
-            body.theme_preference ||
-            current.theme_preference ||
-            null,
-            body.specialRequests ||
-            body.special_requests ||
-            current.special_requests ||
-            null,
-            Number(body.packagePrice ?? body.package_price ?? current.package_price ?? 0),
-            Number(body.addOnsTotal ?? body.add_ons_total ?? current.add_ons_total ?? 0),
-            Number(
-                body.estimatedTotal ??
-                body.estimated_total ??
-                body.totalAmount ??
-                current.estimated_total ??
-                0
-            ),
-            body.includedPax != null
-                ? Number(body.includedPax)
-                : current.included_pax != null
-                    ? Number(current.included_pax)
-                    : null,
-            body.pricingType || body.pricing_type || current.pricing_type || "fixed",
-            body.ratePerPax != null
-                ? Number(body.ratePerPax)
-                : current.rate_per_pax != null
-                    ? Number(current.rate_per_pax)
-                    : null,
-            Number(body.excessGuests ?? body.excess_guests ?? current.excess_guests ?? 0),
-            Number(body.excessCost ?? body.excess_cost ?? current.excess_cost ?? 0),
+            body.themePreference || body.theme_preference || current.theme_preference || null,
+            body.specialRequests || body.special_requests || current.special_requests || null,
+
+            admin
+                ? Number(body.packagePrice ?? body.package_price ?? lockedPackagePrice)
+                : lockedPackagePrice,
+
+            admin
+                ? Number(body.addOnsTotal ?? body.add_ons_total ?? lockedAddOnsTotal)
+                : lockedAddOnsTotal,
+
+            admin
+                ? Number(
+                    body.estimatedTotal ??
+                    body.estimated_total ??
+                    body.totalAmount ??
+                    lockedEstimatedTotal
+                )
+                : lockedEstimatedTotal,
+
+            admin
+                ? body.includedPax != null
+                    ? Number(body.includedPax)
+                    : current.included_pax != null
+                        ? Number(current.included_pax)
+                        : null
+                : lockedIncludedPax,
+
+            admin ? body.pricingType || body.pricing_type || lockedPricingType : lockedPricingType,
+
+            admin
+                ? body.ratePerPax != null
+                    ? Number(body.ratePerPax)
+                    : lockedRatePerPax
+                : lockedRatePerPax,
+
+            admin
+                ? Number(body.excessGuests ?? body.excess_guests ?? lockedExcessGuests)
+                : lockedExcessGuests,
+
+            admin
+                ? Number(body.excessCost ?? body.excess_cost ?? lockedExcessCost)
+                : lockedExcessCost,
+
             JSON.stringify(Array.isArray(packageInclusions) ? packageInclusions : []),
-            body.status || current.status || "Pending",
+
+            admin ? body.status || current.status || "Pending" : current.status || "Pending",
+
             JSON.stringify(Array.isArray(payments) ? payments : []),
             JSON.stringify(Array.isArray(expenses) ? expenses : []),
             JSON.stringify(Array.isArray(inquiries) ? inquiries : []),
-            body.eventOutcome || body.event_outcome || current.event_outcome || null,
-            body.evaluationNotes ||
-            body.evaluation_notes ||
-            current.evaluation_notes ||
-            null,
-            body.clientSatisfaction ||
-            body.client_satisfaction ||
-            current.client_satisfaction ||
-            null,
-            body.staffPerformance ||
-            body.staff_performance ||
-            current.staff_performance ||
-            null,
+
+            admin ? body.eventOutcome || body.event_outcome || current.event_outcome || null : current.event_outcome || null,
+            admin ? body.evaluationNotes || body.evaluation_notes || current.evaluation_notes || null : current.evaluation_notes || null,
+            admin ? body.clientSatisfaction || body.client_satisfaction || current.client_satisfaction || null : current.client_satisfaction || null,
+            admin ? body.staffPerformance || body.staff_performance || current.staff_performance || null : current.staff_performance || null,
+
             JSON.stringify(Array.isArray(assignedStaff) ? assignedStaff : []),
             id,
         ];
@@ -497,6 +479,7 @@ exports.updateQuotation = (req, res) => {
 
             return res.status(200).json({
                 message: "Quotation updated successfully",
+                priceLocked: !admin,
             });
         });
     });
@@ -512,18 +495,15 @@ exports.updateQuotationStatus = (req, res) => {
         return res.status(400).json({ message: "status is required" });
     }
 
-    let fetchQuery = `
-        SELECT * FROM quotations
-        WHERE id = ?
-    `;
+    let fetchQuery = `SELECT * FROM quotations WHERE id = ?`;
     let fetchValues = [id];
 
     if (!admin) {
         fetchQuery += `
-          AND (
+            AND (
                 LOWER(COALESCE(owner_email, '')) = ?
-             OR LOWER(COALESCE(email, '')) = ?
-          )
+                OR LOWER(COALESCE(email, '')) = ?
+            )
         `;
         fetchValues.push(userEmail, userEmail);
     }
@@ -546,11 +526,7 @@ exports.updateQuotationStatus = (req, res) => {
         const quotation = quotationResults[0];
 
         db.query(
-            `
-                UPDATE quotations
-                SET status = ?
-                WHERE id = ?
-            `,
+            `UPDATE quotations SET status = ? WHERE id = ?`,
             [status, id],
             (updateErr, updateResult) => {
                 if (updateErr) {
@@ -711,32 +687,58 @@ exports.deleteQuotation = (req, res) => {
     const userEmail = getUserEmail(req);
     const admin = isAdminUser(req);
 
-    let deleteQuery = `DELETE FROM quotations WHERE id = ?`;
-    let deleteValues = [id];
+    let fetchQuery = `SELECT * FROM quotations WHERE id = ?`;
+    let fetchValues = [id];
 
     if (!admin) {
-        deleteQuery += `
-          AND (
+        fetchQuery += `
+            AND (
                 LOWER(COALESCE(owner_email, '')) = ?
-             OR LOWER(COALESCE(email, '')) = ?
-          )
+                OR LOWER(COALESCE(email, '')) = ?
+            )
         `;
-        deleteValues.push(userEmail, userEmail);
+        fetchValues.push(userEmail, userEmail);
     }
 
-    db.query(deleteQuery, deleteValues, (err, result) => {
-        if (err) {
-            console.error("Delete quotation error:", err);
+    fetchQuery += ` LIMIT 1`;
+
+    db.query(fetchQuery, fetchValues, (fetchErr, results) => {
+        if (fetchErr) {
+            console.error("Fetch quotation before delete error:", fetchErr);
             return res.status(500).json({
                 message: "Failed to delete quotation",
-                error: err.message,
+                error: fetchErr.message,
             });
         }
 
-        if (!result || result.affectedRows === 0) {
+        if (!results || results.length === 0) {
             return res.status(404).json({ message: "Quotation not found" });
         }
 
-        return res.status(200).json({ message: "Quotation deleted successfully" });
+        const current = results[0];
+
+        if (!admin && normalizeStatus(current.status) !== "pending") {
+            return res.status(403).json({
+                message: "Only pending quotations can be deleted.",
+            });
+        }
+
+        db.query(`DELETE FROM quotations WHERE id = ?`, [id], (err, result) => {
+            if (err) {
+                console.error("Delete quotation error:", err);
+                return res.status(500).json({
+                    message: "Failed to delete quotation",
+                    error: err.message,
+                });
+            }
+
+            if (!result || result.affectedRows === 0) {
+                return res.status(404).json({ message: "Quotation not found" });
+            }
+
+            return res.status(200).json({
+                message: "Quotation deleted successfully",
+            });
+        });
     });
 };
