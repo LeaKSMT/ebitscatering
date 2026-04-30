@@ -461,8 +461,8 @@ export default function ClientBookings() {
 
                                     <div
                                         className={`rounded-[26px] px-5 py-4 text-left lg:min-w-[240px] ${isDark
-                                                ? "border border-[rgba(97,76,24,0.34)] bg-[linear-gradient(135deg,rgba(88,67,20,0.3)_0%,rgba(120,91,27,0.24)_100%)]"
-                                                : "border border-[#fde68a] bg-[linear-gradient(135deg,#fffaf0_0%,#fff3d0_100%)] shadow-sm"
+                                            ? "border border-[rgba(97,76,24,0.34)] bg-[linear-gradient(135deg,rgba(88,67,20,0.3)_0%,rgba(120,91,27,0.24)_100%)]"
+                                            : "border border-[#fde68a] bg-[linear-gradient(135deg,#fffaf0_0%,#fff3d0_100%)] shadow-sm"
                                             }`}
                                     >
                                         <div className="flex items-center gap-2 text-[#b7791f]">
@@ -517,53 +517,6 @@ export default function ClientBookings() {
                                             {booking.classicMenu || "No menu details provided"}
                                         </p>
                                     </div>
-                                </div>
-
-                                <div className="mt-5 flex flex-wrap items-center gap-3">
-                                    <Link
-                                        to="/client/calendar"
-                                        className="inline-flex items-center gap-2 rounded-2xl bg-[#0d5c46] px-4 py-2.5 text-sm font-extrabold text-white transition hover:bg-[#0b4f3d]"
-                                    >
-                                        <CalendarClock size={16} />
-                                        View in Calendar
-                                    </Link>
-
-                                    {canDeleteBooking ? (
-                                        <button
-                                            type="button"
-                                            onClick={() => handleDeleteBooking(booking)}
-                                            disabled={deletingId === booking.id}
-                                            className="inline-flex items-center gap-2 rounded-2xl bg-red-600 px-4 py-2.5 text-sm font-extrabold text-white shadow-sm transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
-                                        >
-                                            <Trash2 size={16} />
-                                            {deletingId === booking.id ? "Deleting..." : "Delete"}
-                                        </button>
-                                    ) : (
-                                        <span className="inline-flex items-center gap-2 rounded-2xl border border-slate-300 bg-slate-100 px-4 py-2.5 text-sm font-extrabold text-slate-600">
-                                            <Lock size={16} />
-                                            Delete locked
-                                        </span>
-                                    )}
-
-                                    <span
-                                        className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-extrabold ${isDark
-                                                ? "bg-emerald-500/15 text-emerald-200"
-                                                : "bg-[#e8f8f1] text-[#075f46]"
-                                            }`}
-                                    >
-                                        <CircleCheckBig size={16} />
-                                        Keep checking this page for booking updates
-                                    </span>
-
-                                    <span
-                                        className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-extrabold ${isDark
-                                                ? "bg-amber-500/15 text-amber-200"
-                                                : "bg-[#fff4d6] text-[#7c5200]"
-                                            }`}
-                                    >
-                                        <BadgeCheck size={16} />
-                                        Premium record view
-                                    </span>
                                 </div>
                             </motion.div>
                         );

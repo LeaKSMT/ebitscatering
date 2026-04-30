@@ -20,6 +20,9 @@ import {
     Pencil,
     X,
     Save,
+    Info,
+    UserRound,
+    ClipboardList,
 } from "lucide-react";
 
 function getClientUser() {
@@ -116,14 +119,10 @@ function formatTime(timeString) {
 }
 
 function formatSchedule(startTime, endTime, fallbackTime) {
-    if (startTime && endTime) {
-        return `${formatTime(startTime)} - ${formatTime(endTime)}`;
-    }
-
+    if (startTime && endTime) return `${formatTime(startTime)} - ${formatTime(endTime)}`;
     if (startTime) return `${formatTime(startTime)} - End time not set`;
     if (endTime) return `Start time not set - ${formatTime(endTime)}`;
     if (fallbackTime) return formatTime(fallbackTime);
-
     return "Not specified";
 }
 
@@ -270,9 +269,7 @@ export default function ClientQuotations() {
 
             const data = await res.json().catch(() => []);
 
-            if (!res.ok) {
-                throw new Error(data?.message || "Failed to fetch quotations.");
-            }
+            if (!res.ok) throw new Error(data?.message || "Failed to fetch quotations.");
 
             const normalized = Array.isArray(data)
                 ? data.map(normalizeQuotation).filter(Boolean)
@@ -334,10 +331,7 @@ export default function ClientQuotations() {
 
     function handleEditChange(e) {
         const { name, value } = e.target;
-        setEditForm((prev) => ({
-            ...prev,
-            [name]: value,
-        }));
+        setEditForm((prev) => ({ ...prev, [name]: value }));
     }
 
     async function handleSaveEdit(e) {
@@ -382,9 +376,7 @@ export default function ClientQuotations() {
 
             const data = await res.json().catch(() => ({}));
 
-            if (!res.ok) {
-                throw new Error(data?.message || "Failed to update quotation.");
-            }
+            if (!res.ok) throw new Error(data?.message || "Failed to update quotation.");
 
             setQuotations((prev) =>
                 prev.map((item) =>
@@ -447,9 +439,7 @@ export default function ClientQuotations() {
 
             const data = await res.json().catch(() => ({}));
 
-            if (!res.ok) {
-                throw new Error(data?.message || "Failed to delete quotation.");
-            }
+            if (!res.ok) throw new Error(data?.message || "Failed to delete quotation.");
 
             setQuotations((prev) => prev.filter((item) => item.id !== quote.id));
         } catch (err) {
@@ -500,7 +490,10 @@ export default function ClientQuotations() {
     }, [quotations]);
 
     const inputClass =
-        "w-full rounded-2xl border border-[#cfded8] bg-white px-4 py-3 text-sm font-bold text-[#111827] outline-none focus:border-[#d4af37] focus:ring-4 focus:ring-[#d4af37]/15";
+        "w-full rounded-2xl border border-[#bfd7cf] bg-white px-4 py-3.5 text-sm font-bold text-[#111827] outline-none shadow-sm transition placeholder:text-slate-400 focus:border-[#d4af37] focus:ring-4 focus:ring-[#d4af37]/15";
+
+    const labelClass =
+        "mb-2 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.12em] text-[#0d5c46]";
 
     return (
         <motion.div
@@ -555,9 +548,7 @@ export default function ClientQuotations() {
             ) : quotations.length === 0 ? (
                 <motion.div variants={fadeUp} className="portal-card-premium border-dashed px-6 py-16 text-center">
                     <div
-                        className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full ${isDark
-                                ? "bg-white/10 text-[#98efcc]"
-                                : "bg-[#eef8f4] text-[#0d5c46]"
+                        className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full ${isDark ? "bg-white/10 text-[#98efcc]" : "bg-[#eef8f4] text-[#0d5c46]"
                             }`}
                     >
                         <FileText className="h-8 w-8" />
@@ -854,72 +845,156 @@ export default function ClientQuotations() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4 py-6 backdrop-blur-sm"
+                        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4 py-6 backdrop-blur-md"
                     >
                         <motion.form
-                            initial={{ scale: 0.95, y: 18 }}
-                            animate={{ scale: 1, y: 0 }}
-                            exit={{ scale: 0.95, y: 18 }}
+                            initial={{ scale: 0.94, y: 24, opacity: 0 }}
+                            animate={{ scale: 1, y: 0, opacity: 1 }}
+                            exit={{ scale: 0.94, y: 24, opacity: 0 }}
+                            transition={{ type: "spring", stiffness: 220, damping: 24 }}
                             onSubmit={handleSaveEdit}
-                            className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-[32px] border border-[#dbe6e1] bg-white p-6 shadow-2xl"
+                            className="relative max-h-[92vh] w-full max-w-5xl overflow-hidden rounded-[36px] border border-[#d8e6df] bg-[linear-gradient(180deg,#ffffff_0%,#f8fbfa_100%)] shadow-[0_34px_100px_rgba(0,0,0,0.42)]"
                         >
-                            <div className="flex items-start justify-between gap-4">
-                                <div>
-                                    <h2 className="text-2xl font-extrabold text-[#063f30]">
-                                        Edit Pending Quotation
-                                    </h2>
-                                    <p className="mt-1 text-sm font-semibold text-[#4b5563]">
-                                        You can only edit quotations while they are still pending.
-                                    </p>
+                            <div className="relative overflow-hidden bg-[linear-gradient(135deg,#062f25_0%,#0d5c46_55%,#14906b_100%)] px-6 py-7 text-white md:px-8">
+                                <div className="absolute -right-12 -top-12 h-48 w-48 rounded-full bg-[#d4af37]/25 blur-3xl" />
+                                <div className="absolute -bottom-14 left-10 h-36 w-36 rounded-full bg-white/10 blur-2xl" />
+
+                                <div className="relative flex items-start justify-between gap-4">
+                                    <div>
+                                        <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.18em] text-white/85">
+                                            <Pencil size={13} />
+                                            Pending Edit
+                                        </div>
+
+                                        <h2 className="mt-3 text-2xl font-extrabold tracking-tight md:text-3xl">
+                                            Edit Pending Quotation
+                                        </h2>
+
+                                        <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-white/85">
+                                            Update client and event details while this quotation is still pending. Once approved, editing will be locked.
+                                        </p>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        onClick={closeEditModal}
+                                        className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/15 bg-white/10 text-white transition hover:bg-white/20"
+                                    >
+                                        <X size={20} />
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="max-h-[calc(92vh-215px)] overflow-y-auto px-6 py-6 md:px-8">
+                                <div className="rounded-[30px] border border-[#e3eee9] bg-[linear-gradient(180deg,#f7fcfa_0%,#ffffff_100%)] p-5">
+                                    <div className="mb-4 flex items-center gap-2 text-[#0d5c46]">
+                                        <UserRound size={18} />
+                                        <h3 className="text-sm font-extrabold uppercase tracking-[0.14em]">
+                                            Client Information
+                                        </h3>
+                                    </div>
+
+                                    <div className="grid gap-4 md:grid-cols-3">
+                                        <div>
+                                            <label className={labelClass}>Full Name</label>
+                                            <input className={inputClass} name="fullName" value={editForm.fullName} onChange={handleEditChange} placeholder="Full Name" />
+                                        </div>
+
+                                        <div>
+                                            <label className={labelClass}>Email Address</label>
+                                            <input className={inputClass} name="email" value={editForm.email} onChange={handleEditChange} placeholder="Email Address" />
+                                        </div>
+
+                                        <div>
+                                            <label className={labelClass}>Contact Number</label>
+                                            <input className={inputClass} name="contactNumber" value={editForm.contactNumber} onChange={handleEditChange} placeholder="Contact Number" />
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <button
-                                    type="button"
-                                    onClick={closeEditModal}
-                                    className="rounded-2xl border border-slate-200 p-2 text-slate-600 hover:bg-slate-50"
-                                >
-                                    <X size={20} />
-                                </button>
+                                <div className="mt-5 rounded-[30px] border border-[#e3eee9] bg-[linear-gradient(180deg,#f7fcfa_0%,#ffffff_100%)] p-5">
+                                    <div className="mb-4 flex items-center gap-2 text-[#0d5c46]">
+                                        <ClipboardList size={18} />
+                                        <h3 className="text-sm font-extrabold uppercase tracking-[0.14em]">
+                                            Event Details
+                                        </h3>
+                                    </div>
+
+                                    <div className="grid gap-4 md:grid-cols-3">
+                                        <div>
+                                            <label className={labelClass}>Event Type</label>
+                                            <input className={inputClass} name="eventType" value={editForm.eventType} onChange={handleEditChange} placeholder="Event Type" />
+                                        </div>
+
+                                        <div>
+                                            <label className={labelClass}>Event Date</label>
+                                            <input className={inputClass} type="date" name="eventDate" value={editForm.eventDate} onChange={handleEditChange} />
+                                        </div>
+
+                                        <div>
+                                            <label className={labelClass}>Start Time</label>
+                                            <input className={inputClass} type="time" name="eventStartTime" value={editForm.eventStartTime} onChange={handleEditChange} />
+                                        </div>
+
+                                        <div>
+                                            <label className={labelClass}>End Time</label>
+                                            <input className={inputClass} type="time" name="eventEndTime" value={editForm.eventEndTime} onChange={handleEditChange} />
+                                        </div>
+
+                                        <div>
+                                            <label className={labelClass}>Guests</label>
+                                            <input className={inputClass} name="guests" value={editForm.guests} onChange={handleEditChange} placeholder="Number of Guests" />
+                                        </div>
+
+                                        <div>
+                                            <label className={labelClass}>Venue</label>
+                                            <input className={inputClass} name="venue" value={editForm.venue} onChange={handleEditChange} placeholder="Venue / Location" />
+                                        </div>
+
+                                        <div>
+                                            <label className={labelClass}>Theme Preference</label>
+                                            <input className={inputClass} name="themePreference" value={editForm.themePreference} onChange={handleEditChange} placeholder="Theme Preference" />
+                                        </div>
+
+                                        <div className="md:col-span-2">
+                                            <label className={labelClass}>Special Requests</label>
+                                            <textarea
+                                                className={`${inputClass} min-h-[125px] resize-none`}
+                                                name="specialRequests"
+                                                value={editForm.specialRequests}
+                                                onChange={handleEditChange}
+                                                placeholder="Special Requests"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div className="mt-6 grid gap-4 md:grid-cols-2">
-                                <input className={inputClass} name="fullName" value={editForm.fullName} onChange={handleEditChange} placeholder="Full Name" />
-                                <input className={inputClass} name="email" value={editForm.email} onChange={handleEditChange} placeholder="Email" />
-                                <input className={inputClass} name="contactNumber" value={editForm.contactNumber} onChange={handleEditChange} placeholder="Contact Number" />
-                                <input className={inputClass} name="eventType" value={editForm.eventType} onChange={handleEditChange} placeholder="Event Type" />
-                                <input className={inputClass} type="date" name="eventDate" value={editForm.eventDate} onChange={handleEditChange} />
-                                <input className={inputClass} type="time" name="eventStartTime" value={editForm.eventStartTime} onChange={handleEditChange} />
-                                <input className={inputClass} type="time" name="eventEndTime" value={editForm.eventEndTime} onChange={handleEditChange} />
-                                <input className={inputClass} name="guests" value={editForm.guests} onChange={handleEditChange} placeholder="Guests" />
-                                <input className={inputClass} name="venue" value={editForm.venue} onChange={handleEditChange} placeholder="Venue" />
-                                <input className={inputClass} name="themePreference" value={editForm.themePreference} onChange={handleEditChange} placeholder="Theme Preference" />
-                            </div>
+                            <div className="flex flex-col gap-4 border-t border-[#dbe6e1] bg-[linear-gradient(90deg,#f2faf7_0%,#ffffff_100%)] px-6 py-5 md:flex-row md:items-center md:justify-between md:px-8">
+                                <div className="inline-flex items-start gap-3 rounded-2xl bg-[#eaf7f2] px-4 py-3 text-sm font-bold text-[#0d5c46]">
+                                    <Info size={18} className="mt-0.5 shrink-0" />
+                                    <span>Changes will be saved and reflected in your quotation details.</span>
+                                </div>
 
-                            <textarea
-                                className={`${inputClass} mt-4 min-h-[120px] resize-none`}
-                                name="specialRequests"
-                                value={editForm.specialRequests}
-                                onChange={handleEditChange}
-                                placeholder="Special Requests"
-                            />
+                                <div className="flex flex-wrap justify-end gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={closeEditModal}
+                                        className="inline-flex items-center gap-2 rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-extrabold text-slate-700 shadow-sm transition hover:bg-slate-50"
+                                    >
+                                        <X size={16} />
+                                        Cancel
+                                    </button>
 
-                            <div className="mt-6 flex flex-wrap justify-end gap-3">
-                                <button
-                                    type="button"
-                                    onClick={closeEditModal}
-                                    className="rounded-2xl border border-slate-300 px-5 py-3 text-sm font-extrabold text-slate-700 hover:bg-slate-50"
-                                >
-                                    Cancel
-                                </button>
-
-                                <button
-                                    type="submit"
-                                    disabled={savingId === editingQuote.id}
-                                    className="inline-flex items-center gap-2 rounded-2xl bg-[#0d5c46] px-5 py-3 text-sm font-extrabold text-white hover:bg-[#0b4f3d] disabled:cursor-not-allowed disabled:opacity-60"
-                                >
-                                    <Save size={16} />
-                                    {savingId === editingQuote.id ? "Saving..." : "Save Changes"}
-                                </button>
+                                    <button
+                                        type="submit"
+                                        disabled={savingId === editingQuote.id}
+                                        className="inline-flex items-center gap-2 rounded-2xl bg-[linear-gradient(135deg,#0d5c46,#14906b)] px-5 py-3 text-sm font-extrabold text-white shadow-[0_12px_26px_rgba(13,92,70,0.28)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
+                                    >
+                                        <Save size={16} />
+                                        {savingId === editingQuote.id ? "Saving..." : "Save Changes"}
+                                    </button>
+                                </div>
                             </div>
                         </motion.form>
                     </motion.div>
