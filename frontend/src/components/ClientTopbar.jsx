@@ -11,7 +11,6 @@ import {
     LogOut,
     Menu,
     X,
-    Sparkles,
     ShieldCheck,
     ChevronRight,
     Bell,
@@ -301,29 +300,29 @@ function ClientTopbar() {
     const isDark = theme === "dark";
 
     const profileButtonClass = isDark
-        ? "flex h-[50px] max-w-[210px] items-center gap-2 rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.98)_0%,rgba(13,40,32,0.98)_100%)] px-4 py-2.5 text-sm font-bold text-[#98efcc] shadow-[0_14px_30px_rgba(0,0,0,0.18)]"
-        : "flex h-[50px] max-w-[210px] items-center gap-2 rounded-2xl border border-white/10 bg-white/95 px-4 py-2.5 text-sm font-bold text-[#0b5a43] shadow-[0_14px_30px_rgba(0,0,0,0.08)]";
+        ? "flex h-[50px] max-w-[245px] items-center gap-2 rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.98)_0%,rgba(13,40,32,0.98)_100%)] px-4 py-2.5 text-sm font-bold text-[#98efcc] shadow-[0_14px_30px_rgba(0,0,0,0.18)]"
+        : "flex h-[50px] max-w-[245px] items-center gap-2 rounded-2xl border border-white/10 bg-white/95 px-4 py-2.5 text-sm font-bold text-[#0b5a43] shadow-[0_14px_30px_rgba(0,0,0,0.08)]";
 
     return (
         <>
             <header className="sticky top-0 z-50 border-b border-white/10 bg-[linear-gradient(135deg,rgba(7,62,47,0.96)_0%,rgba(10,87,65,0.96)_58%,rgba(15,117,88,0.96)_100%)] text-white shadow-[0_18px_48px_rgba(6,40,31,0.22)] backdrop-blur-xl">
-                <div className="relative mx-auto max-w-[1380px] px-3 sm:px-5 lg:px-6">
-                    <div className="flex min-h-[76px] items-center justify-between gap-3 py-3 xl:min-h-[84px] xl:py-4">
+                <div className="relative mx-auto max-w-[1560px] px-6 sm:px-8 lg:px-10">
+                    <div className="flex min-h-[82px] items-center justify-between gap-6 py-3 xl:min-h-[88px] xl:py-4">
                         <motion.div
                             initial={{ opacity: 0, x: -18 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.45 }}
-                            className="min-w-0 pr-2"
+                            className="min-w-[360px] shrink-0 pr-5"
                         >
                             <div className="flex items-center gap-3">
                                 <img
                                     src={logo}
                                     alt="Ebit's Catering and Services"
-                                    className="h-12 w-12 shrink-0 rounded-full border border-[#f5c94a]/40 object-cover shadow-[0_10px_25px_rgba(0,0,0,0.18)]"
+                                    className="h-14 w-14 shrink-0 rounded-full border border-[#f5c94a]/50 object-cover shadow-[0_10px_25px_rgba(0,0,0,0.18)]"
                                 />
 
                                 <div className="min-w-0">
-                                    <h1 className="truncate text-[1rem] font-extrabold leading-tight tracking-tight text-[#f5c94a] sm:text-[1.45rem]">
+                                    <h1 className="whitespace-nowrap text-[1.35rem] font-extrabold leading-tight tracking-tight text-[#f5c94a] sm:text-[1.6rem]">
                                         Ebit&apos;s Catering and Services
                                     </h1>
                                     <div className="mt-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-white/70 sm:text-sm normal-case">
@@ -334,9 +333,9 @@ function ClientTopbar() {
                             </div>
                         </motion.div>
 
-                        <div className="hidden min-w-0 flex-1 items-center justify-center px-3 min-[1450px]:flex">
+                        <div className="hidden min-w-0 flex-1 items-center justify-center px-6 min-[1450px]:flex">
                             <nav className="flex h-[54px] items-center rounded-full border border-white/10 bg-white/8 px-2 shadow-[0_14px_35px_rgba(0,0,0,0.12)] backdrop-blur-xl">
-                                <div className="flex items-center gap-1.5">
+                                <div className="flex items-center gap-2.5">
                                     {navItems.map(({ to, label, icon: Icon }) => (
                                         <NavLink key={to} to={to} className={navClass}>
                                             <Icon size={15} className="shrink-0" />
@@ -555,8 +554,8 @@ function ClientTopbar() {
                             <div className="bg-[linear-gradient(135deg,#0b5a43_0%,#0f6d51_58%,#138062_100%)] px-5 py-5 text-white">
                                 <div className="flex items-start justify-between gap-4">
                                     <div className="min-w-0">
-                                        <h2 className="truncate text-2xl font-extrabold text-[#f5c94a]">
-                                            Ebit&apos;s Catering
+                                        <h2 className="text-xl font-extrabold leading-tight text-[#f5c94a]">
+                                            Ebit&apos;s Catering and Services
                                         </h2>
                                         <p className="mt-1 text-sm text-white/80">
                                             Premium Client Portal
