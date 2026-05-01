@@ -18,6 +18,7 @@ import {
     ShieldCheck,
     Gem,
 } from "lucide-react";
+import logo from "../assets/logo.png";
 
 const weddingPackages = [
     {
@@ -700,41 +701,51 @@ function Packages({ embedded = false }) {
     return (<div className={`${embedded ? "" : "min-h-screen"} overflow-x-hidden bg-[#f6f3ec] text-[#0b4d3b]`}>
 
         {!embedded && (
-            <header className="sticky top-0 z-50 border-b border-white/10 bg-[#0b4d3b]/90 text-white shadow-sm backdrop-blur-xl">
-                <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 md:px-8">
-                    <div>
-                        <h1 className="text-[22px] font-black tracking-tight text-[#f2bf2f] md:text-[27px]">
-                            Ebit&apos;s Catering
+            <header className="sticky top-0 z-50 flex h-[82px] items-center justify-between gap-4 border-b border-white/10 bg-[#0b4d3b]/80 px-5 text-white shadow-[0_10px_30px_rgba(0,0,0,0.08)] backdrop-blur-2xl md:px-10 lg:px-14">
+                <Link to="/" className="flex min-w-0 items-center gap-3">
+                    <img
+                        src={logo}
+                        alt="Ebit's Catering and Services"
+                        className="h-12 w-12 shrink-0 rounded-full border border-yellow-400/45 object-cover shadow-[0_10px_24px_rgba(0,0,0,0.18)]"
+                    />
+                    <div className="min-w-0 leading-none">
+                        <h1 className="truncate text-[17px] font-extrabold tracking-tight text-yellow-400 sm:text-[21px] md:text-[25px]">
+                            Ebit&apos;s Catering and Services
                         </h1>
-                        <p className="text-[11px] text-white/80 md:text-[13px]">
-                            Premium catering for unforgettable celebrations
-                        </p>
                     </div>
+                </Link>
 
-                    <nav className="hidden items-center gap-7 text-[15px] md:flex">
-                        <Link to="/" className="font-semibold transition hover:text-[#f2bf2f]">
-                            Home
-                        </Link>
-                        <Link to="/packages" className="font-semibold text-[#f2bf2f]">
-                            Packages
-                        </Link>
-                        <Link
-                            to="/login"
-                            className="rounded-2xl border border-white/20 bg-white/10 px-4 py-2.5 font-semibold text-white transition hover:bg-white hover:text-[#0b4d3b]"
-                        >
-                            Login
-                        </Link>
-                    </nav>
-
-                    <button
-                        type="button"
-                        onClick={() => setMobileMenuOpen((prev) => !prev)}
-                        className="inline-flex items-center justify-center rounded-xl border border-white/20 p-2 md:hidden"
-                        aria-label="Toggle menu"
+                <nav className="hidden items-center gap-7 text-[15px] md:flex">
+                    <Link
+                        to="/"
+                        className="relative px-1 pb-1 font-medium text-white transition after:absolute after:left-0 after:bottom-0 after:h-[2px] after:w-0 after:rounded-full after:bg-[#f5c94a] hover:text-[#f5c94a] hover:after:w-full after:transition-all"
                     >
-                        {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
-                    </button>
-                </div>
+                        Home
+                    </Link>
+
+                    <Link
+                        to="/packages"
+                        className="relative px-1 pb-1 font-medium text-[#f5c94a] transition after:absolute after:left-0 after:bottom-0 after:h-[2px] after:w-full after:rounded-full after:bg-[#f5c94a]"
+                    >
+                        Packages
+                    </Link>
+
+                    <Link
+                        to="/login"
+                        className="inline-flex items-center justify-center rounded-2xl border border-white/15 bg-white/10 px-4 py-2.5 font-semibold text-white transition hover:-translate-y-0.5 hover:bg-white hover:text-[#0b4d3b]"
+                    >
+                        Login
+                    </Link>
+                </nav>
+
+                <button
+                    type="button"
+                    onClick={() => setMobileMenuOpen((prev) => !prev)}
+                    className="inline-flex shrink-0 items-center justify-center rounded-xl border border-white/20 p-2 md:hidden"
+                    aria-label="Toggle menu"
+                >
+                    {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+                </button>
 
                 <AnimatePresence>
                     {mobileMenuOpen && (
@@ -742,7 +753,7 @@ function Packages({ embedded = false }) {
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: "auto" }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="overflow-hidden border-t border-white/10 px-5 pb-4 md:hidden"
+                            className="absolute left-0 right-0 top-[82px] overflow-hidden border-t border-white/10 bg-[#0b4d3b]/95 px-5 pb-4 shadow-md backdrop-blur-xl md:hidden"
                         >
                             <div className="flex flex-col gap-2 pt-4">
                                 <Link
