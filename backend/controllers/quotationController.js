@@ -1,5 +1,34 @@
 const db = require("../config/db");
 
+const PAX_RATE = 400;
+
+const PACKAGE_PRICE_MAP = {
+    "Birthday Catering Package": { pricingType: "perPax", ratePerPax: 400, includedPax: null },
+    "Anniversary Catering Package": { pricingType: "perPax", ratePerPax: 400, includedPax: null },
+    "Baptismal Catering Package": { pricingType: "perPax", ratePerPax: 400, includedPax: null },
+
+    "Classic Debut": { pricingType: "fixed", price: 48000, includedPax: 100 },
+    "Rising Star Package": { pricingType: "fixed", price: 55000, includedPax: 100 },
+    "All Star Debut Package": { pricingType: "fixed", price: 70000, includedPax: 100 },
+    "Diamond Elite Debut Package": { pricingType: "fixed", price: 80000, includedPax: 100 },
+
+    "Basic Wedding Package": { pricingType: "fixed", price: 58000, includedPax: 100 },
+    "Enhanced Wedding Package": { pricingType: "fixed", price: 65000, includedPax: 100 },
+    "Premium Wedding Package": { pricingType: "fixed", price: 75000, includedPax: 100 },
+    "Elite Wedding Package": { pricingType: "fixed", price: 82000, includedPax: 100 },
+    "Ultimate Wedding Package": { pricingType: "fixed", price: 90000, includedPax: 100 },
+};
+
+const ADD_ON_PRICE_MAP = {
+    "Lights and Sounds": 4000,
+    Host: 3500,
+    Cake: 2000,
+    Photo: 5000,
+    "Photo Video": 15000,
+    SDE: 27000,
+    Clown: 3000,
+};
+
 function normalizeStatus(status) {
     return String(status || "").trim().toLowerCase();
 }
@@ -30,6 +59,59 @@ function safeJsonParse(value, fallback = []) {
     } catch {
         return fallback;
     }
+}
+
+function computeQuotationPricing(packageType, guests, addOns = []) {
+    const selectedPackage = PACKAGE_PRICE_MAP[packageType];
+    const guestCount = Number(guests || 0);
+
+    const addOnsTotal = Array.isArray(addOns)
+        ? addOns.reduce((sum, name) => sum + Number(ADD_ON_PRICE_MAP[name] || 0), 0)
+        : 0;
+
+    if (!selectedPackage) {
+        return {
+            packagePrice: 0,
+            addOnsTotal,
+            estimatedTotal: addOnsTotal,
+            includedPax: null,
+            pricingType: "fixed",
+            ratePerPax: null,
+            excessGuests: 0,
+            excessCost: 0,
+        };
+    }
+
+    if (selectedPackage.pricingType === "perPax") {
+        const packagePrice = guestCount * Number(selectedPackage.ratePerPax || 0);
+
+        return {
+            packagePrice,
+            addOnsTotal,
+            estimatedTotal: packagePrice + addOnsTotal,
+            includedPax: null,
+            pricingType: "perPax",
+            ratePerPax: selectedPackage.ratePerPax,
+            excessGuests: 0,
+            excessCost: 0,
+        };
+    }
+
+    const includedPax = Number(selectedPackage.includedPax || 0);
+    const excessGuests = guestCount > includedPax ? guestCount - includedPax : 0;
+    const excessCost = excessGuests * PAX_RATE;
+    const packagePrice = Number(selectedPackage.price || 0) + excessCost;
+
+    return {
+        packagePrice,
+        addOnsTotal,
+        estimatedTotal: packagePrice + addOnsTotal,
+        includedPax,
+        pricingType: "fixed",
+        ratePerPax: null,
+        excessGuests,
+        excessCost,
+    };
 }
 
 exports.getQuotations = (req, res) => {
@@ -142,8 +224,7 @@ exports.createQuotation = (req, res) => {
 
     if (!full_name || !email || !event_type || !preferred_date || !venue) {
         return res.status(400).json({
-            message:
-                "full_name, email, event_type, preferred_date, and venue are required",
+            message: "full_name, email, event_type, preferred_date, and venue are required",
         });
     }
 
@@ -303,14 +384,10 @@ exports.updateQuotation = (req, res) => {
             .trim()
             .toLowerCase();
 
-        const payments = admin && body.payments ? body.payments : safeJsonParse(current.payments);
-        const expenses = admin && body.expenses ? body.expenses : safeJsonParse(current.expenses);
-        const inquiries = admin && body.inquiries ? body.inquiries : safeJsonParse(current.inquiries);
-
         const addOns =
-            admin && (body.addOns || body.add_ons)
-                ? body.addOns || body.add_ons
-                : safeJsonParse(current.add_ons);
+            body.addOns ??
+            body.add_ons ??
+            safeJsonParse(current.add_ons);
 
         const packageInclusions =
             admin && (body.packageInclusions || body.package_inclusions)
@@ -322,16 +399,28 @@ exports.updateQuotation = (req, res) => {
                 ? body.assignedStaff || body.assigned_staff
                 : safeJsonParse(current.assigned_staff);
 
-        const lockedPackagePrice = Number(current.package_price || 0);
-        const lockedAddOnsTotal = Number(current.add_ons_total || 0);
-        const lockedEstimatedTotal = Number(current.estimated_total || 0);
-        const lockedIncludedPax =
-            current.included_pax != null ? Number(current.included_pax) : null;
-        const lockedPricingType = current.pricing_type || "fixed";
-        const lockedRatePerPax =
-            current.rate_per_pax != null ? Number(current.rate_per_pax) : null;
-        const lockedExcessGuests = Number(current.excess_guests || 0);
-        const lockedExcessCost = Number(current.excess_cost || 0);
+        const payments =
+            admin && body.payments ? body.payments : safeJsonParse(current.payments);
+
+        const expenses =
+            admin && body.expenses ? body.expenses : safeJsonParse(current.expenses);
+
+        const inquiries =
+            admin && body.inquiries ? body.inquiries : safeJsonParse(current.inquiries);
+
+        const nextPackageType =
+            body.packageType ||
+            body.package_type ||
+            current.package_type ||
+            null;
+
+        const nextGuests = Number(body.guests ?? body.guestCount ?? current.guests ?? 0);
+
+        const recalculated = computeQuotationPricing(
+            nextPackageType,
+            nextGuests,
+            Array.isArray(addOns) ? addOns : []
+        );
 
         const updateQuery = `
             UPDATE quotations
@@ -392,74 +481,33 @@ exports.updateQuotation = (req, res) => {
             null,
             body.eventTime || body.event_time || current.event_time || null,
             body.venue || current.venue || null,
-            Number(body.guests ?? body.guestCount ?? current.guests ?? 0),
-
-            admin
-                ? body.packageType || body.package_type || current.package_type || null
-                : current.package_type || null,
-
+            nextGuests,
+            nextPackageType,
             admin
                 ? body.classicMenu || body.classic_menu || current.classic_menu || null
                 : current.classic_menu || null,
-
             JSON.stringify(Array.isArray(addOns) ? addOns : []),
             body.themePreference || body.theme_preference || current.theme_preference || null,
             body.specialRequests || body.special_requests || current.special_requests || null,
 
-            admin
-                ? Number(body.packagePrice ?? body.package_price ?? lockedPackagePrice)
-                : lockedPackagePrice,
-
-            admin
-                ? Number(body.addOnsTotal ?? body.add_ons_total ?? lockedAddOnsTotal)
-                : lockedAddOnsTotal,
-
-            admin
-                ? Number(
-                    body.estimatedTotal ??
-                    body.estimated_total ??
-                    body.totalAmount ??
-                    lockedEstimatedTotal
-                )
-                : lockedEstimatedTotal,
-
-            admin
-                ? body.includedPax != null
-                    ? Number(body.includedPax)
-                    : current.included_pax != null
-                        ? Number(current.included_pax)
-                        : null
-                : lockedIncludedPax,
-
-            admin ? body.pricingType || body.pricing_type || lockedPricingType : lockedPricingType,
-
-            admin
-                ? body.ratePerPax != null
-                    ? Number(body.ratePerPax)
-                    : lockedRatePerPax
-                : lockedRatePerPax,
-
-            admin
-                ? Number(body.excessGuests ?? body.excess_guests ?? lockedExcessGuests)
-                : lockedExcessGuests,
-
-            admin
-                ? Number(body.excessCost ?? body.excess_cost ?? lockedExcessCost)
-                : lockedExcessCost,
+            recalculated.packagePrice,
+            recalculated.addOnsTotal,
+            recalculated.estimatedTotal,
+            recalculated.includedPax,
+            recalculated.pricingType,
+            recalculated.ratePerPax,
+            recalculated.excessGuests,
+            recalculated.excessCost,
 
             JSON.stringify(Array.isArray(packageInclusions) ? packageInclusions : []),
-
             admin ? body.status || current.status || "Pending" : current.status || "Pending",
-
             JSON.stringify(Array.isArray(payments) ? payments : []),
             JSON.stringify(Array.isArray(expenses) ? expenses : []),
             JSON.stringify(Array.isArray(inquiries) ? inquiries : []),
-
             admin ? body.eventOutcome || body.event_outcome || current.event_outcome || null : current.event_outcome || null,
             admin ? body.evaluationNotes || body.evaluation_notes || current.evaluation_notes || null : current.evaluation_notes || null,
             admin ? body.clientSatisfaction || body.client_satisfaction || current.client_satisfaction || null : current.client_satisfaction || null,
             admin ? body.staffPerformance || body.staff_performance || current.staff_performance || null : current.staff_performance || null,
-
             JSON.stringify(Array.isArray(assignedStaff) ? assignedStaff : []),
             id,
         ];
@@ -479,7 +527,8 @@ exports.updateQuotation = (req, res) => {
 
             return res.status(200).json({
                 message: "Quotation updated successfully",
-                priceLocked: !admin,
+                recalculated: true,
+                estimatedTotal: recalculated.estimatedTotal,
             });
         });
     });
@@ -573,8 +622,7 @@ exports.updateQuotationStatus = (req, res) => {
                         if (bookingCheckErr) {
                             console.error("Check existing booking error:", bookingCheckErr);
                             return res.status(500).json({
-                                message:
-                                    "Quotation status updated but failed to sync booking",
+                                message: "Quotation status updated but failed to sync booking",
                                 error: bookingCheckErr.message,
                             });
                         }
@@ -662,8 +710,7 @@ exports.updateQuotationStatus = (req, res) => {
                                         bookingInsertErr
                                     );
                                     return res.status(500).json({
-                                        message:
-                                            "Quotation status updated but failed to create booking",
+                                        message: "Quotation status updated but failed to create booking",
                                         error: bookingInsertErr.message,
                                     });
                                 }

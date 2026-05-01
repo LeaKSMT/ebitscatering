@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     UtensilsCrossed,
@@ -33,6 +33,7 @@ import hero from "../assets/hero.jpg";
 import gal1 from "../assets/gal1.jpg";
 import gal2 from "../assets/gal2.jpg";
 import gal3 from "../assets/gal3.jpg";
+import logo from "../assets/logo.png";
 import ChatBot from "../components/ChatBot";
 
 const fadeUp = {
@@ -98,7 +99,6 @@ function Counter({ end, suffix = "", duration = 1600 }) {
 }
 
 function Home() {
-    const location = useLocation();
     const navigate = useNavigate();
 
     const [contactForm, setContactForm] = useState({
@@ -272,7 +272,7 @@ function Home() {
     };
 
     useEffect(() => {
-        const sectionIds = ["home", "about", "gallery", "contact"];
+        const sectionIds = ["home", "packages", "about", "gallery", "contact"];
         const sections = sectionIds
             .map((id) => document.getElementById(id))
             .filter(Boolean);
@@ -377,27 +377,31 @@ function Home() {
                 style={{ width: `${scrollProgress}%` }}
             />
 
-            <nav className="sticky top-0 z-50 flex h-[82px] items-center justify-between border-b border-white/10 bg-[#0b4d3b]/80 px-5 text-white shadow-[0_10px_30px_rgba(0,0,0,0.08)] backdrop-blur-2xl md:px-10 lg:px-14">
-                <div className="leading-none">
-                    <h1 className="text-[21px] font-extrabold tracking-tight text-yellow-400 md:text-[25px]">
-                        Ebit&apos;s Catering
-                    </h1>
-                    <p className="mt-1 text-[11px] text-white/85 md:text-[12px]">
-                        Premium catering for unforgettable celebrations
-                    </p>
-                </div>
+            <nav className="sticky top-0 z-50 flex h-[82px] items-center justify-between gap-4 border-b border-white/10 bg-[#0b4d3b]/80 px-5 text-white shadow-[0_10px_30px_rgba(0,0,0,0.08)] backdrop-blur-2xl md:px-10 lg:px-14">
+                <a href="#home" className="flex min-w-0 items-center gap-3">
+                    <img
+                        src={logo}
+                        alt="Ebit's Catering and Services"
+                        className="h-12 w-12 shrink-0 rounded-full border border-yellow-400/45 object-cover shadow-[0_10px_24px_rgba(0,0,0,0.18)]"
+                    />
+                    <div className="min-w-0 leading-none">
+                        <h1 className="truncate text-[17px] font-extrabold tracking-tight text-yellow-400 sm:text-[21px] md:text-[25px]">
+                            Ebit&apos;s Catering and Services
+                        </h1>
+                        <p className="mt-1 truncate text-[10px] text-white/85 md:text-[12px]">
+                            Premium catering for unforgettable celebrations
+                        </p>
+                    </div>
+                </a>
 
                 <div className="hidden items-center gap-7 text-[15px] md:flex">
                     <a href="#home" className={navClass(activeSection === "home")}>
                         Home
                     </a>
 
-                    <Link
-                        to="/packages"
-                        className={navClass(location.pathname === "/packages")}
-                    >
+                    <a href="#packages" className={navClass(activeSection === "packages")}>
                         Packages
-                    </Link>
+                    </a>
 
                     <a href="#about" className={navClass(activeSection === "about")}>
                         About
@@ -422,7 +426,7 @@ function Home() {
                 <button
                     type="button"
                     onClick={() => setMobileMenuOpen((prev) => !prev)}
-                    className="inline-flex items-center justify-center rounded-xl border border-white/20 p-2 md:hidden"
+                    className="inline-flex shrink-0 items-center justify-center rounded-xl border border-white/20 p-2 md:hidden"
                     aria-label="Toggle menu"
                 >
                     {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
@@ -430,7 +434,7 @@ function Home() {
             </nav>
 
             {mobileMenuOpen && (
-                <div className="sticky top-[78px] z-40 border-t border-white/10 bg-[#0b4d3b]/95 px-5 py-4 shadow-md backdrop-blur-xl md:hidden">
+                <div className="sticky top-[82px] z-40 border-t border-white/10 bg-[#0b4d3b]/95 px-5 py-4 shadow-md backdrop-blur-xl md:hidden">
                     <div className="flex flex-col gap-2">
                         <a
                             href="#home"
@@ -439,13 +443,13 @@ function Home() {
                         >
                             Home
                         </a>
-                        <Link
-                            to="/packages"
+                        <a
+                            href="#packages"
                             className={mobileLinkClass}
                             onClick={() => setMobileMenuOpen(false)}
                         >
                             Packages
-                        </Link>
+                        </a>
                         <a
                             href="#about"
                             className={mobileLinkClass}
@@ -550,13 +554,13 @@ function Home() {
                             variants={fadeUp}
                             className="mt-8 flex flex-wrap items-center justify-center gap-4 lg:justify-start"
                         >
-                            <Link
-                                to="/packages"
+                            <a
+                                href="#packages"
                                 className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-6 py-3.5 font-semibold text-[#0b4d3b] shadow-[0_18px_40px_rgba(0,0,0,0.18)] transition duration-300 hover:-translate-y-1 hover:bg-[#fff8e6]"
                             >
                                 View Packages
                                 <ChevronRight size={18} />
-                            </Link>
+                            </a>
 
                             <button
                                 onClick={handleGetQuotation}
@@ -707,7 +711,10 @@ function Home() {
                 </motion.div>
             </section>
 
-            <section className="bg-[#f7f4ee] px-5 pb-16 md:px-10 md:pb-20 lg:px-20">
+            <section
+                id="packages"
+                className="scroll-mt-24 bg-[#f7f4ee] px-5 pb-16 md:scroll-mt-28 md:px-10 md:pb-20 lg:px-20"
+            >
                 <motion.div
                     initial="hidden"
                     whileInView="visible"
@@ -732,13 +739,13 @@ function Home() {
                             </p>
                         </div>
 
-                        <Link
-                            to="/packages"
+                        <a
+                            href="#packages"
                             className="inline-flex w-fit items-center gap-2 rounded-2xl bg-white px-5 py-3 font-semibold text-[#0b4d3b] transition duration-300 hover:-translate-y-1 hover:bg-[#fff8e6]"
                         >
                             See All Packages
                             <ChevronRight size={18} />
-                        </Link>
+                        </a>
                     </div>
 
                     <motion.div
@@ -891,7 +898,10 @@ function Home() {
                             About Us
                         </p>
                         <h3 className="mt-3 mb-6 text-[32px] font-extrabold leading-tight tracking-[-0.03em] md:text-[46px]">
-                            About <span className="text-yellow-400">Ebit&apos;s Catering</span>
+                            About{" "}
+                            <span className="text-yellow-400">
+                                Ebit&apos;s Catering and Services
+                            </span>
                         </h3>
 
                         <p className="mb-4 text-[15px] leading-8 text-white/90 md:text-[17px]">
@@ -970,7 +980,7 @@ function Home() {
                         <div className="relative overflow-hidden rounded-[34px] border border-white/10 shadow-[0_26px_70px_rgba(0,0,0,0.28)]">
                             <img
                                 src={gal2}
-                                alt="Ebit's Catering event setup"
+                                alt="Ebit's Catering and Services event setup"
                                 className="h-[330px] w-full object-cover transition duration-700 hover:scale-105 md:h-[500px]"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-[#0b4d3b]/84 via-black/10 to-transparent" />
@@ -1240,7 +1250,7 @@ function Home() {
                             Premium Event Service
                         </div>
                         <h4 className="mt-5 text-[30px] font-bold text-yellow-400 md:text-[36px]">
-                            Ebit&apos;s Catering
+                            Ebit&apos;s Catering and Services
                         </h4>
                         <p className="mt-4 max-w-md text-[15px] leading-8 text-white/85 md:text-[16px]">
                             For making parties better with fresh, clean, and tasty food
@@ -1254,12 +1264,12 @@ function Home() {
                             <a href="#home" className="block transition hover:text-yellow-400">
                                 Home
                             </a>
-                            <Link
-                                to="/packages"
+                            <a
+                                href="#packages"
                                 className="block transition hover:text-yellow-400"
                             >
                                 Packages
-                            </Link>
+                            </a>
                             <a href="#about" className="block transition hover:text-yellow-400">
                                 About
                             </a>
@@ -1291,7 +1301,7 @@ function Home() {
                 </div>
 
                 <div className="relative mx-auto mt-10 max-w-6xl border-t border-white/10 pt-6 text-center text-white/75">
-                    © 2026 Ebit&apos;s Catering. All rights reserved.
+                    © 2026 Ebit&apos;s Catering and Services. All rights reserved.
                 </div>
             </footer>
 
