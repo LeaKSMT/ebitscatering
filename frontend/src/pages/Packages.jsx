@@ -345,8 +345,8 @@ function SectionTitle({ eyebrow, title, highlight, desc, light = false }) {
         >
             <div
                 className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.28em] ${light
-                        ? "border-white/15 bg-white/10 text-white/80"
-                        : "border-[#e7dcc6] bg-[#fffaf0] text-[#0b4d3b]/70"
+                    ? "border-white/15 bg-white/10 text-white/80"
+                    : "border-[#e7dcc6] bg-[#fffaf0] text-[#0b4d3b]/70"
                     }`}
             >
                 <Sparkles className="h-3.5 w-3.5 text-[#d4a514]" />
@@ -435,12 +435,12 @@ function PackageCard({ item, onQuote, badge, featured = false, dark = false }) {
                 scale: featured ? 1.025 : 1.012,
             }}
             className={`group relative flex h-full flex-col overflow-hidden rounded-[32px] border p-6 transition duration-300 md:p-7 ${featured
-                    ? dark
-                        ? "border-[#f2bf2f]/35 bg-white text-[#0b4d3b] shadow-[0_28px_80px_rgba(0,0,0,0.24)] ring-1 ring-[#f2bf2f]/25"
-                        : "border-[#f2bf2f]/40 bg-[linear-gradient(180deg,#fffdf8_0%,#fff7e3_100%)] text-[#0b4d3b] shadow-[0_28px_78px_rgba(191,151,39,0.18)] ring-1 ring-[#f2bf2f]/25"
-                    : dark
-                        ? "border-white/10 bg-white text-[#0b4d3b] shadow-[0_18px_40px_rgba(0,0,0,0.18)]"
-                        : "border-[#e7dfd1] bg-white text-[#0b4d3b] shadow-[0_14px_40px_rgba(15,23,42,0.06)]"
+                ? dark
+                    ? "border-[#f2bf2f]/35 bg-white text-[#0b4d3b] shadow-[0_28px_80px_rgba(0,0,0,0.24)] ring-1 ring-[#f2bf2f]/25"
+                    : "border-[#f2bf2f]/40 bg-[linear-gradient(180deg,#fffdf8_0%,#fff7e3_100%)] text-[#0b4d3b] shadow-[0_28px_78px_rgba(191,151,39,0.18)] ring-1 ring-[#f2bf2f]/25"
+                : dark
+                    ? "border-white/10 bg-white text-[#0b4d3b] shadow-[0_18px_40px_rgba(0,0,0,0.18)]"
+                    : "border-[#e7dfd1] bg-white text-[#0b4d3b] shadow-[0_14px_40px_rgba(15,23,42,0.06)]"
                 }`}
         >
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(212,165,20,0.14),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(11,77,59,0.08),transparent_24%)] opacity-0 transition duration-300 group-hover:opacity-100" />
@@ -537,8 +537,8 @@ function StatCard({ item, index, featured = false }) {
             animate="visible"
             whileHover={{ y: -4, scale: 1.01 }}
             className={`relative overflow-hidden rounded-[24px] border px-5 py-5 ${featured
-                    ? "border-[#f2bf2f]/25 bg-[#fff9e6]/95 text-[#0b4d3b] shadow-[0_10px_20px_rgba(242,191,47,0.06)]"
-                    : "border-white/12 bg-white/12 text-white"
+                ? "border-[#f2bf2f]/25 bg-[#fff9e6]/95 text-[#0b4d3b] shadow-[0_10px_20px_rgba(242,191,47,0.06)]"
+                : "border-white/12 bg-white/12 text-white"
                 }`}
         >
             <div className="absolute right-0 top-0 h-20 w-20 translate-x-5 -translate-y-5 rounded-full bg-[#f2bf2f]/10 blur-2xl" />
@@ -587,7 +587,7 @@ function AddOnCard({ addon, index }) {
     );
 }
 
-function Packages() {
+function Packages({ embedded = false }) {
     const navigate = useNavigate();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [activeTab, setActiveTab] = useState("wedding");
@@ -697,8 +697,9 @@ function Packages() {
         { key: "addons", label: "Add-ons" },
     ];
 
-    return (
-        <div className="min-h-screen overflow-x-hidden bg-[#f6f3ec] text-[#0b4d3b]">
+    return (<div className={`${embedded ? "" : "min-h-screen"} overflow-x-hidden bg-[#f6f3ec] text-[#0b4d3b]`}>
+
+        {!embedded && (
             <header className="sticky top-0 z-50 border-b border-white/10 bg-[#0b4d3b]/90 text-white shadow-sm backdrop-blur-xl">
                 <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 md:px-8">
                     <div>
@@ -770,77 +771,79 @@ function Packages() {
                     )}
                 </AnimatePresence>
             </header>
+        )}
 
-            <section className="relative isolate overflow-hidden bg-[linear-gradient(135deg,#072f25_0%,#0b4d3b_45%,#10624a_100%)] px-5 pb-20 pt-14 md:px-10 md:pb-24 md:pt-20 lg:px-20">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(242,191,47,0.16),transparent_24%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.07),transparent_20%)]" />
-                <div className="absolute inset-0 opacity-[0.06] [background-image:linear-gradient(rgba(255,255,255,0.55)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.55)_1px,transparent_1px)] [background-size:34px_34px]" />
-                <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.02),transparent,rgba(0,0,0,0.08))]" />
+        <section className="relative isolate overflow-hidden bg-[linear-gradient(135deg,#072f25_0%,#0b4d3b_45%,#10624a_100%)] px-5 pb-20 pt-14 md:px-10 md:pb-24 md:pt-20 lg:px-20">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(242,191,47,0.16),transparent_24%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.07),transparent_20%)]" />
+            <div className="absolute inset-0 opacity-[0.06] [background-image:linear-gradient(rgba(255,255,255,0.55)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.55)_1px,transparent_1px)] [background-size:34px_34px]" />
+            <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.02),transparent,rgba(0,0,0,0.08))]" />
 
-                <FloatingOrb className="absolute left-[4%] top-[14%] h-36 w-36 rounded-full bg-[#f2bf2f]/10 blur-3xl" />
-                <FloatingOrb
-                    className="absolute right-[8%] top-[10%] h-44 w-44 rounded-full bg-white/8 blur-3xl"
-                    delay={1}
-                    duration={10}
-                />
-                <FloatingOrb
-                    className="absolute bottom-[10%] left-[38%] h-36 w-36 rounded-full bg-[#f2bf2f]/10 blur-3xl"
-                    delay={0.7}
-                    duration={9}
-                />
+            <FloatingOrb className="absolute left-[4%] top-[14%] h-36 w-36 rounded-full bg-[#f2bf2f]/10 blur-3xl" />
+            <FloatingOrb
+                className="absolute right-[8%] top-[10%] h-44 w-44 rounded-full bg-white/8 blur-3xl"
+                delay={1}
+                duration={10}
+            />
+            <FloatingOrb
+                className="absolute bottom-[10%] left-[38%] h-36 w-36 rounded-full bg-[#f2bf2f]/10 blur-3xl"
+                delay={0.7}
+                duration={9}
+            />
 
-                <HeroParticle className="absolute left-[18%] top-[22%] h-2 w-2 rounded-full bg-white/50" delay={0.4} />
-                <HeroParticle className="absolute left-[30%] top-[14%] h-1.5 w-1.5 rounded-full bg-[#f2bf2f]/70" delay={1} duration={6} />
-                <HeroParticle className="absolute right-[24%] top-[26%] h-2 w-2 rounded-full bg-white/50" delay={0.7} duration={8} />
-                <HeroParticle className="absolute right-[14%] bottom-[22%] h-1.5 w-1.5 rounded-full bg-[#f2bf2f]/70" delay={0.3} duration={7} />
+            <HeroParticle className="absolute left-[18%] top-[22%] h-2 w-2 rounded-full bg-white/50" delay={0.4} />
+            <HeroParticle className="absolute left-[30%] top-[14%] h-1.5 w-1.5 rounded-full bg-[#f2bf2f]/70" delay={1} duration={6} />
+            <HeroParticle className="absolute right-[24%] top-[26%] h-2 w-2 rounded-full bg-white/50" delay={0.7} duration={8} />
+            <HeroParticle className="absolute right-[14%] bottom-[22%] h-1.5 w-1.5 rounded-full bg-[#f2bf2f]/70" delay={0.3} duration={7} />
 
-                <div className="relative z-10 mx-auto max-w-7xl">
-                    <div className="grid items-center gap-10 lg:grid-cols-[1.08fr_.92fr]">
-                        <motion.div
-                            initial="hidden"
-                            animate="visible"
-                            variants={fadeUp}
-                            className="text-white"
+            <div className="relative z-10 mx-auto max-w-7xl">
+                <div className="grid items-center gap-10 lg:grid-cols-[1.08fr_.92fr]">
+                    <motion.div
+                        initial="hidden"
+                        animate="visible"
+                        variants={fadeUp}
+                        className="text-white"
+                    >
+                        <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs text-white/90 shadow-[0_8px_20px_rgba(0,0,0,0.14)] backdrop-blur-sm md:text-sm">
+                            <Sparkles size={14} className="text-[#f2bf2f]" />
+                            Premium packages crafted for once-in-a-lifetime moments
+                        </div>
+
+                        <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.4em] text-white/60 md:text-xs">
+                            Ebit&apos;s Catering Collection
+                        </p>
+
+                        <motion.h2
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.75, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+                            className="mt-4 max-w-4xl text-[38px] font-black leading-[0.98] sm:text-[52px] md:text-[70px]"
                         >
-                            <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs text-white/90 shadow-[0_8px_20px_rgba(0,0,0,0.14)] backdrop-blur-sm md:text-sm">
-                                <Sparkles size={14} className="text-[#f2bf2f]" />
-                                Premium packages crafted for once-in-a-lifetime moments
-                            </div>
+                            Luxury Event
+                            <span className="mt-1 block bg-gradient-to-r from-[#f8d35a] via-[#f2bf2f] to-[#d4a514] bg-clip-text text-transparent">
+                                Packages That Impress
+                            </span>
+                        </motion.h2>
 
-                            <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.4em] text-white/60 md:text-xs">
-                                Ebit&apos;s Catering Collection
-                            </p>
+                        <p className="mt-6 max-w-2xl text-[15px] leading-8 text-white/82 md:text-[17px]">
+                            Discover beautifully curated wedding and debut packages with
+                            premium styling, elegant inclusions, optional add-ons, and a
+                            polished presentation that feels aligned with your best pages.
+                        </p>
 
-                            <motion.h2
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.75, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-                                className="mt-4 max-w-4xl text-[38px] font-black leading-[0.98] sm:text-[52px] md:text-[70px]"
+                        <div className="mt-9 flex flex-wrap gap-4">
+                            <GlowButton
+                                onClick={() =>
+                                    handleGetQuotation({
+                                        id: "general-quotation",
+                                        title: "General Package Inquiry",
+                                    })
+                                }
+                                icon={<ArrowRight size={18} />}
                             >
-                                Luxury Event
-                                <span className="mt-1 block bg-gradient-to-r from-[#f8d35a] via-[#f2bf2f] to-[#d4a514] bg-clip-text text-transparent">
-                                    Packages That Impress
-                                </span>
-                            </motion.h2>
+                                Get Quotation
+                            </GlowButton>
 
-                            <p className="mt-6 max-w-2xl text-[15px] leading-8 text-white/82 md:text-[17px]">
-                                Discover beautifully curated wedding and debut packages with
-                                premium styling, elegant inclusions, optional add-ons, and a
-                                polished presentation that feels aligned with your best pages.
-                            </p>
-
-                            <div className="mt-9 flex flex-wrap gap-4">
-                                <GlowButton
-                                    onClick={() =>
-                                        handleGetQuotation({
-                                            id: "general-quotation",
-                                            title: "General Package Inquiry",
-                                        })
-                                    }
-                                    icon={<ArrowRight size={18} />}
-                                >
-                                    Get Quotation
-                                </GlowButton>
-
+                            {!embedded && (
                                 <Link
                                     to="/"
                                     className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-6 py-4 font-bold text-white shadow-[0_18px_36px_rgba(0,0,0,0.18)] backdrop-blur-sm transition hover:-translate-y-1 hover:bg-white/15"
@@ -848,297 +851,298 @@ function Packages() {
                                     Back to Home
                                     <ChevronRight size={18} />
                                 </Link>
-                            </div>
+                            )}
+                        </div>
 
-                            <div className="mt-10 grid gap-4 sm:grid-cols-3">
-                                {highlights.map((item, index) => (
-                                    <motion.div
-                                        key={item.label}
-                                        custom={index}
-                                        variants={cardReveal}
-                                        initial="hidden"
-                                        animate="visible"
-                                        whileHover={{ y: -4, scale: 1.01 }}
-                                        className="rounded-[24px] border border-white/12 bg-white/10 px-5 py-4 shadow-[0_10px_24px_rgba(0,0,0,0.12)] backdrop-blur-lg"
-                                    >
-                                        <div className="mb-3">{item.icon}</div>
-                                        <p className="text-sm font-semibold text-white/90">
-                                            {item.label}
-                                        </p>
-                                    </motion.div>
-                                ))}
-                            </div>
-                        </motion.div>
+                        <div className="mt-10 grid gap-4 sm:grid-cols-3">
+                            {highlights.map((item, index) => (
+                                <motion.div
+                                    key={item.label}
+                                    custom={index}
+                                    variants={cardReveal}
+                                    initial="hidden"
+                                    animate="visible"
+                                    whileHover={{ y: -4, scale: 1.01 }}
+                                    className="rounded-[24px] border border-white/12 bg-white/10 px-5 py-4 shadow-[0_10px_24px_rgba(0,0,0,0.12)] backdrop-blur-lg"
+                                >
+                                    <div className="mb-3">{item.icon}</div>
+                                    <p className="text-sm font-semibold text-white/90">
+                                        {item.label}
+                                    </p>
+                                </motion.div>
+                            ))}
+                        </div>
+                    </motion.div>
+
+                    <motion.div
+                        initial="hidden"
+                        animate="visible"
+                        variants={softScale}
+                        className="relative"
+                    >
+                        <div className="absolute -left-8 -top-8 h-32 w-32 rounded-full bg-[#f2bf2f]/16 blur-3xl" />
+                        <div className="absolute -bottom-8 -right-8 h-32 w-32 rounded-full bg-white/12 blur-3xl" />
 
                         <motion.div
-                            initial="hidden"
-                            animate="visible"
-                            variants={softScale}
-                            className="relative"
+                            animate={{ y: [0, -6, 0] }}
+                            transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut" }}
+                            className="relative rounded-[36px] border border-white/12 bg-white/10 p-4 shadow-[0_30px_70px_rgba(0,0,0,0.28)] backdrop-blur-2xl"
                         >
-                            <div className="absolute -left-8 -top-8 h-32 w-32 rounded-full bg-[#f2bf2f]/16 blur-3xl" />
-                            <div className="absolute -bottom-8 -right-8 h-32 w-32 rounded-full bg-white/12 blur-3xl" />
-
-                            <motion.div
-                                animate={{ y: [0, -6, 0] }}
-                                transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut" }}
-                                className="relative rounded-[36px] border border-white/12 bg-white/10 p-4 shadow-[0_30px_70px_rgba(0,0,0,0.28)] backdrop-blur-2xl"
-                            >
-                                <div className="rounded-[30px] border border-white/12 bg-[linear-gradient(180deg,rgba(255,255,255,0.16),rgba(255,255,255,0.08))] p-5 md:p-6">
-                                    <div className="flex items-center justify-between gap-4">
-                                        <div>
-                                            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/65">
-                                                Featured Collection
-                                            </p>
-                                            <h3 className="mt-3 text-[28px] font-black leading-tight text-white md:text-[34px]">
-                                                Signature
-                                                <span className="mt-1 block text-[#f2bf2f]">
-                                                    Celebration Packages
-                                                </span>
-                                            </h3>
-                                        </div>
-
-                                        <div className="rounded-2xl border border-[#f2bf2f]/20 bg-[#f2bf2f]/14 p-3 shadow-[0_10px_24px_rgba(242,191,47,0.12)]">
-                                            <Gem className="h-7 w-7 text-[#f2bf2f]" />
-                                        </div>
+                            <div className="rounded-[30px] border border-white/12 bg-[linear-gradient(180deg,rgba(255,255,255,0.16),rgba(255,255,255,0.08))] p-5 md:p-6">
+                                <div className="flex items-center justify-between gap-4">
+                                    <div>
+                                        <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/65">
+                                            Featured Collection
+                                        </p>
+                                        <h3 className="mt-3 text-[28px] font-black leading-tight text-white md:text-[34px]">
+                                            Signature
+                                            <span className="mt-1 block text-[#f2bf2f]">
+                                                Celebration Packages
+                                            </span>
+                                        </h3>
                                     </div>
 
-                                    <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                                        {stats.map((item, index) => (
-                                            <StatCard
-                                                key={item.label}
-                                                item={item}
-                                                index={index}
-                                                featured={index === 0 || index === 3}
-                                            />
-                                        ))}
+                                    <div className="rounded-2xl border border-[#f2bf2f]/20 bg-[#f2bf2f]/14 p-3 shadow-[0_10px_24px_rgba(242,191,47,0.12)]">
+                                        <Gem className="h-7 w-7 text-[#f2bf2f]" />
                                     </div>
-
-                                    <motion.div
-                                        whileHover={{ y: -2 }}
-                                        className="mt-5 rounded-[24px] border border-white/12 bg-[#082f25]/45 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <div className="rounded-2xl bg-[#f2bf2f]/15 p-3">
-                                                <Star className="h-5 w-5 text-[#f2bf2f]" />
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-semibold text-white">
-                                                    Designed for presentation-ready impact
-                                                </p>
-                                                <p className="mt-1 text-sm leading-6 text-white/70">
-                                                    Cleaner hierarchy, richer depth, premium motion,
-                                                    and a more luxurious visual balance.
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </motion.div>
                                 </div>
-                            </motion.div>
-                        </motion.div>
-                    </div>
-                </div>
-            </section>
 
-            <section className="sticky top-[72px] z-40 border-b border-[#e7dfd1] bg-[#f6f3ec]/85 backdrop-blur-xl">
-                <div className="mx-auto flex max-w-7xl gap-3 overflow-x-auto px-5 py-3 md:px-8">
-                    {navTabs.map((tab) => {
-                        const active = activeTab === tab.key;
-                        return (
-                            <button
-                                key={tab.key}
-                                type="button"
-                                onClick={() => scrollToSection(tab.key)}
-                                className={`whitespace-nowrap rounded-full px-4 py-2.5 text-sm font-bold transition ${active
-                                        ? "bg-[#0b4d3b] text-white shadow-[0_12px_24px_rgba(11,77,59,0.22)]"
-                                        : "border border-[#dfd6c7] bg-white text-[#0b4d3b] hover:-translate-y-0.5 hover:border-[#d4a514]/40 hover:text-[#0b4d3b]"
-                                    }`}
-                            >
-                                {tab.label}
-                            </button>
-                        );
-                    })}
-                </div>
-            </section>
+                                <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                                    {stats.map((item, index) => (
+                                        <StatCard
+                                            key={item.label}
+                                            item={item}
+                                            index={index}
+                                            featured={index === 0 || index === 3}
+                                        />
+                                    ))}
+                                </div>
 
-            <section className="relative bg-[linear-gradient(180deg,#f6f3ec_0%,#f0f4f1_100%)] px-5 py-20 md:px-10 md:py-24 lg:px-20">
-                <div className="mx-auto max-w-6xl">
-                    <SectionTitle
-                        eyebrow="Quick Rate Guide"
-                        title="Starting"
-                        highlight="Rates"
-                        desc="A clean overview of standard catering package rates based on guest count."
-                    />
-
-                    <div className="grid gap-5 md:grid-cols-3">
-                        {[
-                            { pax: "50 Pax", price: "₱20,000", note: "Ideal for intimate celebrations" },
-                            { pax: "75 Pax", price: "₱30,000", note: "Balanced and flexible setup" },
-                            { pax: "100 Pax", price: "₱40,000", note: "Best for bigger memorable events" },
-                        ].map((rate, index) => (
-                            <motion.div
-                                key={rate.pax}
-                                initial="hidden"
-                                whileInView="visible"
-                                viewport={{ once: true, amount: 0.2 }}
-                                custom={index}
-                                variants={cardReveal}
-                                whileHover={{ y: -8, scale: 1.015 }}
-                                className={`relative overflow-hidden rounded-[30px] border p-7 text-center transition ${index === 1
-                                        ? "border-transparent bg-[linear-gradient(180deg,#0b4d3b_0%,#08392d_100%)] text-white shadow-[0_20px_50px_rgba(11,77,59,0.25)]"
-                                        : "border-[#e8dfd1] bg-white text-[#0b4d3b] shadow-[0_12px_30px_rgba(15,23,42,0.05)]"
-                                    }`}
-                            >
-                                <div className="absolute right-0 top-0 h-28 w-28 translate-x-6 -translate-y-6 rounded-full bg-[#f2bf2f]/10 blur-2xl" />
-
-                                <p className="relative z-10 text-sm font-semibold uppercase tracking-[0.28em] opacity-70">
-                                    Guest Count
-                                </p>
-                                <h3 className="relative z-10 mt-3 text-[32px] font-black md:text-[40px]">
-                                    {rate.pax}
-                                </h3>
-                                <div className="relative z-10 mx-auto my-5 h-[3px] w-14 rounded-full bg-[#d7ad34]" />
-                                <p className="relative z-10 text-[34px] font-black text-[#d7ad34] md:text-[44px]">
-                                    {rate.price}
-                                </p>
-                                <p
-                                    className={`relative z-10 mt-4 text-sm leading-6 ${index === 1 ? "text-white/75" : "text-slate-500"
-                                        }`}
+                                <motion.div
+                                    whileHover={{ y: -2 }}
+                                    className="mt-5 rounded-[24px] border border-white/12 bg-[#082f25]/45 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
                                 >
-                                    {rate.note}
-                                </p>
-                            </motion.div>
-                        ))}
-                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <div className="rounded-2xl bg-[#f2bf2f]/15 p-3">
+                                            <Star className="h-5 w-5 text-[#f2bf2f]" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-semibold text-white">
+                                                Designed for presentation-ready impact
+                                            </p>
+                                            <p className="mt-1 text-sm leading-6 text-white/70">
+                                                Cleaner hierarchy, richer depth, premium motion,
+                                                and a more luxurious visual balance.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
                 </div>
-            </section>
+            </div>
+        </section>
 
-            <section className="bg-[#f0f4f1] px-5 pb-20 md:px-10 md:pb-24 lg:px-20">
-                <motion.div
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={{ once: true, amount: 0.2 }}
-                    variants={softScale}
-                    className="mx-auto max-w-6xl rounded-[34px] border border-[#eadfbe] bg-[linear-gradient(135deg,#fffaf0_0%,#fff4d9_100%)] p-7 shadow-[0_18px_48px_rgba(0,0,0,0.08)] md:p-9"
-                >
-                    <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-                        <div className="flex items-start gap-4">
-                            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#f2bf2f]/20">
-                                <Gift className="h-7 w-7 text-[#b78a11]" />
-                            </div>
+        <section className="sticky top-[72px] z-40 border-b border-[#e7dfd1] bg-[#f6f3ec]/85 backdrop-blur-xl">
+            <div className="mx-auto flex max-w-7xl gap-3 overflow-x-auto px-5 py-3 md:px-8">
+                {navTabs.map((tab) => {
+                    const active = activeTab === tab.key;
+                    return (
+                        <button
+                            key={tab.key}
+                            type="button"
+                            onClick={() => scrollToSection(tab.key)}
+                            className={`whitespace-nowrap rounded-full px-4 py-2.5 text-sm font-bold transition ${active
+                                ? "bg-[#0b4d3b] text-white shadow-[0_12px_24px_rgba(11,77,59,0.22)]"
+                                : "border border-[#dfd6c7] bg-white text-[#0b4d3b] hover:-translate-y-0.5 hover:border-[#d4a514]/40 hover:text-[#0b4d3b]"
+                                }`}
+                        >
+                            {tab.label}
+                        </button>
+                    );
+                })}
+            </div>
+        </section>
 
-                            <div>
-                                <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-[#0b4d3b]/55 md:text-xs">
-                                    Special Inclusion
-                                </p>
-                                <h3 className="mt-3 text-[28px] font-black text-[#0b4d3b] md:text-[40px]">
-                                    Free <span className="text-[#d4a514]">Backdrop</span>
-                                </h3>
-                                <p className="mt-3 max-w-2xl leading-7 text-slate-600">
-                                    Selected offers include a complimentary backdrop to elevate
-                                    the styling, ambiance, and overall presentation of your
-                                    celebration.
-                                </p>
-                            </div>
+        <section className="relative bg-[linear-gradient(180deg,#f6f3ec_0%,#f0f4f1_100%)] px-5 py-20 md:px-10 md:py-24 lg:px-20">
+            <div className="mx-auto max-w-6xl">
+                <SectionTitle
+                    eyebrow="Quick Rate Guide"
+                    title="Starting"
+                    highlight="Rates"
+                    desc="A clean overview of standard catering package rates based on guest count."
+                />
+
+                <div className="grid gap-5 md:grid-cols-3">
+                    {[
+                        { pax: "50 Pax", price: "₱20,000", note: "Ideal for intimate celebrations" },
+                        { pax: "75 Pax", price: "₱30,000", note: "Balanced and flexible setup" },
+                        { pax: "100 Pax", price: "₱40,000", note: "Best for bigger memorable events" },
+                    ].map((rate, index) => (
+                        <motion.div
+                            key={rate.pax}
+                            initial="hidden"
+                            whileInView="visible"
+                            viewport={{ once: true, amount: 0.2 }}
+                            custom={index}
+                            variants={cardReveal}
+                            whileHover={{ y: -8, scale: 1.015 }}
+                            className={`relative overflow-hidden rounded-[30px] border p-7 text-center transition ${index === 1
+                                ? "border-transparent bg-[linear-gradient(180deg,#0b4d3b_0%,#08392d_100%)] text-white shadow-[0_20px_50px_rgba(11,77,59,0.25)]"
+                                : "border-[#e8dfd1] bg-white text-[#0b4d3b] shadow-[0_12px_30px_rgba(15,23,42,0.05)]"
+                                }`}
+                        >
+                            <div className="absolute right-0 top-0 h-28 w-28 translate-x-6 -translate-y-6 rounded-full bg-[#f2bf2f]/10 blur-2xl" />
+
+                            <p className="relative z-10 text-sm font-semibold uppercase tracking-[0.28em] opacity-70">
+                                Guest Count
+                            </p>
+                            <h3 className="relative z-10 mt-3 text-[32px] font-black md:text-[40px]">
+                                {rate.pax}
+                            </h3>
+                            <div className="relative z-10 mx-auto my-5 h-[3px] w-14 rounded-full bg-[#d7ad34]" />
+                            <p className="relative z-10 text-[34px] font-black text-[#d7ad34] md:text-[44px]">
+                                {rate.price}
+                            </p>
+                            <p
+                                className={`relative z-10 mt-4 text-sm leading-6 ${index === 1 ? "text-white/75" : "text-slate-500"
+                                    }`}
+                            >
+                                {rate.note}
+                            </p>
+                        </motion.div>
+                    ))}
+                </div>
+            </div>
+        </section>
+
+        <section className="bg-[#f0f4f1] px-5 pb-20 md:px-10 md:pb-24 lg:px-20">
+            <motion.div
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.2 }}
+                variants={softScale}
+                className="mx-auto max-w-6xl rounded-[34px] border border-[#eadfbe] bg-[linear-gradient(135deg,#fffaf0_0%,#fff4d9_100%)] p-7 shadow-[0_18px_48px_rgba(0,0,0,0.08)] md:p-9"
+            >
+                <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+                    <div className="flex items-start gap-4">
+                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#f2bf2f]/20">
+                            <Gift className="h-7 w-7 text-[#b78a11]" />
                         </div>
 
-                        <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[#0c5a43] px-5 py-3 text-sm font-bold text-white shadow-[0_10px_22px_rgba(12,90,67,0.2)]">
-                            <Gift className="h-4 w-4 text-[#f2bf2f]" />
-                            Included in selected packages
+                        <div>
+                            <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-[#0b4d3b]/55 md:text-xs">
+                                Special Inclusion
+                            </p>
+                            <h3 className="mt-3 text-[28px] font-black text-[#0b4d3b] md:text-[40px]">
+                                Free <span className="text-[#d4a514]">Backdrop</span>
+                            </h3>
+                            <p className="mt-3 max-w-2xl leading-7 text-slate-600">
+                                Selected offers include a complimentary backdrop to elevate
+                                the styling, ambiance, and overall presentation of your
+                                celebration.
+                            </p>
                         </div>
                     </div>
-                </motion.div>
-            </section>
 
-            <section
-                ref={weddingRef}
-                className="bg-white px-5 py-20 md:px-10 md:py-24 lg:px-20"
-            >
-                <div className="mx-auto max-w-7xl">
-                    <SectionTitle
-                        eyebrow="Wedding Collection"
-                        title="Wedding"
-                        highlight="Packages"
-                        desc="Curated wedding package offers designed for elegant, polished, and memorable celebrations."
-                    />
-
-                    <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
-                        {weddingPackages.map((item, index) => (
-                            <PackageCard
-                                key={item.id}
-                                item={item}
-                                onQuote={handleGetQuotation}
-                                badge={
-                                    index === 2
-                                        ? "Popular Choice"
-                                        : index === 4
-                                            ? "Ultimate"
-                                            : ""
-                                }
-                                featured={index === 2 || index === 4}
-                            />
-                        ))}
+                    <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[#0c5a43] px-5 py-3 text-sm font-bold text-white shadow-[0_10px_22px_rgba(12,90,67,0.2)]">
+                        <Gift className="h-4 w-4 text-[#f2bf2f]" />
+                        Included in selected packages
                     </div>
                 </div>
-            </section>
+            </motion.div>
+        </section>
 
-            <section
-                ref={debutRef}
-                className="relative overflow-hidden bg-[linear-gradient(180deg,#0b4d3b_0%,#082f25_100%)] px-5 py-20 md:px-10 md:py-24 lg:px-20"
-            >
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(242,191,47,0.12),transparent_24%),radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.06),transparent_18%)]" />
-                <div className="absolute inset-0 opacity-[0.06] [background-image:linear-gradient(rgba(255,255,255,0.7)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.7)_1px,transparent_1px)] [background-size:42px_42px]" />
+        <section
+            ref={weddingRef}
+            className="bg-white px-5 py-20 md:px-10 md:py-24 lg:px-20"
+        >
+            <div className="mx-auto max-w-7xl">
+                <SectionTitle
+                    eyebrow="Wedding Collection"
+                    title="Wedding"
+                    highlight="Packages"
+                    desc="Curated wedding package offers designed for elegant, polished, and memorable celebrations."
+                />
 
-                <div className="relative z-10 mx-auto max-w-7xl">
-                    <SectionTitle
-                        eyebrow="Debut Collection"
-                        title="Debut"
-                        highlight="Packages"
-                        desc="Premium selections crafted for glamorous and unforgettable debut celebrations."
-                        light
-                    />
-
-                    <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
-                        {debutPackages.map((item, index) => (
-                            <PackageCard
-                                key={item.id}
-                                item={item}
-                                onQuote={handleGetQuotation}
-                                badge={
-                                    index === 1
-                                        ? "Recommended"
-                                        : index === 3
-                                            ? "Elite Choice"
-                                            : ""
-                                }
-                                featured={index === 1 || index === 3}
-                                dark
-                            />
-                        ))}
-                    </div>
+                <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
+                    {weddingPackages.map((item, index) => (
+                        <PackageCard
+                            key={item.id}
+                            item={item}
+                            onQuote={handleGetQuotation}
+                            badge={
+                                index === 2
+                                    ? "Popular Choice"
+                                    : index === 4
+                                        ? "Ultimate"
+                                        : ""
+                            }
+                            featured={index === 2 || index === 4}
+                        />
+                    ))}
                 </div>
-            </section>
+            </div>
+        </section>
 
-            <section
-                ref={addonsRef}
-                className="bg-[#f6f3ec] px-5 py-20 md:px-10 md:py-24 lg:px-20"
-            >
-                <div className="mx-auto max-w-6xl">
-                    <SectionTitle
-                        eyebrow="Optional Services"
-                        title="Available"
-                        highlight="Add-ons"
-                        desc="Optional enhancements you can include to make your celebration even more complete and premium."
-                    />
+        <section
+            ref={debutRef}
+            className="relative overflow-hidden bg-[linear-gradient(180deg,#0b4d3b_0%,#082f25_100%)] px-5 py-20 md:px-10 md:py-24 lg:px-20"
+        >
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(242,191,47,0.12),transparent_24%),radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.06),transparent_18%)]" />
+            <div className="absolute inset-0 opacity-[0.06] [background-image:linear-gradient(rgba(255,255,255,0.7)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.7)_1px,transparent_1px)] [background-size:42px_42px]" />
 
-                    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                        {addOns.map((addon, index) => (
-                            <AddOnCard key={addon.name} addon={addon} index={index} />
-                        ))}
-                    </div>
+            <div className="relative z-10 mx-auto max-w-7xl">
+                <SectionTitle
+                    eyebrow="Debut Collection"
+                    title="Debut"
+                    highlight="Packages"
+                    desc="Premium selections crafted for glamorous and unforgettable debut celebrations."
+                    light
+                />
+
+                <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
+                    {debutPackages.map((item, index) => (
+                        <PackageCard
+                            key={item.id}
+                            item={item}
+                            onQuote={handleGetQuotation}
+                            badge={
+                                index === 1
+                                    ? "Recommended"
+                                    : index === 3
+                                        ? "Elite Choice"
+                                        : ""
+                            }
+                            featured={index === 1 || index === 3}
+                            dark
+                        />
+                    ))}
                 </div>
-            </section>
-        </div>
+            </div>
+        </section>
+
+        <section
+            ref={addonsRef}
+            className="bg-[#f6f3ec] px-5 py-20 md:px-10 md:py-24 lg:px-20"
+        >
+            <div className="mx-auto max-w-6xl">
+                <SectionTitle
+                    eyebrow="Optional Services"
+                    title="Available"
+                    highlight="Add-ons"
+                    desc="Optional enhancements you can include to make your celebration even more complete and premium."
+                />
+
+                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                    {addOns.map((addon, index) => (
+                        <AddOnCard key={addon.name} addon={addon} index={index} />
+                    ))}
+                </div>
+            </div>
+        </section>
+    </div>
     );
 }
 

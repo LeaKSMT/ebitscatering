@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import Packages from "./Packages";
 import {
     UtensilsCrossed,
     CalendarDays,
@@ -711,10 +712,8 @@ function Home() {
                 </motion.div>
             </section>
 
-            <section
-                id="packages"
-                className="scroll-mt-24 bg-[#f7f4ee] px-5 pb-16 md:scroll-mt-28 md:px-10 md:pb-20 lg:px-20"
-            >
+            <section id="packages" className="scroll-mt-24 md:scroll-mt-28 py-10">
+                <Packages embedded />
                 <motion.div
                     initial="hidden"
                     whileInView="visible"
@@ -761,16 +760,16 @@ function Home() {
                                 custom={index}
                                 variants={fadeUp}
                                 className={`group relative overflow-hidden rounded-[32px] border bg-[#fffdf8] p-6 text-[#0b4d3b] shadow-sm transition duration-300 hover:-translate-y-2 hover:shadow-2xl ${index === 1
-                                        ? "package-featured border-[#e4bc41] ring-1 ring-[#e4bc41]/40 scale-[1.02]"
-                                        : "border-transparent"
+                                    ? "package-featured border-[#e4bc41] ring-1 ring-[#e4bc41]/40 scale-[1.02]"
+                                    : "border-transparent"
                                     }`}
                             >
                                 <div className="package-card-glow" />
 
                                 <div
                                     className={`mb-4 inline-flex rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] ${index === 1
-                                            ? "bg-[#fff3c8] text-[#9b7510]"
-                                            : "bg-[#f4efe2] text-[#6e6453]"
+                                        ? "bg-[#fff3c8] text-[#9b7510]"
+                                        : "bg-[#f4efe2] text-[#6e6453]"
                                         }`}
                                 >
                                     {item.badge}
@@ -810,8 +809,8 @@ function Home() {
                                 <button
                                     onClick={() => handlePackageQuote(item)}
                                     className={`mt-5 inline-flex items-center justify-center rounded-2xl px-5 py-3 font-semibold transition duration-300 ${index === 1
-                                            ? "bg-yellow-400 text-[#0b4d3b] shadow-[0_12px_30px_rgba(212,165,20,0.28)] hover:-translate-y-1 hover:bg-yellow-300"
-                                            : "bg-[#0b4d3b] text-white hover:-translate-y-1 hover:bg-[#0f624a]"
+                                        ? "bg-yellow-400 text-[#0b4d3b] shadow-[0_12px_30px_rgba(212,165,20,0.28)] hover:-translate-y-1 hover:bg-yellow-300"
+                                        : "bg-[#0b4d3b] text-white hover:-translate-y-1 hover:bg-[#0f624a]"
                                         }`}
                                 >
                                     Get Quotation
@@ -1221,8 +1220,8 @@ function Home() {
                             {contactStatus && (
                                 <p
                                     className={`mb-4 text-sm font-medium ${contactStatus.includes("successfully")
-                                            ? "text-green-600"
-                                            : "text-red-500"
+                                        ? "text-green-600"
+                                        : "text-red-500"
                                         }`}
                                 >
                                     {contactStatus}
