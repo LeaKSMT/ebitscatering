@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import logo from "../assets/logo.png";
 import {
     LayoutDashboard,
     FileText,
@@ -315,13 +316,15 @@ function ClientTopbar() {
                             className="min-w-0 pr-2"
                         >
                             <div className="flex items-center gap-3">
-                                <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/10 shadow-[0_10px_25px_rgba(0,0,0,0.12)] backdrop-blur">
-                                    <Sparkles size={18} className="text-[#f5c94a]" />
-                                </div>
+                                <img
+                                    src={logo}
+                                    alt="Ebit's Catering and Services"
+                                    className="h-12 w-12 shrink-0 rounded-full border border-[#f5c94a]/40 object-cover shadow-[0_10px_25px_rgba(0,0,0,0.18)]"
+                                />
 
                                 <div className="min-w-0">
-                                    <h1 className="truncate text-[1.35rem] font-extrabold leading-none tracking-tight text-[#f5c94a] sm:text-[1.8rem]">
-                                        Ebit&apos;s Catering
+                                    <h1 className="truncate text-[1rem] font-extrabold leading-tight tracking-tight text-[#f5c94a] sm:text-[1.45rem]">
+                                        Ebit&apos;s Catering and Services
                                     </h1>
                                     <div className="mt-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-white/70 sm:text-sm normal-case">
                                         <ShieldCheck size={14} className="text-white/70" />
