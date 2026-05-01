@@ -167,7 +167,9 @@ function ClientInquiries() {
     const [loading, setLoading] = useState(false);
 
     const messagesEndRef = useRef(null);
+    const chatBodyRef = useRef(null);
     const typingTimeoutRef = useRef(null);
+    const shouldAutoScrollRef = useRef(true);
 
     const loadMessages = async () => {
         if (!email) return;
@@ -266,22 +268,28 @@ function ClientInquiries() {
         return { total, clientCount, adminCount };
     }, [sortedMessages]);
 
-    const scrollToBottom = () => {
-        const isMobile = window.innerWidth <= 768;
+    const isNearBottom = () => {
+        const el = chatBodyRef.current;
+        if (!el) return true;
 
-        if (isMobile) return;
+        const threshold = 120;
+        return el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
+    };
 
+    const scrollToBottom = (behavior = "smooth") => {
         setTimeout(() => {
             messagesEndRef.current?.scrollIntoView({
-                behavior: "smooth",
+                behavior,
                 block: "end",
             });
-        }, 100);
+        }, 80);
     };
 
     useEffect(() => {
-        scrollToBottom();
-    }, [messages, isAdminTyping]);
+        if (shouldAutoScrollRef.current) {
+            scrollToBottom("smooth");
+        }
+    }, [sortedMessages.length, isAdminTyping]);
 
     useEffect(() => {
         return () => {
@@ -307,6 +315,7 @@ function ClientInquiries() {
             });
 
             setInput("");
+            shouldAutoScrollRef.current = true;
             await loadMessages();
 
             const acknowledgmentText = buildAutoReply(trimmed);
@@ -531,7 +540,13 @@ function ClientInquiries() {
                     </div>
                 </div>
 
-                <div className={`relative min-h-[540px] max-h-[540px] overflow-y-auto p-5 md:p-6 ${chatBody}`}>
+                <div
+                    ref={chatBodyRef}
+                    onScroll={() => {
+                        shouldAutoScrollRef.current = isNearBottom();
+                    }}
+                    className={`relative min-h-[540px] max-h-[540px] overflow-y-auto p-5 md:p-6 ${chatBody}`}
+                >
                     <div className="pointer-events-none absolute inset-0 opacity-[0.045]">
                         <div
                             className="h-full w-full"
