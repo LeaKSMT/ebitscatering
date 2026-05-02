@@ -1108,16 +1108,6 @@ function Packages({ embedded = false }) {
                             >
                                 Get Quotation
                             </GlowButton>
-
-                            {!embedded && (
-                                <Link
-                                    to="/"
-                                    className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-6 py-4 font-bold text-white shadow-[0_18px_36px_rgba(0,0,0,0.18)] backdrop-blur-sm transition hover:-translate-y-1 hover:bg-white/15"
-                                >
-                                    Back to Home
-                                    <ChevronRight size={18} />
-                                </Link>
-                            )}
                         </div>
 
                         <div className="mt-10 grid gap-4 sm:grid-cols-3">

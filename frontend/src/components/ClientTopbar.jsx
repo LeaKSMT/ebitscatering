@@ -366,7 +366,7 @@ function ClientTopbar() {
                                             animate={{ opacity: 1, y: 0, scale: 1 }}
                                             exit={{ opacity: 0, y: 8, scale: 0.98 }}
                                             transition={{ duration: 0.2 }}
-                                            className="absolute right-0 top-[calc(100%+12px)] z-[80] w-[360px] overflow-hidden rounded-[28px] border border-[#dfe8e4] bg-white text-slate-800 shadow-[0_30px_60px_rgba(0,0,0,0.18)]"
+                                            className="absolute right-1 top-[70px] z-[80] w-[360px] overflow-hidden rounded-[28px] border border-[#dfe8e4] bg-white text-slate-800 shadow-[0_30px_60px_rgba(0,0,0,0.18)]"
                                         >
                                             <div className="border-b border-[#edf2ef] bg-[linear-gradient(90deg,#f3fbf8_0%,#fffaf0_100%)] px-5 py-4">
                                                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
