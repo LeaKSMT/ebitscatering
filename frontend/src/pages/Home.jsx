@@ -401,44 +401,33 @@ function Home() {
                 </button>
 
                 <div className="hidden items-center gap-7 text-[15px] md:flex">
-                    <button
-                        type="button"
-                        onClick={showHomePage}
-                        className={navClass(activeSection === "home")}                    >
+                    <button type="button" onClick={showHomePage} className={navClass(activeSection === "home")}>
                         Home
                     </button>
 
-                    <button
-                        type="button"
-                        onClick={showPackagesPage}
-                        className={navClass(false)}
-                    >
+                    <button type="button" onClick={showPackagesPage} className={navClass(false)}>
                         Packages
                     </button>
 
-                    {pageView === "home" && (
-                        <>
-                            <a href="#about" className={navClass(activeSection === "about")}>
-                                About
-                            </a>
+                    <a href="#about" className={navClass(activeSection === "about")}>
+                        About
+                    </a>
 
-                            <a href="#gallery" className={navClass(activeSection === "gallery")}>
-                                Gallery
-                            </a>
+                    <a href="#gallery" className={navClass(activeSection === "gallery")}>
+                        Gallery
+                    </a>
 
-                            <a href="#contact" className={navClass(activeSection === "contact")}>
-                                Contact
-                            </a>
-                        </>
-                    )}
+                    <a href="#contact" className={navClass(activeSection === "contact")}>
+                        Contact
+                    </a>
 
                     <Link
                         to="/login"
-                        className="inline-flex items-center justify-center rounded-2xl border border-white/15 bg-white/10 px-4 py-2.5 font-semibold text-white transition hover:-translate-y-0.5 hover:bg-white hover:text-[#0b4d3b]"
                     >
                         Login
                     </Link>
-                </div>                <button
+                </div>
+                <button
                     type="button"
                     onClick={() => setMobileMenuOpen((prev) => !prev)}
                     className="inline-flex shrink-0 items-center justify-center rounded-xl border border-white/20 p-2 md:hidden"
@@ -467,31 +456,29 @@ function Home() {
                             Packages
                         </button>
 
-                        {pageView === "home" && (
-                            <>
-                                <a
-                                    href="#about"
-                                    className={mobileLinkClass}
-                                    onClick={() => setMobileMenuOpen(false)}
-                                >
-                                    About
-                                </a>
-                                <a
-                                    href="#gallery"
-                                    className={mobileLinkClass}
-                                    onClick={() => setMobileMenuOpen(false)}
-                                >
-                                    Gallery
-                                </a>
-                                <a
-                                    href="#contact"
-                                    className={mobileLinkClass}
-                                    onClick={() => setMobileMenuOpen(false)}
-                                >
-                                    Contact
-                                </a>
-                            </>
-                        )}
+                        <>
+                            <a
+                                href="#about"
+                                className={mobileLinkClass}
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                About
+                            </a>
+                            <a
+                                href="#gallery"
+                                className={mobileLinkClass}
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                Gallery
+                            </a>
+                            <a
+                                href="#contact"
+                                className={mobileLinkClass}
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                Contact
+                            </a>
+                        </>
 
                         <Link
                             to="/login"
