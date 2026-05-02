@@ -300,9 +300,8 @@ function ClientTopbar() {
     const isDark = theme === "dark";
 
     const profileButtonClass = isDark
-        ? "flex h-[50px] max-w-[210px] items-center gap-2 rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.98)_0%,rgba(13,40,32,0.98)_100%)] px-4 py-2.5 text-sm font-bold text-[#98efcc] shadow-[0_14px_30px_rgba(0,0,0,0.18)]"
-        : "flex h-[50px] max-w-[210px] items-center gap-2 rounded-2xl border border-white/10 bg-white/95 px-4 py-2.5 text-sm font-bold text-[#0b5a43] shadow-[0_14px_30px_rgba(0,0,0,0.08)]";
-
+        ? "flex h-[50px] w-[210px] min-w-0 shrink-0 items-center gap-2 rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.98)_0%,rgba(13,40,32,0.98)_100%)] px-4 py-2.5 text-sm font-bold text-[#98efcc] shadow-[0_14px_30px_rgba(0,0,0,0.18)]"
+        : "flex h-[50px] w-[210px] min-w-0 shrink-0 items-center gap-2 rounded-2xl border border-white/10 bg-white/95 px-4 py-2.5 text-sm font-bold text-[#0b5a43] shadow-[0_14px_30px_rgba(0,0,0,0.08)]";
     return (
         <>
             <header className="sticky top-0 z-50 border-b border-white/10 bg-[linear-gradient(135deg,rgba(7,62,47,0.96)_0%,rgba(10,87,65,0.96)_58%,rgba(15,117,88,0.96)_100%)] text-white shadow-[0_18px_48px_rgba(6,40,31,0.22)] backdrop-blur-xl">
@@ -346,11 +345,11 @@ function ClientTopbar() {
                             </nav>
                         </div>
 
-                        <div className="hidden items-center self-center gap-2.5 pl-2 min-[1500px]:flex">
+                        <div className="hidden shrink-0 items-center self-center gap-4 pl-4 min-[1500px]:flex">
                             <div ref={notificationsRef} className="relative">
                                 <button
                                     onClick={handleOpenNotifications}
-                                    className="relative inline-flex h-[50px] w-[50px] items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-white shadow-[0_10px_22px_rgba(0,0,0,0.12)] transition hover:bg-white/15"
+                                    className="relative inline-flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-white shadow-[0_10px_22px_rgba(0,0,0,0.12)] transition hover:bg-white/15"
                                 >
                                     <Bell size={18} />
                                     {unreadCount > 0 ? (
