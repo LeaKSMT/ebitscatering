@@ -300,8 +300,8 @@ function ClientTopbar() {
     const isDark = theme === "dark";
 
     const profileButtonClass = isDark
-        ? "flex h-[50px] w-[220px] min-w-0 shrink-0 items-center gap-2 rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.98)_0%,rgba(13,40,32,0.98)_100%)] px-4 py-2.5 text-sm font-bold text-[#98efcc] shadow-[0_14px_30px_rgba(0,0,0,0.18)]"
-        : "flex h-[50px] w-[220px] min-w-0 shrink-0 items-center gap-2 rounded-2xl border border-white/10 bg-white/95 px-4 py-2.5 text-sm font-bold text-[#0b5a43] shadow-[0_14px_30px_rgba(0,0,0,0.08)]";
+        ? "flex h-[50px] w-[230px] min-w-0 shrink-0 items-center gap-2 rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.98)_0%,rgba(13,40,32,0.98)_100%)] px-4 py-2.5 text-sm font-bold text-[#98efcc] shadow-[0_14px_30px_rgba(0,0,0,0.18)]"
+        : "flex h-[50px] w-[230px] min-w-0 shrink-0 items-center gap-2 rounded-2xl border border-white/10 bg-white/95 px-4 py-2.5 text-sm font-bold text-[#0b5a43] shadow-[0_14px_30px_rgba(0,0,0,0.08)]";
     return (
         <>
             <header className="sticky top-0 z-50 border-b border-white/10 bg-[linear-gradient(135deg,rgba(7,62,47,0.96)_0%,rgba(10,87,65,0.96)_58%,rgba(15,117,88,0.96)_100%)] text-white shadow-[0_18px_48px_rgba(6,40,31,0.22)] backdrop-blur-xl">
@@ -332,7 +332,7 @@ function ClientTopbar() {
                             </div>
                         </motion.div>
 
-                        <div className="hidden min-w-0 flex-[0.7] items-center justify-center px-2 min-[1500px]:flex">
+                        <div className="hidden min-w-0 flex-1 items-center justify-center px-2 min-[1500px]:flex">
                             <nav className="flex h-[54px] items-center rounded-full border border-white/10 bg-white/8 px-2 shadow-[0_14px_35px_rgba(0,0,0,0.12)] backdrop-blur-xl">
                                 <div className="flex items-center gap-2.5">
                                     {navItems.map(({ to, label, icon: Icon }) => (
@@ -345,7 +345,7 @@ function ClientTopbar() {
                             </nav>
                         </div>
 
-                        <div className="hidden shrink-0 items-center self-center gap-4 pl-10 min-[1500px]:flex">
+                        <div className="hidden w-[300px] shrink-0 items-center justify-end self-center gap-3 pl-4 min-[1500px]:flex">
                             <div ref={notificationsRef} className="relative">
                                 <button
                                     onClick={handleOpenNotifications}
