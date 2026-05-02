@@ -353,11 +353,134 @@ const addOns = [
     { name: "Clown", price: 3000 },
 ];
 
-const allPackages = [
+const fallbackPackages = [
     ...dynamicPerPaxPackages,
     ...debutPackages,
     ...weddingPackages,
 ];
+
+function getApiBaseUrl() {
+    const envUrl = import.meta.env.VITE_API_URL?.trim();
+
+    if (!envUrl) {
+        return "https://ebitscatering.onrender.com/api";
+    }
+
+    const cleaned = envUrl.replace(/\/+$/, "");
+    return cleaned.endsWith("/api") ? cleaned : `${cleaned}/api`;
+}
+
+const API_BASE_URL = getApiBaseUrl();
+
+function safeArray(value) {
+    if (Array.isArray(value)) return value;
+
+    if (typeof value === "string") {
+        try {
+            const parsed = JSON.parse(value);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch {
+            return value
+                .split(/[\n,]/)
+                .map((item) => item.trim())
+                .filter(Boolean);
+        }
+    }
+
+    return [];
+}
+
+function normalizeEventType(value, packageName = "") {
+    const raw = String(value || "").trim();
+
+    if (raw) {
+        const lowered = raw.toLowerCase();
+        if (lowered.includes("wedding")) return "Wedding";
+        if (lowered.includes("debut")) return "Debut";
+        if (lowered.includes("birthday")) return "Birthday";
+        if (lowered.includes("anniversary")) return "Anniversary";
+        if (lowered.includes("baptismal")) return "Baptismal";
+        return raw.charAt(0).toUpperCase() + raw.slice(1);
+    }
+
+    const name = String(packageName || "").toLowerCase();
+    if (name.includes("wedding")) return "Wedding";
+    if (name.includes("debut")) return "Debut";
+    if (name.includes("birthday")) return "Birthday";
+    if (name.includes("anniversary")) return "Anniversary";
+    if (name.includes("baptismal")) return "Baptismal";
+
+    return "";
+}
+
+function normalizePackageFromAPI(item, index = 0) {
+    const name =
+        item?.name ||
+        item?.title ||
+        item?.package_name ||
+        item?.packageName ||
+        item?.package_type ||
+        item?.packageType ||
+        `Package ${index + 1}`;
+
+    const eventType = normalizeEventType(
+        item?.eventType ||
+        item?.event_type ||
+        item?.category ||
+        item?.type,
+        name
+    );
+
+    const rawIncludedPax =
+        item?.includedPax ??
+        item?.included_pax ??
+        item?.good_for ??
+        item?.guests ??
+        item?.pax ??
+        null;
+
+    const includedPax = rawIncludedPax != null
+        ? Number(String(rawIncludedPax).replace(/[^0-9.]/g, "")) || null
+        : null;
+
+    const rawRatePerPax =
+        item?.ratePerPax ??
+        item?.rate_per_pax ??
+        item?.pax_rate ??
+        item?.price_per_pax ??
+        item?.per_pax_price ??
+        null;
+
+    const rawPrice =
+        item?.rawPrice ??
+        item?.raw_price ??
+        item?.price ??
+        item?.package_price ??
+        item?.total_price ??
+        item?.amount ??
+        0;
+
+    const price = Number(String(rawPrice).replace(/[^0-9.]/g, "")) || 0;
+    const ratePerPax = rawRatePerPax != null
+        ? Number(String(rawRatePerPax).replace(/[^0-9.]/g, "")) || 0
+        : 0;
+
+    const pricingType =
+        item?.pricingType ||
+        item?.pricing_type ||
+        (ratePerPax > 0 && price === 0 ? "perPax" : "fixed");
+
+    return {
+        id: item?.id || item?.package_id || `${eventType}-${name}-${index}`,
+        name,
+        eventType,
+        pricingType,
+        price,
+        ratePerPax: pricingType === "perPax" ? ratePerPax || price || PAX_RATE : ratePerPax || null,
+        includedPax,
+        features: safeArray(item?.features || item?.inclusions || item?.package_inclusions || item?.description),
+    };
+}
 
 function formatCurrency(value) {
     return `₱${Number(value || 0).toLocaleString()}`;
@@ -488,6 +611,9 @@ function Quotation({ mode = "public" }) {
         () => localStorage.getItem("clientPortalTheme") || "light"
     );
 
+    const [packagesFromAPI, setPackagesFromAPI] = useState([]);
+    const [loadingPackages, setLoadingPackages] = useState(true);
+
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [submittedQuotation, setSubmittedQuotation] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -525,6 +651,49 @@ function Quotation({ mode = "public" }) {
     }, []);
 
     useEffect(() => {
+        let isMounted = true;
+
+        const fetchPackages = async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/packages`);
+
+                if (!response.ok) {
+                    throw new Error("Failed to load packages");
+                }
+
+                const data = await response.json();
+                const list = Array.isArray(data) ? data : data?.packages || data?.data || [];
+                const normalized = list
+                    .map((item, index) => normalizePackageFromAPI(item, index))
+                    .filter((item) => item.name && item.eventType);
+
+                if (isMounted) {
+                    setPackagesFromAPI(normalized);
+                }
+            } catch (err) {
+                console.error("Failed to fetch packages:", err);
+                if (isMounted) {
+                    setPackagesFromAPI([]);
+                }
+            } finally {
+                if (isMounted) {
+                    setLoadingPackages(false);
+                }
+            }
+        };
+
+        fetchPackages();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
+
+    const livePackages = useMemo(() => {
+        return packagesFromAPI.length > 0 ? packagesFromAPI : fallbackPackages;
+    }, [packagesFromAPI]);
+
+    useEffect(() => {
         const savedPackage = JSON.parse(localStorage.getItem("selectedPackage") || "null");
         if (!savedPackage) return;
 
@@ -542,31 +711,20 @@ function Quotation({ mode = "public" }) {
     const availablePackages = useMemo(() => {
         if (!formData.eventType) return [];
 
-        if (formData.eventType === "Wedding") return weddingPackages;
-        if (formData.eventType === "Debut") return debutPackages;
-
-        if (
-            formData.eventType === "Birthday" ||
-            formData.eventType === "Anniversary" ||
-            formData.eventType === "Baptismal"
-        ) {
-            return dynamicPerPaxPackages.filter(
-                (pkg) => pkg.eventType === formData.eventType
-            );
-        }
-
-        return [];
-    }, [formData.eventType]);
+        return livePackages.filter(
+            (pkg) => pkg.eventType === formData.eventType
+        );
+    }, [formData.eventType, livePackages]);
 
     const selectedPackage = useMemo(() => {
         return (
-            allPackages.find(
+            livePackages.find(
                 (pkg) =>
                     pkg.name === formData.packageType &&
                     pkg.eventType === formData.eventType
             ) || null
         );
-    }, [formData.packageType, formData.eventType]);
+    }, [formData.packageType, formData.eventType, livePackages]);
 
     const addOnsTotal = useMemo(() => {
         return formData.addOns.reduce((sum, itemName) => {
@@ -1243,16 +1401,20 @@ function Quotation({ mode = "public" }) {
 
                                     <Field label="Preferred Package" required filled={!!formData.packageType} isDark={isDark}>
                                         <div className="relative">
-                                            <select name="packageType" value={formData.packageType} onChange={handleChange} className={`${inputClass} appearance-none pr-12`} required disabled={!formData.eventType}>
+                                            <select name="packageType" value={formData.packageType} onChange={handleChange} className={`${inputClass} appearance-none pr-12`} required disabled={!formData.eventType || loadingPackages}>
                                                 <option value="">
-                                                    {formData.eventType ? "Select package" : "Select event type first"}
+                                                    {loadingPackages
+                                                        ? "Loading packages..."
+                                                        : formData.eventType
+                                                            ? "Select package"
+                                                            : "Select event type first"}
                                                 </option>
 
                                                 {availablePackages.map((pkg, index) => (
                                                     <option key={`${pkg.eventType}-${pkg.name}-${index}`} value={pkg.name}>
                                                         {pkg.pricingType === "perPax"
-                                                            ? `${pkg.name} (₱${pkg.ratePerPax}/pax)`
-                                                            : `${pkg.name} (${formatCurrency(pkg.price)} • ${pkg.includedPax} pax included)`}
+                                                            ? `${pkg.name} (₱${pkg.ratePerPax || PAX_RATE}/pax)`
+                                                            : `${pkg.name} (${formatCurrency(pkg.price)}${pkg.includedPax ? ` • ${pkg.includedPax} pax included` : ""})`}
                                                     </option>
                                                 ))}
                                             </select>

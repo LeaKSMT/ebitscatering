@@ -296,6 +296,166 @@ const addOns = [
     { name: "SDE", price: "₱27,000", icon: <Sparkles className="h-5 w-5" /> },
 ];
 
+
+const fallbackPackages = [
+    ...weddingPackages,
+    ...debutPackages,
+];
+
+function getApiBaseUrl() {
+    const envUrl = import.meta.env.VITE_API_URL?.trim();
+
+    if (!envUrl) {
+        return "https://ebitscatering.onrender.com/api";
+    }
+
+    const cleaned = envUrl.replace(/\/+$/, "");
+    return cleaned.endsWith("/api") ? cleaned : `${cleaned}/api`;
+}
+
+const API_BASE_URL = getApiBaseUrl();
+
+function formatPeso(value) {
+    return `₱${Number(value || 0).toLocaleString()}`;
+}
+
+function safeArray(value) {
+    if (Array.isArray(value)) return value;
+
+    if (typeof value === "string") {
+        try {
+            const parsed = JSON.parse(value);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch {
+            return value
+                .split(/[\n,]/)
+                .map((item) => item.trim())
+                .filter(Boolean);
+        }
+    }
+
+    return [];
+}
+
+function normalizeEventType(value, packageName = "") {
+    const raw = String(value || "").trim();
+
+    if (raw) {
+        const lowered = raw.toLowerCase();
+        if (lowered.includes("wedding")) return "Wedding";
+        if (lowered.includes("debut")) return "Debut";
+        if (lowered.includes("birthday")) return "Birthday";
+        if (lowered.includes("anniversary")) return "Anniversary";
+        if (lowered.includes("baptismal")) return "Baptismal";
+        if (lowered.includes("add")) return "Add-on";
+        return raw.charAt(0).toUpperCase() + raw.slice(1);
+    }
+
+    const name = String(packageName || "").toLowerCase();
+    if (name.includes("wedding")) return "Wedding";
+    if (name.includes("debut")) return "Debut";
+    if (name.includes("birthday")) return "Birthday";
+    if (name.includes("anniversary")) return "Anniversary";
+    if (name.includes("baptismal")) return "Baptismal";
+    if (name.includes("add")) return "Add-on";
+
+    return "";
+}
+
+function getAddonIcon(name = "") {
+    const lowered = String(name).toLowerCase();
+
+    if (lowered.includes("sound") || lowered.includes("host")) {
+        return <Mic2 className="h-5 w-5" />;
+    }
+
+    if (lowered.includes("cake")) {
+        return <Gift className="h-5 w-5" />;
+    }
+
+    if (lowered.includes("photo") || lowered.includes("video")) {
+        return <Camera className="h-5 w-5" />;
+    }
+
+    if (lowered.includes("sde")) {
+        return <Sparkles className="h-5 w-5" />;
+    }
+
+    return <PartyPopper className="h-5 w-5" />;
+}
+
+function normalizePackageFromAPI(item, index = 0) {
+    const title =
+        item?.title ||
+        item?.name ||
+        item?.package_name ||
+        item?.packageName ||
+        item?.package_type ||
+        item?.packageType ||
+        `Package ${index + 1}`;
+
+    const packageGroup =
+        item?.packageGroup ||
+        item?.package_group ||
+        item?.group ||
+        normalizeEventType(item?.eventType || item?.event_type || item?.category || item?.type, title);
+
+    const eventType = normalizeEventType(
+        item?.eventType || item?.event_type || item?.category || item?.type || packageGroup,
+        title
+    );
+
+    const rawPriceValue =
+        item?.rawPrice ??
+        item?.raw_price ??
+        item?.price ??
+        item?.package_price ??
+        item?.total_price ??
+        item?.amount ??
+        0;
+
+    const rawPrice = Number(String(rawPriceValue).replace(/[^0-9.]/g, "")) || 0;
+
+    const rawIncludedPax =
+        item?.includedPax ??
+        item?.included_pax ??
+        item?.good_for ??
+        item?.guests ??
+        item?.pax ??
+        null;
+
+    const includedPax = rawIncludedPax != null
+        ? Number(String(rawIncludedPax).replace(/[^0-9.]/g, "")) || null
+        : null;
+
+    const features = safeArray(
+        item?.features ||
+        item?.inclusions ||
+        item?.package_inclusions ||
+        item?.description
+    );
+
+    return {
+        id: item?.id || item?.package_id || `${eventType}-${title}-${index}`,
+        title,
+        price: formatPeso(rawPrice),
+        rawPrice,
+        pax: includedPax ? `${includedPax} pax` : item?.pax || "",
+        includedPax,
+        category:
+            item?.category ||
+            (eventType === "Wedding"
+                ? "Wedding Package"
+                : eventType === "Debut"
+                    ? "Debut Package"
+                    : packageGroup || "Package"),
+        eventType,
+        packageGroup,
+        features,
+    };
+}
+
+
 const fadeUp = {
     hidden: { opacity: 0, y: 36 },
     visible: (i = 0) => ({
@@ -592,10 +752,84 @@ function Packages({ embedded = false }) {
     const navigate = useNavigate();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [activeTab, setActiveTab] = useState("wedding");
+    const [packagesFromAPI, setPackagesFromAPI] = useState([]);
 
     const weddingRef = useRef(null);
     const debutRef = useRef(null);
     const addonsRef = useRef(null);
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const fetchPackages = async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/packages`, {
+                    method: "GET",
+                    credentials: "include",
+                });
+
+                if (!response.ok) {
+                    throw new Error("Failed to load packages");
+                }
+
+                const data = await response.json();
+                const list = Array.isArray(data) ? data : data?.packages || data?.data || [];
+                const normalized = list
+                    .map((item, index) => normalizePackageFromAPI(item, index))
+                    .filter((item) => item.title);
+
+                if (isMounted) {
+                    setPackagesFromAPI(normalized);
+                }
+            } catch (error) {
+                console.error("Failed to fetch packages:", error);
+                if (isMounted) {
+                    setPackagesFromAPI([]);
+                }
+            }
+        };
+
+        fetchPackages();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
+
+    const livePackages = useMemo(() => {
+        return packagesFromAPI.length > 0 ? packagesFromAPI : fallbackPackages;
+    }, [packagesFromAPI]);
+
+    const liveWeddingPackages = useMemo(() => {
+        const filtered = livePackages.filter(
+            (item) => item.eventType === "Wedding" || item.packageGroup === "Wedding"
+        );
+
+        return filtered.length > 0 ? filtered : weddingPackages;
+    }, [livePackages]);
+
+    const liveDebutPackages = useMemo(() => {
+        const filtered = livePackages.filter(
+            (item) => item.eventType === "Debut" || item.packageGroup === "Debut"
+        );
+
+        return filtered.length > 0 ? filtered : debutPackages;
+    }, [livePackages]);
+
+    const liveAddOns = useMemo(() => {
+        const filtered = packagesFromAPI.filter((item) => {
+            const group = String(item.packageGroup || item.category || item.eventType || "").toLowerCase();
+            return group.includes("add");
+        });
+
+        if (filtered.length === 0) return addOns;
+
+        return filtered.map((item) => ({
+            name: item.title,
+            price: item.price,
+            icon: getAddonIcon(item.title),
+        }));
+    }, [packagesFromAPI]);
 
     const stats = useMemo(
         () => [
@@ -1079,7 +1313,7 @@ function Packages({ embedded = false }) {
                 />
 
                 <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
-                    {weddingPackages.map((item, index) => (
+                    {liveWeddingPackages.map((item, index) => (
                         <PackageCard
                             key={item.id}
                             item={item}
@@ -1115,7 +1349,7 @@ function Packages({ embedded = false }) {
                 />
 
                 <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
-                    {debutPackages.map((item, index) => (
+                    {liveDebutPackages.map((item, index) => (
                         <PackageCard
                             key={item.id}
                             item={item}
@@ -1148,7 +1382,7 @@ function Packages({ embedded = false }) {
                 />
 
                 <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                    {addOns.map((addon, index) => (
+                    {liveAddOns.map((addon, index) => (
                         <AddOnCard key={addon.name} addon={addon} index={index} />
                     ))}
                 </div>

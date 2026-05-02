@@ -61,8 +61,78 @@ function safeJsonParse(value, fallback = []) {
     }
 }
 
-function computeQuotationPricing(packageType, guests, addOns = []) {
-    const selectedPackage = PACKAGE_PRICE_MAP[packageType];
+function getPackageFromDatabase(packageType) {
+    return new Promise((resolve) => {
+        if (!packageType) {
+            return resolve(null);
+        }
+
+        const query = `
+            SELECT *
+            FROM packages
+            WHERE LOWER(TRIM(name)) = LOWER(TRIM(?))
+               OR LOWER(TRIM(title)) = LOWER(TRIM(?))
+               OR LOWER(TRIM(package_name)) = LOWER(TRIM(?))
+            LIMIT 1
+        `;
+
+        db.query(query, [packageType, packageType, packageType], (err, results) => {
+            if (err) {
+                console.error("Fetch package price error:", err.message);
+                return resolve(null);
+            }
+
+            if (!results || results.length === 0) {
+                return resolve(null);
+            }
+
+            const pkg = results[0];
+
+            const rawPrice =
+                pkg.price ??
+                pkg.rawPrice ??
+                pkg.raw_price ??
+                pkg.package_price ??
+                pkg.total_price ??
+                pkg.amount ??
+                0;
+
+            const rawRatePerPax =
+                pkg.rate_per_pax ??
+                pkg.ratePerPax ??
+                pkg.pax_rate ??
+                pkg.price_per_pax ??
+                pkg.per_pax_price ??
+                null;
+
+            const rawIncludedPax =
+                pkg.included_pax ??
+                pkg.includedPax ??
+                pkg.pax ??
+                pkg.good_for ??
+                pkg.guests ??
+                null;
+
+            const pricingType =
+                pkg.pricing_type ||
+                pkg.pricingType ||
+                (rawRatePerPax && Number(rawRatePerPax) > 0 ? "perPax" : "fixed");
+
+            resolve({
+                pricingType,
+                price: Number(rawPrice || 0),
+                ratePerPax: rawRatePerPax != null ? Number(rawRatePerPax) : null,
+                includedPax: rawIncludedPax != null ? Number(rawIncludedPax) : null,
+            });
+        });
+    });
+}
+
+async function computeQuotationPricing(packageType, guests, addOns = []) {
+    const databasePackage = await getPackageFromDatabase(packageType);
+    const fallbackPackage = PACKAGE_PRICE_MAP[packageType];
+    const selectedPackage = databasePackage || fallbackPackage;
+
     const guestCount = Number(guests || 0);
 
     const addOnsTotal = Array.isArray(addOns)
@@ -83,7 +153,8 @@ function computeQuotationPricing(packageType, guests, addOns = []) {
     }
 
     if (selectedPackage.pricingType === "perPax") {
-        const packagePrice = guestCount * Number(selectedPackage.ratePerPax || 0);
+        const ratePerPax = Number(selectedPackage.ratePerPax || selectedPackage.price || PAX_RATE || 0);
+        const packagePrice = guestCount * ratePerPax;
 
         return {
             packagePrice,
@@ -91,14 +162,14 @@ function computeQuotationPricing(packageType, guests, addOns = []) {
             estimatedTotal: packagePrice + addOnsTotal,
             includedPax: null,
             pricingType: "perPax",
-            ratePerPax: selectedPackage.ratePerPax,
+            ratePerPax,
             excessGuests: 0,
             excessCost: 0,
         };
     }
 
     const includedPax = Number(selectedPackage.includedPax || 0);
-    const excessGuests = guestCount > includedPax ? guestCount - includedPax : 0;
+    const excessGuests = includedPax > 0 && guestCount > includedPax ? guestCount - includedPax : 0;
     const excessCost = excessGuests * PAX_RATE;
     const packagePrice = Number(selectedPackage.price || 0) + excessCost;
 
@@ -106,7 +177,7 @@ function computeQuotationPricing(packageType, guests, addOns = []) {
         packagePrice,
         addOnsTotal,
         estimatedTotal: packagePrice + addOnsTotal,
-        includedPax,
+        includedPax: includedPax || null,
         pricingType: "fixed",
         ratePerPax: null,
         excessGuests,
@@ -184,7 +255,7 @@ exports.getQuotationById = (req, res) => {
     });
 };
 
-exports.createQuotation = (req, res) => {
+exports.createQuotation = async (req, res) => {
     const {
         quotation_id,
         owner_email,
@@ -202,14 +273,6 @@ exports.createQuotation = (req, res) => {
         add_ons,
         theme_preference,
         special_requests,
-        package_price,
-        add_ons_total,
-        estimated_total,
-        included_pax,
-        pricing_type,
-        rate_per_pax,
-        excess_guests,
-        excess_cost,
         package_inclusions,
         status,
         payments,
@@ -232,6 +295,13 @@ exports.createQuotation = (req, res) => {
     const normalizedOwnerEmail = String(owner_email || email || "")
         .trim()
         .toLowerCase();
+
+    const selectedAddOns = Array.isArray(add_ons) ? add_ons : [];
+    const recalculated = await computeQuotationPricing(
+        package_type || null,
+        Number(guests || 0),
+        selectedAddOns
+    );
 
     const insertQuery = `
         INSERT INTO quotations (
@@ -287,17 +357,17 @@ exports.createQuotation = (req, res) => {
         Number(guests || 0),
         package_type || null,
         classic_menu || null,
-        JSON.stringify(Array.isArray(add_ons) ? add_ons : []),
+        JSON.stringify(selectedAddOns),
         theme_preference || null,
         special_requests || null,
-        Number(package_price || 0),
-        Number(add_ons_total || 0),
-        Number(estimated_total || 0),
-        included_pax != null ? Number(included_pax) : null,
-        pricing_type || "fixed",
-        rate_per_pax != null ? Number(rate_per_pax) : null,
-        Number(excess_guests || 0),
-        Number(excess_cost || 0),
+        recalculated.packagePrice,
+        recalculated.addOnsTotal,
+        recalculated.estimatedTotal,
+        recalculated.includedPax,
+        recalculated.pricingType,
+        recalculated.ratePerPax,
+        recalculated.excessGuests,
+        recalculated.excessCost,
         JSON.stringify(Array.isArray(package_inclusions) ? package_inclusions : []),
         status || "Pending",
         JSON.stringify(Array.isArray(payments) ? payments : []),
@@ -323,6 +393,8 @@ exports.createQuotation = (req, res) => {
             message: "Quotation created successfully",
             id: result.insertId,
             insertId: result.insertId,
+            recalculated: true,
+            estimatedTotal: recalculated.estimatedTotal,
         });
     });
 };
@@ -347,7 +419,7 @@ exports.updateQuotation = (req, res) => {
 
     fetchQuery += ` LIMIT 1`;
 
-    db.query(fetchQuery, fetchValues, (fetchErr, results) => {
+    db.query(fetchQuery, fetchValues, async (fetchErr, results) => {
         if (fetchErr) {
             console.error("Fetch quotation before update error:", fetchErr);
             return res.status(500).json({
@@ -416,7 +488,7 @@ exports.updateQuotation = (req, res) => {
 
         const nextGuests = Number(body.guests ?? body.guestCount ?? current.guests ?? 0);
 
-        const recalculated = computeQuotationPricing(
+        const recalculated = await computeQuotationPricing(
             nextPackageType,
             nextGuests,
             Array.isArray(addOns) ? addOns : []
