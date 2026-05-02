@@ -312,17 +312,17 @@ function ClientTopbar() {
                             initial={{ opacity: 0, x: -18 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.45 }}
-                            className="min-w-[360px] shrink-0 pr-5"
+                            className="min-w-0 flex-1 shrink pr-2"
                         >
                             <div className="flex items-center gap-3">
                                 <img
                                     src={logo}
                                     alt="Ebit's Catering and Services"
-                                    className="h-14 w-14 shrink-0 rounded-full border border-[#f5c94a]/50 object-cover shadow-[0_10px_25px_rgba(0,0,0,0.18)]"
+                                    className="h-12 w-12 shrink-0 rounded-full border border-[#f5c94a]/50 object-cover shadow-[0_10px_25px_rgba(0,0,0,0.18)] sm:h-14 sm:w-14"
                                 />
 
                                 <div className="min-w-0">
-                                    <h1 className="whitespace-nowrap text-[1.35rem] font-extrabold leading-tight tracking-tight text-[#f5c94a] sm:text-[1.6rem]">
+                                    <h1 className="truncate text-[1.05rem] font-extrabold leading-tight tracking-tight text-[#f5c94a] sm:text-[1.35rem] md:text-[1.6rem]">
                                         Ebit&apos;s Catering and Services
                                     </h1>
                                     <div className="mt-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-white/70 sm:text-sm normal-case">
