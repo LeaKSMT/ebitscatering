@@ -300,8 +300,8 @@ function ClientTopbar() {
     const isDark = theme === "dark";
 
     const profileButtonClass = isDark
-        ? "flex h-[50px] max-w-[245px] items-center gap-2 rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.98)_0%,rgba(13,40,32,0.98)_100%)] px-4 py-2.5 text-sm font-bold text-[#98efcc] shadow-[0_14px_30px_rgba(0,0,0,0.18)]"
-        : "flex h-[50px] max-w-[245px] items-center gap-2 rounded-2xl border border-white/10 bg-white/95 px-4 py-2.5 text-sm font-bold text-[#0b5a43] shadow-[0_14px_30px_rgba(0,0,0,0.08)]";
+        ? "flex h-[50px] max-w-[210px] items-center gap-2 rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(10,33,27,0.98)_0%,rgba(13,40,32,0.98)_100%)] px-4 py-2.5 text-sm font-bold text-[#98efcc] shadow-[0_14px_30px_rgba(0,0,0,0.18)]"
+        : "flex h-[50px] max-w-[210px] items-center gap-2 rounded-2xl border border-white/10 bg-white/95 px-4 py-2.5 text-sm font-bold text-[#0b5a43] shadow-[0_14px_30px_rgba(0,0,0,0.08)]";
 
     return (
         <>
@@ -333,7 +333,7 @@ function ClientTopbar() {
                             </div>
                         </motion.div>
 
-                        <div className="hidden min-w-0 flex-1 items-center justify-center px-6 min-[1450px]:flex">
+                        <div className="hidden min-w-0 flex-1 items-center justify-center px-3 min-[1500px]:flex">
                             <nav className="flex h-[54px] items-center rounded-full border border-white/10 bg-white/8 px-2 shadow-[0_14px_35px_rgba(0,0,0,0.12)] backdrop-blur-xl">
                                 <div className="flex items-center gap-2.5">
                                     {navItems.map(({ to, label, icon: Icon }) => (
@@ -346,7 +346,7 @@ function ClientTopbar() {
                             </nav>
                         </div>
 
-                        <div className="hidden items-center self-center gap-2.5 pl-2 min-[1450px]:flex">
+                        <div className="hidden items-center self-center gap-2.5 pl-2 min-[1500px]:flex">
                             <div ref={notificationsRef} className="relative">
                                 <button
                                     onClick={handleOpenNotifications}
@@ -525,7 +525,7 @@ function ClientTopbar() {
 
                         <button
                             onClick={() => setMobileMenuOpen(true)}
-                            className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-white shadow-[0_10px_22px_rgba(0,0,0,0.12)] transition hover:bg-white/15 min-[1450px]:hidden"
+                            className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-white shadow-[0_10px_22px_rgba(0,0,0,0.12)] transition hover:bg-white/15 min-[1500px]:hidden"
                         >
                             <Menu size={20} />
                         </button>
@@ -541,7 +541,7 @@ function ClientTopbar() {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={() => setMobileMenuOpen(false)}
-                            className="fixed inset-0 z-50 bg-[#03120d]/60 backdrop-blur-[4px] min-[1450px]:hidden"
+                            className="fixed inset-0 z-50 bg-[#03120d]/60 backdrop-blur-[4px] min-[1500px]:hidden"
                         />
 
                         <motion.div
@@ -549,7 +549,10 @@ function ClientTopbar() {
                             animate={{ x: 0 }}
                             exit={{ x: "100%" }}
                             transition={{ duration: 0.32, ease: "easeOut" }}
-                            className="fixed right-0 top-0 z-[60] h-full w-[88%] max-w-sm overflow-y-auto bg-[linear-gradient(180deg,#ffffff_0%,#f7fbf9_100%)] shadow-[0_24px_60px_rgba(0,0,0,0.22)] min-[1450px]:hidden"
+                            className={`fixed right-0 top-0 z-[60] h-full w-[88%] max-w-sm overflow-y-auto shadow-[0_24px_60px_rgba(0,0,0,0.22)] min-[1500px]:hidden ${isDark
+                                ? "bg-[linear-gradient(180deg,#071c16_0%,#0a241d_100%)] text-white"
+                                : "bg-[linear-gradient(180deg,#ffffff_0%,#f7fbf9_100%)] text-slate-800"
+                                }`}
                         >
                             <div className="bg-[linear-gradient(135deg,#0b5a43_0%,#0f6d51_58%,#138062_100%)] px-5 py-5 text-white">
                                 <div className="flex items-start justify-between gap-4">
