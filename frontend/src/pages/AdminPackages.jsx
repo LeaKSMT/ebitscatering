@@ -9,10 +9,18 @@ import {
     AlertTriangle,
 } from "lucide-react";
 
-const API_BASE =
-    import.meta.env.VITE_API_URL ||
-    "https://ebitscatering-production.up.railway.app/api";
+function getApiBaseUrl() {
+    const envUrl = import.meta.env.VITE_API_URL?.trim();
 
+    if (!envUrl) {
+        return "https://ebitscatering-production.up.railway.app/api";
+    }
+
+    const cleaned = envUrl.replace(/\/+$/, "");
+    return cleaned.endsWith("/api") ? cleaned : `${cleaned}/api`;
+}
+
+const API_BASE = getApiBaseUrl();
 const fadeUp = {
     hidden: { opacity: 0, y: 18 },
     show: { opacity: 1, y: 0 },
