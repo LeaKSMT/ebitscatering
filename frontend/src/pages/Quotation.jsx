@@ -431,12 +431,19 @@ function normalizePackageFromAPI(item, index = 0) {
         name
     );
 
+    const fallbackMatch = fallbackPackages.find(
+        (pkg) =>
+            String(pkg.id || "").toLowerCase() === String(item?.id || item?.package_id || "").toLowerCase() ||
+            String(pkg.name || "").toLowerCase() === String(name || "").toLowerCase()
+    );
+
     const rawIncludedPax =
         item?.includedPax ??
         item?.included_pax ??
         item?.good_for ??
         item?.guests ??
         item?.pax ??
+        fallbackMatch?.includedPax ??
         null;
 
     const includedPax = rawIncludedPax != null
@@ -458,6 +465,7 @@ function normalizePackageFromAPI(item, index = 0) {
         item?.package_price ??
         item?.total_price ??
         item?.amount ??
+        fallbackMatch?.price ??
         0;
 
     const price = Number(String(rawPrice).replace(/[^0-9.]/g, "")) || 0;
@@ -468,17 +476,29 @@ function normalizePackageFromAPI(item, index = 0) {
     const pricingType =
         item?.pricingType ||
         item?.pricing_type ||
+        fallbackMatch?.pricingType ||
         (ratePerPax > 0 && price === 0 ? "perPax" : "fixed");
 
+    const apiFeatures = safeArray(
+        item?.features ||
+        item?.inclusions ||
+        item?.package_inclusions ||
+        item?.description
+    );
+
+    const features = apiFeatures.length > 0
+        ? apiFeatures
+        : safeArray(fallbackMatch?.features);
+
     return {
-        id: item?.id || item?.package_id || `${eventType}-${name}-${index}`,
+        id: item?.id || item?.package_id || fallbackMatch?.id || `${eventType}-${name}-${index}`,
         name,
         eventType,
         pricingType,
         price,
         ratePerPax: pricingType === "perPax" ? ratePerPax || price || PAX_RATE : ratePerPax || null,
         includedPax,
-        features: safeArray(item?.features || item?.inclusions || item?.package_inclusions || item?.description),
+        features,
     };
 }
 
