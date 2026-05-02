@@ -731,6 +731,27 @@ function Packages({ embedded = false }) {
                     </Link>
 
                     <Link
+                        to="/#about"
+                        className="relative px-1 pb-1 font-medium text-white transition after:absolute after:left-0 after:bottom-0 after:h-[2px] after:w-0 after:rounded-full after:bg-[#f5c94a] hover:text-[#f5c94a] hover:after:w-full after:transition-all"
+                    >
+                        About
+                    </Link>
+
+                    <Link
+                        to="/#gallery"
+                        className="relative px-1 pb-1 font-medium text-white transition after:absolute after:left-0 after:bottom-0 after:h-[2px] after:w-0 after:rounded-full after:bg-[#f5c94a] hover:text-[#f5c94a] hover:after:w-full after:transition-all"
+                    >
+                        Gallery
+                    </Link>
+
+                    <Link
+                        to="/#contact"
+                        className="relative px-1 pb-1 font-medium text-white transition after:absolute after:left-0 after:bottom-0 after:h-[2px] after:w-0 after:rounded-full after:bg-[#f5c94a] hover:text-[#f5c94a] hover:after:w-full after:transition-all"
+                    >
+                        Contact
+                    </Link>
+
+                    <Link
                         to="/login"
                         className="inline-flex items-center justify-center rounded-2xl border border-white/15 bg-white/10 px-4 py-2.5 font-semibold text-white transition hover:-translate-y-0.5 hover:bg-white hover:text-[#0b4d3b]"
                     >

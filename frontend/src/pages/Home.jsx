@@ -110,7 +110,6 @@ function Home() {
     const [activeSection, setActiveSection] = useState("home");
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [scrollProgress, setScrollProgress] = useState(0);
-    const [pageView, setPageView] = useState("home");
     const [selectedGallery, setSelectedGallery] = useState(null);
 
     const featuredPackages = useMemo(
@@ -253,6 +252,17 @@ function Home() {
         },
     ];
 
+    const showHomePage = () => {
+        setMobileMenuOpen(false);
+        navigate("/");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
+    const showPackagesPage = () => {
+        setMobileMenuOpen(false);
+        navigate("/packages");
+    };
+
     const handleGetQuotation = () => {
         const clientUser = JSON.parse(localStorage.getItem("clientUser") || "null");
         const isClientLoggedIn = localStorage.getItem("isClientLoggedIn") === "true";
@@ -277,7 +287,7 @@ function Home() {
             const progress = totalHeight > 0 ? (window.scrollY / totalHeight) * 100 : 0;
             setScrollProgress(progress);
 
-            if (pageView === "packages") return;
+
 
             const scrollPosition = window.scrollY + 140;
             let currentSection = "home";
@@ -298,7 +308,7 @@ function Home() {
         window.addEventListener("scroll", handleScroll);
 
         return () => window.removeEventListener("scroll", handleScroll);
-    }, [pageView]);
+    }, []);
 
     useEffect(() => {
         document.body.style.overflow = selectedGallery ? "hidden" : "";
@@ -336,20 +346,6 @@ function Home() {
             message: "",
         });
     };
-
-    const showHomePage = () => {
-        setPageView("home");
-        setMobileMenuOpen(false);
-        setTimeout(() => {
-            window.scrollTo({ top: 0, behavior: "smooth" });
-        }, 50);
-    };
-
-    const showPackagesPage = () => {
-        setMobileMenuOpen(false);
-        navigate("/packages");
-    };
-
     const navClass = (isActive) =>
         `relative transition px-1 pb-1 font-medium after:absolute after:left-0 after:bottom-0 after:h-[2px] after:rounded-full after:bg-[#f5c94a] ${isActive
             ? "text-[#f5c94a] after:w-full"
@@ -408,8 +404,7 @@ function Home() {
                     <button
                         type="button"
                         onClick={showHomePage}
-                        className={navClass(pageView === "home" && activeSection === "home")}
-                    >
+                        className={navClass(activeSection === "home")}                    >
                         Home
                     </button>
 
