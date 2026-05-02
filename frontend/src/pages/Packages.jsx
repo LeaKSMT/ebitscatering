@@ -949,26 +949,6 @@ function Packages({ embedded = false }) {
                                         />
                                     ))}
                                 </div>
-
-                                <motion.div
-                                    whileHover={{ y: -2 }}
-                                    className="mt-5 rounded-[24px] border border-white/12 bg-[#082f25]/45 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className="rounded-2xl bg-[#f2bf2f]/15 p-3">
-                                            <Star className="h-5 w-5 text-[#f2bf2f]" />
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-semibold text-white">
-                                                Designed for presentation-ready impact
-                                            </p>
-                                            <p className="mt-1 text-sm leading-6 text-white/70">
-                                                Cleaner hierarchy, richer depth, premium motion,
-                                                and a more luxurious visual balance.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </motion.div>
                             </div>
                         </motion.div>
                     </motion.div>
