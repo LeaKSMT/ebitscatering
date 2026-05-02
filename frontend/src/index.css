@@ -1543,3 +1543,39 @@ body[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator {
     width: 100% !important;
   }
 }
+
+@media (max-width: 768px) {
+
+  .client-portal-shell,
+  .client-portal-shell main {
+    width: 100% !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+
+  .client-dashboard-page,
+  .client-inquiries-page {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+
+  .client-dashboard-page *,
+  .client-inquiries-page * {
+    min-width: 0 !important;
+  }
+
+  .client-dashboard-page section,
+  .client-inquiries-page section,
+  .client-dashboard-page .portal-card-premium,
+  .client-inquiries-page .portal-card-premium {
+    max-width: 100% !important;
+  }
+
+  .client-dashboard-page h1,
+  .client-inquiries-page h1 {
+    font-size: 2rem !important;
+    line-height: 1.12 !important;
+    overflow-wrap: anywhere;
+  }
+}
