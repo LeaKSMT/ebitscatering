@@ -880,7 +880,7 @@ function AdminCalendar() {
         const normalized = normalizeStatus(status);
 
         const baseClass =
-            "inline-flex items-center rounded-full border px-3 py-[5px] text-[11px] font-extrabold tracking-[0.02em] shadow-sm";
+            "inline-flex max-w-full items-center rounded-full border px-2.5 py-[5px] text-[10px] font-extrabold tracking-[0.02em] shadow-sm sm:px-3 sm:text-[11px]";
 
         if (normalized === "completed") {
             return (
@@ -951,8 +951,7 @@ function AdminCalendar() {
         days.push(
             <div
                 key={`blank-${i}`}
-                className="min-h-[140px] rounded-[22px] border border-transparent"
-            />
+                className="min-h-[84px] rounded-[16px] border border-transparent sm:min-h-[140px] sm:rounded-[22px]" />
         );
     }
 
@@ -975,9 +974,9 @@ function AdminCalendar() {
                     ease: "easeOut",
                 }}
                 whileHover={{ y: -3 }}
-                className={`group relative min-h-[140px] rounded-[22px] border p-3 transition-all duration-200 ${hasBooking
-                        ? "border-[#d5b33f] bg-[linear-gradient(180deg,#fff6cf_0%,#f5dea0_100%)] text-[#174c3c] shadow-sm"
-                        : "border-[#e8eceb] bg-[#f8fbfa] text-[#174c3c] hover:border-[#22b67f]/40 hover:shadow-sm"
+                className={`group relative min-w-0 overflow-hidden rounded-[16px] border p-2 transition-all duration-200 sm:min-h-[140px] sm:rounded-[22px] sm:p-3 ${hasBooking
+                    ? "border-[#d5b33f] bg-[linear-gradient(180deg,#fff6cf_0%,#f5dea0_100%)] text-[#174c3c] shadow-sm"
+                    : "border-[#e8eceb] bg-[#f8fbfa] text-[#174c3c] hover:border-[#22b67f]/40 hover:shadow-sm"
                     } ${isToday ? "ring-2 ring-[#0f5b46]/60" : ""}`}
             >
                 <div className="flex items-start justify-between">
@@ -1005,14 +1004,15 @@ function AdminCalendar() {
                 </div>
 
                 {hasBooking && (
-                    <div className="mt-5 space-y-2">
-                        <div className="line-clamp-1 text-sm font-bold">
+                    <div className="mt-2 min-w-0 space-y-1 sm:mt-5 sm:space-y-2">
+                        <div className="truncate text-[10px] font-bold sm:text-sm">                            {dayBookings[0].eventType || "Booking"}
+
                             {dayBookings[0].eventType || "Booking"}
                         </div>
-                        <div className="line-clamp-1 text-xs opacity-80">
+                        <div className="truncate text-[9px] opacity-80 sm:text-xs">
                             {dayBookings[0].fullName || "Unnamed client"}
                         </div>
-                        <div className="pt-1">
+                        <div className="hidden pt-1 sm:block">
                             {renderStatusBadge(dayBookings[0].status)}
                         </div>
                     </div>
@@ -1089,74 +1089,69 @@ function AdminCalendar() {
                 </div>
             </motion.section>
 
-            <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-                <motion.div
-                    variants={fadeUp}
-                    transition={{ duration: 0.46, ease: "easeOut" }}
-                    className="rounded-[28px] border border-[#e8eceb] bg-white p-5 shadow-[0_14px_36px_rgba(14,61,47,0.06)]"
-                >
-                    <div className="rounded-[24px] bg-[linear-gradient(135deg,#0f5b46_0%,#138062_100%)] px-5 py-5 text-white">
-                        <div className="flex items-center justify-between gap-3">
-                            <motion.button
-                                whileHover={{ y: -2, scale: 1.01 }}
-                                whileTap={{ scale: 0.98 }}
-                                type="button"
-                                onClick={() => changeMonth(-1)}
-                                className="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm font-semibold transition hover:bg-white/10"
-                            >
-                                <ChevronLeft size={18} />
-                                Previous
-                            </motion.button>
+            <div className="grid max-w-full gap-6 overflow-hidden xl:grid-cols-[minmax(0,1fr)_360px]">                <motion.div
+                variants={fadeUp}
+                transition={{ duration: 0.46, ease: "easeOut" }}
+                className="min-w-0 overflow-hidden rounded-[28px] border border-[#e8eceb] bg-white p-3 shadow-[0_14px_36px_rgba(14,61,47,0.06)] sm:p-5"            >
+                <div className="rounded-[24px] bg-[linear-gradient(135deg,#0f5b46_0%,#138062_100%)] px-5 py-5 text-white">
+                    <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">                        <motion.button
+                        whileHover={{ y: -2, scale: 1.01 }}
+                        whileTap={{ scale: 0.98 }}
+                        type="button"
+                        onClick={() => changeMonth(-1)}
+                        className="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm font-semibold transition hover:bg-white/10"
+                    >
+                        <ChevronLeft size={18} />
+                        Previous
+                    </motion.button>
 
-                            <div className="flex items-center gap-3 text-xl font-bold">
-                                <CalendarDays size={22} />
-                                <span>{getMonthLabel(currentDate)}</span>
-                            </div>
-
-                            <motion.button
-                                whileHover={{ y: -2, scale: 1.01 }}
-                                whileTap={{ scale: 0.98 }}
-                                type="button"
-                                onClick={() => changeMonth(1)}
-                                className="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm font-semibold transition hover:bg-white/10"
-                            >
-                                Next
-                                <ChevronRight size={18} />
-                            </motion.button>
+                        <div className="flex items-center gap-3 text-xl font-bold">
+                            <CalendarDays size={22} />
+                            <span>{getMonthLabel(currentDate)}</span>
                         </div>
+
+                        <motion.button
+                            whileHover={{ y: -2, scale: 1.01 }}
+                            whileTap={{ scale: 0.98 }}
+                            type="button"
+                            onClick={() => changeMonth(1)}
+                            className="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm font-semibold transition hover:bg-white/10"
+                        >
+                            Next
+                            <ChevronRight size={18} />
+                        </motion.button>
                     </div>
+                </div>
 
-                    <div className="mt-6 grid grid-cols-7 gap-3 pb-3 text-center text-base font-semibold text-[#174c3c]">
-                        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
-                            (day) => (
-                                <div key={day}>{day}</div>
-                            )
-                        )}
+                <div className="mt-6 grid min-w-0 grid-cols-7 gap-1 pb-3 text-center text-[10px] font-semibold text-[#174c3c] sm:gap-3 sm:text-base">                    {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
+                    (day) => (
+                        <div key={day}>{day}</div>
+                    )
+                )}
+                </div>
+
+                {loading ? (
+                    <div className="py-16 text-center text-slate-500">
+                        Loading calendar data...
                     </div>
+                ) : (
+                    <div className="grid min-w-0 grid-cols-7 gap-1 sm:gap-3">{days}</div>)}
 
-                    {loading ? (
-                        <div className="py-16 text-center text-slate-500">
-                            Loading calendar data...
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-7 gap-3">{days}</div>
-                    )}
-
-                    <div className="mt-6 flex flex-wrap items-center justify-center gap-6 text-sm text-[#174c3c]">
-                        <div className="flex items-center gap-2">
-                            <span className="h-4 w-4 rounded bg-[#f0d37a]" />
-                            <span>Booked</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <span className="h-4 w-4 rounded border border-[#e5e7eb] bg-[#f8fbfa]" />
-                            <span>Available</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <span className="h-4 w-4 rounded border-2 border-[#0f5b46]" />
-                            <span>Today</span>
-                        </div>
+                <div className="mt-6 flex flex-wrap items-center justify-center gap-6 text-sm text-[#174c3c]">
+                    <div className="flex items-center gap-2">
+                        <span className="h-4 w-4 rounded bg-[#f0d37a]" />
+                        <span>Booked</span>
                     </div>
-                </motion.div>
+                    <div className="flex items-center gap-2">
+                        <span className="h-4 w-4 rounded border border-[#e5e7eb] bg-[#f8fbfa]" />
+                        <span>Available</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <span className="h-4 w-4 rounded border-2 border-[#0f5b46]" />
+                        <span>Today</span>
+                    </div>
+                </div>
+            </motion.div>
 
                 <motion.div
                     variants={fadeUp}
@@ -1528,8 +1523,8 @@ function AdminCalendar() {
                                                                         ease: "easeOut",
                                                                     }}
                                                                     className={`flex cursor-pointer items-center justify-between gap-3 rounded-2xl border px-4 py-3.5 transition ${checked
-                                                                            ? "border-[#efe2a9] bg-[linear-gradient(180deg,#fffdf6_0%,#fff8e8_100%)] shadow-sm"
-                                                                            : "border-gray-200 bg-white hover:border-[#d4af37]"
+                                                                        ? "border-[#efe2a9] bg-[linear-gradient(180deg,#fffdf6_0%,#fff8e8_100%)] shadow-sm"
+                                                                        : "border-gray-200 bg-white hover:border-[#d4af37]"
                                                                         }`}
                                                                 >
                                                                     <div className="flex items-center gap-3">
