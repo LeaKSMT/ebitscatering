@@ -29,7 +29,19 @@
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 96px;
+  scroll-padding-top: 100px;
+}
+
+
+
+[id] {
+  scroll-margin-top: 100px;
+}
+
+@media (max-width: 768px) {
+  [id] {
+    scroll-margin-top: 96px;
+  }
 }
 
 body {
@@ -1334,7 +1346,7 @@ body[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator {
 
 @media (max-width: 768px) {
   html {
-    scroll-padding-top: 82px;
+    scroll-padding-top: 96px;
   }
 
   .hero-glow {
@@ -1367,6 +1379,18 @@ body[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator {
 }
 
 @media (max-width: 640px) {
+
+
+  [id] {
+    scroll-margin-top: 100px;
+  }
+
+  @media (max-width: 768px) {
+    [id] {
+      scroll-margin-top: 96px;
+    }
+  }
+
   body {
     min-width: 320px;
     overflow-x: hidden;

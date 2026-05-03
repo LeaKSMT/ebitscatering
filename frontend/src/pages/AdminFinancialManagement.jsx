@@ -900,7 +900,7 @@ function AdminFinancialManagement() {
                 </div>
             </motion.section>
 
-            <section className="grid grid-cols-1 gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+            <section className="grid min-w-0 grid-cols-1 gap-6 2xl:grid-cols-[minmax(0,1fr)_380px]">
                 <motion.div variants={fadeUp} className={sectionCardClass}>
                     <div className="mb-5 flex items-center gap-3">
                         <div
@@ -934,8 +934,8 @@ function AdminFinancialManagement() {
                             isDark={isDark}
                         />
                     ) : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full min-w-[1050px] text-sm">
+                        <div className="w-full max-w-full overflow-x-auto">
+                            <table className="w-full min-w-[980px] text-sm">
                                 <thead>
                                     <tr className={tableHeadClass}>
                                         <th className="py-3 font-semibold">Booking ID</th>
@@ -1011,7 +1011,7 @@ function AdminFinancialManagement() {
                     )}
                 </motion.div>
 
-                <div className="space-y-6">
+                <div className="min-w-0 space-y-6">
                     <motion.div variants={fadeUp} className={sectionCardClass}>
                         <div className="mb-5 flex items-center gap-3">
                             <div
@@ -1249,7 +1249,7 @@ function AdminFinancialManagement() {
                         isDark={isDark}
                     />
                 ) : (
-                    <div className="overflow-x-auto">
+                    <div className="w-full max-w-full overflow-x-auto">
                         <table className="w-full min-w-[760px] text-sm">
                             <thead>
                                 <tr className={tableHeadClass}>
@@ -1341,7 +1341,7 @@ function AdminFinancialManagement() {
                         isDark={isDark}
                     />
                 ) : (
-                    <div className="overflow-x-auto">
+                    <div className="w-full max-w-full overflow-x-auto">
                         <table className="w-full min-w-[820px] text-sm">
                             <thead>
                                 <tr className={tableHeadClass}>

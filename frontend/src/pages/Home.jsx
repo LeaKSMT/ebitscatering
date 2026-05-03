@@ -111,7 +111,20 @@ function Home() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [scrollProgress, setScrollProgress] = useState(0);
     const [selectedGallery, setSelectedGallery] = useState(null);
+    const scrollToSection = (id) => {
+        const element = document.getElementById(id);
+        if (!element) return;
 
+        const navbarHeight = 90;
+        const y = element.getBoundingClientRect().top + window.pageYOffset - navbarHeight;
+
+        window.scrollTo({
+            top: y,
+            behavior: "smooth",
+        });
+
+        setMobileMenuOpen(false);
+    };
     const featuredPackages = useMemo(
         () => [
             {
@@ -289,7 +302,7 @@ function Home() {
 
 
 
-            const scrollPosition = window.scrollY + 140;
+            const scrollPosition = window.scrollY + 120;
             let currentSection = "home";
 
             sections.forEach((section) => {
@@ -409,17 +422,17 @@ function Home() {
                         Packages
                     </button>
 
-                    <a href="#about" className={navClass(activeSection === "about")}>
+                    <button type="button" onClick={() => scrollToSection("about")} className={navClass(activeSection === "about")}>
                         About
-                    </a>
+                    </button>
 
-                    <a href="#gallery" className={navClass(activeSection === "gallery")}>
+                    <button type="button" onClick={() => scrollToSection("gallery")} className={navClass(activeSection === "gallery")}>
                         Gallery
-                    </a>
+                    </button>
 
-                    <a href="#contact" className={navClass(activeSection === "contact")}>
+                    <button type="button" onClick={() => scrollToSection("contact")} className={navClass(activeSection === "contact")}>
                         Contact
-                    </a>
+                    </button>
 
                     <Link
                         to="/login"
@@ -457,29 +470,17 @@ function Home() {
                             Packages
                         </button>
 
-                        <>
-                            <a
-                                href="#about"
-                                className={mobileLinkClass}
-                                onClick={() => setMobileMenuOpen(false)}
-                            >
-                                About
-                            </a>
-                            <a
-                                href="#gallery"
-                                className={mobileLinkClass}
-                                onClick={() => setMobileMenuOpen(false)}
-                            >
-                                Gallery
-                            </a>
-                            <a
-                                href="#contact"
-                                className={mobileLinkClass}
-                                onClick={() => setMobileMenuOpen(false)}
-                            >
-                                Contact
-                            </a>
-                        </>
+                        <button type="button" className={mobileLinkClass} onClick={() => scrollToSection("about")}>
+                            About
+                        </button>
+
+                        <button type="button" className={mobileLinkClass} onClick={() => scrollToSection("gallery")}>
+                            Gallery
+                        </button>
+
+                        <button type="button" className={mobileLinkClass} onClick={() => scrollToSection("contact")}>
+                            Contact
+                        </button>
 
                         <Link
                             to="/login"
@@ -1174,15 +1175,15 @@ function Home() {
                                 >
                                     Packages
                                 </button>
-                                <a href="#about" className="block transition hover:text-yellow-400">
+                                <button type="button" onClick={() => scrollToSection("about")} className="block transition hover:text-yellow-400">
                                     About
-                                </a>
-                                <a href="#gallery" className="block transition hover:text-yellow-400">
+                                </button>
+                                <button type="button" onClick={() => scrollToSection("gallery")} className="block transition hover:text-yellow-400">
                                     Gallery
-                                </a>
-                                <a href="#contact" className="block transition hover:text-yellow-400">
+                                </button>
+                                <button type="button" onClick={() => scrollToSection("contact")} className="block transition hover:text-yellow-400">
                                     Contact
-                                </a>
+                                </button>
                             </div>
                         </div>
 
