@@ -389,13 +389,13 @@ function Home() {
     );
 
     return (
-        <div className="relative min-h-screen overflow-x-hidden bg-[#f7f4ee] text-green-950">
+        <div className="relative min-h-screen overflow-x-hidden bg-[#f7f4ee] pt-[82px] text-green-950">
             <div
                 className="fixed left-0 top-0 z-[70] h-[3px] bg-gradient-to-r from-[#f7d56a] via-[#d4a514] to-[#f7d56a] transition-all duration-150"
                 style={{ width: `${scrollProgress}%` }}
             />
 
-            <nav className="sticky top-0 z-50 flex h-[82px] items-center justify-between gap-4 border-b border-white/10 bg-[#0b4d3b]/80 px-5 text-white shadow-[0_10px_30px_rgba(0,0,0,0.08)] backdrop-blur-2xl md:px-10 lg:px-14">
+            <nav className="fixed left-0 top-0 z-[999] flex h-[82px] w-full items-center justify-between gap-4 border-b border-white/10 bg-[#0b4d3b]/90 px-5 text-white shadow-[0_10px_30px_rgba(0,0,0,0.08)] backdrop-blur-2xl md:px-10 lg:px-14">
                 <button
                     type="button"
                     onClick={showHomePage}
@@ -452,7 +452,7 @@ function Home() {
             </nav>
 
             {mobileMenuOpen && (
-                <div className="sticky top-[82px] z-40 border-t border-white/10 bg-[#0b4d3b]/95 px-5 py-4 shadow-md backdrop-blur-xl md:hidden">
+                <div className="fixed left-0 top-[82px] z-[998] w-full border-t border-white/10 bg-[#0b4d3b]/95 px-5 py-4 shadow-md backdrop-blur-xl md:hidden">
                     <div className="flex flex-col gap-2">
                         <button
                             type="button"
