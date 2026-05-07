@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import logo from "../assets/logo.png";
+import logoImage from "../assets/logo.png";
 import {
     Eye,
     EyeOff,
@@ -234,7 +234,7 @@ function ClientRegister() {
                                 className="mb-6 flex justify-center"
                             >
                                 <img
-                                    src={logo}
+                                    src={logoImage}
                                     alt="Ebit's Catering and Services Logo"
                                     className="h-20 w-auto object-contain"
                                 />
