@@ -66,7 +66,7 @@ function getApiBaseUrl() {
 
     if (!envUrl) {
         console.warn("VITE_API_URL is missing. Using Render fallback.");
-        return "https://ebitscatering.onrender.com/api";
+        return "https://ebitscatering-production.up.railway.app/api";
     }
 
     const cleaned = envUrl.replace(/\/+$/, "");
@@ -587,8 +587,8 @@ export default function ClientQuotations() {
                                 >
                                     <div
                                         className={`px-6 py-5 ${isDark
-                                                ? "border-b border-white/10 bg-[linear-gradient(90deg,rgba(13,38,31,0.98)_0%,rgba(23,58,45,0.96)_100%)]"
-                                                : "border-b border-[#dbe6e1] bg-[linear-gradient(90deg,#f3fbf8_0%,#fffaf0_100%)]"
+                                            ? "border-b border-white/10 bg-[linear-gradient(90deg,rgba(13,38,31,0.98)_0%,rgba(23,58,45,0.96)_100%)]"
+                                            : "border-b border-[#dbe6e1] bg-[linear-gradient(90deg,#f3fbf8_0%,#fffaf0_100%)]"
                                             }`}
                                     >
                                         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -782,8 +782,8 @@ export default function ClientQuotations() {
                                         <div className="space-y-4">
                                             <div
                                                 className={`rounded-[30px] px-5 py-6 text-right ${isDark
-                                                        ? "border border-[rgba(97,76,24,0.34)] bg-[linear-gradient(135deg,rgba(88,67,20,0.3)_0%,rgba(120,91,27,0.24)_100%)]"
-                                                        : "border border-[#f2e1aa] bg-[linear-gradient(135deg,#fffaf0_0%,#fff3d0_100%)] shadow-sm"
+                                                    ? "border border-[rgba(97,76,24,0.34)] bg-[linear-gradient(135deg,rgba(88,67,20,0.3)_0%,rgba(120,91,27,0.24)_100%)]"
+                                                    : "border border-[#f2e1aa] bg-[linear-gradient(135deg,#fffaf0_0%,#fff3d0_100%)] shadow-sm"
                                                     }`}
                                             >
                                                 <div className="flex items-center justify-end gap-2">
