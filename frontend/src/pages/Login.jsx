@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import logo from "../assets/logo.png";
 import {
     signInWithPopup,
     signInWithRedirect,
@@ -19,6 +20,7 @@ import { motion } from "framer-motion";
 import Swal from "sweetalert2";
 import { auth, googleProvider } from "../firebase";
 import { authService } from "../services/authService";
+import logo from "../assets/logo.png";
 
 function Login() {
     const navigate = useNavigate();
@@ -513,7 +515,7 @@ function Login() {
                                 className="mb-6 flex justify-center"
                             >
                                 <img
-                                    src="/src/assets/logo.png"
+                                    src={logo}
                                     alt="Ebit's Catering and Services Logo"
                                     className="h-20 w-auto object-contain"
                                 />

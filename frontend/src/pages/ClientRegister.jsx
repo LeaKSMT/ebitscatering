@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import Swal from "sweetalert2";
+import logo from "../assets/logo.png";
 
 function ClientRegister() {
     const navigate = useNavigate();
@@ -232,7 +233,7 @@ function ClientRegister() {
                                 className="mb-6 flex justify-center"
                             >
                                 <img
-                                    src="/src/assets/logo.png"
+                                    src={logo}
                                     alt="Ebit's Catering and Services Logo"
                                     className="h-20 w-auto object-contain"
                                 />

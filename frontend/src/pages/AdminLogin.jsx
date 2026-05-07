@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { authService } from "../services/authService";
+import logo from "../assets/logo.png";
 
 function AdminLogin() {
     const navigate = useNavigate();
@@ -77,6 +78,13 @@ function AdminLogin() {
         <div className="min-h-screen bg-gradient-to-br from-[#0b4a3a] via-[#0f6a52] to-[#148564] flex items-center justify-center px-4">
             <div className="w-full max-w-md bg-white rounded-[28px] shadow-2xl border border-[#d4af37]/20 px-6 py-8 sm:px-8">
                 <div className="text-center mb-8">
+                    <div className="mb-4 flex justify-center">
+                        <img
+                            src={logo}
+                            alt="Ebit's Catering and Services Logo"
+                            className="mx-auto h-16 w-auto object-contain"
+                        />
+                    </div>
                     <h1 className="text-[2.2rem] font-extrabold leading-tight">
                         <span className="text-[#d4af37]">Ebit&apos;s</span>{" "}
                         <span className="text-[#0b4a3a]">Catering</span>
@@ -134,8 +142,8 @@ function AdminLogin() {
                         type="submit"
                         disabled={isSubmitting}
                         className={`w-full rounded-xl font-bold py-3 transition ${isSubmitting
-                                ? "bg-[#d4af37]/70 text-[#0b4a3a] cursor-not-allowed"
-                                : "bg-[#d4af37] hover:bg-[#c79f22] text-[#0b4a3a]"
+                            ? "bg-[#d4af37]/70 text-[#0b4a3a] cursor-not-allowed"
+                            : "bg-[#d4af37] hover:bg-[#c79f22] text-[#0b4a3a]"
                             }`}
                     >
                         {isSubmitting ? "Signing In..." : "Sign In"}

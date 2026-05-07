@@ -23,6 +23,7 @@ import {
     Sparkles,
     ShieldCheck,
 } from "lucide-react";
+import logo from "../assets/logo.png";
 
 function AdminSidebar({ theme = "light" }) {
     const [mobileOpen, setMobileOpen] = useState(false);
@@ -78,7 +79,7 @@ function AdminSidebar({ theme = "light" }) {
                         <div className="min-w-0">
                             <div className="mb-3 flex justify-center">
                                 <img
-                                    src="/src/assets/logo.png"
+                                    src={logo}
                                     alt="Ebit's Catering and Services Logo"
                                     className="h-12 w-auto object-contain"
                                 />
