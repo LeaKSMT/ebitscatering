@@ -510,6 +510,17 @@ function Login() {
                         <div className="relative z-10">
                             <motion.div
                                 variants={itemVariants}
+                                className="mb-6 flex justify-center"
+                            >
+                                <img
+                                    src="/src/assets/logo.png"
+                                    alt="Ebit's Catering and Services Logo"
+                                    className="h-20 w-auto object-contain"
+                                />
+                            </motion.div>
+
+                            <motion.div
+                                variants={itemVariants}
                                 whileHover={{ scale: 1.03, y: -2 }}
                                 className="inline-flex items-center gap-2 rounded-full border border-[#d4af37]/40 bg-white/10 px-4 py-2 text-sm font-semibold text-[#f7d97b] shadow-lg backdrop-blur-xl"
                             >
@@ -523,7 +534,7 @@ function Login() {
                             >
                                 Welcome Back to
                                 <span className="block bg-gradient-to-r from-[#f7d97b] via-[#d4af37] to-[#fff2a8] bg-clip-text text-transparent">
-                                    Ebit&apos;s Catering
+                                    Ebit&apos;s Catering and Services
                                 </span>
                             </motion.h1>
 

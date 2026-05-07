@@ -76,8 +76,15 @@ function AdminSidebar({ theme = "light" }) {
 
                     <div className="relative flex items-start justify-between gap-3">
                         <div className="min-w-0">
+                            <div className="mb-3 flex justify-center">
+                                <img
+                                    src="/src/assets/logo.png"
+                                    alt="Ebit's Catering and Services Logo"
+                                    className="h-12 w-auto object-contain"
+                                />
+                            </div>
                             <h1 className="truncate text-[22px] font-extrabold tracking-tight text-[#f5d36a]">
-                                Ebit's Catering
+                                Ebit's Catering and Services
                             </h1>
                             <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/65">
                                 Admin Workspace
