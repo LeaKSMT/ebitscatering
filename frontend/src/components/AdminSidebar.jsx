@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
+import logo from "../assets/logo.png";
 import { AnimatePresence, motion } from "framer-motion";
 import {
     LayoutDashboard,
@@ -23,7 +24,6 @@ import {
     Sparkles,
     ShieldCheck,
 } from "lucide-react";
-import logo from "../assets/logo.png";
 
 function AdminSidebar({ theme = "light" }) {
     const [mobileOpen, setMobileOpen] = useState(false);
