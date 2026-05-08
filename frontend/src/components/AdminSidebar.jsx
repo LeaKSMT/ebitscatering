@@ -87,9 +87,7 @@ function AdminSidebar({ theme = "light" }) {
                             <h1 className="text-[22px] font-extrabold tracking-tight text-[#f5d36a]">
                                 Ebit's Catering and Services
                             </h1>
-                            <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/65">
-                                Admin Workspace
-                            </p>
+
                         </div>
 
                         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[18px] border border-[#f5d36a]/18 bg-[linear-gradient(135deg,rgba(245,211,106,0.22)_0%,rgba(245,201,74,0.08)_100%)] text-[#f5d36a] shadow-[0_12px_28px_rgba(245,201,74,0.10)]">
