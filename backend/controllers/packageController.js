@@ -1,8 +1,8 @@
 const db = require("../config/db");
 
-function isAdmin(req) {
+function canManagePackages(req) {
     const role = String(req.user?.role || "").trim().toLowerCase();
-    return role === "admin";
+    return ["admin", "owner", "administrator"].includes(role);
 }
 
 function normalizePackage(row) {
@@ -32,7 +32,11 @@ function normalizePackage(row) {
 }
 
 function parsePrice(price) {
-    return Number(String(price || "").replace(/[₱,\s]/g, ""));
+    const cleaned = String(price ?? "").replace(/[₱,\s]/g, "");
+
+    if (!cleaned) return NaN;
+
+    return Number(cleaned);
 }
 
 function normalizeFeatures(features) {
@@ -43,7 +47,23 @@ function normalizeFeatures(features) {
     }
 
     if (typeof features === "string") {
-        return features
+        const trimmed = features.trim();
+
+        if (!trimmed) return [];
+
+        try {
+            const parsed = JSON.parse(trimmed);
+
+            if (Array.isArray(parsed)) {
+                return parsed
+                    .map((item) => String(item || "").trim())
+                    .filter(Boolean);
+            }
+        } catch {
+            // fallback below
+        }
+
+        return trimmed
             .split(/\n|,/)
             .map((item) => item.trim())
             .filter(Boolean);
@@ -52,20 +72,61 @@ function normalizeFeatures(features) {
     return [];
 }
 
+function parseBooleanValue(value, defaultValue = true) {
+    if (value === undefined || value === null || value === "") {
+        return defaultValue ? 1 : 0;
+    }
+
+    if (
+        value === false ||
+        value === 0 ||
+        value === "0" ||
+        String(value).toLowerCase() === "false" ||
+        String(value).toLowerCase() === "no" ||
+        String(value).toLowerCase() === "inactive"
+    ) {
+        return 0;
+    }
+
+    return 1;
+}
+
+function makeSlug(value) {
+    return String(value || "")
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+}
+
+function createPackageId(packageGroup) {
+    const groupSlug = makeSlug(packageGroup || "package");
+    const random = Math.random().toString(36).slice(2, 7);
+
+    return `${groupSlug}-${Date.now()}-${random}`;
+}
+
+function getOrderCaseSql() {
+    return `
+        CASE 
+            WHEN package_group = 'Wedding' THEN 1
+            WHEN package_group = 'Debut' THEN 2
+            WHEN package_group = 'Birthday' THEN 3
+            WHEN package_group = 'Corporate' THEN 4
+            WHEN package_group = 'Anniversary' THEN 5
+            WHEN package_group = 'Christening' THEN 6
+            WHEN package_group = 'Add-on' THEN 7
+            ELSE 8
+        END,
+        title ASC
+    `;
+}
+
 exports.getPackages = (req, res) => {
     const query = `
         SELECT *
         FROM packages
-        ORDER BY 
-            CASE 
-                WHEN package_group = 'Wedding' THEN 1
-                WHEN package_group = 'Debut' THEN 2
-                WHEN package_group = 'Birthday' THEN 3
-                WHEN package_group = 'Corporate' THEN 4
-                WHEN package_group = 'Add-on' THEN 5
-                ELSE 6
-            END,
-            title ASC
+        ORDER BY ${getOrderCaseSql()}
     `;
 
     db.query(query, (err, results) => {
@@ -87,16 +148,7 @@ exports.getPublicPackages = (req, res) => {
         FROM packages
         WHERE is_active = 1
           AND show_on_client = 1
-        ORDER BY 
-            CASE 
-                WHEN package_group = 'Wedding' THEN 1
-                WHEN package_group = 'Debut' THEN 2
-                WHEN package_group = 'Birthday' THEN 3
-                WHEN package_group = 'Corporate' THEN 4
-                WHEN package_group = 'Add-on' THEN 5
-                ELSE 6
-            END,
-            title ASC
+        ORDER BY ${getOrderCaseSql()}
     `;
 
     db.query(query, (err, results) => {
@@ -113,9 +165,9 @@ exports.getPublicPackages = (req, res) => {
 };
 
 exports.createPackage = (req, res) => {
-    if (!isAdmin(req)) {
+    if (!canManagePackages(req)) {
         return res.status(403).json({
-            message: "Only admin can create packages",
+            message: "Only admin or owner can create packages",
         });
     }
 
@@ -136,7 +188,9 @@ exports.createPackage = (req, res) => {
 
     const cleanTitle = String(title || "").trim();
     const cleanCategory = String(category || "").trim();
-    const cleanPackageGroup = String(packageGroup || package_group || cleanCategory || "").trim();
+    const cleanPackageGroup = String(
+        packageGroup || package_group || cleanCategory || "Custom"
+    ).trim();
     const cleanPax = String(pax || "").trim();
     const numericPrice = parsePrice(price);
     const cleanFeatures = normalizeFeatures(features);
@@ -153,26 +207,44 @@ exports.createPackage = (req, res) => {
         });
     }
 
-    if (!numericPrice || numericPrice < 0) {
+    if (!Number.isFinite(numericPrice) || numericPrice < 0) {
         return res.status(400).json({
             message: "Valid price is required",
         });
     }
 
-    const activeValue =
-        isActive === false || is_active === 0 || is_active === false ? 0 : 1;
+    const activeValue = parseBooleanValue(
+        isActive !== undefined ? isActive : is_active,
+        true
+    );
 
-    const showValue =
-        showOnClient === false || show_on_client === 0 || show_on_client === false ? 0 : 1;
+    const showValue = parseBooleanValue(
+        showOnClient !== undefined ? showOnClient : show_on_client,
+        true
+    );
+
+    const packageId = createPackageId(cleanPackageGroup);
 
     const query = `
         INSERT INTO packages
-            (title, description, category, package_group, pax, price, features, is_active, show_on_client)
+            (
+                id,
+                title,
+                description,
+                category,
+                package_group,
+                pax,
+                price,
+                features,
+                is_active,
+                show_on_client
+            )
         VALUES
-            (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const values = [
+        packageId,
         cleanTitle,
         description || null,
         cleanCategory,
@@ -184,7 +256,7 @@ exports.createPackage = (req, res) => {
         showValue,
     ];
 
-    db.query(query, values, (err, result) => {
+    db.query(query, values, (err) => {
         if (err) {
             console.error("Create package error:", err);
             return res.status(500).json({
@@ -195,15 +267,15 @@ exports.createPackage = (req, res) => {
 
         return res.status(201).json({
             message: "Package created successfully",
-            id: result.insertId,
+            id: packageId,
         });
     });
 };
 
 exports.updatePackage = (req, res) => {
-    if (!isAdmin(req)) {
+    if (!canManagePackages(req)) {
         return res.status(403).json({
-            message: "Only admin can update packages",
+            message: "Only admin or owner can update packages",
         });
     }
 
@@ -224,21 +296,42 @@ exports.updatePackage = (req, res) => {
         show_on_client,
     } = req.body;
 
+    const cleanTitle = String(title || "").trim();
+    const cleanCategory = String(category || "").trim();
+    const cleanPackageGroup = String(
+        packageGroup || package_group || cleanCategory || "Custom"
+    ).trim();
+    const cleanPax = String(pax || "").trim();
     const numericPrice = parsePrice(price);
+    const cleanFeatures = normalizeFeatures(features);
 
-    if (!numericPrice || numericPrice < 0) {
+    if (!cleanTitle) {
+        return res.status(400).json({
+            message: "Package title is required",
+        });
+    }
+
+    if (!cleanCategory) {
+        return res.status(400).json({
+            message: "Package category is required",
+        });
+    }
+
+    if (!Number.isFinite(numericPrice) || numericPrice < 0) {
         return res.status(400).json({
             message: "Valid price is required",
         });
     }
 
-    const cleanFeatures = normalizeFeatures(features);
+    const activeValue = parseBooleanValue(
+        isActive !== undefined ? isActive : is_active,
+        true
+    );
 
-    const activeValue =
-        isActive === false || is_active === 0 || is_active === false ? 0 : 1;
-
-    const showValue =
-        showOnClient === false || show_on_client === 0 || show_on_client === false ? 0 : 1;
+    const showValue = parseBooleanValue(
+        showOnClient !== undefined ? showOnClient : show_on_client,
+        true
+    );
 
     const updateQuery = `
         UPDATE packages
@@ -256,11 +349,11 @@ exports.updatePackage = (req, res) => {
     `;
 
     const values = [
-        String(title || "").trim(),
+        cleanTitle,
         description || null,
-        String(category || "").trim(),
-        String(packageGroup || package_group || category || "").trim(),
-        String(pax || "").trim(),
+        cleanCategory,
+        cleanPackageGroup,
+        cleanPax || null,
         numericPrice,
         JSON.stringify(cleanFeatures),
         activeValue,
@@ -290,20 +383,24 @@ exports.updatePackage = (req, res) => {
 };
 
 exports.updatePackageStatus = (req, res) => {
-    if (!isAdmin(req)) {
+    if (!canManagePackages(req)) {
         return res.status(403).json({
-            message: "Only admin can update package status",
+            message: "Only admin or owner can update package status",
         });
     }
 
     const { id } = req.params;
     const { isActive, is_active, showOnClient, show_on_client } = req.body;
 
-    const activeValue =
-        isActive === false || is_active === 0 || is_active === false ? 0 : 1;
+    const activeValue = parseBooleanValue(
+        isActive !== undefined ? isActive : is_active,
+        true
+    );
 
-    const showValue =
-        showOnClient === false || show_on_client === 0 || show_on_client === false ? 0 : 1;
+    const showValue = parseBooleanValue(
+        showOnClient !== undefined ? showOnClient : show_on_client,
+        true
+    );
 
     const query = `
         UPDATE packages
@@ -333,9 +430,9 @@ exports.updatePackageStatus = (req, res) => {
 };
 
 exports.archivePackage = (req, res) => {
-    if (!isAdmin(req)) {
+    if (!canManagePackages(req)) {
         return res.status(403).json({
-            message: "Only admin can archive packages",
+            message: "Only admin or owner can archive packages",
         });
     }
 

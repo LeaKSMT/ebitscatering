@@ -675,7 +675,7 @@ function Quotation({ mode = "public" }) {
 
         const fetchPackages = async () => {
             try {
-                const response = await fetch(`${API_BASE_URL}/packages`);
+                const response = await fetch(`${API_BASE_URL}/packages/public`);
 
                 if (!response.ok) {
                     throw new Error("Failed to load packages");

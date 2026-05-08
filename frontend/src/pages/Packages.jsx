@@ -763,7 +763,7 @@ function Packages({ embedded = false }) {
 
         const fetchPackages = async () => {
             try {
-                const response = await fetch(`${API_BASE_URL}/packages`, {
+                const response = await fetch(`${API_BASE_URL}/packages/public`, {
                     method: "GET",
                     credentials: "include",
                 });
