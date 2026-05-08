@@ -539,171 +539,172 @@ function Login() {
                         </div>
 
 
+                    </motion.div>
 
-                        <motion.div
-                            variants={rightPanelVariants}
-                            className="relative flex min-w-0 items-center justify-center overflow-hidden bg-[#fffdf7] px-4 py-7 sm:px-8 sm:py-10 lg:px-12 lg:py-12"
-                        >
-                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(212,175,55,0.16),transparent_32%),radial-gradient(circle_at_bottom_left,rgba(15,77,60,0.12),transparent_34%)]" />
+                    <motion.div
+                        variants={rightPanelVariants}
+                        className="relative flex min-w-0 items-center justify-center overflow-hidden bg-[#fffdf7] px-4 py-7 sm:px-8 sm:py-10 lg:px-12 lg:py-12"
+                    >
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(212,175,55,0.16),transparent_32%),radial-gradient(circle_at_bottom_left,rgba(15,77,60,0.12),transparent_34%)]" />
 
-                            <div className="relative z-10 w-full max-w-md min-w-0">
-                                <motion.div
-                                    variants={itemVariants}
-                                    className="mb-7 text-center lg:text-left"
-                                >
-                                    <div className="mb-5 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#0f4d3c] to-[#18a06c] text-white shadow-xl shadow-[#0f4d3c]/25 ring-1 ring-[#d4af37]/30">
-                                        <Crown size={24} />
-                                    </div>
+                        <div className="relative z-10 w-full max-w-md min-w-0">
+                            <motion.div
+                                variants={itemVariants}
+                                className="mb-7 text-center lg:text-left"
+                            >
+                                <div className="mb-5 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#0f4d3c] to-[#18a06c] text-white shadow-xl shadow-[#0f4d3c]/25 ring-1 ring-[#d4af37]/30">
+                                    <Crown size={24} />
+                                </div>
 
-                                    <p className="text-xs font-black uppercase tracking-[0.24em] text-[#d4af37] sm:text-sm">
-                                        Sign In
-                                    </p>
-                                    <h2 className="mt-2 text-3xl font-black leading-tight text-[#0f172a] sm:text-4xl">
-                                        Access Your Account
-                                    </h2>
-                                    <p className="mt-3 text-sm leading-6 text-slate-500 sm:text-base">
-                                        Login to continue to the catering management system.
-                                    </p>
+                                <p className="text-xs font-black uppercase tracking-[0.24em] text-[#d4af37] sm:text-sm">
+                                    Sign In
+                                </p>
+                                <h2 className="mt-2 text-3xl font-black leading-tight text-[#0f172a] sm:text-4xl">
+                                    Access Your Account
+                                </h2>
+                                <p className="mt-3 text-sm leading-6 text-slate-500 sm:text-base">
+                                    Login to continue to the catering management system.
+                                </p>
+                            </motion.div>
+
+                            <motion.form
+                                variants={pageVariants}
+                                onSubmit={handleLogin}
+                                className="space-y-5"
+                                autoComplete="off"
+                            >
+                                <motion.div variants={itemVariants}>
+                                    <label className="mb-2 block text-sm font-bold text-[#0f4d3c]">
+                                        Email
+                                    </label>
+                                    <input
+                                        key="login-email"
+                                        type="email"
+                                        name="login_email"
+                                        autoComplete="off"
+                                        placeholder="Enter your email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        className="w-full min-w-0 rounded-2xl border border-[#0f4d3c]/15 bg-white/85 px-4 py-3.5 text-sm text-[#0f172a] shadow-sm placeholder:text-slate-400 caret-[#0f4d3c] outline-none transition focus:border-[#d4af37] focus:bg-white focus:ring-4 focus:ring-[#d4af37]/15 sm:text-base"
+                                        style={{ WebkitTextFillColor: "#0f172a" }}
+                                        required
+                                    />
                                 </motion.div>
 
-                                <motion.form
-                                    variants={pageVariants}
-                                    onSubmit={handleLogin}
-                                    className="space-y-5"
-                                    autoComplete="off"
-                                >
-                                    <motion.div variants={itemVariants}>
-                                        <label className="mb-2 block text-sm font-bold text-[#0f4d3c]">
-                                            Email
-                                        </label>
+                                <motion.div variants={itemVariants}>
+                                    <label className="mb-2 block text-sm font-bold text-[#0f4d3c]">
+                                        Password
+                                    </label>
+
+                                    <div className="relative min-w-0">
                                         <input
-                                            key="login-email"
-                                            type="email"
-                                            name="login_email"
-                                            autoComplete="off"
-                                            placeholder="Enter your email"
-                                            value={email}
-                                            onChange={(e) => setEmail(e.target.value)}
-                                            className="w-full min-w-0 rounded-2xl border border-[#0f4d3c]/15 bg-white/85 px-4 py-3.5 text-sm text-[#0f172a] shadow-sm placeholder:text-slate-400 caret-[#0f4d3c] outline-none transition focus:border-[#d4af37] focus:bg-white focus:ring-4 focus:ring-[#d4af37]/15 sm:text-base"
+                                            key="login-password"
+                                            type={showPassword ? "text" : "password"}
+                                            name="login_password"
+                                            autoComplete="new-password"
+                                            placeholder="Enter your password"
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            className="w-full min-w-0 rounded-2xl border border-[#0f4d3c]/15 bg-white/85 px-4 py-3.5 pr-12 text-sm text-[#0f172a] shadow-sm placeholder:text-slate-400 caret-[#0f4d3c] outline-none transition focus:border-[#d4af37] focus:bg-white focus:ring-4 focus:ring-[#d4af37]/15 sm:text-base"
                                             style={{ WebkitTextFillColor: "#0f172a" }}
                                             required
                                         />
-                                    </motion.div>
 
-                                    <motion.div variants={itemVariants}>
-                                        <label className="mb-2 block text-sm font-bold text-[#0f4d3c]">
-                                            Password
-                                        </label>
-
-                                        <div className="relative min-w-0">
-                                            <input
-                                                key="login-password"
-                                                type={showPassword ? "text" : "password"}
-                                                name="login_password"
-                                                autoComplete="new-password"
-                                                placeholder="Enter your password"
-                                                value={password}
-                                                onChange={(e) => setPassword(e.target.value)}
-                                                className="w-full min-w-0 rounded-2xl border border-[#0f4d3c]/15 bg-white/85 px-4 py-3.5 pr-12 text-sm text-[#0f172a] shadow-sm placeholder:text-slate-400 caret-[#0f4d3c] outline-none transition focus:border-[#d4af37] focus:bg-white focus:ring-4 focus:ring-[#d4af37]/15 sm:text-base"
-                                                style={{ WebkitTextFillColor: "#0f172a" }}
-                                                required
-                                            />
-
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    setShowPassword(!showPassword)
-                                                }
-                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 transition hover:text-[#0b4d3b]"
-                                            >
-                                                {showPassword ? (
-                                                    <EyeOff size={18} />
-                                                ) : (
-                                                    <Eye size={18} />
-                                                )}
-                                            </button>
-                                        </div>
-
-                                        <div className="mt-2 flex justify-end">
-                                            <button
-                                                type="button"
-                                                onClick={handleForgotPassword}
-                                                className="group inline-flex items-center gap-1 text-sm font-bold text-[#b99117] transition hover:text-[#0f4d3c]"
-                                            >
-                                                <LockKeyhole size={14} />
-                                                Forgot Password?
-                                            </button>
-                                        </div>
-                                    </motion.div>
-
-                                    <motion.button
-                                        variants={itemVariants}
-                                        whileHover={{ scale: 1.02, y: -2 }}
-                                        whileTap={{ scale: 0.98 }}
-                                        type="submit"
-                                        disabled={isLoading}
-                                        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#0f4d3c] via-[#11634b] to-[#18a06c] py-3.5 font-bold text-white shadow-xl shadow-[#0f4d3c]/25 transition hover:shadow-2xl hover:shadow-[#0f4d3c]/35 disabled:cursor-not-allowed disabled:opacity-70"
-                                    >
-                                        {isLoading ? (
-                                            <>
-                                                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
-                                                Signing In...
-                                            </>
-                                        ) : (
-                                            <>
-                                                Sign In
-                                                <ArrowRight size={18} />
-                                            </>
-                                        )}
-                                    </motion.button>
-                                </motion.form>
-
-                                <motion.div variants={itemVariants} className="relative my-6">
-                                    <div className="absolute inset-0 flex items-center">
-                                        <div className="w-full border-t border-slate-200" />
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setShowPassword(!showPassword)
+                                            }
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 transition hover:text-[#0b4d3b]"
+                                        >
+                                            {showPassword ? (
+                                                <EyeOff size={18} />
+                                            ) : (
+                                                <Eye size={18} />
+                                            )}
+                                        </button>
                                     </div>
-                                    <div className="relative flex justify-center">
-                                        <span className="bg-[#fffdf7] px-3 text-sm text-slate-400">
-                                            or continue with
-                                        </span>
+
+                                    <div className="mt-2 flex justify-end">
+                                        <button
+                                            type="button"
+                                            onClick={handleForgotPassword}
+                                            className="group inline-flex items-center gap-1 text-sm font-bold text-[#b99117] transition hover:text-[#0f4d3c]"
+                                        >
+                                            <LockKeyhole size={14} />
+                                            Forgot Password?
+                                        </button>
                                     </div>
                                 </motion.div>
 
                                 <motion.button
                                     variants={itemVariants}
-                                    whileHover={{ scale: 1.01, y: -2 }}
+                                    whileHover={{ scale: 1.02, y: -2 }}
                                     whileTap={{ scale: 0.98 }}
-                                    type="button"
-                                    onClick={handleGoogleLogin}
+                                    type="submit"
                                     disabled={isLoading}
-                                    className="flex w-full items-center justify-center gap-3 rounded-2xl border border-[#0f4d3c]/15 bg-white/90 px-4 py-3.5 font-semibold text-slate-700 shadow-sm transition hover:border-[#d4af37]/70 hover:bg-white hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-70"
+                                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#0f4d3c] via-[#11634b] to-[#18a06c] py-3.5 font-bold text-white shadow-xl shadow-[#0f4d3c]/25 transition hover:shadow-2xl hover:shadow-[#0f4d3c]/35 disabled:cursor-not-allowed disabled:opacity-70"
                                 >
-                                    <svg className="h-5 w-5" viewBox="0 0 48 48" aria-hidden="true">
-                                        <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303C33.659 32.657 29.219 36 24 36c-6.627 0-12-5.373-12-12S17.373 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.278 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917Z" />
-                                        <path fill="#FF3D00" d="M6.306 14.691 12.88 19.51C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.278 4 24 4c-7.682 0-14.347 4.337-17.694 10.691Z" />
-                                        <path fill="#4CAF50" d="M24 44c5.176 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.143 35.091 26.715 36 24 36c-5.198 0-9.625-3.317-11.288-7.946l-6.525 5.025C9.5 39.556 16.227 44 24 44Z" />
-                                        <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.05 12.05 0 0 1-4.084 5.57h.003l6.19 5.238C36.972 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917Z" />
-                                    </svg>
-                                    Continue with Gmail
+                                    {isLoading ? (
+                                        <>
+                                            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
+                                            Signing In...
+                                        </>
+                                    ) : (
+                                        <>
+                                            Sign In
+                                            <ArrowRight size={18} />
+                                        </>
+                                    )}
                                 </motion.button>
+                            </motion.form>
 
-                                <motion.div
-                                    variants={itemVariants}
-                                    className="mt-6 text-center"
-                                >
-                                    <p className="text-sm text-slate-500">
-                                        Don&apos;t have an account?{" "}
-                                        <Link
-                                            to="/register"
-                                            className="font-bold text-[#b99117] transition hover:text-[#0f4d3c]"
-                                        >
-                                            Register here
-                                        </Link>
-                                    </p>
-                                </motion.div>
-                            </div>
-                        </motion.div>
+                            <motion.div variants={itemVariants} className="relative my-6">
+                                <div className="absolute inset-0 flex items-center">
+                                    <div className="w-full border-t border-slate-200" />
+                                </div>
+                                <div className="relative flex justify-center">
+                                    <span className="bg-[#fffdf7] px-3 text-sm text-slate-400">
+                                        or continue with
+                                    </span>
+                                </div>
+                            </motion.div>
+
+                            <motion.button
+                                variants={itemVariants}
+                                whileHover={{ scale: 1.01, y: -2 }}
+                                whileTap={{ scale: 0.98 }}
+                                type="button"
+                                onClick={handleGoogleLogin}
+                                disabled={isLoading}
+                                className="flex w-full items-center justify-center gap-3 rounded-2xl border border-[#0f4d3c]/15 bg-white/90 px-4 py-3.5 font-semibold text-slate-700 shadow-sm transition hover:border-[#d4af37]/70 hover:bg-white hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-70"
+                            >
+                                <svg className="h-5 w-5" viewBox="0 0 48 48" aria-hidden="true">
+                                    <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303C33.659 32.657 29.219 36 24 36c-6.627 0-12-5.373-12-12S17.373 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.278 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917Z" />
+                                    <path fill="#FF3D00" d="M6.306 14.691 12.88 19.51C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.278 4 24 4c-7.682 0-14.347 4.337-17.694 10.691Z" />
+                                    <path fill="#4CAF50" d="M24 44c5.176 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.143 35.091 26.715 36 24 36c-5.198 0-9.625-3.317-11.288-7.946l-6.525 5.025C9.5 39.556 16.227 44 24 44Z" />
+                                    <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.05 12.05 0 0 1-4.084 5.57h.003l6.19 5.238C36.972 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917Z" />
+                                </svg>
+                                Continue with Gmail
+                            </motion.button>
+
+                            <motion.div
+                                variants={itemVariants}
+                                className="mt-6 text-center"
+                            >
+                                <p className="text-sm text-slate-500">
+                                    Don&apos;t have an account?{" "}
+                                    <Link
+                                        to="/register"
+                                        className="font-bold text-[#b99117] transition hover:text-[#0f4d3c]"
+                                    >
+                                        Register here
+                                    </Link>
+                                </p>
+                            </motion.div>
+                        </div>
                     </motion.div>
+                </motion.div>
             </div>
         </motion.div>
     );
