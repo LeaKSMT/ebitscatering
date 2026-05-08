@@ -84,7 +84,7 @@ function AdminSidebar({ theme = "light" }) {
                                     className="h-12 w-auto object-contain"
                                 />
                             </div>
-                            <h1 className="truncate text-[22px] font-extrabold tracking-tight text-[#f5d36a]">
+                            <h1 className="text-[22px] font-extrabold tracking-tight text-[#f5d36a]">
                                 Ebit's Catering and Services
                             </h1>
                             <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/65">

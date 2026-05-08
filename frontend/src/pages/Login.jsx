@@ -519,16 +519,6 @@ function Login() {
                                     className="h-20 w-auto object-contain"
                                 />
                             </motion.div>
-
-                            <motion.div
-                                variants={itemVariants}
-                                whileHover={{ scale: 1.03, y: -2 }}
-                                className="inline-flex items-center gap-2 rounded-full border border-[#d4af37]/40 bg-white/10 px-4 py-2 text-sm font-semibold text-[#f7d97b] shadow-lg backdrop-blur-xl"
-                            >
-                                <Sparkles size={16} />
-                                Premium Catering Experience
-                            </motion.div>
-
                             <motion.h1
                                 variants={itemVariants}
                                 className="mt-8 text-5xl font-black leading-tight tracking-tight xl:text-6xl"
