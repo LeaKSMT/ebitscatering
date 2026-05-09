@@ -92,7 +92,9 @@ function packageToForm(item) {
         showOnClient: item?.showOnClient !== false,
     };
 }
-
+function isAddOnItem(item) {
+    return item?.packageGroup === "Add-on" || item?.category === "Add-on Service";
+}
 function SummaryCard({ label, value, delay = 0 }) {
     return (
         <motion.div
@@ -117,6 +119,7 @@ function AdminPackageCard({ item, index = 0, onEdit, onArchive }) {
     const features = Array.isArray(item.features) ? item.features : [];
     const active = item.isActive !== false;
     const visible = item.showOnClient !== false;
+    const isAddOn = isAddOnItem(item);
 
     return (
         <motion.div
@@ -127,8 +130,8 @@ function AdminPackageCard({ item, index = 0, onEdit, onArchive }) {
             transition={{ duration: 0.46, delay: index * 0.05, ease: "easeOut" }}
             whileHover={{ y: -4 }}
             className={`rounded-[28px] border p-6 shadow-[0_14px_36px_rgba(14,61,47,0.06)] transition-shadow hover:shadow-[0_18px_42px_rgba(14,61,47,0.10)] ${active
-                    ? "border-[#dce7e2] bg-white"
-                    : "border-slate-200 bg-slate-50 opacity-80"
+                ? "border-[#dce7e2] bg-white"
+                : "border-slate-200 bg-slate-50 opacity-80"
                 }`}
         >
             <div className="flex items-start justify-between gap-4">
@@ -140,8 +143,8 @@ function AdminPackageCard({ item, index = 0, onEdit, onArchive }) {
 
                         <span
                             className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] ${active
-                                    ? "bg-emerald-50 text-emerald-700"
-                                    : "bg-slate-200 text-slate-600"
+                                ? "bg-emerald-50 text-emerald-700"
+                                : "bg-slate-200 text-slate-600"
                                 }`}
                         >
                             {active ? "Active" : "Inactive"}
@@ -149,8 +152,8 @@ function AdminPackageCard({ item, index = 0, onEdit, onArchive }) {
 
                         <span
                             className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] ${visible
-                                    ? "bg-[#fff7df] text-[#a57a10]"
-                                    : "bg-red-50 text-red-600"
+                                ? "bg-[#fff7df] text-[#a57a10]"
+                                : "bg-red-50 text-red-600"
                                 }`}
                         >
                             {visible ? <Eye size={12} /> : <EyeOff size={12} />}
@@ -186,7 +189,7 @@ function AdminPackageCard({ item, index = 0, onEdit, onArchive }) {
                         className="inline-flex items-center gap-1.5 rounded-xl border border-[#dce7e2] bg-[#f8fbfa] px-3 py-1.5 text-xs font-bold text-[#0f4d3c] transition hover:border-[#d4af37] hover:bg-[#fff8e6]"
                     >
                         <Pencil size={13} />
-                        Edit Package
+                        {isAddOn ? "Edit Add-on" : "Edit Package"}
                     </motion.button>
 
                     <motion.button
@@ -206,12 +209,12 @@ function AdminPackageCard({ item, index = 0, onEdit, onArchive }) {
 
             <div className="mt-5">
                 <h4 className="text-sm font-bold uppercase tracking-[0.16em] text-[#0f4d3c]">
-                    Full Inclusions
+                    {isAddOn ? "Add-on Details" : "Full Inclusions"}
                 </h4>
 
                 {features.length === 0 ? (
                     <p className="mt-4 rounded-2xl border border-dashed border-[#dce7e2] bg-[#f8fbfa] px-4 py-3 text-sm text-slate-500">
-                        No inclusions saved yet.
+                        {isAddOn ? "No add-on details saved yet." : "No inclusions saved yet."}
                     </p>
                 ) : (
                     <ul className="mt-4 grid gap-3">
@@ -287,6 +290,9 @@ function PackageModal({
         });
     };
 
+    const isAddOn = form.packageGroup === "Add-on";
+    const itemLabel = isAddOn ? "Add-on" : "Package";
+
     return (
         <motion.div
             initial={{ opacity: 0 }}
@@ -306,13 +312,15 @@ function PackageModal({
                 <div className="flex items-start justify-between gap-4 border-b border-[#edf2ef] bg-[linear-gradient(180deg,#fffdf6_0%,#f8fbfa_100%)] px-6 py-5">
                     <div>
                         <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#b99117]">
-                            {mode === "add" ? "Add New Package" : "Edit Package"}
+                            {mode === "add" ? `Add New ${itemLabel}` : `Edit ${itemLabel}`}
                         </p>
                         <h3 className="mt-2 text-2xl font-extrabold text-[#0f4d3c]">
-                            {mode === "add" ? "Create Package" : form.title || "Package Details"}
+                            {mode === "add" ? `Create ${itemLabel}` : form.title || `${itemLabel} Details`}
                         </h3>
                         <p className="mt-1 text-sm text-slate-500">
-                            Manage package details, pricing, inclusions, status, and client visibility.
+                            {isAddOn
+                                ? "Manage add-on details, pricing, inclusions, status, and client visibility."
+                                : "Manage package details, pricing, inclusions, status, and client visibility."}
                         </p>
                     </div>
 
@@ -337,7 +345,7 @@ function PackageModal({
                     <div className="grid gap-4 md:grid-cols-2">
                         <div>
                             <label className="mb-2 block text-sm font-semibold text-[#0f4d3c]">
-                                Package Group
+                                Type / Group
                             </label>
                             <select
                                 value={form.packageGroup}
@@ -367,20 +375,20 @@ function PackageModal({
 
                         <div>
                             <label className="mb-2 block text-sm font-semibold text-[#0f4d3c]">
-                                Package Name
+                                {isAddOn ? "Add-on Name" : "Package Name"}
                             </label>
                             <input
                                 type="text"
                                 value={form.title}
                                 onChange={(e) => updateField("title", e.target.value)}
-                                placeholder="Basic Wedding Package"
+                                placeholder={isAddOn ? "Cake / Host / Photo" : "Basic Wedding Package"}
                                 className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3.5 text-slate-800 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
                             />
                         </div>
 
                         <div>
                             <label className="mb-2 block text-sm font-semibold text-[#0f4d3c]">
-                                Pax / Guest Count
+                                {isAddOn ? "Pax / Guest Count (Optional)" : "Pax / Guest Count"}
                             </label>
                             <input
                                 type="text"
@@ -410,8 +418,8 @@ function PackageModal({
                                 type="button"
                                 onClick={() => updateField("isActive", !form.isActive)}
                                 className={`rounded-2xl border px-4 py-3 text-sm font-bold transition ${form.isActive
-                                        ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                                        : "border-slate-200 bg-slate-50 text-slate-500"
+                                    ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                                    : "border-slate-200 bg-slate-50 text-slate-500"
                                     }`}
                             >
                                 {form.isActive ? "Active" : "Inactive"}
@@ -421,8 +429,8 @@ function PackageModal({
                                 type="button"
                                 onClick={() => updateField("showOnClient", !form.showOnClient)}
                                 className={`rounded-2xl border px-4 py-3 text-sm font-bold transition ${form.showOnClient
-                                        ? "border-[#f0e2b7] bg-[#fff8e6] text-[#9a7513]"
-                                        : "border-red-100 bg-red-50 text-red-600"
+                                    ? "border-[#f0e2b7] bg-[#fff8e6] text-[#9a7513]"
+                                    : "border-red-100 bg-red-50 text-red-600"
                                     }`}
                             >
                                 {form.showOnClient ? "Show on Client" : "Hidden"}
@@ -447,10 +455,10 @@ function PackageModal({
                         <div className="mb-4 flex items-center justify-between gap-3">
                             <div>
                                 <h4 className="text-sm font-bold uppercase tracking-[0.16em] text-[#0f4d3c]">
-                                    Package Inclusions
+                                    {isAddOn ? "Add-on Details" : "Package Inclusions"}
                                 </h4>
                                 <p className="mt-1 text-xs text-slate-500">
-                                    Add each inclusion one by one.
+                                    {isAddOn ? "Add details for this add-on service." : "Add each inclusion one by one."}
                                 </p>
                             </div>
 
@@ -460,7 +468,7 @@ function PackageModal({
                                 className="inline-flex items-center gap-2 rounded-2xl bg-[#0f4d3c] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#0b3f31]"
                             >
                                 <Plus size={14} />
-                                Add Inclusion
+                                {isAddOn ? "Add Detail" : "Add Inclusion"}
                             </button>
                         </div>
 
@@ -471,7 +479,7 @@ function PackageModal({
                                         type="text"
                                         value={feature}
                                         onChange={(e) => updateFeature(index, e.target.value)}
-                                        placeholder={`Inclusion ${index + 1}`}
+                                        placeholder={isAddOn ? `Detail ${index + 1}` : `Inclusion ${index + 1}`}
                                         className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-slate-800 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
                                     />
 
@@ -512,7 +520,7 @@ function PackageModal({
                             ) : (
                                 <Save size={16} />
                             )}
-                            {mode === "add" ? "Save Package" : "Update Package"}
+                            {mode === "add" ? `Save ${itemLabel}` : `Update ${itemLabel}`}
                         </motion.button>
                     </div>
                 </div>
@@ -601,11 +609,29 @@ function AdminPackages() {
 
         return orderedGroups;
     }, [packages]);
-
     const openAddModal = () => {
         setModalMode("add");
         setEditingPackage(null);
         setForm(emptyForm);
+        setSaveError("");
+        setSuccessMessage("");
+        setModalOpen(true);
+    };
+    const openAddOnModal = () => {
+        setModalMode("add");
+        setEditingPackage(null);
+        setForm({
+            ...emptyForm,
+            title: "",
+            description: "",
+            category: "Add-on Service",
+            packageGroup: "Add-on",
+            pax: "",
+            price: "",
+            features: [""],
+            isActive: true,
+            showOnClient: true,
+        });
         setSaveError("");
         setSuccessMessage("");
         setModalOpen(true);
@@ -629,8 +655,10 @@ function AdminPackages() {
     };
 
     const validateForm = () => {
+        const itemLabel = form.packageGroup === "Add-on" ? "Add-on" : "Package";
+
         if (!form.title.trim()) {
-            return "Package name is required.";
+            return `${itemLabel} name is required.`;
         }
 
         if (!form.category.trim()) {
@@ -638,7 +666,7 @@ function AdminPackages() {
         }
 
         if (!form.packageGroup.trim()) {
-            return "Package group is required.";
+            return `${itemLabel} group is required.`;
         }
 
         const numericPrice = Number(form.price);
@@ -706,8 +734,12 @@ function AdminPackages() {
 
             await fetchPackages();
             closeModal();
+            const itemLabel = form.packageGroup === "Add-on" ? "Add-on" : "Package";
+
             setSuccessMessage(
-                isAdd ? "Package added successfully." : "Package updated successfully."
+                isAdd
+                    ? `${itemLabel} added successfully.`
+                    : `${itemLabel} updated successfully.`
             );
         } catch (err) {
             console.error("Save package error:", err);
@@ -877,9 +909,22 @@ function AdminPackages() {
                                     </h2>
                                 </div>
 
-                                <p className="text-sm font-semibold text-slate-500">
-                                    {items.length} item{items.length > 1 ? "s" : ""}
-                                </p>
+                                <div className="flex flex-wrap items-center gap-3">
+                                    <p className="text-sm font-semibold text-slate-500">
+                                        {items.length} item{items.length > 1 ? "s" : ""}
+                                    </p>
+
+                                    {group === "Add-on" ? (
+                                        <button
+                                            type="button"
+                                            onClick={openAddOnModal}
+                                            className="inline-flex items-center gap-2 rounded-2xl bg-[#0f4d3c] px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-[#0b3f31]"
+                                        >
+                                            <Plus size={15} />
+                                            Add Add-on
+                                        </button>
+                                    ) : null}
+                                </div>
                             </div>
 
                             <div className="grid gap-6 xl:grid-cols-2">
