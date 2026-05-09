@@ -22,6 +22,7 @@ import {
 import { quotationService } from "../services/quotationService";
 
 const PAX_RATE = 400;
+const MAX_BOOKINGS_PER_DAY = 5;
 const MANUAL_BOOKINGS_KEY = "adminManualBookings";
 const EVENT_META_KEY = "adminEventMeta";
 
@@ -166,6 +167,32 @@ function formatDate(dateStr) {
         month: "long",
         day: "numeric",
     });
+}
+function getBookingPax(booking = {}) {
+    return Number(
+        booking.guests ||
+        booking.guestCount ||
+        booking.pax ||
+        booking.numberOfGuests ||
+        0
+    );
+}
+
+function getBookingLocation(booking = {}) {
+    return (
+        booking.venue ||
+        booking.location ||
+        booking.address ||
+        "No location"
+    );
+}
+
+function getBookingType(booking = {}) {
+    return booking.eventType || booking.occasion || booking.event_name || "Event";
+}
+
+function getBookingClient(booking = {}) {
+    return booking.fullName || booking.clientName || booking.client_name || "Unnamed client";
 }
 
 function getDateValue(item = {}) {
@@ -951,7 +978,7 @@ function AdminCalendar() {
         days.push(
             <div
                 key={`blank-${i}`}
-                className="min-h-[84px] rounded-[16px] border border-transparent sm:min-h-[140px] sm:rounded-[22px]" />
+                className="min-h-[84px] rounded-[16px] border border-transparent sm:min-h-[168px] sm:rounded-[22px]" />
         );
     }
 
@@ -962,6 +989,10 @@ function AdminCalendar() {
         ).padStart(2, "0")}`;
         const isToday = dateKey === todayKey;
         const hasBooking = dayBookings.length > 0;
+        const bookingCount = dayBookings.length;
+        const isFull = bookingCount >= MAX_BOOKINGS_PER_DAY;
+        const visibleDayBookings = dayBookings.slice(0, 3);
+        const hiddenBookingCount = Math.max(bookingCount - visibleDayBookings.length, 0);
 
         days.push(
             <motion.div
@@ -974,47 +1005,92 @@ function AdminCalendar() {
                     ease: "easeOut",
                 }}
                 whileHover={{ y: -3 }}
-                className={`group relative min-w-0 overflow-hidden rounded-[16px] border p-2 transition-all duration-200 sm:min-h-[140px] sm:rounded-[22px] sm:p-3 ${hasBooking
+                className={`group relative min-w-0 overflow-hidden rounded-[16px] border p-2 transition-all duration-200 sm:min-h-[168px] sm:rounded-[22px] sm:p-3 ${hasBooking
                     ? "border-[#d5b33f] bg-[linear-gradient(180deg,#fff6cf_0%,#f5dea0_100%)] text-[#174c3c] shadow-sm"
                     : "border-[#e8eceb] bg-[#f8fbfa] text-[#174c3c] hover:border-[#22b67f]/40 hover:shadow-sm"
                     } ${isToday ? "ring-2 ring-[#0f5b46]/60" : ""}`}
             >
-                <div className="flex items-start justify-between">
-                    <span className="text-base font-semibold">{day}</span>
-
+                <div className="flex items-center gap-1.5">
                     {hasBooking ? (
-                        <button
-                            type="button"
-                            onClick={() => openManageModal(dayBookings[0])}
-                            className="h-3.5 w-3.5 rounded-full bg-[#0f5b46] shadow"
-                            title="Manage booking"
-                        />
-                    ) : (
+                        <span
+                            className={`rounded-full px-2 py-1 text-[9px] font-extrabold sm:text-[10px] ${isFull
+                                ? "bg-[#8a4f00] text-white"
+                                : "bg-[#0f5b46] text-white"
+                                }`}
+                            title={`${bookingCount} out of ${MAX_BOOKINGS_PER_DAY} bookings`}
+                        >
+                            {bookingCount}/{MAX_BOOKINGS_PER_DAY}
+                        </span>
+                    ) : null}
+
+                    {!isFull ? (
                         <button
                             type="button"
                             onClick={() => openAddModal(dateKey)}
-                            className="opacity-0 transition group-hover:opacity-100"
+                            className={`transition ${hasBooking ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                                }`}
                             title="Add booking"
                         >
-                            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#0f5b46] shadow-sm">
-                                <Plus size={16} />
+                            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white text-[#0f5b46] shadow-sm">
+                                <Plus size={14} />
                             </span>
                         </button>
+                    ) : (
+                        <span className="rounded-full bg-red-600 px-2 py-1 text-[9px] font-extrabold uppercase text-white sm:text-[10px]">
+                            Full
+                        </span>
                     )}
                 </div>
 
                 {hasBooking && (
-                    <div className="mt-2 min-w-0 space-y-1 sm:mt-5 sm:space-y-2">
-                        <div className="truncate text-[10px] font-bold sm:text-sm">                            {dayBookings[0].eventType || "Booking"}
+                    <div className="mt-2 min-w-0 space-y-1.5 sm:mt-3">
+                        <div className="rounded-xl bg-white/45 px-2 py-1 text-[9px] font-extrabold uppercase tracking-[0.08em] text-[#8a640e] sm:text-[10px]">
+                            {bookingCount} / {MAX_BOOKINGS_PER_DAY} booked
+                        </div>
 
-                            {dayBookings[0].eventType || "Booking"}
-                        </div>
-                        <div className="truncate text-[9px] opacity-80 sm:text-xs">
-                            {dayBookings[0].fullName || "Unnamed client"}
-                        </div>
-                        <div className="hidden pt-1 sm:block">
-                            {renderStatusBadge(dayBookings[0].status)}
-                        </div>
+                        {visibleDayBookings.map((booking) => {
+                            const eventType = getBookingType(booking);
+                            const pax = getBookingPax(booking);
+                            const location = getBookingLocation(booking);
+                            const clientName = getBookingClient(booking);
+
+                            return (
+                                <button
+                                    key={booking.id}
+                                    type="button"
+                                    onClick={() => openManageModal(booking)}
+                                    className="w-full rounded-xl border border-[#dfc260]/70 bg-white/55 px-2 py-1.5 text-left transition hover:bg-white/80"
+                                    title="Manage booking"
+                                >
+                                    <div className="truncate text-[10px] font-extrabold text-[#174c3c] sm:text-[12px]">
+                                        {eventType} • {pax || 0} pax
+                                    </div>
+
+                                    <div className="truncate text-[9px] font-medium text-[#174c3c]/80 sm:text-[11px]">
+                                        {clientName}
+                                    </div>
+
+                                    <div className="truncate text-[9px] text-[#174c3c]/70 sm:text-[10px]">
+                                        {location}
+                                    </div>
+
+                                    <div className="mt-1 hidden sm:block">
+                                        {renderStatusBadge(booking.status)}
+                                    </div>
+                                </button>
+                            );
+                        })}
+
+                        {hiddenBookingCount > 0 ? (
+                            <button
+                                type="button"
+                                onClick={() => openManageModal(dayBookings[3] || dayBookings[0])}
+                                className="w-full rounded-xl border border-dashed border-[#b99117]/60 bg-white/40 px-2 py-1 text-left text-[10px] font-bold text-[#8a640e] transition hover:bg-white/70"
+                            >
+                                +{hiddenBookingCount} more booking
+                                {hiddenBookingCount > 1 ? "s" : ""}
+                            </button>
+                        ) : null}
                     </div>
                 )}
             </motion.div>
