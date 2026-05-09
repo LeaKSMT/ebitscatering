@@ -286,7 +286,6 @@ const debutPackages = [
         ],
     },
 ];
-
 const addOns = [
     { name: "Lights and Sounds", price: "₱4,000", icon: <Mic2 className="h-5 w-5" /> },
     { name: "Host", price: "₱3,500", icon: <PartyPopper className="h-5 w-5" /> },
@@ -294,6 +293,28 @@ const addOns = [
     { name: "Photo", price: "₱5,000", icon: <Camera className="h-5 w-5" /> },
     { name: "Photo/Video", price: "₱15,000", icon: <Camera className="h-5 w-5" /> },
     { name: "SDE", price: "₱27,000", icon: <Sparkles className="h-5 w-5" /> },
+];
+const classicMenus = [
+    {
+        name: "Classic A",
+        description: "A balanced menu selection for simple and elegant celebrations.",
+        items: ["Main Course Selection", "Side Dish / Pasta Option", "Dessert Option", "Drinks Option"],
+    },
+    {
+        name: "Classic B",
+        description: "A flexible menu option for birthdays, weddings, debuts, and family events.",
+        items: ["Main Course Selection", "Soup / Salad Option", "Dessert Option", "Drinks Option"],
+    },
+    {
+        name: "Classic C",
+        description: "A premium-style menu selection for larger and more formal celebrations.",
+        items: ["Main Course Selection", "Pasta / Salad Option", "Dessert Option", "Drinks Option"],
+    },
+    {
+        name: "Classic D",
+        description: "A complete classic menu option for clients who want a fuller catering setup.",
+        items: ["Main Course Selection", "Soup / Pasta / Salad Option", "Dessert Option", "Drinks Option"],
+    },
 ];
 
 
@@ -715,7 +736,44 @@ function StatCard({ item, index, featured = false }) {
         </motion.div>
     );
 }
+function ClassicMenuCard({ menu, index }) {
+    return (
+        <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }}
+            custom={index}
+            variants={cardReveal}
+            whileHover={{ y: -8, scale: 1.015 }}
+            className="group relative overflow-hidden rounded-[28px] border border-[#e8e2d6] bg-white p-6 shadow-[0_10px_28px_rgba(0,0,0,0.05)] transition hover:shadow-[0_22px_60px_rgba(212,165,20,0.18)]"
+        >
+            <div className="absolute right-0 top-0 h-24 w-24 translate-x-6 -translate-y-6 rounded-full bg-[#f2bf2f]/10 blur-2xl" />
 
+            <div className="relative z-10 mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#fbf4df] text-[#c99d1a] shadow-[0_8px_20px_rgba(212,165,20,0.08)]">
+                <Star className="h-5 w-5" />
+            </div>
+
+            <h3 className="relative z-10 text-xl font-black text-[#0b4d3b] md:text-2xl">
+                {menu.name}
+            </h3>
+
+            <p className="relative z-10 mt-3 text-sm leading-6 text-slate-500">
+                {menu.description}
+            </p>
+
+            <ul className="relative z-10 mt-5 space-y-3">
+                {menu.items.map((item) => (
+                    <li key={item} className="flex items-start gap-3 text-sm text-slate-700">
+                        <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#fff3cf]">
+                            <CheckCircle2 className="h-3.5 w-3.5 text-[#c99d1a]" />
+                        </span>
+                        <span>{item}</span>
+                    </li>
+                ))}
+            </ul>
+        </motion.div>
+    );
+}
 function AddOnCard({ addon, index }) {
     return (
         <motion.div
@@ -754,6 +812,7 @@ function Packages({ embedded = false }) {
     const [activeTab, setActiveTab] = useState("wedding");
     const [packagesFromAPI, setPackagesFromAPI] = useState([]);
 
+    const classicMenusRef = useRef(null);
     const weddingRef = useRef(null);
     const debutRef = useRef(null);
     const addonsRef = useRef(null);
@@ -875,6 +934,7 @@ function Packages({ embedded = false }) {
 
     const scrollToSection = (section) => {
         const map = {
+            classicMenus: classicMenusRef,
             wedding: weddingRef,
             debut: debutRef,
             addons: addonsRef,
@@ -894,6 +954,7 @@ function Packages({ embedded = false }) {
 
     useEffect(() => {
         const sections = [
+            { key: "classicMenus", ref: classicMenusRef },
             { key: "wedding", ref: weddingRef },
             { key: "debut", ref: debutRef },
             { key: "addons", ref: addonsRef },
@@ -927,11 +988,11 @@ function Packages({ embedded = false }) {
         "block rounded-2xl px-4 py-3 text-base font-semibold text-white transition hover:bg-white/10";
 
     const navTabs = [
+        { key: "classicMenus", label: "Classic Menus" },
         { key: "wedding", label: "Wedding" },
         { key: "debut", label: "Debut" },
         { key: "addons", label: "Add-ons" },
     ];
-
     return (<div className={`${embedded ? "" : "min-h-screen"} overflow-x-hidden bg-[#f6f3ec] text-[#0b4d3b]`}>
 
         {!embedded && (
@@ -1289,7 +1350,25 @@ function Packages({ embedded = false }) {
                 </div>
             </motion.div>
         </section>
+        <section
+            ref={classicMenusRef}
+            className="bg-[#f6f3ec] px-5 py-20 md:px-10 md:py-24 lg:px-20"
+        >
+            <div className="mx-auto max-w-6xl">
+                <SectionTitle
+                    eyebrow="Menu Selection"
+                    title="Classic"
+                    highlight="Menus"
+                    desc="Choose from Classic A, B, C, and D menu selections when requesting a quotation."
+                />
 
+                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                    {classicMenus.map((menu, index) => (
+                        <ClassicMenuCard key={menu.name} menu={menu} index={index} />
+                    ))}
+                </div>
+            </div>
+        </section>
         <section
             ref={weddingRef}
             className="bg-white px-5 py-20 md:px-10 md:py-24 lg:px-20"

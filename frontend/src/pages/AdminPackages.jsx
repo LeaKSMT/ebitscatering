@@ -833,16 +833,29 @@ function AdminPackages() {
                                 </p>
                             </div>
 
-                            <motion.button
-                                whileHover={{ y: -2, scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                                type="button"
-                                onClick={openAddModal}
-                                className="inline-flex w-fit items-center gap-2 rounded-2xl bg-[#f5c94a] px-5 py-3 text-sm font-extrabold text-[#0f4d3c] shadow-[0_14px_30px_rgba(0,0,0,0.18)] transition hover:bg-[#ffda67]"
-                            >
-                                <Plus size={17} />
-                                Add Package
-                            </motion.button>
+                            <div className="flex flex-wrap gap-3">
+                                <motion.button
+                                    whileHover={{ y: -2, scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    type="button"
+                                    onClick={openAddModal}
+                                    className="inline-flex w-fit items-center gap-2 rounded-2xl bg-[#f5c94a] px-5 py-3 text-sm font-extrabold text-[#0f4d3c] shadow-[0_14px_30px_rgba(0,0,0,0.18)] transition hover:bg-[#ffda67]"
+                                >
+                                    <Plus size={17} />
+                                    Add Package
+                                </motion.button>
+
+                                <motion.button
+                                    whileHover={{ y: -2, scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    type="button"
+                                    onClick={openAddOnModal}
+                                    className="inline-flex w-fit items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-5 py-3 text-sm font-extrabold text-white shadow-[0_14px_30px_rgba(0,0,0,0.18)] transition hover:bg-white/20"
+                                >
+                                    <Plus size={17} />
+                                    Add Add-on
+                                </motion.button>
+                            </div>
                         </div>
                     </div>
                 </motion.section>
