@@ -978,7 +978,7 @@ function AdminCalendar() {
         days.push(
             <div
                 key={`blank-${i}`}
-                className="min-h-[84px] rounded-[16px] border border-transparent sm:min-h-[168px] sm:rounded-[22px]" />
+                className="min-h-[84px] rounded-[16px] border border-transparent sm:min-h-[330px] sm:rounded-[22px]" />
         );
     }
 
@@ -991,7 +991,7 @@ function AdminCalendar() {
         const hasBooking = dayBookings.length > 0;
         const bookingCount = dayBookings.length;
         const isFull = bookingCount >= MAX_BOOKINGS_PER_DAY;
-        const visibleDayBookings = dayBookings.slice(0, 3);
+        const visibleDayBookings = dayBookings.slice(0, MAX_BOOKINGS_PER_DAY);
         const hiddenBookingCount = Math.max(bookingCount - visibleDayBookings.length, 0);
 
         days.push(
@@ -1005,41 +1005,49 @@ function AdminCalendar() {
                     ease: "easeOut",
                 }}
                 whileHover={{ y: -3 }}
-                className={`group relative min-w-0 overflow-hidden rounded-[16px] border p-2 transition-all duration-200 sm:min-h-[168px] sm:rounded-[22px] sm:p-3 ${hasBooking
+                className={`group relative min-w-0 overflow-hidden rounded-[16px] border p-2 transition-all duration-200 sm:min-h-[330px] sm:rounded-[22px] sm:p-3 ${hasBooking
                     ? "border-[#d5b33f] bg-[linear-gradient(180deg,#fff6cf_0%,#f5dea0_100%)] text-[#174c3c] shadow-sm"
                     : "border-[#e8eceb] bg-[#f8fbfa] text-[#174c3c] hover:border-[#22b67f]/40 hover:shadow-sm"
                     } ${isToday ? "ring-2 ring-[#0f5b46]/60" : ""}`}
             >
-                <div className="flex items-center gap-1.5">
-                    {hasBooking ? (
-                        <span
-                            className={`rounded-full px-2 py-1 text-[9px] font-extrabold sm:text-[10px] ${isFull
-                                ? "bg-[#8a4f00] text-white"
-                                : "bg-[#0f5b46] text-white"
-                                }`}
-                            title={`${bookingCount} out of ${MAX_BOOKINGS_PER_DAY} bookings`}
-                        >
-                            {bookingCount}/{MAX_BOOKINGS_PER_DAY}
+                <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/70 text-sm font-extrabold text-[#174c3c] shadow-sm">
+                            {day}
                         </span>
-                    ) : null}
 
-                    {!isFull ? (
-                        <button
-                            type="button"
-                            onClick={() => openAddModal(dateKey)}
-                            className={`transition ${hasBooking ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                                }`}
-                            title="Add booking"
-                        >
-                            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white text-[#0f5b46] shadow-sm">
-                                <Plus size={14} />
-                            </span>
-                        </button>
-                    ) : (
-                        <span className="rounded-full bg-red-600 px-2 py-1 text-[9px] font-extrabold uppercase text-white sm:text-[10px]">
-                            Full
-                        </span>
-                    )}
+                        <div className="flex items-center gap-1.5">
+                            {hasBooking ? (
+                                <span
+                                    className={`rounded-full px-2 py-1 text-[9px] font-extrabold sm:text-[10px] ${isFull
+                                        ? "bg-[#8a4f00] text-white"
+                                        : "bg-[#0f5b46] text-white"
+                                        }`}
+                                    title={`${bookingCount} out of ${MAX_BOOKINGS_PER_DAY} bookings`}
+                                >
+                                    {bookingCount}/{MAX_BOOKINGS_PER_DAY}
+                                </span>
+                            ) : null}
+
+                            {!isFull ? (
+                                <button
+                                    type="button"
+                                    onClick={() => openAddModal(dateKey)}
+                                    className={`transition ${hasBooking ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                                        }`}
+                                    title="Add booking"
+                                >
+                                    <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white text-[#0f5b46] shadow-sm">
+                                        <Plus size={14} />
+                                    </span>
+                                </button>
+                            ) : (
+                                <span className="rounded-full bg-red-600 px-2 py-1 text-[9px] font-extrabold uppercase text-white sm:text-[10px]">
+                                    Full
+                                </span>
+                            )}
+                        </div>
+                    </div>
                 </div>
 
                 {hasBooking && (
@@ -1081,16 +1089,7 @@ function AdminCalendar() {
                             );
                         })}
 
-                        {hiddenBookingCount > 0 ? (
-                            <button
-                                type="button"
-                                onClick={() => openManageModal(dayBookings[3] || dayBookings[0])}
-                                className="w-full rounded-xl border border-dashed border-[#b99117]/60 bg-white/40 px-2 py-1 text-left text-[10px] font-bold text-[#8a640e] transition hover:bg-white/70"
-                            >
-                                +{hiddenBookingCount} more booking
-                                {hiddenBookingCount > 1 ? "s" : ""}
-                            </button>
-                        ) : null}
+                        {hiddenBookingCount > 0 ? null : null}
                     </div>
                 )}
             </motion.div>
