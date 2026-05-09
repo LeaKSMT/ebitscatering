@@ -39,6 +39,7 @@ const PACKAGE_GROUPS = [
     { value: "Corporate", label: "Corporate Package", category: "Corporate Package" },
     { value: "Anniversary", label: "Anniversary Package", category: "Anniversary Package" },
     { value: "Christening", label: "Christening Package", category: "Christening Package" },
+    { value: "Classic Menu", label: "Classic Menu", category: "Classic Menu" },
     { value: "Add-on", label: "Add-on Service", category: "Add-on Service" },
     { value: "Custom", label: "Custom Package", category: "Custom Package" },
 ];
@@ -86,7 +87,10 @@ function packageToForm(item) {
         category: item?.category || "Wedding Package",
         packageGroup: item?.packageGroup || "Wedding",
         pax: item?.pax || "",
-        price: String(item?.rawPrice || getRawPrice(item?.price) || ""),
+        price:
+            item?.rawPrice === 0 || getRawPrice(item?.price) === 0
+                ? "0"
+                : String(item?.rawPrice || getRawPrice(item?.price) || ""),
         features: Array.isArray(item?.features) && item.features.length ? item.features : [""],
         isActive: item?.isActive !== false,
         showOnClient: item?.showOnClient !== false,
@@ -94,6 +98,10 @@ function packageToForm(item) {
 }
 function isAddOnItem(item) {
     return item?.packageGroup === "Add-on" || item?.category === "Add-on Service";
+}
+
+function isMenuItem(item) {
+    return item?.packageGroup === "Classic Menu" || item?.category === "Classic Menu";
 }
 function SummaryCard({ label, value, delay = 0 }) {
     return (
@@ -120,6 +128,7 @@ function AdminPackageCard({ item, index = 0, onEdit, onArchive }) {
     const active = item.isActive !== false;
     const visible = item.showOnClient !== false;
     const isAddOn = isAddOnItem(item);
+    const isMenu = isMenuItem(item);
 
     return (
         <motion.div
@@ -189,7 +198,7 @@ function AdminPackageCard({ item, index = 0, onEdit, onArchive }) {
                         className="inline-flex items-center gap-1.5 rounded-xl border border-[#dce7e2] bg-[#f8fbfa] px-3 py-1.5 text-xs font-bold text-[#0f4d3c] transition hover:border-[#d4af37] hover:bg-[#fff8e6]"
                     >
                         <Pencil size={13} />
-                        {isAddOn ? "Edit Add-on" : "Edit Package"}
+                        {isMenu ? "Edit Menu" : isAddOn ? "Edit Add-on" : "Edit Package"}
                     </motion.button>
 
                     <motion.button
@@ -209,12 +218,12 @@ function AdminPackageCard({ item, index = 0, onEdit, onArchive }) {
 
             <div className="mt-5">
                 <h4 className="text-sm font-bold uppercase tracking-[0.16em] text-[#0f4d3c]">
-                    {isAddOn ? "Add-on Details" : "Full Inclusions"}
+                    {isMenu ? "Menu Items" : isAddOn ? "Add-on Details" : "Full Inclusions"}
                 </h4>
 
                 {features.length === 0 ? (
                     <p className="mt-4 rounded-2xl border border-dashed border-[#dce7e2] bg-[#f8fbfa] px-4 py-3 text-sm text-slate-500">
-                        {isAddOn ? "No add-on details saved yet." : "No inclusions saved yet."}
+                        {isMenu ? "No menu items saved yet." : isAddOn ? "No add-on details saved yet." : "No inclusions saved yet."}
                     </p>
                 ) : (
                     <ul className="mt-4 grid gap-3">
@@ -291,7 +300,8 @@ function PackageModal({
     };
 
     const isAddOn = form.packageGroup === "Add-on";
-    const itemLabel = isAddOn ? "Add-on" : "Package";
+    const isMenu = form.packageGroup === "Classic Menu";
+    const itemLabel = isMenu ? "Menu" : isAddOn ? "Add-on" : "Package";
 
     return (
         <motion.div
@@ -318,9 +328,11 @@ function PackageModal({
                             {mode === "add" ? `Create ${itemLabel}` : form.title || `${itemLabel} Details`}
                         </h3>
                         <p className="mt-1 text-sm text-slate-500">
-                            {isAddOn
-                                ? "Manage add-on details, pricing, inclusions, status, and client visibility."
-                                : "Manage package details, pricing, inclusions, status, and client visibility."}
+                            {isMenu
+                                ? "Manage classic menu name, food items, status, and client visibility."
+                                : isAddOn
+                                    ? "Manage add-on details, pricing, inclusions, status, and client visibility."
+                                    : "Manage package details, pricing, inclusions, status, and client visibility."}
                         </p>
                     </div>
 
@@ -375,20 +387,20 @@ function PackageModal({
 
                         <div>
                             <label className="mb-2 block text-sm font-semibold text-[#0f4d3c]">
-                                {isAddOn ? "Add-on Name" : "Package Name"}
+                                {isMenu ? "Menu Name" : isAddOn ? "Add-on Name" : "Package Name"}
                             </label>
                             <input
                                 type="text"
                                 value={form.title}
                                 onChange={(e) => updateField("title", e.target.value)}
-                                placeholder={isAddOn ? "Cake / Host / Photo" : "Basic Wedding Package"}
+                                placeholder={isMenu ? "Classic A" : isAddOn ? "Cake / Host / Photo" : "Basic Wedding Package"}
                                 className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3.5 text-slate-800 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
                             />
                         </div>
 
                         <div>
                             <label className="mb-2 block text-sm font-semibold text-[#0f4d3c]">
-                                {isAddOn ? "Pax / Guest Count (Optional)" : "Pax / Guest Count"}
+                                {isMenu || isAddOn ? "Pax / Guest Count (Optional)" : "Pax / Guest Count"}
                             </label>
                             <input
                                 type="text"
@@ -401,14 +413,14 @@ function PackageModal({
 
                         <div>
                             <label className="mb-2 block text-sm font-semibold text-[#0f4d3c]">
-                                Price
+                                {isMenu ? "Price (0 for menu)" : "Price"}
                             </label>
                             <input
                                 type="number"
                                 min="0"
                                 value={form.price}
                                 onChange={(e) => updateField("price", e.target.value)}
-                                placeholder="58000"
+                                placeholder={isMenu ? "0" : "58000"}
                                 className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3.5 text-slate-800 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
                             />
                         </div>
@@ -455,11 +467,10 @@ function PackageModal({
                         <div className="mb-4 flex items-center justify-between gap-3">
                             <div>
                                 <h4 className="text-sm font-bold uppercase tracking-[0.16em] text-[#0f4d3c]">
-                                    {isAddOn ? "Add-on Details" : "Package Inclusions"}
+                                    {isMenu ? "Menu Items" : isAddOn ? "Add-on Details" : "Package Inclusions"}
                                 </h4>
                                 <p className="mt-1 text-xs text-slate-500">
-                                    {isAddOn ? "Add details for this add-on service." : "Add each inclusion one by one."}
-                                </p>
+                                    {isMenu ? "Add each food/menu item one by one." : isAddOn ? "Add details for this add-on service." : "Add each inclusion one by one."}                                </p>
                             </div>
 
                             <button
@@ -468,7 +479,7 @@ function PackageModal({
                                 className="inline-flex items-center gap-2 rounded-2xl bg-[#0f4d3c] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#0b3f31]"
                             >
                                 <Plus size={14} />
-                                {isAddOn ? "Add Detail" : "Add Inclusion"}
+                                {isMenu ? "Add Menu Item" : isAddOn ? "Add Detail" : "Add Inclusion"}
                             </button>
                         </div>
 
@@ -479,7 +490,7 @@ function PackageModal({
                                         type="text"
                                         value={feature}
                                         onChange={(e) => updateFeature(index, e.target.value)}
-                                        placeholder={isAddOn ? `Detail ${index + 1}` : `Inclusion ${index + 1}`}
+                                        placeholder={isMenu ? `Menu item ${index + 1}` : isAddOn ? `Detail ${index + 1}` : `Inclusion ${index + 1}`}
                                         className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-slate-800 outline-none transition focus:border-[#d4af37] focus:ring-2 focus:ring-[#d4af37]/20"
                                     />
 
@@ -617,6 +628,25 @@ function AdminPackages() {
         setSuccessMessage("");
         setModalOpen(true);
     };
+    const openAddMenuModal = () => {
+        setModalMode("add");
+        setEditingPackage(null);
+        setForm({
+            ...emptyForm,
+            title: "",
+            description: "Served with Rice, Iced Tea, and Water.",
+            category: "Classic Menu",
+            packageGroup: "Classic Menu",
+            pax: "",
+            price: "0",
+            features: [""],
+            isActive: true,
+            showOnClient: true,
+        });
+        setSaveError("");
+        setSuccessMessage("");
+        setModalOpen(true);
+    };
     const openAddOnModal = () => {
         setModalMode("add");
         setEditingPackage(null);
@@ -655,7 +685,8 @@ function AdminPackages() {
     };
 
     const validateForm = () => {
-        const itemLabel = form.packageGroup === "Add-on" ? "Add-on" : "Package";
+        const isMenu = form.packageGroup === "Classic Menu";
+        const itemLabel = isMenu ? "Menu" : form.packageGroup === "Add-on" ? "Add-on" : "Package";
 
         if (!form.title.trim()) {
             return `${itemLabel} name is required.`;
@@ -671,8 +702,10 @@ function AdminPackages() {
 
         const numericPrice = Number(form.price);
 
-        if (!numericPrice || numericPrice < 0) {
-            return "Please enter a valid price.";
+        if (!Number.isFinite(numericPrice) || numericPrice < 0 || (!isMenu && numericPrice === 0)) {
+            return isMenu
+                ? "Menu price can be 0, but it cannot be negative."
+                : "Please enter a valid price.";
         }
 
         return "";
@@ -734,8 +767,8 @@ function AdminPackages() {
 
             await fetchPackages();
             closeModal();
-            const itemLabel = form.packageGroup === "Add-on" ? "Add-on" : "Package";
 
+            const itemLabel = form.packageGroup === "Classic Menu" ? "Menu" : form.packageGroup === "Add-on" ? "Add-on" : "Package";
             setSuccessMessage(
                 isAdd
                     ? `${itemLabel} added successfully.`
@@ -844,6 +877,16 @@ function AdminPackages() {
                                     <Plus size={17} />
                                     Add Package
                                 </motion.button>
+                                <motion.button
+                                    whileHover={{ y: -2, scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    type="button"
+                                    onClick={openAddMenuModal}
+                                    className="inline-flex w-fit items-center gap-2 rounded-2xl border border-white/20 bg-white/10 px-5 py-3 text-sm font-extrabold text-white shadow-[0_14px_30px_rgba(0,0,0,0.18)] transition hover:bg-white/20"
+                                >
+                                    <Plus size={17} />
+                                    Add Menu
+                                </motion.button>
 
                                 <motion.button
                                     whileHover={{ y: -2, scale: 1.02 }}
@@ -915,10 +958,10 @@ function AdminPackages() {
                             <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                                 <div>
                                     <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#b99117]">
-                                        {group === "Add-on" ? "Optional Services" : "Catering Packages"}
+                                        {group === "Classic Menu" ? "Menu Selection" : group === "Add-on" ? "Optional Services" : "Catering Packages"}
                                     </p>
                                     <h2 className="mt-2 text-3xl font-extrabold text-[#0f4d3c]">
-                                        {group === "Add-on" ? "Available Add-ons" : `${group} Packages`}
+                                        {group === "Classic Menu" ? "Classic Menus" : group === "Add-on" ? "Available Add-ons" : `${group} Packages`}
                                     </h2>
                                 </div>
 
@@ -927,7 +970,16 @@ function AdminPackages() {
                                         {items.length} item{items.length > 1 ? "s" : ""}
                                     </p>
 
-                                    {group === "Add-on" ? (
+                                    {group === "Classic Menu" ? (
+                                        <button
+                                            type="button"
+                                            onClick={openAddMenuModal}
+                                            className="inline-flex items-center gap-2 rounded-2xl bg-[#0f4d3c] px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-[#0b3f31]"
+                                        >
+                                            <Plus size={15} />
+                                            Add Menu
+                                        </button>
+                                    ) : group === "Add-on" ? (
                                         <button
                                             type="button"
                                             onClick={openAddOnModal}
