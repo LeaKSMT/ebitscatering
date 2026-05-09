@@ -60,7 +60,28 @@ function safeJsonParse(value, fallback = []) {
         return fallback;
     }
 }
+function parseInputDate(value) {
+    if (!value) return null;
 
+    const dateText = String(value).slice(0, 10);
+    const [year, month, day] = dateText.split("-").map(Number);
+
+    if (!year || !month || !day) return null;
+
+    return new Date(year, month - 1, day);
+}
+
+function isPastDateValue(value) {
+    const selectedDate = parseInputDate(value);
+
+    if (!selectedDate) return false;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    selectedDate.setHours(0, 0, 0, 0);
+
+    return selectedDate < today;
+}
 function getPackageFromDatabase(packageType) {
     return new Promise((resolve) => {
         if (!packageType) {
@@ -68,15 +89,13 @@ function getPackageFromDatabase(packageType) {
         }
 
         const query = `
-            SELECT *
-            FROM packages
-            WHERE LOWER(TRIM(name)) = LOWER(TRIM(?))
-               OR LOWER(TRIM(title)) = LOWER(TRIM(?))
-               OR LOWER(TRIM(package_name)) = LOWER(TRIM(?))
-            LIMIT 1
-        `;
+    SELECT *
+    FROM packages
+    WHERE LOWER(TRIM(title)) = LOWER(TRIM(?))
+    LIMIT 1
+`;
 
-        db.query(query, [packageType, packageType, packageType], (err, results) => {
+        db.query(query, [packageType], (err, results) => {
             if (err) {
                 console.error("Fetch package price error:", err.message);
                 return resolve(null);
@@ -127,7 +146,62 @@ function getPackageFromDatabase(packageType) {
         });
     });
 }
+function getAddOnsTotalFromDatabase(addOns = []) {
+    return new Promise((resolve) => {
+        if (!Array.isArray(addOns) || addOns.length === 0) {
+            return resolve(0);
+        }
 
+        const normalizedNames = addOns
+            .map((name) => String(name || "").trim().toLowerCase())
+            .filter(Boolean);
+
+        if (normalizedNames.length === 0) {
+            return resolve(0);
+        }
+
+        const placeholders = normalizedNames.map(() => "?").join(",");
+
+        const query = `
+            SELECT title, price
+            FROM packages
+            WHERE package_group = 'Add-on'
+              AND LOWER(TRIM(title)) IN (${placeholders})
+        `;
+
+        db.query(query, normalizedNames, (err, results) => {
+            if (err) {
+                console.error("Fetch add-on prices error:", err.message);
+
+                const fallbackTotal = addOns.reduce(
+                    (sum, name) => sum + Number(ADD_ON_PRICE_MAP[name] || 0),
+                    0
+                );
+
+                return resolve(fallbackTotal);
+            }
+
+            const dbPriceMap = {};
+
+            (results || []).forEach((item) => {
+                dbPriceMap[String(item.title || "").trim().toLowerCase()] =
+                    Number(item.price || 0);
+            });
+
+            const total = addOns.reduce((sum, name) => {
+                const key = String(name || "").trim().toLowerCase();
+
+                if (dbPriceMap[key] !== undefined) {
+                    return sum + Number(dbPriceMap[key] || 0);
+                }
+
+                return sum + Number(ADD_ON_PRICE_MAP[name] || 0);
+            }, 0);
+
+            return resolve(total);
+        });
+    });
+}
 async function computeQuotationPricing(packageType, guests, addOns = []) {
     const databasePackage = await getPackageFromDatabase(packageType);
     const fallbackPackage = PACKAGE_PRICE_MAP[packageType];
@@ -135,9 +209,9 @@ async function computeQuotationPricing(packageType, guests, addOns = []) {
 
     const guestCount = Number(guests || 0);
 
-    const addOnsTotal = Array.isArray(addOns)
-        ? addOns.reduce((sum, name) => sum + Number(ADD_ON_PRICE_MAP[name] || 0), 0)
-        : 0;
+    const addOnsTotal = await getAddOnsTotalFromDatabase(
+        Array.isArray(addOns) ? addOns : []
+    );
 
     if (!selectedPackage) {
         return {
@@ -290,7 +364,11 @@ exports.createQuotation = async (req, res) => {
             message: "full_name, email, event_type, preferred_date, and venue are required",
         });
     }
-
+    if (isPastDateValue(preferred_date)) {
+        return res.status(400).json({
+            message: "Past dates are not allowed. Please select today or a future date.",
+        });
+    }
     const normalizedEmail = String(email || "").trim().toLowerCase();
     const normalizedOwnerEmail = String(owner_email || email || "")
         .trim()
@@ -488,6 +566,19 @@ exports.updateQuotation = (req, res) => {
 
         const nextGuests = Number(body.guests ?? body.guestCount ?? current.guests ?? 0);
 
+        const nextPreferredDate =
+            body.preferredDate ||
+            body.preferred_date ||
+            body.eventDate ||
+            current.preferred_date ||
+            null;
+
+        if (isPastDateValue(nextPreferredDate)) {
+            return res.status(400).json({
+                message: "Past dates are not allowed. Please select today or a future date.",
+            });
+        }
+
         const recalculated = await computeQuotationPricing(
             nextPackageType,
             nextGuests,
@@ -546,11 +637,7 @@ exports.updateQuotation = (req, res) => {
             nextEmail || null,
             body.contactNumber || body.contact_number || current.contact_number || null,
             body.eventType || body.event_type || current.event_type || null,
-            body.preferredDate ||
-            body.preferred_date ||
-            body.eventDate ||
-            current.preferred_date ||
-            null,
+            nextPreferredDate,
             body.eventTime || body.event_time || current.event_time || null,
             body.venue || current.venue || null,
             nextGuests,
@@ -645,6 +732,12 @@ exports.updateQuotationStatus = (req, res) => {
         }
 
         const quotation = quotationResults[0];
+
+        if (shouldCreateBooking(status) && isPastDateValue(quotation.preferred_date)) {
+            return res.status(400).json({
+                message: "This quotation has a past event date and cannot be approved as a booking.",
+            });
+        }
 
         db.query(
             `UPDATE quotations SET status = ? WHERE id = ?`,
