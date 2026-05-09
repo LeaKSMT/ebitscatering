@@ -552,7 +552,21 @@ function toInputDateValue(date) {
     const day = String(date.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
 }
+function isPastInputDate(value) {
+    const selectedDate = dateFromInputValue(value);
+    if (!selectedDate) return false;
 
+    const today = new Date();
+    const todayDate = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate()
+    );
+
+    selectedDate.setHours(0, 0, 0, 0);
+
+    return selectedDate < todayDate;
+}
 function formatDateDisplay(value) {
     const date = dateFromInputValue(value);
     if (!date) return "Select preferred date";
@@ -919,8 +933,20 @@ function Quotation({ mode = "public" }) {
             return updated;
         });
     };
-
+    useEffect(() => {
+        if (formData.preferredDate && isPastInputDate(formData.preferredDate)) {
+            setFormData((prev) => ({
+                ...prev,
+                preferredDate: "",
+            }));
+        }
+    }, [formData.preferredDate]);
     const handleDateChange = (value) => {
+        if (value && isPastInputDate(value)) {
+            alert("Past dates are not allowed. Please select today or a future date.");
+            return;
+        }
+
         setFormData((prev) => ({
             ...prev,
             preferredDate: value,
@@ -931,7 +957,15 @@ function Quotation({ mode = "public" }) {
         e.preventDefault();
 
         if (isSubmitting) return;
+        if (!formData.preferredDate) {
+            alert("Please select your preferred event date.");
+            return;
+        }
 
+        if (isPastInputDate(formData.preferredDate)) {
+            alert("Past dates are not allowed. Please select today or a future date.");
+            return;
+        }
         const startMinutes = timeToMinutes(formData.eventStartTime);
         const endMinutes = timeToMinutes(formData.eventEndTime);
 
@@ -1743,10 +1777,15 @@ function PremiumDatePicker({ value, onChange, isDark }) {
                                 const inCurrentMonth = date.getMonth() === viewDate.getMonth();
                                 const selected = selectedDate ? isSameDay(date, selectedDate) : false;
                                 const todayMatch = isSameDay(date, today);
+                                const isPastDate = date < today;
 
                                 let dayClass = defaultDayClass;
 
-                                if (selected) {
+                                if (isPastDate) {
+                                    dayClass = isDark
+                                        ? "h-11 cursor-not-allowed rounded-2xl text-sm font-medium text-white/20 opacity-40"
+                                        : "h-11 cursor-not-allowed rounded-2xl text-sm font-medium text-slate-300 opacity-50";
+                                } else if (selected) {
                                     dayClass = "h-11 rounded-2xl bg-[linear-gradient(135deg,#0f4d3c_0%,#126650_100%)] text-sm font-bold text-white shadow-sm";
                                 } else if (!inCurrentMonth) {
                                     dayClass = isDark
@@ -1759,7 +1798,18 @@ function PremiumDatePicker({ value, onChange, isDark }) {
                                 }
 
                                 return (
-                                    <button key={date.toISOString()} type="button" onClick={() => { onChange(toInputDateValue(date)); setOpen(false); }} className={dayClass}>
+                                    <button
+                                        key={date.toISOString()}
+                                        type="button"
+                                        disabled={isPastDate}
+                                        onClick={() => {
+                                            if (isPastDate) return;
+                                            onChange(toInputDateValue(date));
+                                            setOpen(false);
+                                        }}
+                                        className={dayClass}
+                                        title={isPastDate ? "Past dates are not allowed" : "Select date"}
+                                    >
                                         {date.getDate()}
                                     </button>
                                 );
