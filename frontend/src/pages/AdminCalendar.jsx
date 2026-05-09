@@ -978,7 +978,7 @@ function AdminCalendar() {
         days.push(
             <div
                 key={`blank-${i}`}
-                className="min-h-[84px] rounded-[16px] border border-transparent sm:min-h-[330px] sm:rounded-[22px]" />
+                className="min-h-[84px] rounded-[16px] border border-transparent sm:min-h-[260px] sm:rounded-[22px]" />
         );
     }
 
@@ -1005,7 +1005,7 @@ function AdminCalendar() {
                     ease: "easeOut",
                 }}
                 whileHover={{ y: -3 }}
-                className={`group relative min-w-0 overflow-hidden rounded-[16px] border p-2 transition-all duration-200 sm:min-h-[330px] sm:rounded-[22px] sm:p-3 ${hasBooking
+                className={`group relative min-w-0 overflow-hidden rounded-[16px] border p-2 transition-all duration-200 sm:min-h-[260px] sm:rounded-[22px] sm:p-3 ${hasBooking
                     ? "border-[#d5b33f] bg-[linear-gradient(180deg,#fff6cf_0%,#f5dea0_100%)] text-[#174c3c] shadow-sm"
                     : "border-[#e8eceb] bg-[#f8fbfa] text-[#174c3c] hover:border-[#22b67f]/40 hover:shadow-sm"
                     } ${isToday ? "ring-2 ring-[#0f5b46]/60" : ""}`}
@@ -1051,7 +1051,7 @@ function AdminCalendar() {
                 </div>
 
                 {hasBooking && (
-                    <div className="mt-2 min-w-0 space-y-1.5 sm:mt-3">
+                    <div className="mt-2 min-w-0 space-y-1.5 sm:mt-2">
                         <div className="rounded-xl bg-white/45 px-2 py-1 text-[9px] font-extrabold uppercase tracking-[0.08em] text-[#8a640e] sm:text-[10px]">
                             {bookingCount} / {MAX_BOOKINGS_PER_DAY} booked
                         </div>
@@ -1061,29 +1061,40 @@ function AdminCalendar() {
                             const pax = getBookingPax(booking);
                             const location = getBookingLocation(booking);
                             const clientName = getBookingClient(booking);
+                            const statusKey = normalizeStatus(booking.status);
+                            const statusLabel = capitalizeStatus(booking.status);
 
                             return (
                                 <button
                                     key={booking.id}
                                     type="button"
                                     onClick={() => openManageModal(booking)}
-                                    className="w-full rounded-xl border border-[#dfc260]/70 bg-white/55 px-2 py-1.5 text-left transition hover:bg-white/80"
+                                    className="w-full rounded-lg border border-[#dfc260]/70 bg-white/55 px-2 py-1 text-left transition hover:bg-white/80"
                                     title="Manage booking"
                                 >
-                                    <div className="truncate text-[10px] font-extrabold text-[#174c3c] sm:text-[12px]">
-                                        {eventType} • {pax || 0} pax
-                                    </div>
+                                    <div className="flex items-start justify-between gap-2">
+                                        <div className="min-w-0">
+                                            <div className="truncate text-[10px] font-extrabold text-[#174c3c]">
+                                                {eventType} • {pax || 0} pax
+                                            </div>
 
-                                    <div className="truncate text-[9px] font-medium text-[#174c3c]/80 sm:text-[11px]">
-                                        {clientName}
-                                    </div>
+                                            <div className="truncate text-[9px] font-medium text-[#174c3c]/75">
+                                                {clientName} • {location}
+                                            </div>
+                                        </div>
 
-                                    <div className="truncate text-[9px] text-[#174c3c]/70 sm:text-[10px]">
-                                        {location}
-                                    </div>
-
-                                    <div className="mt-1 hidden sm:block">
-                                        {renderStatusBadge(booking.status)}
+                                        <span
+                                            className={`shrink-0 rounded-full px-2 py-[3px] text-[8px] font-extrabold ${statusKey === "pending"
+                                                ? "bg-[#2563eb] text-white"
+                                                : statusKey === "cancelled"
+                                                    ? "bg-red-600 text-white"
+                                                    : statusKey === "ongoing"
+                                                        ? "bg-[#f0b429] text-[#2f2200]"
+                                                        : "bg-[#22b67f] text-white"
+                                                }`}
+                                        >
+                                            {statusLabel}
+                                        </span>
                                     </div>
                                 </button>
                             );
