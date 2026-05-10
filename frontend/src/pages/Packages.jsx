@@ -297,23 +297,51 @@ const addOns = [
 const classicMenus = [
     {
         name: "Classic A",
-        description: "A balanced menu selection for simple and elegant celebrations.",
-        items: ["Main Course Selection", "Side Dish / Pasta Option", "Dessert Option", "Drinks Option"],
+        description: "Served with Rice, Iced Tea, and Water.",
+        items: [
+            "Creamy Carbonara",
+            "Chicken Cordon Bleu",
+            "Vegetable",
+            "Pork Asado",
+            "Fish Fillet with Tartar Sauce",
+            "Buko Pandan",
+        ],
     },
     {
         name: "Classic B",
-        description: "A flexible menu option for birthdays, weddings, debuts, and family events.",
-        items: ["Main Course Selection", "Soup / Salad Option", "Dessert Option", "Drinks Option"],
+        description: "Served with Rice, Iced Tea, and Water.",
+        items: [
+            "Pancit Malabon",
+            "Sliced Roast Pork with Mushroom Sauce",
+            "Breaded Baked Chicken",
+            "Buttered Mixed Seafood",
+            "Vegetable",
+            "Buko Salad",
+        ],
     },
     {
         name: "Classic C",
-        description: "A premium-style menu selection for larger and more formal celebrations.",
-        items: ["Main Course Selection", "Pasta / Salad Option", "Dessert Option", "Drinks Option"],
+        description: "Served with Rice, Iced Tea, and Water.",
+        items: [
+            "Spaghetti",
+            "Vegetable",
+            "Seafood Kare Kare",
+            "Grilled Pork with Mushroom Sauce",
+            "Chicken Pastel",
+            "Fruit Cocktail Salad",
+        ],
     },
     {
         name: "Classic D",
-        description: "A complete classic menu option for clients who want a fuller catering setup.",
-        items: ["Main Course Selection", "Soup / Pasta / Salad Option", "Dessert Option", "Drinks Option"],
+        description: "Served with Rice, Iced Tea, and Water.",
+        items: [
+            "Mac and Cheese",
+            "Pork Caldereta",
+            "Vegetable",
+            "Chicken Teriyaki",
+            "Sweet and Sour Fish",
+            "Coffee Jelly",
+        ],
     },
 ];
 
@@ -368,6 +396,7 @@ function normalizeEventType(value, packageName = "") {
         if (lowered.includes("birthday")) return "Birthday";
         if (lowered.includes("anniversary")) return "Anniversary";
         if (lowered.includes("baptismal")) return "Baptismal";
+        if (lowered.includes("classic menu") || lowered.includes("menu")) return "Classic Menu";
         if (lowered.includes("add")) return "Add-on";
         return raw.charAt(0).toUpperCase() + raw.slice(1);
     }
@@ -378,6 +407,7 @@ function normalizeEventType(value, packageName = "") {
     if (name.includes("birthday")) return "Birthday";
     if (name.includes("anniversary")) return "Anniversary";
     if (name.includes("baptismal")) return "Baptismal";
+    if (name.includes("classic menu") || name.includes("menu")) return "Classic Menu";
     if (name.includes("add")) return "Add-on";
 
     return "";
@@ -809,12 +839,13 @@ function AddOnCard({ addon, index }) {
 function Packages({ embedded = false }) {
     const navigate = useNavigate();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const [activeTab, setActiveTab] = useState("wedding");
+    const [activeTab, setActiveTab] = useState("classicMenus");
     const [packagesFromAPI, setPackagesFromAPI] = useState([]);
 
     const classicMenusRef = useRef(null);
     const weddingRef = useRef(null);
     const debutRef = useRef(null);
+    const otherPackagesRef = useRef(null);
     const addonsRef = useRef(null);
 
     useEffect(() => {
@@ -867,14 +898,37 @@ function Packages({ embedded = false }) {
         return filtered.length > 0 ? filtered : weddingPackages;
     }, [livePackages]);
 
-    const liveDebutPackages = useMemo(() => {
-        const filtered = livePackages.filter(
-            (item) => item.eventType === "Debut" || item.packageGroup === "Debut"
-        );
+    const liveOtherPackages = useMemo(() => {
+        return livePackages.filter((item) => {
+            const eventType = String(item.eventType || "").toLowerCase();
+            const group = String(item.packageGroup || item.category || "").toLowerCase();
 
-        return filtered.length > 0 ? filtered : debutPackages;
+            const isWedding = eventType === "wedding" || group.includes("wedding");
+            const isDebut = eventType === "debut" || group.includes("debut");
+            const isMenu = eventType === "classic menu" || group.includes("classic menu") || group === "menu";
+            const isAddOn = eventType === "add-on" || group.includes("add");
+
+            return !isWedding && !isDebut && !isMenu && !isAddOn;
+        });
     }, [livePackages]);
+    const liveClassicMenus = useMemo(() => {
+        const filtered = packagesFromAPI.filter((item) => {
+            const group = String(
+                item.packageGroup || item.category || item.eventType || ""
+            ).toLowerCase();
 
+            return group.includes("classic menu") || group.includes("menu");
+        });
+
+        if (filtered.length === 0) return classicMenus;
+
+        return filtered.map((item) => ({
+            name: item.title || item.name,
+            description:
+                item.description || "Served with Rice, Iced Tea, and Water.",
+            items: Array.isArray(item.features) ? item.features : [],
+        }));
+    }, [packagesFromAPI]);
     const liveAddOns = useMemo(() => {
         const filtered = packagesFromAPI.filter((item) => {
             const group = String(item.packageGroup || item.category || item.eventType || "").toLowerCase();
@@ -937,6 +991,7 @@ function Packages({ embedded = false }) {
             classicMenus: classicMenusRef,
             wedding: weddingRef,
             debut: debutRef,
+            other: otherPackagesRef,
             addons: addonsRef,
         };
 
@@ -957,6 +1012,7 @@ function Packages({ embedded = false }) {
             { key: "classicMenus", ref: classicMenusRef },
             { key: "wedding", ref: weddingRef },
             { key: "debut", ref: debutRef },
+            { key: "other", ref: otherPackagesRef },
             { key: "addons", ref: addonsRef },
         ];
 
@@ -991,6 +1047,9 @@ function Packages({ embedded = false }) {
         { key: "classicMenus", label: "Classic Menus" },
         { key: "wedding", label: "Wedding" },
         { key: "debut", label: "Debut" },
+        ...(liveOtherPackages.length > 0
+            ? [{ key: "other", label: "Other Packages" }]
+            : []),
         { key: "addons", label: "Add-ons" },
     ];
     return (<div className={`${embedded ? "" : "min-h-screen"} overflow-x-hidden bg-[#f6f3ec] text-[#0b4d3b]`}>
@@ -1363,7 +1422,7 @@ function Packages({ embedded = false }) {
                 />
 
                 <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                    {classicMenus.map((menu, index) => (
+                    {liveClassicMenus.map((menu, index) => (
                         <ClassicMenuCard key={menu.name} menu={menu} index={index} />
                     ))}
                 </div>
@@ -1437,6 +1496,34 @@ function Packages({ embedded = false }) {
                 </div>
             </div>
         </section>
+
+        {liveOtherPackages.length > 0 && (
+            <section
+                ref={otherPackagesRef}
+                className="bg-white px-5 py-20 md:px-10 md:py-24 lg:px-20"
+            >
+                <div className="mx-auto max-w-7xl">
+                    <SectionTitle
+                        eyebrow="Celebration Collection"
+                        title="Other Event"
+                        highlight="Packages"
+                        desc="Additional packages for birthdays, anniversaries, baptismal celebrations, corporate events, and custom occasions."
+                    />
+
+                    <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
+                        {liveOtherPackages.map((item, index) => (
+                            <PackageCard
+                                key={item.id}
+                                item={item}
+                                onQuote={handleGetQuotation}
+                                badge={index === 0 ? "Available" : ""}
+                                featured={index === 0}
+                            />
+                        ))}
+                    </div>
+                </div>
+            </section>
+        )}
 
         <section
             ref={addonsRef}

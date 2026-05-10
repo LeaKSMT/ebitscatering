@@ -400,6 +400,8 @@ function normalizeEventType(value, packageName = "") {
         if (lowered.includes("birthday")) return "Birthday";
         if (lowered.includes("anniversary")) return "Anniversary";
         if (lowered.includes("baptismal")) return "Baptismal";
+        if (lowered.includes("classic menu") || lowered.includes("menu")) return "Classic Menu";
+        if (lowered.includes("add")) return "Add-on";
         return raw.charAt(0).toUpperCase() + raw.slice(1);
     }
 
@@ -409,6 +411,8 @@ function normalizeEventType(value, packageName = "") {
     if (name.includes("birthday")) return "Birthday";
     if (name.includes("anniversary")) return "Anniversary";
     if (name.includes("baptismal")) return "Baptismal";
+    if (name.includes("classic menu") || name.includes("menu")) return "Classic Menu";
+    if (name.includes("add")) return "Add-on";
 
     return "";
 }
@@ -494,6 +498,12 @@ function normalizePackageFromAPI(item, index = 0) {
         id: item?.id || item?.package_id || fallbackMatch?.id || `${eventType}-${name}-${index}`,
         name,
         eventType,
+        packageGroup:
+            item?.packageGroup ||
+            item?.package_group ||
+            item?.category ||
+            eventType,
+        category: item?.category || eventType,
         pricingType,
         price,
         ratePerPax: pricingType === "perPax" ? ratePerPax || price || PAX_RATE : ratePerPax || null,
@@ -501,6 +511,7 @@ function normalizePackageFromAPI(item, index = 0) {
         features,
     };
 }
+
 
 function formatCurrency(value) {
     return `₱${Number(value || 0).toLocaleString()}`;
@@ -760,12 +771,37 @@ function Quotation({ mode = "public" }) {
         );
     }, [formData.packageType, formData.eventType, livePackages]);
 
+    const liveClassicMenus = useMemo(() => {
+        const filtered = packagesFromAPI.filter((item) => {
+            const group = String(item.eventType || item.packageGroup || item.category || "").toLowerCase();
+            return group.includes("classic menu") || group.includes("menu");
+        });
+
+        if (filtered.length === 0) return classicMenus;
+
+        return filtered.map((item) => item.name).filter(Boolean);
+    }, [packagesFromAPI]);
+
+    const liveAddOns = useMemo(() => {
+        const filtered = packagesFromAPI.filter((item) => {
+            const group = String(item.eventType || item.packageGroup || item.category || "").toLowerCase();
+            return group.includes("add");
+        });
+
+        if (filtered.length === 0) return addOns;
+
+        return filtered.map((item) => ({
+            name: item.name,
+            price: Number(item.price || 0),
+        }));
+    }, [packagesFromAPI]);
+
     const addOnsTotal = useMemo(() => {
         return formData.addOns.reduce((sum, itemName) => {
-            const matched = addOns.find((item) => item.name === itemName);
+            const matched = liveAddOns.find((item) => item.name === itemName);
             return sum + Number(matched?.price || 0);
         }, 0);
-    }, [formData.addOns]);
+    }, [formData.addOns, liveAddOns]);
 
     const guestCount = Number(formData.guests || 0);
     const isPerPaxPackage = selectedPackage?.pricingType === "perPax";
@@ -812,8 +848,8 @@ function Quotation({ mode = "public" }) {
     }, [selectedPackage, guestCount, excessGuests]);
 
     const selectedAddOnObjects = useMemo(() => {
-        return addOns.filter((item) => formData.addOns.includes(item.name));
-    }, [formData.addOns]);
+        return liveAddOns.filter((item) => formData.addOns.includes(item.name));
+    }, [formData.addOns, liveAddOns]);
 
     const completionStats = useMemo(() => {
         const fields = [
@@ -1480,7 +1516,7 @@ function Quotation({ mode = "public" }) {
                                         <div className="relative">
                                             <select name="classicMenu" value={formData.classicMenu} onChange={handleChange} className={`${inputClass} appearance-none pr-12`}>
                                                 <option value="">Select classic menu</option>
-                                                {classicMenus.map((menu) => (
+                                                {liveClassicMenus.map((menu) => (
                                                     <option key={menu} value={menu}>
                                                         {menu}
                                                     </option>
@@ -1498,7 +1534,7 @@ function Quotation({ mode = "public" }) {
                                             isDark={isDark}
                                         >
                                             <div className="grid gap-3 sm:grid-cols-2">
-                                                {addOns.map((item, index) => {
+                                                {liveAddOns.map((item, index) => {
                                                     const checked = formData.addOns.includes(item.name);
 
                                                     return (
