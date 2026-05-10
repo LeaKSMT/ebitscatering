@@ -502,6 +502,7 @@ function normalizePackageFromAPI(item, index = 0) {
                     : packageGroup || "Package"),
         eventType,
         packageGroup,
+        description: item?.description || "",
         features,
     };
 }
@@ -633,8 +634,9 @@ function GlowButton({ children, onClick, icon, full = false }) {
 }
 
 function PackageCard({ item, onQuote, badge, featured = false, dark = false }) {
-    const visibleFeatures = item.features.slice(0, 8);
-    const extraCount = item.features.length - visibleFeatures.length;
+    const features = Array.isArray(item?.features) ? item.features : [];
+    const visibleFeatures = features.slice(0, 8);
+    const extraCount = Math.max(features.length - visibleFeatures.length, 0);
 
     return (
         <motion.div
@@ -767,6 +769,8 @@ function StatCard({ item, index, featured = false }) {
     );
 }
 function ClassicMenuCard({ menu, index }) {
+    const menuItems = Array.isArray(menu?.items) ? menu.items : [];
+
     return (
         <motion.div
             initial="hidden"
@@ -792,7 +796,7 @@ function ClassicMenuCard({ menu, index }) {
             </p>
 
             <ul className="relative z-10 mt-5 space-y-3">
-                {menu.items.map((item) => (
+                {menuItems.map((item) => (
                     <li key={item} className="flex items-start gap-3 text-sm text-slate-700">
                         <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#fff3cf]">
                             <CheckCircle2 className="h-3.5 w-3.5 text-[#c99d1a]" />
@@ -819,7 +823,7 @@ function AddOnCard({ addon, index }) {
             <div className="absolute left-[-35%] top-0 h-full w-[30%] rotate-[18deg] bg-white/30 opacity-0 blur-xl transition duration-700 group-hover:left-[115%] group-hover:opacity-100" />
 
             <div className="relative z-10 mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#fbf4df] text-[#c99d1a] shadow-[0_8px_20px_rgba(212,165,20,0.08)]">
-                {addon.icon}
+                {addon.icon || <PartyPopper className="h-5 w-5" />}
             </div>
 
             <h3 className="relative z-10 text-lg font-black text-[#0b4d3b] md:text-xl">
@@ -885,9 +889,17 @@ function Packages({ embedded = false }) {
             isMounted = false;
         };
     }, []);
-
     const livePackages = useMemo(() => {
-        return packagesFromAPI.length > 0 ? packagesFromAPI : fallbackPackages;
+        const packageOnly = packagesFromAPI.filter((item) => {
+            const group = String(item.packageGroup || item.category || item.eventType || "").toLowerCase();
+
+            const isMenu = group.includes("classic menu") || group === "menu";
+            const isAddOn = group.includes("add");
+
+            return !isMenu && !isAddOn;
+        });
+
+        return packageOnly.length > 0 ? packageOnly : fallbackPackages;
     }, [packagesFromAPI]);
 
     const liveWeddingPackages = useMemo(() => {
@@ -896,6 +908,14 @@ function Packages({ embedded = false }) {
         );
 
         return filtered.length > 0 ? filtered : weddingPackages;
+    }, [livePackages]);
+
+    const liveDebutPackages = useMemo(() => {
+        const filtered = livePackages.filter(
+            (item) => item.eventType === "Debut" || item.packageGroup === "Debut"
+        );
+
+        return filtered.length > 0 ? filtered : debutPackages;
     }, [livePackages]);
 
     const liveOtherPackages = useMemo(() => {
@@ -1441,6 +1461,7 @@ function Packages({ embedded = false }) {
                 />
 
                 <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
+
                     {liveWeddingPackages.map((item, index) => (
                         <PackageCard
                             key={item.id}
