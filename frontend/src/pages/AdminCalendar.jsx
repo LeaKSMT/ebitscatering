@@ -22,6 +22,22 @@ import {
     Sparkles,
 } from "lucide-react";
 import { quotationService } from "../services/quotationService";
+function getApiBaseUrl() {
+    const envUrl = import.meta.env.VITE_API_URL?.trim();
+
+    if (!envUrl) {
+        return "https://ebitscatering-production.up.railway.app/api";
+    }
+
+    const cleaned = envUrl.replace(/\/+$/, "");
+    return cleaned.endsWith("/api") ? cleaned : `${cleaned}/api`;
+}
+
+const API_BASE = getApiBaseUrl();
+
+function parseMoneyValue(value) {
+    return Number(String(value || "").replace(/[₱,\s]/g, "")) || 0;
+}
 
 const PAX_RATE = 400;
 const MAX_BOOKINGS_PER_DAY = 5;
@@ -119,17 +135,7 @@ const weddingPackages = [
 ];
 
 const classicMenus = ["Classic A", "Classic B", "Classic C", "Classic D"];
-
-const addOnOptions = [
-    { name: "Lights and Sounds", price: 4000 },
-    { name: "Host", price: 3500 },
-    { name: "Cake", price: 2000 },
-    { name: "Photo", price: 5000 },
-    { name: "Photo Video", price: 15000 },
-    { name: "SDE", price: 27000 },
-    { name: "Clown", price: 3000 },
-];
-
+S
 const allPackages = [
     ...dynamicPerPaxPackages,
     ...debutPackages,
@@ -525,9 +531,48 @@ function AdminCalendar() {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [form, setForm] = useState(getInitialForm());
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
+    const [addOnOptions, setAddOnOptions] = useState([]);
 
     const refreshBookings = async () => {
+        const fetchPublicAddOns = async () => {
+            try {
+                const res = await fetch(`${API_BASE}/packages/public`, {
+                    method: "GET",
+                    credentials: "include",
+                });
+
+                if (!res.ok) {
+                    throw new Error("Failed to load add-ons.");
+                }
+
+                const data = await res.json();
+                const list = Array.isArray(data) ? data : data?.packages || data?.data || [];
+
+                const activeClientVisibleAddOns = list
+                    .filter((item) => {
+                        const group = String(item?.packageGroup || "").trim().toLowerCase();
+                        const category = String(item?.category || "").trim().toLowerCase();
+
+                        return (
+                            item?.isActive !== false &&
+                            item?.showOnClient !== false &&
+                            (group === "add-on" || category === "add-on service")
+                        );
+                    })
+                    .map((item) => ({
+                        id: item.id,
+                        name: item.title,
+                        price: Number(item.rawPrice ?? parseMoneyValue(item.price)),
+                        description: item.description || "",
+                        features: Array.isArray(item.features) ? item.features : [],
+                    }));
+
+                setAddOnOptions(activeClientVisibleAddOns);
+            } catch (err) {
+                console.error("Fetch public add-ons error:", err);
+                setAddOnOptions([]);
+            }
+        };
         setLoading(true);
         setError("");
 
@@ -554,6 +599,7 @@ function AdminCalendar() {
 
     useEffect(() => {
         refreshBookings();
+        fetchPublicAddOns();
     }, []);
 
     const availablePackages = useMemo(() => {
@@ -592,7 +638,7 @@ function AdminCalendar() {
             const matched = addOnOptions.find((item) => item.name === itemName);
             return sum + Number(matched?.price || 0);
         }, 0);
-    }, [form.addOns]);
+    }, [form.addOns, addOnOptions]);
 
     const excessGuests = useMemo(() => {
         if (!selectedPackage) return 0;
@@ -699,6 +745,7 @@ function AdminCalendar() {
     };
 
     const openAddModal = (dateStr) => {
+        fetchPublicAddOns();
         setSelectedDate(dateStr);
         setForm(getInitialForm(dateStr));
         setShowAddModal(true);
