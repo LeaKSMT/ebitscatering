@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Swal from "sweetalert2";
+import "sweetalert2/dist/sweetalert2.min.css";
 import {
     CalendarDays,
     ChevronLeft,
@@ -758,7 +760,14 @@ function AdminCalendar() {
             !form.preferredDate ||
             !form.packageType
         ) {
-            alert("Please fill in the required booking details.");
+            Swal.fire({
+                title: "Missing Details",
+                text: "Please fill in the required booking details.",
+                icon: "warning",
+                confirmButtonText: "Okay",
+                confirmButtonColor: "#0f5b46",
+            });
+
             return;
         }
 
@@ -862,20 +871,54 @@ function AdminCalendar() {
             });
         } catch (err) {
             console.error("Update booking status error:", err);
-            alert(err.message || "Failed to update booking status.");
+            Swal.fire({
+                title: "Update Failed",
+                text: err.message || "Failed to update booking status.",
+                icon: "error",
+                confirmButtonText: "Okay",
+                confirmButtonColor: "#dc2626",
+                background: "#ffffff",
+                color: "#0f172a",
+            });
         }
     };
 
     const handleDeleteBooking = async () => {
         if (!selectedBooking) return;
 
-        const confirmed = window.confirm(
-            selectedBooking.sourceType === "quotation"
-                ? "This will mark the quotation/event as Cancelled. Continue?"
-                : "Are you sure you want to cancel/delete this booking?"
-        );
+        const isQuotation = selectedBooking.sourceType === "quotation";
 
-        if (!confirmed) return;
+        const result = await Swal.fire({
+            title: isQuotation ? "Cancel Quotation Event?" : "Cancel / Delete Booking?",
+            html: `
+            <div style="font-size:14px; line-height:1.7; color:#475569;">
+                ${isQuotation
+                    ? `This will mark the quotation/event as <b style="color:#dc2626;">Cancelled</b>.`
+                    : `This will remove this manual booking from your calendar.`
+                }
+                <br />
+                Are you sure you want to continue?
+            </div>
+        `,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: isQuotation ? "Yes, mark cancelled" : "Yes, delete booking",
+            cancelButtonText: "No, keep it",
+            reverseButtons: true,
+            focusCancel: true,
+            background: "#ffffff",
+            color: "#0f172a",
+            confirmButtonColor: "#dc2626",
+            cancelButtonColor: "#0f5b46",
+            customClass: {
+                popup: "swal-calendar-popup",
+                title: "swal-calendar-title",
+                confirmButton: "swal-calendar-confirm",
+                cancelButton: "swal-calendar-cancel",
+            },
+        });
+
+        if (!result.isConfirmed) return;
 
         try {
             if (selectedBooking.sourceType === "quotation") {
@@ -897,9 +940,30 @@ function AdminCalendar() {
 
             await refreshBookings();
             closeManageModal();
+
+            await Swal.fire({
+                title: isQuotation ? "Event Cancelled" : "Booking Deleted",
+                text: isQuotation
+                    ? "The quotation/event has been marked as cancelled."
+                    : "The manual booking has been removed from the calendar.",
+                icon: "success",
+                confirmButtonText: "Done",
+                confirmButtonColor: "#0f5b46",
+                background: "#ffffff",
+                color: "#0f172a",
+            });
         } catch (err) {
             console.error("Delete booking error:", err);
-            alert(err.message || "Failed to update booking.");
+
+            await Swal.fire({
+                title: "Update Failed",
+                text: err.message || "Failed to update booking.",
+                icon: "error",
+                confirmButtonText: "Okay",
+                confirmButtonColor: "#dc2626",
+                background: "#ffffff",
+                color: "#0f172a",
+            });
         }
     };
 

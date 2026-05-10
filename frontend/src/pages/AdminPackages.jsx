@@ -36,6 +36,7 @@ const PACKAGE_GROUPS = [
     { value: "Wedding", label: "Wedding Package", category: "Wedding Package" },
     { value: "Debut", label: "Debut Package", category: "Debut Package" },
     { value: "Birthday", label: "Birthday Package", category: "Birthday Package" },
+    { value: "Gender Reveal", label: "Gender Reveal Package", category: "Gender Reveal Package" },
     { value: "Corporate", label: "Corporate Package", category: "Corporate Package" },
     { value: "Anniversary", label: "Anniversary Package", category: "Anniversary Package" },
     { value: "Christening", label: "Christening Package", category: "Christening Package" },
