@@ -13,6 +13,8 @@ import {
     EyeOff,
     Archive,
 } from "lucide-react";
+import Swal from "sweetalert2";
+import "sweetalert2/dist/sweetalert2.min.css";
 
 function getApiBaseUrl() {
     const envUrl = import.meta.env.VITE_API_URL?.trim();
@@ -782,11 +784,30 @@ function AdminPackages() {
     };
 
     const handleArchivePackage = async (item) => {
-        const confirmed = window.confirm(
-            `Archive "${item.title}"? This will hide it from the client packages page.`
-        );
+        const packageTitle = item?.title || "this package";
 
-        if (!confirmed) return;
+        const result = await Swal.fire({
+            title: "Archive Package?",
+            html: `
+            <div style="text-align:center; font-size:15px; color:#475569; line-height:1.7;">
+                Are you sure you want to archive<br/>
+                <strong style="color:#0f4d3c;">${packageTitle}</strong>?
+                <br/><br/>
+                This will hide it from the client packages page.
+            </div>
+        `,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, Archive",
+            cancelButtonText: "Cancel",
+            reverseButtons: true,
+            background: "#fffdf6",
+            color: "#0f4d3c",
+            confirmButtonColor: "#dc2626",
+            cancelButtonColor: "#0f4d3c",
+        });
+
+        if (!result.isConfirmed) return;
 
         setSaving(true);
         setFetchError("");
@@ -811,9 +832,29 @@ function AdminPackages() {
 
             await fetchPackages();
             setSuccessMessage("Package archived successfully.");
+
+            await Swal.fire({
+                title: "Archived!",
+                text: `${packageTitle} has been hidden from the client packages page.`,
+                icon: "success",
+                confirmButtonText: "OK",
+                background: "#fffdf6",
+                color: "#0f4d3c",
+                confirmButtonColor: "#0f4d3c",
+            });
         } catch (err) {
             console.error("Archive package error:", err);
             setFetchError(err.message || "Failed to archive package.");
+
+            await Swal.fire({
+                title: "Archive Failed",
+                text: err.message || "Failed to archive package.",
+                icon: "error",
+                confirmButtonText: "OK",
+                background: "#fffdf6",
+                color: "#0f4d3c",
+                confirmButtonColor: "#dc2626",
+            });
         } finally {
             setSaving(false);
         }

@@ -41,6 +41,7 @@ function parseMoneyValue(value) {
 
 const PAX_RATE = 400;
 const MAX_BOOKINGS_PER_DAY = 5;
+const MAX_VISIBLE_BOOKING_CHIPS = 3;
 const MANUAL_BOOKINGS_KEY = "adminManualBookings";
 const EVENT_META_KEY = "adminEventMeta";
 
@@ -1104,7 +1105,11 @@ function AdminCalendar() {
         const hasBooking = dayBookings.length > 0;
         const bookingCount = dayBookings.length;
         const isFull = bookingCount >= MAX_BOOKINGS_PER_DAY;
-        const visibleDayBookings = dayBookings.slice(0, MAX_BOOKINGS_PER_DAY);
+        const visibleDayBookings = dayBookings.slice(0, MAX_VISIBLE_BOOKING_CHIPS);
+        const hiddenBookingCount = Math.max(
+            bookingCount - visibleDayBookings.length,
+            0
+        );
 
         days.push(
             <motion.div
@@ -1164,55 +1169,87 @@ function AdminCalendar() {
 
                 {hasBooking && (
                     <div className="mt-2 min-w-0 space-y-1.5 sm:mt-2">
-                        <div className="rounded-xl bg-white/45 px-2 py-1 text-[9px] font-extrabold uppercase tracking-[0.08em] text-[#8a640e] sm:text-[10px]">
-                            {bookingCount} / {MAX_BOOKINGS_PER_DAY} booked
+                        <div className="flex items-center justify-between gap-2 rounded-xl border border-[#efd573]/80 bg-white/55 px-2 py-1.5 shadow-sm">
+                            <span className="truncate text-[9px] font-extrabold uppercase tracking-[0.1em] text-[#8a640e] sm:text-[10px]">
+                                {bookingCount} booked
+                            </span>
+
+                            <span
+                                className={`shrink-0 rounded-full px-2 py-[3px] text-[8px] font-extrabold uppercase sm:text-[9px] ${isFull
+                                        ? "bg-red-600 text-white"
+                                        : "bg-[#0f5b46] text-white"
+                                    }`}
+                            >
+                                {isFull ? "Full" : "Open"}
+                            </span>
                         </div>
 
-                        {visibleDayBookings.map((booking) => {
-                            const eventType = getBookingType(booking);
-                            const pax = getBookingPax(booking);
-                            const location = getBookingLocation(booking);
-                            const clientName = getBookingClient(booking);
-                            const statusKey = normalizeStatus(booking.status);
-                            const statusLabel = capitalizeStatus(booking.status);
+                        <div className="space-y-1">
+                            {visibleDayBookings.map((booking) => {
+                                const eventType = getBookingType(booking);
+                                const clientName = getBookingClient(booking);
+                                const statusKey = normalizeStatus(booking.status);
+                                const statusLabel = capitalizeStatus(booking.status);
 
-                            return (
-                                <button
-                                    key={booking.id}
-                                    type="button"
-                                    onClick={() => openManageModal(booking)}
-                                    className="w-full rounded-lg border border-[#dfc260]/70 bg-white/55 px-2 py-1 text-left transition hover:bg-white/80"
-                                    title="Manage booking"
-                                >
-                                    <div className="flex items-start justify-between gap-2">
-                                        <div className="min-w-0">
-                                            <div className="truncate text-[10px] font-extrabold text-[#174c3c]">
-                                                {eventType} • {pax || 0} pax
+                                const statusShort =
+                                    statusKey === "approved" ||
+                                        statusKey === "confirmed" ||
+                                        statusKey === "paid"
+                                        ? "OK"
+                                        : statusLabel.slice(0, 4);
+
+                                return (
+                                    <button
+                                        key={booking.id}
+                                        type="button"
+                                        onClick={() => openManageModal(booking)}
+                                        className="w-full rounded-xl border border-[#dfc260]/70 bg-white/65 px-2 py-1.5 text-left shadow-sm transition hover:bg-white hover:shadow-md"
+                                        title={`${eventType} - ${clientName}`}
+                                    >
+                                        <div className="flex min-w-0 items-center gap-2">
+                                            <span
+                                                className={`h-2.5 w-2.5 shrink-0 rounded-full ${statusKey === "pending"
+                                                        ? "bg-[#2563eb]"
+                                                        : statusKey === "cancelled"
+                                                            ? "bg-red-600"
+                                                            : statusKey === "ongoing"
+                                                                ? "bg-[#f0b429]"
+                                                                : "bg-[#22b67f]"
+                                                    }`}
+                                            />
+
+                                            <div className="min-w-0 flex-1">
+                                                <p className="truncate text-[10px] font-extrabold leading-tight text-[#174c3c]">
+                                                    {eventType}
+                                                </p>
+                                                <p className="truncate text-[8.5px] font-semibold leading-tight text-[#174c3c]/65">
+                                                    {clientName}
+                                                </p>
                                             </div>
 
-                                            <div className="truncate text-[9px] font-medium text-[#174c3c]/75">
-                                                {clientName} • {location}
-                                            </div>
+                                            <span
+                                                className={`shrink-0 rounded-full px-1.5 py-[3px] text-[7.5px] font-extrabold ${statusKey === "pending"
+                                                        ? "bg-[#2563eb] text-white"
+                                                        : statusKey === "cancelled"
+                                                            ? "bg-red-600 text-white"
+                                                            : statusKey === "ongoing"
+                                                                ? "bg-[#f0b429] text-[#2f2200]"
+                                                                : "bg-[#22b67f] text-white"
+                                                    }`}
+                                            >
+                                                {statusShort}
+                                            </span>
                                         </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
 
-                                        <span
-                                            className={`shrink-0 rounded-full px-2 py-[3px] text-[8px] font-extrabold ${statusKey === "pending"
-                                                ? "bg-[#2563eb] text-white"
-                                                : statusKey === "cancelled"
-                                                    ? "bg-red-600 text-white"
-                                                    : statusKey === "ongoing"
-                                                        ? "bg-[#f0b429] text-[#2f2200]"
-                                                        : "bg-[#22b67f] text-white"
-                                                }`}
-                                        >
-                                            {statusLabel}
-                                        </span>
-                                    </div>
-                                </button>
-                            );
-                        })}
-
-
+                        {hiddenBookingCount > 0 ? (
+                            <div className="rounded-xl border border-dashed border-[#c9a92d]/70 bg-white/40 px-2 py-1 text-center text-[9px] font-extrabold uppercase tracking-[0.08em] text-[#8a640e]">
+                                +{hiddenBookingCount} more
+                            </div>
+                        ) : null}
                     </div>
                 )}
             </motion.div>
