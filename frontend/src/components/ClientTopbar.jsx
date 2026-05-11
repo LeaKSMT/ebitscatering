@@ -311,20 +311,22 @@ function ClientTopbar() {
                             initial={{ opacity: 0, x: -18 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.45 }}
-                            className="min-w-0 w-[360px] shrink-0 pr-2"                        >
-                            <div className="flex items-center gap-3">
+                            className="min-w-0 w-[430px] shrink-0 pl-4 pr-2"
+                        >
+                            <div className="flex items-center gap-4">
                                 <img
                                     src={logo}
                                     alt="Ebit's Catering and Services"
                                     className="h-12 w-12 shrink-0 rounded-full border border-[#f5c94a]/50 object-cover shadow-[0_10px_25px_rgba(0,0,0,0.18)] sm:h-14 sm:w-14"
                                 />
 
-                                <div className="min-w-0">
-                                    <h1 className="truncate text-[1.05rem] font-extrabold leading-tight tracking-tight text-[#f5c94a] sm:text-[1.35rem] md:text-[1.6rem]">
+                                <div className="min-w-0 flex-1">
+                                    <h1 className="whitespace-nowrap text-[1rem] font-extrabold leading-tight tracking-tight text-[#f5c94a] sm:text-[1.2rem] md:text-[1.35rem]">
                                         Ebit&apos;s Catering and Services
                                     </h1>
-                                    <div className="mt-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-white/70 sm:text-sm normal-case">
-                                        <ShieldCheck size={14} className="text-white/70" />
+
+                                    <div className="mt-1 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70 sm:text-xs">
+                                        <ShieldCheck size={14} className="shrink-0 text-white/70" />
                                         <span>Client Portal</span>
                                     </div>
                                 </div>
