@@ -239,13 +239,6 @@ function ClientRegister() {
                                     className="h-20 w-auto object-contain"
                                 />
                             </motion.div>
-
-                            <motion.div
-                                variants={itemVariants}
-                                className="inline-flex items-center gap-2 rounded-full border border-[#d4af37]/40 bg-white/10 px-4 py-2 text-sm font-medium text-[#f7d97b]"
-                            >
-                            </motion.div>
-
                             <motion.h1
                                 variants={itemVariants}
                                 className="mt-8 text-5xl font-extrabold leading-tight"
