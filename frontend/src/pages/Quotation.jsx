@@ -43,7 +43,9 @@ function getCurrentClient() {
 }
 
 const PAX_RATE = 400;
-
+const PER_PAX_EVENT_TYPES = ["Birthday", "Anniversary", "Baptismal"];
+const PACKAGE_EVENT_TYPES = ["Wedding", "Debut"];
+const PER_PAX_PACKAGE_LABEL = "Per Pax Catering";
 const dynamicPerPaxPackages = [
     {
         id: "birthday-catering",
@@ -354,7 +356,6 @@ const addOns = [
 ];
 
 const fallbackPackages = [
-    ...dynamicPerPaxPackages,
     ...debutPackages,
     ...weddingPackages,
 ];
@@ -755,6 +756,7 @@ function Quotation({ mode = "public" }) {
 
     const availablePackages = useMemo(() => {
         if (!formData.eventType) return [];
+        if (!PACKAGE_EVENT_TYPES.includes(formData.eventType)) return [];
 
         return livePackages.filter(
             (pkg) => pkg.eventType === formData.eventType
@@ -804,48 +806,53 @@ function Quotation({ mode = "public" }) {
     }, [formData.addOns, liveAddOns]);
 
     const guestCount = Number(formData.guests || 0);
-    const isPerPaxPackage = selectedPackage?.pricingType === "perPax";
+    const isPerPaxEvent = PER_PAX_EVENT_TYPES.includes(formData.eventType);
+    const requiresPackage = PACKAGE_EVENT_TYPES.includes(formData.eventType);
+    const isPerPaxPackage = isPerPaxEvent || selectedPackage?.pricingType === "perPax";
 
     const excessGuests = useMemo(() => {
+        if (isPerPaxEvent) return 0;
         if (!selectedPackage) return 0;
         if (selectedPackage.pricingType === "perPax") return 0;
 
         const included = Number(selectedPackage.includedPax || 0);
         return guestCount > included ? guestCount - included : 0;
-    }, [selectedPackage, guestCount]);
+    }, [isPerPaxEvent, selectedPackage, guestCount]);
 
     const excessCost = useMemo(() => {
+        if (isPerPaxEvent) return 0;
         if (!selectedPackage) return 0;
         if (selectedPackage.pricingType === "perPax") return 0;
+
         return excessGuests * PAX_RATE;
-    }, [selectedPackage, excessGuests]);
+    }, [isPerPaxEvent, selectedPackage, excessGuests]);
 
     const packagePrice = useMemo(() => {
-        if (!selectedPackage) return 0;
-
-        if (selectedPackage.pricingType === "perPax") {
-            return guestCount * Number(selectedPackage.ratePerPax || 0);
+        if (isPerPaxEvent) {
+            return guestCount * PAX_RATE;
         }
+
+        if (!selectedPackage) return 0;
 
         const basePrice = Number(selectedPackage.price || 0);
         return basePrice + excessCost;
-    }, [selectedPackage, guestCount, excessCost]);
+    }, [isPerPaxEvent, selectedPackage, guestCount, excessCost]);
 
     const estimatedTotal = packagePrice + addOnsTotal;
 
     const packageCoverageText = useMemo(() => {
-        if (!selectedPackage) return "Not selected";
-
-        if (selectedPackage.pricingType === "perPax") {
-            return `₱${selectedPackage.ratePerPax}/pax × ${guestCount || 0} guest(s)`;
+        if (isPerPaxEvent) {
+            return `₱${PAX_RATE}/pax × ${guestCount || 0} guest(s)`;
         }
+
+        if (!selectedPackage) return "Not selected";
 
         if (excessGuests > 0) {
             return `${selectedPackage.includedPax} pax included (+ ${excessGuests} excess guest(s) × ₱400)`;
         }
 
         return `${selectedPackage.includedPax} pax included`;
-    }, [selectedPackage, guestCount, excessGuests]);
+    }, [isPerPaxEvent, selectedPackage, guestCount, excessGuests]);
 
     const selectedAddOnObjects = useMemo(() => {
         return liveAddOns.filter((item) => formData.addOns.includes(item.name));
@@ -937,9 +944,10 @@ function Quotation({ mode = "public" }) {
             };
 
             if (name === "eventType") {
-                updated.packageType = "";
+                updated.packageType = PER_PAX_EVENT_TYPES.includes(value)
+                    ? PER_PAX_PACKAGE_LABEL
+                    : "";
             }
-
             return updated;
         });
     };
@@ -1044,7 +1052,7 @@ function Quotation({ mode = "public" }) {
                 event_time: formData.eventStartTime || null,
                 venue: formData.venue,
                 guests: Number(formData.guests || 0),
-                package_type: formData.packageType,
+                package_type: isPerPaxEvent ? PER_PAX_PACKAGE_LABEL : formData.packageType,
                 classic_menu: formData.classicMenu || null,
                 add_ons: formData.addOns,
                 theme_preference: formData.themePreference || null,
@@ -1052,12 +1060,12 @@ function Quotation({ mode = "public" }) {
                 package_price: Number(packagePrice || 0),
                 add_ons_total: Number(addOnsTotal || 0),
                 estimated_total: Number(estimatedTotal || 0),
-                included_pax: selectedPackage?.includedPax || null,
-                pricing_type: selectedPackage?.pricingType || "fixed",
-                rate_per_pax: selectedPackage?.ratePerPax || null,
-                excess_guests: Number(excessGuests || 0),
-                excess_cost: Number(excessCost || 0),
-                package_inclusions: selectedPackage?.features || [],
+                included_pax: isPerPaxEvent ? null : selectedPackage?.includedPax || null,
+                pricing_type: isPerPaxEvent ? "perPax" : selectedPackage?.pricingType || "fixed",
+                rate_per_pax: isPerPaxEvent ? PAX_RATE : selectedPackage?.ratePerPax || null,
+                excess_guests: isPerPaxEvent ? 0 : Number(excessGuests || 0),
+                excess_cost: isPerPaxEvent ? 0 : Number(excessCost || 0),
+                package_inclusions: isPerPaxEvent ? [] : selectedPackage?.features || [],
                 status: "Pending",
             };
 
@@ -1489,28 +1497,57 @@ function Quotation({ mode = "public" }) {
                                         <input type="number" name="guests" value={formData.guests} onChange={handleChange} placeholder="Enter number of guests" className={inputClass} min="1" required />
                                     </Field>
 
-                                    <Field label="Preferred Package" required filled={!!formData.packageType} isDark={isDark}>
-                                        <div className="relative">
-                                            <select name="packageType" value={formData.packageType} onChange={handleChange} className={`${inputClass} appearance-none pr-12`} required disabled={!formData.eventType || loadingPackages}>
-                                                <option value="">
-                                                    {loadingPackages
-                                                        ? "Loading packages..."
-                                                        : formData.eventType
-                                                            ? "Select package"
-                                                            : "Select event type first"}
-                                                </option>
-
-                                                {availablePackages.map((pkg, index) => (
-                                                    <option key={`${pkg.eventType}-${pkg.name}-${index}`} value={pkg.name}>
-                                                        {pkg.pricingType === "perPax"
-                                                            ? `${pkg.name} (₱${pkg.ratePerPax || PAX_RATE}/pax)`
-                                                            : `${pkg.name} (${formatCurrency(pkg.price)}${pkg.includedPax ? ` • ${pkg.includedPax} pax included` : ""})`}
+                                    {requiresPackage ? (
+                                        <Field label="Preferred Package" required filled={!!formData.packageType} isDark={isDark}>
+                                            <div className="relative">
+                                                <select
+                                                    name="packageType"
+                                                    value={formData.packageType}
+                                                    onChange={handleChange}
+                                                    className={`${inputClass} appearance-none pr-12`}
+                                                    required
+                                                    disabled={!formData.eventType || loadingPackages}
+                                                >
+                                                    <option value="">
+                                                        {loadingPackages
+                                                            ? "Loading packages..."
+                                                            : formData.eventType
+                                                                ? "Select package"
+                                                                : "Select event type first"}
                                                     </option>
-                                                ))}
-                                            </select>
-                                            <ChevronDown size={18} className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 ${isDark ? "text-white/60" : "text-slate-500"}`} />
-                                        </div>
-                                    </Field>
+
+                                                    {availablePackages.map((pkg, index) => (
+                                                        <option key={`${pkg.eventType}-${pkg.name}-${index}`} value={pkg.name}>
+                                                            {`${pkg.name} (${formatCurrency(pkg.price)}${pkg.includedPax ? ` • ${pkg.includedPax} pax included` : ""})`}
+                                                        </option>
+                                                    ))}
+                                                </select>
+
+                                                <ChevronDown
+                                                    size={18}
+                                                    className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 ${isDark ? "text-white/60" : "text-slate-500"
+                                                        }`}
+                                                />
+                                            </div>
+                                        </Field>
+                                    ) : isPerPaxEvent ? (
+                                        <Field label="Pricing Type" filled isDark={isDark}>
+                                            <div
+                                                className={
+                                                    isDark
+                                                        ? "rounded-2xl border border-[rgba(212,175,55,0.24)] bg-[rgba(97,76,24,0.18)] px-4 py-3.5"
+                                                        : "rounded-2xl border border-[#ecd88d] bg-[#fff8e6] px-4 py-3.5"
+                                                }
+                                            >
+                                                <p className={`text-sm font-extrabold ${strongText}`}>
+                                                    Per Pax Catering
+                                                </p>
+                                                <p className={`mt-1 text-sm font-semibold ${mutedText}`}>
+                                                    This event type is computed at {formatCurrency(PAX_RATE)} per guest. No package selection is required.
+                                                </p>
+                                            </div>
+                                        </Field>
+                                    ) : null}
 
                                     <Field label="Classic Menu" filled={!!formData.classicMenu} isDark={isDark}>
                                         <div className="relative">
