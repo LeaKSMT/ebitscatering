@@ -1187,12 +1187,12 @@ function AdminCalendar() {
                                 const statusKey = normalizeStatus(booking.status);
                                 const statusLabel = capitalizeStatus(booking.status);
 
-                                const statusShort =
+                                const statusDisplay =
                                     statusKey === "approved" ||
                                         statusKey === "confirmed" ||
                                         statusKey === "paid"
-                                        ? "OK"
-                                        : statusLabel.slice(0, 4);
+                                        ? "Confirmed"
+                                        : statusLabel;
 
                                 return (
                                     <button
@@ -1224,7 +1224,7 @@ function AdminCalendar() {
                                             </div>
 
                                             <span
-                                                className={`shrink-0 rounded-full px-1.5 py-[3px] text-[7.5px] font-extrabold ${statusKey === "pending"
+                                                className={`shrink-0 rounded-full px-2 py-[3px] text-[7px] font-extrabold sm:text-[8px] ${statusKey === "pending"
                                                     ? "bg-[#2563eb] text-white"
                                                     : statusKey === "cancelled"
                                                         ? "bg-red-600 text-white"
@@ -1233,7 +1233,7 @@ function AdminCalendar() {
                                                             : "bg-[#22b67f] text-white"
                                                     }`}
                                             >
-                                                {statusShort}
+                                                {statusDisplay}
                                             </span>
                                         </div>
                                     </button>
