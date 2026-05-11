@@ -41,7 +41,6 @@ function parseMoneyValue(value) {
 
 const PAX_RATE = 400;
 const MAX_BOOKINGS_PER_DAY = 5;
-const MAX_VISIBLE_BOOKING_CHIPS = 3;
 const MANUAL_BOOKINGS_KEY = "adminManualBookings";
 const EVENT_META_KEY = "adminEventMeta";
 
@@ -1105,11 +1104,8 @@ function AdminCalendar() {
         const hasBooking = dayBookings.length > 0;
         const bookingCount = dayBookings.length;
         const isFull = bookingCount >= MAX_BOOKINGS_PER_DAY;
-        const visibleDayBookings = dayBookings.slice(0, MAX_VISIBLE_BOOKING_CHIPS);
-        const hiddenBookingCount = Math.max(
-            bookingCount - visibleDayBookings.length,
-            0
-        );
+        const visibleDayBookings = dayBookings;
+        const hiddenBookingCount = 0;
 
         days.push(
             <motion.div
@@ -1176,8 +1172,8 @@ function AdminCalendar() {
 
                             <span
                                 className={`shrink-0 rounded-full px-2 py-[3px] text-[8px] font-extrabold uppercase sm:text-[9px] ${isFull
-                                        ? "bg-red-600 text-white"
-                                        : "bg-[#0f5b46] text-white"
+                                    ? "bg-red-600 text-white"
+                                    : "bg-[#0f5b46] text-white"
                                     }`}
                             >
                                 {isFull ? "Full" : "Open"}
@@ -1209,12 +1205,12 @@ function AdminCalendar() {
                                         <div className="flex min-w-0 items-center gap-2">
                                             <span
                                                 className={`h-2.5 w-2.5 shrink-0 rounded-full ${statusKey === "pending"
-                                                        ? "bg-[#2563eb]"
-                                                        : statusKey === "cancelled"
-                                                            ? "bg-red-600"
-                                                            : statusKey === "ongoing"
-                                                                ? "bg-[#f0b429]"
-                                                                : "bg-[#22b67f]"
+                                                    ? "bg-[#2563eb]"
+                                                    : statusKey === "cancelled"
+                                                        ? "bg-red-600"
+                                                        : statusKey === "ongoing"
+                                                            ? "bg-[#f0b429]"
+                                                            : "bg-[#22b67f]"
                                                     }`}
                                             />
 
@@ -1229,12 +1225,12 @@ function AdminCalendar() {
 
                                             <span
                                                 className={`shrink-0 rounded-full px-1.5 py-[3px] text-[7.5px] font-extrabold ${statusKey === "pending"
-                                                        ? "bg-[#2563eb] text-white"
-                                                        : statusKey === "cancelled"
-                                                            ? "bg-red-600 text-white"
-                                                            : statusKey === "ongoing"
-                                                                ? "bg-[#f0b429] text-[#2f2200]"
-                                                                : "bg-[#22b67f] text-white"
+                                                    ? "bg-[#2563eb] text-white"
+                                                    : statusKey === "cancelled"
+                                                        ? "bg-red-600 text-white"
+                                                        : statusKey === "ongoing"
+                                                            ? "bg-[#f0b429] text-[#2f2200]"
+                                                            : "bg-[#22b67f] text-white"
                                                     }`}
                                             >
                                                 {statusShort}
