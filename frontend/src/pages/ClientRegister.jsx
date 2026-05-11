@@ -244,8 +244,6 @@ function ClientRegister() {
                                 variants={itemVariants}
                                 className="inline-flex items-center gap-2 rounded-full border border-[#d4af37]/40 bg-white/10 px-4 py-2 text-sm font-medium text-[#f7d97b]"
                             >
-                                <Sparkles size={16} />
-                                Elegant Catering Portal
                             </motion.div>
 
                             <motion.h1
@@ -265,49 +263,6 @@ function ClientRegister() {
                             </motion.p>
                         </div>
 
-                        <div className="grid gap-4">
-                            <motion.div
-                                variants={itemVariants}
-                                whileHover={{ y: -4, scale: 1.01 }}
-                                className="rounded-2xl bg-white/10 border border-white/10 p-4 flex items-start gap-3"
-                            >
-                                <UserPlus className="mt-1 text-[#f5c94a]" size={20} />
-                                <div>
-                                    <h3 className="font-semibold">Fast account setup</h3>
-                                    <p className="text-sm text-white/75">
-                                        Create an account in just a few steps.
-                                    </p>
-                                </div>
-                            </motion.div>
-
-                            <motion.div
-                                variants={itemVariants}
-                                whileHover={{ y: -4, scale: 1.01 }}
-                                className="rounded-2xl bg-white/10 border border-white/10 p-4 flex items-start gap-3"
-                            >
-                                <ShieldCheck className="mt-1 text-[#f5c94a]" size={20} />
-                                <div>
-                                    <h3 className="font-semibold">Reliable access</h3>
-                                    <p className="text-sm text-white/75">
-                                        Securely access your quotations and booking details.
-                                    </p>
-                                </div>
-                            </motion.div>
-
-                            <motion.div
-                                variants={itemVariants}
-                                whileHover={{ y: -4, scale: 1.01 }}
-                                className="rounded-2xl bg-white/10 border border-white/10 p-4 flex items-start gap-3"
-                            >
-                                <CheckCircle2 className="mt-1 text-[#f5c94a]" size={20} />
-                                <div>
-                                    <h3 className="font-semibold">Modern client experience</h3>
-                                    <p className="text-sm text-white/75">
-                                        Smooth registration flow with instant feedback popups.
-                                    </p>
-                                </div>
-                            </motion.div>
-                        </div>
                     </motion.div>
 
                     <motion.div
