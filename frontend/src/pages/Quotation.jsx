@@ -90,22 +90,6 @@ const dynamicPerPaxPackages = [
             "Food Attendants",
         ],
     },
-    {
-        id: "gender-reveal-catering",
-        name: "Gender Reveal Catering Package",
-        eventType: "Gender Reveal",
-        pricingType: "perPax",
-        ratePerPax: PAX_RATE,
-        includedPax: null,
-        features: [
-            "Flexible Catering Setup",
-            "Classic Menu Selection",
-            "Pink and Blue Theme Setup",
-            "Basic Buffet Setup",
-            "Complete Cutleries",
-            "Food Attendants",
-        ],
-    },
 ];
 
 const debutPackages = [
@@ -416,7 +400,6 @@ function normalizeEventType(value, packageName = "") {
         if (lowered.includes("birthday")) return "Birthday";
         if (lowered.includes("anniversary")) return "Anniversary";
         if (lowered.includes("baptismal")) return "Baptismal";
-        if (lowered.includes("gender")) return "Gender Reveal";
         if (lowered.includes("classic menu") || lowered.includes("menu")) return "Classic Menu";
         if (lowered.includes("add")) return "Add-on";
         return raw.charAt(0).toUpperCase() + raw.slice(1);
@@ -428,7 +411,6 @@ function normalizeEventType(value, packageName = "") {
     if (name.includes("birthday")) return "Birthday";
     if (name.includes("anniversary")) return "Anniversary";
     if (name.includes("baptismal")) return "Baptismal";
-    if (name.includes("gender")) return "Gender Reveal";
     if (name.includes("classic menu") || name.includes("menu")) return "Classic Menu";
     if (name.includes("add")) return "Add-on";
 
@@ -1423,7 +1405,6 @@ function Quotation({ mode = "public" }) {
                                                 <option value="Birthday">Birthday</option>
                                                 <option value="Anniversary">Anniversary</option>
                                                 <option value="Baptismal">Baptismal</option>
-                                                <option value="Gender Reveal">Gender Reveal</option>
                                             </select>
                                             <ChevronDown size={18} className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 ${isDark ? "text-white/60" : "text-slate-500"}`} />
                                         </div>
