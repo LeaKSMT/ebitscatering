@@ -135,7 +135,7 @@ const weddingPackages = [
 ];
 
 const classicMenus = ["Classic A", "Classic B", "Classic C", "Classic D"];
-S
+
 const allPackages = [
     ...dynamicPerPaxPackages,
     ...debutPackages,
@@ -531,48 +531,50 @@ function AdminCalendar() {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [form, setForm] = useState(getInitialForm());
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
     const [addOnOptions, setAddOnOptions] = useState([]);
 
-    const refreshBookings = async () => {
-        const fetchPublicAddOns = async () => {
-            try {
-                const res = await fetch(`${API_BASE}/packages/public`, {
-                    method: "GET",
-                    credentials: "include",
-                });
+    const fetchPublicAddOns = async () => {
+        try {
+            const res = await fetch(`${API_BASE}/packages/public`, {
+                method: "GET",
+                credentials: "include",
+            });
 
-                if (!res.ok) {
-                    throw new Error("Failed to load add-ons.");
-                }
-
-                const data = await res.json();
-                const list = Array.isArray(data) ? data : data?.packages || data?.data || [];
-
-                const activeClientVisibleAddOns = list
-                    .filter((item) => {
-                        const group = String(item?.packageGroup || "").trim().toLowerCase();
-                        const category = String(item?.category || "").trim().toLowerCase();
-
-                        return (
-                            item?.isActive !== false &&
-                            item?.showOnClient !== false &&
-                            (group === "add-on" || category === "add-on service")
-                        );
-                    })
-                    .map((item) => ({
-                        id: item.id,
-                        name: item.title,
-                        price: Number(item.rawPrice ?? parseMoneyValue(item.price)),
-                        description: item.description || "",
-                        features: Array.isArray(item.features) ? item.features : [],
-                    }));
-
-                setAddOnOptions(activeClientVisibleAddOns);
-            } catch (err) {
-                console.error("Fetch public add-ons error:", err);
-                setAddOnOptions([]);
+            if (!res.ok) {
+                throw new Error("Failed to load add-ons.");
             }
-        };
+
+            const data = await res.json();
+            const list = Array.isArray(data) ? data : data?.packages || data?.data || [];
+
+            const activeClientVisibleAddOns = list
+                .filter((item) => {
+                    const group = String(item?.packageGroup || "").trim().toLowerCase();
+                    const category = String(item?.category || "").trim().toLowerCase();
+
+                    return (
+                        item?.isActive !== false &&
+                        item?.showOnClient !== false &&
+                        (group === "add-on" || category === "add-on service")
+                    );
+                })
+                .map((item) => ({
+                    id: item.id,
+                    name: item.title,
+                    price: Number(item.rawPrice ?? parseMoneyValue(item.price)),
+                    description: item.description || "",
+                    features: Array.isArray(item.features) ? item.features : [],
+                }));
+
+            setAddOnOptions(activeClientVisibleAddOns);
+        } catch (err) {
+            console.error("Fetch public add-ons error:", err);
+            setAddOnOptions([]);
+        }
+    };
+
+    const refreshBookings = async () => {
         setLoading(true);
         setError("");
 
@@ -1103,7 +1105,6 @@ function AdminCalendar() {
         const bookingCount = dayBookings.length;
         const isFull = bookingCount >= MAX_BOOKINGS_PER_DAY;
         const visibleDayBookings = dayBookings.slice(0, MAX_BOOKINGS_PER_DAY);
-        const hiddenBookingCount = Math.max(bookingCount - visibleDayBookings.length, 0);
 
         days.push(
             <motion.div
@@ -1211,7 +1212,7 @@ function AdminCalendar() {
                             );
                         })}
 
-                        {hiddenBookingCount > 0 ? null : null}
+
                     </div>
                 )}
             </motion.div>
