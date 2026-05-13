@@ -168,10 +168,6 @@ function AdminInventory() {
                             <h1 className="mt-4 text-3xl font-extrabold md:text-[42px]">
                                 Inventory & Stock Monitoring
                             </h1>
-                            <p className="mt-2 max-w-3xl text-sm leading-7 text-white/85 md:text-[15px]">
-                                Monitor ingredients, utensils, supplies, and equipment in a
-                                clean premium inventory workspace.
-                            </p>
                         </div>
                     </div>
                 </motion.section>

@@ -166,10 +166,7 @@ function AdminEmployees() {
                             <h1 className="mt-4 text-3xl font-extrabold md:text-[42px]">
                                 Staff Records & Workforce Overview
                             </h1>
-                            <p className="mt-2 max-w-3xl text-sm leading-7 text-white/85 md:text-[15px]">
-                                Add employees, monitor availability, and manage staff records
-                                using a polished and defense-ready employee workspace.
-                            </p>
+
                         </div>
                     </div>
                 </motion.section>
